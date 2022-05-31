@@ -1,0 +1,26 @@
+body {
+    color-scheme: dark;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    touch-action: manipulation;
+    user-select: none;
+    font-family: 'Roboto', sans-serif;
+    font-size: 0;
+    color: white;
+    background-color: hsl(0, 0%, 5%);
+}
+
+#mode-list{
+    position: absolute;
+    width: 50%;
+    height: 100%;
+}
+
+mode-item {
+    display: block;
+    width: calc(100% - 1vw);
+    height: 10vh;
+    margin: 0.5vw;
+    background-color: hsl(0, 0%, 10%);
+}

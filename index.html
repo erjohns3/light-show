@@ -23,7 +23,7 @@
 
     <div id="rate-label" class="label">BPM</div>
     <div id="rate-curr" class="value"></div>
-    <input type="number" min="0" max="500" id="rate-next" class="value">
+    <input type="number" id="rate-next" class="value">
 
     <div id="mode-label" class="label">Mode</div>
     <div id="mode-curr" class="value"></div>
@@ -37,7 +37,7 @@
     function socketInit() {
         console.log("socket init");
 
-        socket = new WebSocket("ws://127.0.0.1:8765");
+        socket = new WebSocket("ws://192.168.86.54:8765");
 
         socket.onopen = function () {
             console.log("socket open");
@@ -88,6 +88,10 @@
             if(msg.status){
                 setRate(msg.status.rate)
                 setMode(msg.status.mode)
+
+                if(startTime){
+                    //console.log(Date.now() - startTime);
+                }
             }
         }
     }
@@ -95,6 +99,11 @@
     function setRate(rate){
         rateCurr = rate;
         rateCurrElem.textContent = rateCurr;
+        
+        if(rateNext == false){
+            rateNext = rateCurr;
+            rateNextElem.value = rateNext;
+        }
     }
 
     function setMode(mode){
@@ -106,6 +115,21 @@
             modeElems[modeCurr].classList.add('mode-curr');
         }
         modeCurrElem.textContent = modeCurr;
+
+        if(modeNext == false){
+            setNextMode(modeCurr);
+        }
+    }
+
+    function setNextMode(mode){
+        if (modeNext){
+            modeElems[modeNext].classList.remove('mode-next');
+        }
+        modeNext = mode;
+        if (modeNext){
+            modeElems[modeNext].classList.add('mode-next');
+        }
+        modeNextElem.textContent = modeNext;
     }
 
     class ModeItem extends HTMLElement {
@@ -123,14 +147,7 @@
 
             this.onclick = function () {
                 //event.stopPropagation();
-                if (modeNext){
-                    modeElems[modeNext].classList.remove('mode-next');
-                }
-                modeNext = this.name;
-                if (modeNext){
-                    modeElems[modeNext].classList.add('mode-next');
-                }
-                modeNextElem.textContent = modeNext;
+                setNextMode(this.name);
             };
         }
     }
@@ -140,6 +157,9 @@
     var socketConnected = false;
     var socketAttempts = 0;
 
+    var startTime = false;
+    var listScroll = 0;
+
     var modeElems = {};
     var modeListElem = document.getElementById("mode-list");
 
@@ -147,10 +167,10 @@
 
     var config = {};
 
-    var rateCurr = 0;
-    var rateNext = 0;
-    var modeCurr = "";
-    var modeNext = "";
+    var rateCurr = false;
+    var rateNext = false;
+    var modeCurr = false;
+    var modeNext = false;
 
     var rateCurrElem = document.getElementById("rate-curr");
     var rateNextElem = document.getElementById("rate-next");
@@ -158,14 +178,83 @@
     var modeNextElem = document.getElementById("mode-next");
     var applyElem = document.getElementById("apply-button");
 
+    rateNextElem.focus();
+
+    rateNextElem.onblur = function(){
+        fixRate();
+    }
+
+    function fixRate(){
+        rateNextElem.value = Math.max(0.01, Math.min(600, rateNextElem.value));
+    }
+
     applyElem.onclick = function () {
+        fixRate();
         let msg = {
             type: "start",
             rate: rateNextElem.value,
             mode: modeNext
         };
         socket.send(JSON.stringify(msg));
+        console.log(msg)
+        startTime = Date.now();
     }
+
+    document.addEventListener('keydown', (e) => {
+        if(e.keyCode == 32){ // space
+            applyElem.click();
+        }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
+            var num = 0;
+            var found = 0;
+            for(var mode in modeElems){
+                if(mode == modeNext){
+                    found = num;
+                }
+                num++;
+            }
+            num = 0;
+            if(e.keyCode == 87){
+                found--;
+            }else if(e.keyCode == 83){
+                found++;
+            }
+            for(var mode in modeElems){
+                if(num == found){
+                    setNextMode(mode);
+                }
+                num++;
+            }
+
+            var margin = window.innerWidth*0.005;
+            console.log("SCROLL");
+            
+            var topScroll = Math.round(modeElems[modeNext].offsetTop - margin);
+            var bottomScroll = Math.round(modeElems[modeNext].offsetTop + modeElems[modeNext].offsetHeight + margin - modeListElem.offsetHeight);
+
+            console.log(listScroll);
+            console.log(topScroll);
+            console.log(bottomScroll);
+
+            if(topScroll < listScroll){
+                listScroll = topScroll;
+                modeListElem.scrollTo({
+                    top: listScroll,
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            }else if(bottomScroll > listScroll){
+                listScroll = bottomScroll;
+                modeListElem.scrollTo({
+                    top: listScroll,
+                    left: 0,
+                    behavior: 'smooth'
+                });
+            }
+        }else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 37 && e.keyCode <= 40) || e.keyCode == 190 || e.keyCode == 8){
+            rateNextElem.focus();
+        }
+        //console.log(e.keyCode)
+    });
 
     socketInit();
 
@@ -188,6 +277,7 @@
         width: 35%;
         height: 100%;
         background-color: hsl(0, 0%, 8%);
+        overflow: auto;
     }
 
     mode-item {
@@ -261,6 +351,8 @@
         left: 75%;
         top: 25%;
         box-sizing: border-box;
+        border: none;
+        border-bottom: hsl(0, 0%, 50%) 1px solid;
     }
 
     #mode-label {
@@ -309,6 +401,16 @@
     /* Firefox */
     input[type=number] {
         -moz-appearance: textfield;
+    }
+    
+
+    ::-webkit-scrollbar {
+        width: 1vw;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: hsl(0, 0%, 20%);
+        border-radius: 1vw;
     }
 
 </style>

@@ -1,7 +1,4 @@
-from ast import Num
-from operator import length_hint
 import threading
-from types import new_class
 import pigpio
 import time
 import sys
@@ -16,28 +13,32 @@ import os
 from os import path
 import math
 
-
-LIGHT_PERIOD = 0.005
-
+SUB_BEATS = 24
 
 args = False
 pi = None
 light_task = False
-light_mode = ""
-rate = 120
+light_mode = "None"
+light_bpm = 120
+light_rate = light_bpm / 60 * SUB_BEATS
+light_period = 1 / light_rate * 0.5
 
 
-async def set_light(new_mode, new_rate):
+async def set_light(new_mode, new_bpm):
     global light_mode
     global light_task
-    global rate
+    global light_bpm
+    global light_rate
+    global light_period
 
     if light_task:
         light_task.cancel()
 
     print("mode: " + str(new_mode))
     light_mode = new_mode
-    rate = new_rate
+    light_bpm = new_bpm
+    light_rate = light_bpm / 60 * SUB_BEATS
+    light_period = 1 / light_rate * 0.5
     
     light_task = asyncio.create_task(light())
 
@@ -47,29 +48,24 @@ RED_PIN = 9
 GREEN_PIN = 10
 BLUE_PIN = 11
 
+COLOR_PINS = [RED_PIN, GREEN_PIN, BLUE_PIN]
+
 async def light():    
+    mode = light_modes[light_mode]
+    index_prev = -1
+    prev_color = [-1] * 3
 
-    beats = config[light_mode]['beats']
-    length = config[light_mode]['length'] * 60 / rate
-
-    start = time.time()
-
+    tick_start = time.perf_counter()
     while True:
-        
-        for key in beats:
-            color = beats[key]
-            beat = float(key) * 60 / rate
-
-            while time.time() - start < beat: await asyncio.sleep(LIGHT_PERIOD)
-            
-            # pi.set_PWM_dutycycle(RED_PIN, color[0])
-            # pi.set_PWM_dutycycle(GREEN_PIN, color[1])
-            # pi.set_PWM_dutycycle(BLUE_PIN, color[2])  
-            print(f'{time.time() - start} : {color}')
-
-        while time.time() - start < length: await asyncio.sleep(LIGHT_PERIOD)
-
-        start += length
+        index = round((time.perf_counter() - tick_start) * light_rate) % len(mode)
+        if index_prev != index:
+            color = mode[index]
+            for i in range(3):
+                if color[i] != prev_color[i]:
+                    pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - color[i])*2.55))
+                    prev_color[i] = color[i]
+        index_prev = index
+        await asyncio.sleep(light_period)
 
 #################################################
 
@@ -79,7 +75,7 @@ async def init(websocket, path):
     message = {
         'config': config,
         'status': {
-            'rate': rate,
+            'rate': light_bpm,
             'mode': light_mode
         }
     }
@@ -102,12 +98,16 @@ async def init(websocket, path):
         if 'type' in msg:
 
             if msg['type'] == 'start':
-                await set_light(msg['mode'], msg['rate'])
+                if msg['mode'] != '' and msg['rate'] != '':
+                    mode = msg['mode']
+                    bpm = float(msg['rate'])
+                    if bpm > 0:
+                        await set_light(mode, bpm)
 
             message = {
                 'status': {
                     'mode': light_mode,
-                    'rate': rate
+                    'rate': light_bpm
                 }
             }
             dump = json.dumps(message)
@@ -128,9 +128,9 @@ def setup_pigpio():
     pi.set_mode(GREEN_PIN, pigpio.OUTPUT)
     pi.set_mode(BLUE_PIN, pigpio.OUTPUT)
 
-    pi.set_PWM_dutycycle(RED_PIN, 0)
-    pi.set_PWM_dutycycle(GREEN_PIN, 0)
-    pi.set_PWM_dutycycle(BLUE_PIN, 0)
+    pi.set_PWM_dutycycle(RED_PIN, 255)
+    pi.set_PWM_dutycycle(GREEN_PIN, 255)
+    pi.set_PWM_dutycycle(BLUE_PIN, 255)
 
     pi.set_PWM_frequency(RED_PIN, 1000)
     pi.set_PWM_frequency(GREEN_PIN, 1000)
@@ -161,10 +161,45 @@ drink_io_folder = str(loc)
 with open(path.join(drink_io_folder, 'config.json'), 'r') as f:
     config = json.loads(f.read())
 
-# for mode in config:
-#     print(f'{mode}:')
-#     for color in config[mode]:
-#         print(f'    {color}:')
+light_modes = {}
+
+key_frames = {}
+
+for mode in config:
+    light_modes[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
+    key_frames[mode] = []
+    prev_index = -1
+    for beat in config[mode]['beats']:
+        index = min(len(light_modes[mode])-1, max(prev_index + 1, round((eval(beat)-1) * SUB_BEATS)))
+        prev_index = index
+        key_frames[mode].append(index)
+        light_modes[mode][index] = config[mode]['beats'][beat]
+
+for mode in light_modes:
+    for x in range(len(key_frames[mode])):
+        start_index = key_frames[mode][x]
+        if x < len(key_frames[mode]) - 1:
+            end_index = key_frames[mode][x+1]
+        else:
+            end_index = key_frames[mode][(x+1)%len(key_frames[mode])] + len(light_modes[mode])
+        start_color = light_modes[mode][start_index]
+        end_color = light_modes[mode][end_index % len(light_modes[mode])]
+
+        for y in range(start_index + 1, end_index):
+            light_modes[mode][y % len(light_modes[mode])] = [0] * 3
+
+            if len(start_color) == 4 and start_color[3] == "hold":
+                for i in range(3):
+                    light_modes[mode][y % len(light_modes[mode])][i] = start_color[i]
+            else:
+                shift = (y - start_index) / (end_index - start_index)
+                for i in range(3):
+                    light_modes[mode][y % len(light_modes[mode])][i] = (end_color[i] * shift) + (start_color[i] * (1 - shift))
+                    
+for mode in config:
+    print(f'{mode}')
+    for i in range(len(light_modes[mode])):
+        print(f'    {i}: {round(light_modes[mode][i][0])}, {round(light_modes[mode][i][1])}, {round(light_modes[mode][i][2])}')
 
 ##################################################
 
@@ -173,9 +208,9 @@ def signal_handler(sig, frame):
     if pi is None:
         print('signal_handler skipped for testing', flush=True)
     else:
-        pi.set_PWM_dutycycle(RED_PIN, 0)
-        pi.set_PWM_dutycycle(GREEN_PIN, 0)
-        pi.set_PWM_dutycycle(BLUE_PIN, 0)
+        pi.set_PWM_dutycycle(RED_PIN, 255)
+        pi.set_PWM_dutycycle(GREEN_PIN, 255)
+        pi.set_PWM_dutycycle(BLUE_PIN, 255)
 
         pi.stop()
 
@@ -204,24 +239,11 @@ def main():
                    help='To run webserver without drinkmaker attached')
     args = parser.parse_args()
 
-    #if not args.testing:
-        #setup_pigpio()
+    if not args.testing:
+        setup_pigpio()
 
     http_thread = threading.Thread(target=http_server, args=[args.testing], daemon=True)
     http_thread.start()
-
-    start = time.time()
-    length = 0.05
-
-    while True:
-        now = time.time()
-        while now - start < length: 
-            #time.sleep(0.001)
-            now = time.time()
-
-        print(now - start)
-
-        start += length
 
     run_asyncio()
 

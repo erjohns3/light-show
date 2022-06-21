@@ -37,7 +37,8 @@
     function socketInit() {
         console.log("socket init");
 
-        socket = new WebSocket("ws://192.168.86.54:8765");
+        socket = new WebSocket("ws://" + location.hostname + ":8765");
+        console.log(location.hostname);
 
         socket.onopen = function () {
             console.log("socket open");
@@ -90,7 +91,7 @@
                 setMode(msg.status.mode)
 
                 if(startTime){
-                    //console.log(Date.now() - startTime);
+                    console.log(Date.now() - startTime);
                 }
             }
         }
@@ -191,7 +192,7 @@
     applyElem.onclick = function () {
         fixRate();
         let msg = {
-            type: "start",
+            type: "apply",
             rate: rateNextElem.value,
             mode: modeNext
         };
@@ -201,7 +202,13 @@
     }
 
     document.addEventListener('keydown', (e) => {
-        if(e.keyCode == 32){ // space
+        if(e.keyCode == 27){ // space
+            var lastMode = modeNext;
+            setNextMode("None");
+            applyElem.click();
+            setNextMode(lastMode);
+        }
+        else if(e.keyCode == 32){ // space
             applyElem.click();
         }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
             var num = 0;
@@ -226,14 +233,9 @@
             }
 
             var margin = window.innerWidth*0.005;
-            console.log("SCROLL");
             
             var topScroll = Math.round(modeElems[modeNext].offsetTop - margin);
             var bottomScroll = Math.round(modeElems[modeNext].offsetTop + modeElems[modeNext].offsetHeight + margin - modeListElem.offsetHeight);
-
-            console.log(listScroll);
-            console.log(topScroll);
-            console.log(bottomScroll);
 
             if(topScroll < listScroll){
                 listScroll = topScroll;
@@ -274,7 +276,7 @@
 
     #mode-list{
         position: absolute;
-        width: 35%;
+        width: 30%;
         height: 100%;
         background-color: hsl(0, 0%, 8%);
         overflow: auto;
@@ -328,27 +330,27 @@
     }
 
     #curr-label {
-        left: 60%;
+        left: 55%;
         top: 15%;
     }
 
     #next-label {
-        left: 75%;
+        left: 70%;
         top: 15%;
     }
 
     #rate-label {
-        left: 45%;
+        left: 40%;
         top: 25%;
     }
 
     #rate-curr {
-        left: 60%;
+        left: 55%;
         top: 25%;
     }
 
     #rate-next {
-        left: 75%;
+        left: 70%;
         top: 25%;
         box-sizing: border-box;
         border: none;
@@ -356,24 +358,24 @@
     }
 
     #mode-label {
-        left: 45%;
+        left: 40%;
         top: 35%;
     }
 
     #mode-curr {
-        left: 60%;
+        left: 55%;
         top: 35%;
     }
 
     #mode-next {
-        left: 75%;
+        left: 70%;
         top: 35%;
     }
 
 
     #apply-button{
         position: absolute;
-        left: 55%;
+        left: 50%;
         top: 50%;
         width: 25%;
         height: 8%;
@@ -387,7 +389,23 @@
         cursor: pointer;
     }
 
-    #apply-button:active{
+    #preview-button{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 25%;
+        height: 8%;
+        border-radius: 1vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(204, 100%, 30%);
+        cursor: pointer;
+    }
+
+    .button:active{
         opacity: 0.8;
         transform: scale(0.97);
     }
@@ -409,7 +427,7 @@
     }
 
     ::-webkit-scrollbar-thumb {
-        background: hsl(0, 0%, 20%);
+        background-color: hsl(0, 0%, 20%);
         border-radius: 1vw;
     }
 

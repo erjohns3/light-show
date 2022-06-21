@@ -21,7 +21,6 @@ light_task = False
 light_mode = "None"
 light_bpm = 120
 light_rate = light_bpm / 60 * SUB_BEATS
-light_period = 1 / light_rate * 0.5
 
 
 async def set_light(new_mode, new_bpm):
@@ -29,7 +28,6 @@ async def set_light(new_mode, new_bpm):
     global light_task
     global light_bpm
     global light_rate
-    global light_period
 
     if light_task:
         light_task.cancel()
@@ -38,7 +36,6 @@ async def set_light(new_mode, new_bpm):
     light_mode = new_mode
     light_bpm = new_bpm
     light_rate = light_bpm / 60 * SUB_BEATS
-    light_period = 1 / light_rate * 0.5
     
     light_task = asyncio.create_task(light())
 
@@ -56,16 +53,23 @@ async def light():
     prev_color = [-1] * 3
 
     tick_start = time.perf_counter()
+
     while True:
-        index = round((time.perf_counter() - tick_start) * light_rate) % len(mode)
+        time_curr = time.perf_counter()
+        time_diff = time_curr - tick_start
+        num = int(time_diff * light_rate)
+        index = num % len(mode)
+        time_delay = ((num + 1) / light_rate) - time_diff
+        
         if index_prev != index:
             color = mode[index]
             for i in range(3):
                 if color[i] != prev_color[i]:
                     pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - color[i])*2.55))
                     prev_color[i] = color[i]
+        
         index_prev = index
-        await asyncio.sleep(light_period)
+        await asyncio.sleep(time_delay)
 
 #################################################
 
@@ -97,7 +101,14 @@ async def init(websocket, path):
 
         if 'type' in msg:
 
-            if msg['type'] == 'start':
+            if msg['type'] == 'apply':
+                if msg['mode'] != '' and msg['rate'] != '':
+                    mode = msg['mode']
+                    bpm = float(msg['rate'])
+                    if bpm > 0:
+                        await set_light(mode, bpm)
+
+            elif msg['type'] == 'preview':
                 if msg['mode'] != '' and msg['rate'] != '':
                     mode = msg['mode']
                     bpm = float(msg['rate'])

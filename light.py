@@ -18,24 +18,24 @@ SUB_BEATS = 24
 args = False
 pi = None
 light_task = False
-light_mode = "None"
-light_bpm = 120
-light_rate = light_bpm / 60 * SUB_BEATS
+curr_modes = []
+curr_bpm = 120
+curr_rate = curr_bpm / 60 * SUB_BEATS
 
 
-async def set_light(new_mode, new_bpm):
-    global light_mode
+async def set_light(new_modes, new_bpm):
     global light_task
-    global light_bpm
-    global light_rate
+    global curr_modes
+    global curr_bpm
+    global curr_rate
 
     if light_task:
         light_task.cancel()
 
-    print("mode: " + str(new_mode))
-    light_mode = new_mode
-    light_bpm = new_bpm
-    light_rate = light_bpm / 60 * SUB_BEATS
+    print("mode: " + str(curr_modes))
+    curr_modes = new_modes
+    curr_bpm = new_bpm
+    curr_rate = curr_bpm / 60 * SUB_BEATS
     
     light_task = asyncio.create_task(light())
 
@@ -48,39 +48,33 @@ BLUE_PIN = 11
 COLOR_PINS = [RED_PIN, GREEN_PIN, BLUE_PIN]
 
 async def light():    
-    mode = light_modes[light_mode]
-    index_prev = -1
-    prev_color = [-1] * 3
-
     tick_start = time.perf_counter()
 
     while True:
         time_curr = time.perf_counter()
         time_diff = time_curr - tick_start
-        num = int(time_diff * light_rate)
-        index = num % len(mode)
-        time_delay = ((num + 1) / light_rate) - time_diff
+        num = int(time_diff * curr_rate)
+        time_delay = ((num + 1) / curr_rate) - time_diff
         
-        if index_prev != index:
-            color = mode[index]
-            for i in range(3):
-                if color[i] != prev_color[i]:
-                    pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - color[i])*2.55))
-                    prev_color[i] = color[i]
+        for i in range(3):
+            level = 0
+            for mode in curr_modes:
+                index = num % len(light_modes[mode])
+                level = max(level, light_modes[mode][index][i])
+            pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - level)*2.55))
         
-        index_prev = index
         await asyncio.sleep(time_delay)
 
 #################################################
 
 async def init(websocket, path):
-    global light_mode
+    global curr_modes
     
     message = {
         'config': config,
         'status': {
-            'rate': light_bpm,
-            'mode': light_mode
+            'rate': curr_bpm,
+            'modes': curr_modes
         }
     }
     dump = json.dumps(message)
@@ -102,23 +96,23 @@ async def init(websocket, path):
         if 'type' in msg:
 
             if msg['type'] == 'apply':
-                if msg['mode'] != '' and msg['rate'] != '':
-                    mode = msg['mode']
+                if msg['modes'] != '' and msg['rate'] != '':
+                    mode = msg['modes']
                     bpm = float(msg['rate'])
                     if bpm > 0:
                         await set_light(mode, bpm)
 
             elif msg['type'] == 'preview':
-                if msg['mode'] != '' and msg['rate'] != '':
-                    mode = msg['mode']
+                if msg['modes'] != '' and msg['rate'] != '':
+                    mode = msg['modes']
                     bpm = float(msg['rate'])
                     if bpm > 0:
                         await set_light(mode, bpm)
 
             message = {
                 'status': {
-                    'mode': light_mode,
-                    'rate': light_bpm
+                    'modes': curr_modes,
+                    'rate': curr_bpm
                 }
             }
             dump = json.dumps(message)

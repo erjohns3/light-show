@@ -13,7 +13,6 @@
 
     <template id="template-mode-item">
         <div class="mode-name"></div>
-        <div class="mode-color"></div>
     </template>
 
     <div id="mode-list"></div>
@@ -25,11 +24,7 @@
     <div id="rate-curr" class="value"></div>
     <input type="number" id="rate-next" class="value">
 
-    <div id="mode-label" class="label">Mode</div>
-    <div id="mode-curr" class="value"></div>
-    <div id="mode-next" class="value"></div>
-
-    <div id="apply-button">Apply (space)</div>
+    <div id="apply-button">Apply (Enter)</div>
 
 </body>
 
@@ -38,7 +33,6 @@
         console.log("socket init");
 
         socket = new WebSocket("ws://" + location.hostname + ":8765");
-        console.log(location.hostname);
 
         socket.onopen = function () {
             console.log("socket open");
@@ -83,12 +77,15 @@
                 for(let name in config){
                     modeElems[name] = new ModeItem(name);
                     modeListElem.append(modeElems[name]);
+                    if(modeSelected == false){
+                        selectMode(name);
+                    }
                 }
             }
 
             if(msg.status){
-                setRate(msg.status.rate)
-                setMode(msg.status.mode)
+                setCurrRate(msg.status.rate)
+                setCurrModes(msg.status.modes)
 
                 if(startTime){
                     console.log(Date.now() - startTime);
@@ -97,7 +94,9 @@
         }
     }
 
-    function setRate(rate){
+    //////////////////////////////////////////////////////////////////
+
+    function setCurrRate(rate){
         rateCurr = rate;
         rateCurrElem.textContent = rateCurr;
         
@@ -107,30 +106,57 @@
         }
     }
 
-    function setMode(mode){
-        if (modeCurr){
-            modeElems[modeCurr].classList.remove('mode-curr');
-        }
-        modeCurr = mode;
-        if (modeCurr){
-            modeElems[modeCurr].classList.add('mode-curr');
-        }
-        modeCurrElem.textContent = modeCurr;
+    //////////////////////////////////////////////////////////////////
 
-        if(modeNext == false){
-            setNextMode(modeCurr);
+    function setCurrModes(modes){
+        for(let mode of modesCurr){
+            modeElems[mode].classList.remove('mode-item-curr');
+        }
+        for(let mode of modes){
+            modeElems[mode].classList.add('mode-item-curr');
+        }
+        modesCurr = modes;
+    }
+
+    //////////////////////////////////////////////////////////////////
+
+    function addNextMode(mode){
+        let index = modesNext.indexOf(mode);
+        if(index == -1){
+            modesNext.push(mode);
+            modeElems[mode].classList.add('mode-item-next');
         }
     }
 
-    function setNextMode(mode){
-        if (modeNext){
-            modeElems[modeNext].classList.remove('mode-next');
+    function removeNextMode(mode){
+        let index = modesNext.indexOf(mode);
+        if(index >= 0){
+            modesNext.splice(index, 1)
+            modeElems[mode].classList.remove('mode-item-next');
         }
-        modeNext = mode;
-        if (modeNext){
-            modeElems[modeNext].classList.add('mode-next');
+    }
+
+    function toggleNextMode(mode){
+        let index = modesNext.indexOf(mode);
+        if(index >= 0){
+            modesNext.splice(index, 1)
+            modeElems[mode].classList.remove('mode-item-next');
+        }else{
+            modesNext.push(mode);
+            modeElems[mode].classList.add('mode-item-next');
         }
-        modeNextElem.textContent = modeNext;
+    }
+
+    /////////////////////////////////////////////////////////////////////
+
+    function selectMode(mode){
+        if (modeSelected){
+            modeElems[modeSelected].classList.remove('mode-item-selected');
+        }
+        modeSelected = mode;
+        if (modeSelected){
+            modeElems[modeSelected].classList.add('mode-item-selected');
+        }
     }
 
     class ModeItem extends HTMLElement {
@@ -148,7 +174,8 @@
 
             this.onclick = function () {
                 //event.stopPropagation();
-                setNextMode(this.name);
+                toggleNextMode(this.name);
+                selectMode(this.name);
             };
         }
     }
@@ -170,13 +197,12 @@
 
     var rateCurr = false;
     var rateNext = false;
-    var modeCurr = false;
-    var modeNext = false;
+    var modesCurr = [];
+    var modesNext = [];
+    var modeSelected = false;
 
     var rateCurrElem = document.getElementById("rate-curr");
     var rateNextElem = document.getElementById("rate-next");
-    var modeCurrElem = document.getElementById("mode-curr");
-    var modeNextElem = document.getElementById("mode-next");
     var applyElem = document.getElementById("apply-button");
 
     rateNextElem.focus();
@@ -189,32 +215,35 @@
         rateNextElem.value = Math.max(0.01, Math.min(600, rateNextElem.value));
     }
 
-    applyElem.onclick = function () {
-        fixRate();
+    function apply(modes, rate){
         let msg = {
             type: "apply",
-            rate: rateNextElem.value,
-            mode: modeNext
+            modes: modes,
+            rate: rate
         };
         socket.send(JSON.stringify(msg));
         console.log(msg)
         startTime = Date.now();
     }
 
+    applyElem.onclick = function () {
+        fixRate();
+        apply(modesNext, rateNextElem.value);
+    }
+
     document.addEventListener('keydown', (e) => {
-        if(e.keyCode == 27){ // space
-            var lastMode = modeNext;
-            setNextMode("None");
+        console.log(e.keyCode);
+        if(e.keyCode == 27){ // escape
+            apply([], rateCurr);
+        }else if(e.keyCode == 13){ // enter
             applyElem.click();
-            setNextMode(lastMode);
-        }
-        else if(e.keyCode == 32){ // space
-            applyElem.click();
+        }else if(e.keyCode == 32 || e.keyCode == 68){ // space
+            toggleNextMode(modeSelected);
         }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
             var num = 0;
             var found = 0;
             for(var mode in modeElems){
-                if(mode == modeNext){
+                if(mode == modeSelected){
                     found = num;
                 }
                 num++;
@@ -227,15 +256,15 @@
             }
             for(var mode in modeElems){
                 if(num == found){
-                    setNextMode(mode);
+                    selectMode(mode);
                 }
                 num++;
             }
 
             var margin = window.innerWidth*0.005;
             
-            var topScroll = Math.round(modeElems[modeNext].offsetTop - margin);
-            var bottomScroll = Math.round(modeElems[modeNext].offsetTop + modeElems[modeNext].offsetHeight + margin - modeListElem.offsetHeight);
+            var topScroll = Math.round(modeElems[modeSelected].offsetTop - margin);
+            var bottomScroll = Math.round(modeElems[modeSelected].offsetTop + modeElems[modeSelected].offsetHeight + margin - modeListElem.offsetHeight);
 
             if(topScroll < listScroll){
                 listScroll = topScroll;
@@ -255,7 +284,6 @@
         }else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 37 && e.keyCode <= 40) || e.keyCode == 190 || e.keyCode == 8){
             rateNextElem.focus();
         }
-        //console.log(e.keyCode)
     });
 
     socketInit();
@@ -287,7 +315,10 @@
         width: calc(100% - 1vw);
         height: 10vh;
         margin: 0.5vw;
-        border-radius: 1vw;
+        border-radius: 0.5vw;
+        border-left: solid 1vw hsla(0, 0%, 0%, 0%);
+        border-right: solid 1vw hsla(0, 0%, 0%, 0%);
+        box-sizing: border-box;
         background-color: hsl(0, 0%, 12%);
         text-align: center;
         font-size: 3vh;
@@ -297,12 +328,16 @@
         cursor: pointer;
     }
 
-    .mode-curr{
-        background-color: hsl(120, 100%, 30%);
+    .mode-item-selected{
+        background-color: hsl(0, 0%, 24%);
     }
 
-    .mode-next{
-        background-color: hsl(204, 100%, 30%);
+    .mode-item-curr{
+        border-left: solid 1vw hsl(120, 100%, 30%);
+    }
+
+    .mode-item-next{
+        border-right: solid 1vw hsl(204, 100%, 30%);
     }
 
     .label {

@@ -1,10 +1,4 @@
 {
-    "None": {
-        "length": 1,
-        "beats":{
-            "1": [0, 0, 0]
-        } 
-    },
     "RGB": {
         "length": 1,
         "beats":{

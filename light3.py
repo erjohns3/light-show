@@ -1,5 +1,4 @@
 import threading
-import pigpio
 import time
 import sys
 import json
@@ -12,64 +11,73 @@ import argparse
 import os
 from os import path
 import math
+import pigpio
+import board
+import busio
+import adafruit_pca9685
+
+i2c = busio.I2C(board.SCL, board.SDA)
+pca = adafruit_pca9685.PCA9685(i2c)
+
+pca.frequency = 200
 
 SUB_BEATS = 24
+LIGHT_COUNT = 7
 
 args = False
 pi = None
-light_task = False
 curr_modes = []
 curr_bpm = 120
-curr_rate = curr_bpm / 60 * SUB_BEATS
+tick_start = time.perf_counter()
 
+light_lock = threading.Lock()
+light_task = False
 
 async def set_light(new_modes, new_bpm):
-    global light_task
     global curr_modes
     global curr_bpm
-    global curr_rate
+    global tick_start
 
-    if light_task:
-        light_task.cancel()
-
-    print("mode: " + str(curr_modes))
+    light_lock.acquire()
     curr_modes = new_modes
     curr_bpm = new_bpm
-    curr_rate = curr_bpm / 60 * SUB_BEATS
-    
-    light_task = asyncio.create_task(light())
+    tick_start = time.perf_counter()
+    light_lock.release()
+    print("mode: " + str(curr_modes))
 
 ####################################
 
-RED_PIN = 9
-GREEN_PIN = 10
-BLUE_PIN = 11
-
-COLOR_PINS = [RED_PIN, GREEN_PIN, BLUE_PIN]
-
 async def light():    
-    tick_start = time.perf_counter()
 
     while True:
+        light_lock.acquire()
+        modes = curr_modes
+        rate = curr_bpm / 60 * SUB_BEATS
+        time_start = tick_start
+        light_lock.release()
+        
         time_curr = time.perf_counter()
-        time_diff = time_curr - tick_start
-        num = int(time_diff * curr_rate)
-        time_delay = ((num + 1) / curr_rate) - time_diff
+        time_diff = time_curr - time_start
+        num = int(time_diff * rate)
+        time_delay = ((num + 1) / rate) - time_diff
         
-        for i in range(3):
+        for i in range(LIGHT_COUNT):
             level = 0
-            for mode in curr_modes:
-                index = num % len(light_modes[mode])
-                level = max(level, light_modes[mode][index][i])
-            pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - level)*2.55))
-        
+            for mode in modes:
+                index = num % len(light_array[mode])
+                level += light_array[mode][index][i]
+            pca.channels[i].duty_cycle = max(0, min(0xFFFF, int(level * 0xFFFF / 100)))
+      
         await asyncio.sleep(time_delay)
 
 #################################################
 
 async def init(websocket, path):
-    global curr_modes
-    
+    global light_task
+
+    if not light_task:
+        light_task = asyncio.create_task(light())
+
     message = {
         'config': config,
         'status': {
@@ -129,17 +137,8 @@ def setup_pigpio():
     if not pi.connected:
         exit()
 
-    pi.set_mode(RED_PIN, pigpio.OUTPUT)
-    pi.set_mode(GREEN_PIN, pigpio.OUTPUT)
-    pi.set_mode(BLUE_PIN, pigpio.OUTPUT)
-
-    pi.set_PWM_dutycycle(RED_PIN, 255)
-    pi.set_PWM_dutycycle(GREEN_PIN, 255)
-    pi.set_PWM_dutycycle(BLUE_PIN, 255)
-
-    pi.set_PWM_frequency(RED_PIN, 200)
-    pi.set_PWM_frequency(GREEN_PIN, 200)
-    pi.set_PWM_frequency(BLUE_PIN, 200)
+    for i in range(len(pca.channels)):
+        pca.channels[i].duty_cycle = 0
 
 #################################################
 
@@ -166,45 +165,47 @@ drink_io_folder = str(loc)
 with open(path.join(drink_io_folder, 'config.json'), 'r') as f:
     config = json.loads(f.read())
 
-light_modes = {}
-
-key_frames = {}
+light_dict = {}
+light_array = {}
 
 for mode in config:
-    light_modes[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
-    key_frames[mode] = []
-    prev_index = -1
-    for beat in config[mode]['beats']:
-        index = min(len(light_modes[mode])-1, max(prev_index + 1, round((eval(beat)-1) * SUB_BEATS)))
-        prev_index = index
-        key_frames[mode].append(index)
-        light_modes[mode][index] = config[mode]['beats'][beat]
+    light_dict[mode] = {}
+    config[mode]['beats'][str(config[mode]['length']+1)] = False
+    beats = list(config[mode]['beats'].keys())
+    config[mode]['beats'][str(config[mode]['length']+1)] = config[mode]['beats'][beats[0]]
+    for i in range(len(beats)):
+        curr_beat = round((eval(beats[i])-1)*SUB_BEATS) / SUB_BEATS
+        light_dict[mode][curr_beat] = config[mode]['beats'][beats[i]]
+        if 'interpolation' in config[mode] and config[mode]['interpolation'] == 'hold' and i+1 < len(beats):
+            next_beat = eval(beats[i+1]) - 1 - (1/SUB_BEATS)
+            if abs(next_beat - curr_beat) > 0.5/SUB_BEATS:
+                light_dict[mode][next_beat] = light_dict[mode][curr_beat]
 
-for mode in light_modes:
-    for x in range(len(key_frames[mode])):
-        start_index = key_frames[mode][x]
-        if x < len(key_frames[mode]) - 1:
-            end_index = key_frames[mode][x+1]
-        else:
-            end_index = key_frames[mode][(x+1)%len(key_frames[mode])] + len(light_modes[mode])
-        start_color = light_modes[mode][start_index]
-        end_color = light_modes[mode][end_index % len(light_modes[mode])]
-
-        for y in range(start_index + 1, end_index):
-            light_modes[mode][y % len(light_modes[mode])] = [0] * 3
-
-            if len(start_color) == 4 and start_color[3] == "hold":
-                for i in range(3):
-                    light_modes[mode][y % len(light_modes[mode])][i] = start_color[i]
-            else:
-                shift = (y - start_index) / (end_index - start_index)
-                for i in range(3):
-                    light_modes[mode][y % len(light_modes[mode])][i] = (end_color[i] * shift) + (start_color[i] * (1 - shift))
-                    
 for mode in config:
     print(f'{mode}')
-    for i in range(len(light_modes[mode])):
-        print(f'    {i}: {round(light_modes[mode][i][0])}, {round(light_modes[mode][i][1])}, {round(light_modes[mode][i][2])}')
+    for beat in light_dict[mode]:
+        print(f'    {beat}: {round(light_dict[mode][beat][0])}, {round(light_dict[mode][beat][1])}, {round(light_dict[mode][beat][2])}')
+
+
+for mode in config:
+    light_array[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
+    beats = list(light_dict[mode].keys())
+    for i in range(len(beats)-1):
+        start_index = round(beats[i] * SUB_BEATS)
+        end_index = round(beats[i+1] * SUB_BEATS)
+        start_light = light_dict[mode][beats[i]]
+        end_light = light_dict[mode][beats[i+1]]
+
+        for j in range(start_index, end_index):
+            light_array[mode][j] = [0] * LIGHT_COUNT
+            shift = (j - start_index) / (end_index - start_index)
+            for k in range(LIGHT_COUNT):
+                light_array[mode][j][k] = (end_light[k] * shift) + (start_light[k] * (1 - shift))
+
+for mode in config:
+    print(f'{mode}')
+    for i in range(len(light_array[mode])):
+        print(f'    {i}: {round(light_array[mode][i][0])}, {round(light_array[mode][i][1])}, {round(light_array[mode][i][2])}')
 
 ##################################################
 
@@ -213,9 +214,8 @@ def signal_handler(sig, frame):
     if pi is None:
         print('signal_handler skipped for testing', flush=True)
     else:
-        pi.set_PWM_dutycycle(RED_PIN, 255)
-        pi.set_PWM_dutycycle(GREEN_PIN, 255)
-        pi.set_PWM_dutycycle(BLUE_PIN, 255)
+        for i in range(len(pca.channels)):
+            pca.channels[i].duty_cycle = 0
 
         pi.stop()
 
@@ -225,14 +225,6 @@ signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 
 #################################################
-
-def run_asyncio():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    start_server = websockets.serve(init, "0.0.0.0", 8765)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
 
 
 def main():
@@ -250,7 +242,12 @@ def main():
     http_thread = threading.Thread(target=http_server, args=[args.testing], daemon=True)
     http_thread.start()
 
-    run_asyncio()
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    start_server = websockets.serve(init, "0.0.0.0", 8765)
+    asyncio.get_event_loop().run_until_complete(start_server)
+    asyncio.get_event_loop().run_forever()
 
 
 if __name__ == "__main__":

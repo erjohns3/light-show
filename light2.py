@@ -20,7 +20,7 @@ pi = None
 light_task = False
 curr_modes = []
 curr_bpm = 120
-curr_rate = curr_bpm / 60 * SUB_BEATS
+curr_rate = curr_bpm / 60
 
 
 async def set_light(new_modes, new_bpm):
@@ -35,7 +35,7 @@ async def set_light(new_modes, new_bpm):
     print("mode: " + str(curr_modes))
     curr_modes = new_modes
     curr_bpm = new_bpm
-    curr_rate = curr_bpm / 60 * SUB_BEATS
+    curr_rate = curr_bpm / 60
     
     light_task = asyncio.create_task(light())
 
@@ -47,23 +47,39 @@ BLUE_PIN = 11
 
 COLOR_PINS = [RED_PIN, GREEN_PIN, BLUE_PIN]
 
+LIGHT_COUNT = 3
+
 async def light():    
     tick_start = time.perf_counter()
 
     while True:
         time_curr = time.perf_counter()
         time_diff = time_curr - tick_start
-        num = int(time_diff * curr_rate)
-        time_delay = ((num + 1) / curr_rate) - time_diff
+        curr_beat = (time_diff * curr_rate) % config[mode]['length']
         
-        for i in range(3):
-            level = 0
-            for mode in curr_modes:
-                index = num % len(light_modes[mode])
-                level = max(level, light_modes[mode][index][i])
-            pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - level)*2.55))
+        levels = [0]*LIGHT_COUNT
+
+        for mode in curr_modes:
+            for i in range(LIGHT_COUNT):
+                prev_beat = False
+                next_beat = False
+                for beat in config[mode]['beats']:
+                    if curr_beat >= beat:
+                        prev_beat = beat
+                    if curr_beat < beat:
+                        next_beat = beat
+                        break
+
+                diff_beat = (curr_beat - prev_beat) / (next_beat - prev_beat)
+
+                levels[i] = max(levels[i], (config[mode]['beats'][prev_beat][i] * diff_beat) + (config[mode]['beats'][next_beat][i] * (1-diff_beat)))
+
+        for i in range(LIGHT_COUNT):
+            pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - levels[i])*2.55))
+
+        time_taken = time.perf_counter() - time_curr
         
-        await asyncio.sleep(time_delay)
+        await asyncio.sleep(0.02 - time_taken)
 
 #################################################
 
@@ -137,9 +153,9 @@ def setup_pigpio():
     pi.set_PWM_dutycycle(GREEN_PIN, 255)
     pi.set_PWM_dutycycle(BLUE_PIN, 255)
 
-    pi.set_PWM_frequency(RED_PIN, 200)
-    pi.set_PWM_frequency(GREEN_PIN, 200)
-    pi.set_PWM_frequency(BLUE_PIN, 200)
+    pi.set_PWM_frequency(RED_PIN, 1000)
+    pi.set_PWM_frequency(GREEN_PIN, 1000)
+    pi.set_PWM_frequency(BLUE_PIN, 1000)
 
 #################################################
 
@@ -179,33 +195,7 @@ for mode in config:
         prev_index = index
         key_frames[mode].append(index)
         light_modes[mode][index] = config[mode]['beats'][beat]
-
-for mode in light_modes:
-    for x in range(len(key_frames[mode])):
-        start_index = key_frames[mode][x]
-        if x < len(key_frames[mode]) - 1:
-            end_index = key_frames[mode][x+1]
-        else:
-            end_index = key_frames[mode][(x+1)%len(key_frames[mode])] + len(light_modes[mode])
-        start_color = light_modes[mode][start_index]
-        end_color = light_modes[mode][end_index % len(light_modes[mode])]
-
-        for y in range(start_index + 1, end_index):
-            light_modes[mode][y % len(light_modes[mode])] = [0] * 3
-
-            if len(start_color) == 4 and start_color[3] == "hold":
-                for i in range(3):
-                    light_modes[mode][y % len(light_modes[mode])][i] = start_color[i]
-            else:
-                shift = (y - start_index) / (end_index - start_index)
-                for i in range(3):
-                    light_modes[mode][y % len(light_modes[mode])][i] = (end_color[i] * shift) + (start_color[i] * (1 - shift))
-                    
-for mode in config:
-    print(f'{mode}')
-    for i in range(len(light_modes[mode])):
-        print(f'    {i}: {round(light_modes[mode][i][0])}, {round(light_modes[mode][i][1])}, {round(light_modes[mode][i][2])}')
-
+   
 ##################################################
 
 def signal_handler(sig, frame):
@@ -232,6 +222,7 @@ def run_asyncio():
 
     start_server = websockets.serve(init, "0.0.0.0", 8765)
     asyncio.get_event_loop().run_until_complete(start_server)
+    print('Ready...')
     asyncio.get_event_loop().run_forever()
 
 

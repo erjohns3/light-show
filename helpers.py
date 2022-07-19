@@ -47,7 +47,7 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths_in_directory(directory, only_files=False) -> list[tuple[str, pathlib.Path]]:
+def get_all_paths_in_directory(directory, only_files=False):
     paths = []
     for filename in os.listdir(directory):
         filepath = pathlib.Path(directory).joinpath(filename)
@@ -61,7 +61,7 @@ def is_linux_root():
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'
 
-def run_command_blocking(full_command_arr, debug=False, print_std_out=False) -> str:
+def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
@@ -97,7 +97,7 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False) -> 
 
 
 # -ss '120534ms'
-def seconds_to_fmmpeg_ms_string(seconds) -> str:
+def seconds_to_fmmpeg_ms_string(seconds):
     return str(int(seconds * 1000)) + 'ms'
 
 # 63 -> '00:06:03'

@@ -1,4 +1,4 @@
-from helpers import * 
+from helpers import *
 
 import threading
 import time
@@ -13,12 +13,12 @@ import argparse
 import os
 from os import path
 import math
-import pigpio
-import board
-import busio
 
 try:
     import adafruit_pca9685
+    import pigpio
+    import board
+    import busio
 
     i2c = busio.I2C(board.SCL, board.SDA)
     pca = adafruit_pca9685.PCA9685(i2c)
@@ -104,7 +104,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
         http.server.SimpleHTTPRequestHandler.end_headers(self)
-        
+
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
 
@@ -167,7 +167,7 @@ async def light():
         time_diff = time_curr - tick_start
         beat_index = int(time_diff * rate)
         time_delay = ((beat_index + 1) / rate) - time_diff
-        
+
         all_levels = []
         for i in range(LIGHT_COUNT):
             level = 0
@@ -199,7 +199,7 @@ def setup_pigpio():
 
 ################################################
 
-def read_config(config_filepath):    
+def read_config(config_filepath):
     with open(config_filepath, 'r') as f:
         config = json.loads(f.read())
 

@@ -14,12 +14,13 @@ audio_procs = []
 
 
 
+if is_macos():
+    multiprocessing.set_start_method("fork")
 
 
 def play_audio_async(filepath, volume=100, paused=False):
     global is_paused
     is_paused = True
-
     proc = multiprocessing.Process(target=play_sound_with_mpv, args=[filepath, volume, paused])
     with audio_lock:
         audio_procs.append(proc)
@@ -64,7 +65,7 @@ def play_sound_with_ffplay(audio_path, normalize_peak_volume_decibals=False, vol
         'ffplay',
         '-autoexit',
         '-nodisp',
-        '-volume', 
+        '-volume',
         volume,
         str(audio_path)
     ] + extra_args, debug=True, print_std_out=True)
@@ -99,11 +100,14 @@ def toggle_pause_async_mpv():
 
 
 def play_sound_with_mpv(audio_path, volume=100, paused=False):
+    print('mpv go')
+
     if is_linux_root():
         print(f'{bcolors.FAIL}WARNING: you are running as root, this probably will cause problems with audio{bcolors.ENDC}')
     extra_args = []
     if paused:
         extra_args += ['--pause']
+    print('mpv later')
     run_command_blocking([
         'mpv',
         '--no-resume-playback',
@@ -116,6 +120,7 @@ def play_sound_with_mpv(audio_path, volume=100, paused=False):
         '--no-video',
         str(audio_path)
     ] + extra_args, debug=True, print_std_out=True)
+    print('started')
 
 
 
@@ -128,9 +133,9 @@ def create_then_normalize_mp3(input_filepath, output_directory, seconds_seek_to,
 def normalize_mp3(input_filepath, output_directory):
     output_filepath = os.path.join(output_directory, f'{random_letters(10)}.mp3')
     ffmpeg_args = [
-        '-i', 
+        '-i',
         input_filepath,
-        '-af', 
+        '-af',
         'loudnorm=I=-16:LRA=11:TP=-1.5',
         output_filepath
     ]
@@ -141,12 +146,12 @@ def normalize_mp3(input_filepath, output_directory):
 def create_mp3(input_filepath, output_directory, seconds_seek_to, seconds_to_play):
     output_filepath = os.path.join(output_directory, f'{random_letters(10)}.mp3')
     ffmpeg_args = [
-        '-i', 
-        input_filepath, 
-        '-ss', 
-        seconds_to_hmsm_string(seconds_seek_to), 
-        '-to', 
-        seconds_to_hmsm_string(seconds_seek_to + seconds_to_play), 
+        '-i',
+        input_filepath,
+        '-ss',
+        seconds_to_hmsm_string(seconds_seek_to),
+        '-to',
+        seconds_to_hmsm_string(seconds_seek_to + seconds_to_play),
         output_filepath
     ]
     run_command_blocking(['ffmpeg'] + ffmpeg_args)
@@ -155,4 +160,3 @@ def create_mp3(input_filepath, output_directory, seconds_seek_to, seconds_to_pla
 def get_audio_clip_length(filename):
     ffprobe_args = ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filename]
     return float(run_command_blocking(['ffprobe'] + ffprobe_args))
-

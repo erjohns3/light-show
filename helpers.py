@@ -19,12 +19,18 @@ def is_linux():
         return True
     return False
 
+def is_macos():
+    plt = platform.system()
+    if plt == "Darwin":
+        return True
+    return False
+
 if is_windows():
     ray_directory = pathlib.Path('Y:/')
 elif is_linux(): # actually only works on andrews computer lol
     ray_directory = pathlib.Path('/mnt/ray_network_share')
 else:
-    raise Exception('Python apperantly has no idea what OS you are on')
+    print('ray_directory does not exist')
 
 python_file_directory = pathlib.Path(__file__).parent.resolve()
 
@@ -53,12 +59,12 @@ def get_all_paths_in_directory(directory, only_files=False, exclude_names=None):
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
-        if not only_files or os.path.isfile(filepath): 
+        if not only_files or os.path.isfile(filepath):
             paths.append((filename, filepath))
     return paths
 
 def is_linux_root():
-    return is_linux() and os.geteuid() == 0    
+    return is_linux() and os.geteuid() == 0
 
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'

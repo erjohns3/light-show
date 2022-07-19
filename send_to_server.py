@@ -31,7 +31,7 @@ websocket_delay = .002
 
 async def show(websocket, show_name):
     show_obj = shows[show_name]
-        
+
     song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
     if not sound_helpers.is_audio_running():
         sound_helpers.play_audio_async(song_filepath, volume=30, paused=True)
@@ -69,7 +69,7 @@ async def show(websocket, show_name):
 
 async def loop():
     async with websockets.connect(f'ws://{args.ip_to_connect_to}:8765') as websocket:
-        msg = {}        
+        msg = {}
         await websocket.send(json.dumps(msg))
         config = await websocket.recv()
         config = json.loads(config)['config']
@@ -98,7 +98,7 @@ async def loop():
                 'type': 'modes',
                 'modes': [stuff]
             }
-            
+
             await websocket.send(json.dumps(msg))
             msg_from_server = await websocket.recv()
             print(f'{msg_from_server=}')

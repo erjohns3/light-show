@@ -1,3 +1,6 @@
 __pycache__/
 generated_configs/
 data/
+andrew_send_to_rpi0.py
+old/
+.pytest_cache/

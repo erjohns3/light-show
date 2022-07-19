@@ -1,4 +1,4 @@
-from helpers import *
+from helpers import * 
 
 import threading
 import time
@@ -13,60 +13,41 @@ import argparse
 import os
 from os import path
 import math
+import pigpio
+import board
+import busio
 
 try:
-    SUB_BEATS = 24
-    LIGHT_COUNT = 7
-
-    args = False
-    pi = None
-    curr_modes = []
-    curr_bpm = 120
-    tick_start = time.perf_counter()
-
-    light_lock = threading.Lock()
-    light_task = False
-
-
-    import pigpio
-    import board
-    import busio
     import adafruit_pca9685
 
     i2c = busio.I2C(board.SCL, board.SDA)
     pca = adafruit_pca9685.PCA9685(i2c)
-    
+
     pca.frequency = 200
-
 except Exception as e:
-    print(f'{bcolors.FAIL}Could not import / setup hardware due to exception "{e}"{bcolors.ENDC}')
+    print(f'Couldnt start with hardware support due to {e}')
+
+SUB_BEATS = 24
+LIGHT_COUNT = 7
+
+args = False
+pi = None
+curr_modes = []
+curr_bpm = 120
+tick_start = time.perf_counter()
+beat_index = 0
+
+light_lock = threading.Lock()
+light_task = False
 
 
-
-################################################
-
-class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-        http.server.SimpleHTTPRequestHandler.end_headers(self)
-        
-PORT = 8000
-Handler = http.server.SimpleHTTPRequestHandler
-
-def run_http_server():
-    httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
-    print("serving at port " + str(PORT), flush=True)
-    httpd.serve_forever()
-
-################################################
+#################################################
 
 async def init(websocket, path):
     global light_task
 
     if not light_task:
-        light_task = asyncio.create_task(light(light_array))
+        light_task = asyncio.create_task(light())
 
     message = {
         'config': config,
@@ -92,20 +73,16 @@ async def init(websocket, path):
         print(msg, flush=True)
 
         if 'type' in msg:
-
-            if msg['type'] == 'apply':
-                if msg['modes'] != '' and msg['rate'] != '':
+            if msg['type'] == 'modes':
+                if msg['modes'] != '':
                     modes = msg['modes']
-                    bpm = float(msg['rate'])
-                    if bpm > 0:
-                        await set_light(modes, bpm)
+                    await set_light(modes)
 
-            elif msg['type'] == 'preview':
-                if msg['modes'] != '' and msg['rate'] != '':
-                    modes = msg['modes']
+            elif msg['type'] == 'time':
+                if msg['rate'] != '':
                     bpm = float(msg['rate'])
-                    if bpm > 0:
-                        await set_light(modes, bpm)
+                if bpm > 0:
+                    await set_time(bpm)
 
             message = {
                 'status': {
@@ -121,7 +98,94 @@ async def init(websocket, path):
 
 #################################################
 
+class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        http.server.SimpleHTTPRequestHandler.end_headers(self)
+        
+PORT = 8000
+Handler = http.server.SimpleHTTPRequestHandler
 
+def http_server():
+    httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
+    print("serving at port " + str(PORT), flush=True)
+    httpd.serve_forever()
+
+########################################
+
+async def set_time(new_bpm):
+    global tick_start
+    global curr_bpm
+
+    light_lock.acquire()
+    tick_start = time.perf_counter()
+    curr_bpm = new_bpm
+    light_lock.release()
+    print("set time")
+
+
+async def set_light(new_modes):
+    global curr_modes
+    global curr_offsets
+
+    light_lock.acquire()
+    curr_modes = new_modes
+    curr_offsets = [0] * len(curr_modes)
+    for i in range(len(curr_modes)):
+        curr_offsets[i] = (beat_index % light_array[curr_modes[i]]["snap"]) - beat_index
+    light_lock.release()
+    print("mode: " + str(curr_modes))
+
+####################################
+
+
+async def terminal(all_levels):
+    rbg_colors = list(map(lambda x: int(x * 2.55), all_levels[:6]))
+    character = '▆'
+
+    console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
+    console.print(character, style=f'rgb({rbg_colors[3]},{rbg_colors[4]},{rbg_colors[5]})', end='')
+
+    purple = [153, 50, 204]
+    purple = list(map(lambda x: int(x * (all_levels[6] / 100.0)), purple))
+    console.print(character, style=f'rgb({purple[0]},{purple[1]},{purple[2]})', end='')
+
+    console.print(f'Mode: {curr_modes}, BPM: {curr_bpm}{" " * 10}', end='\r')
+
+####################################
+
+async def light():
+    global beat_index
+
+    while True:
+        light_lock.acquire()
+
+        rate = curr_bpm / 60 * SUB_BEATS
+        time_curr = time.perf_counter()
+        time_diff = time_curr - tick_start
+        beat_index = int(time_diff * rate)
+        time_delay = ((beat_index + 1) / rate) - time_diff
+        
+        all_levels = []
+        for i in range(LIGHT_COUNT):
+            level = 0
+            for j in range(len(curr_modes)):
+                index = (beat_index + curr_offsets[j]) % len(light_array[curr_modes[j]]["beats"])
+
+                level += light_array[curr_modes[j]]["beats"][index][i]
+                if args.print_to_terminal:
+                    all_levels.append(level)
+                else:
+                    pca.channels[i].duty_cycle = max(0, min(0xFFFF, int(level * 0xFFFF / 100)))
+        if args.print_to_terminal and len(curr_modes):
+            await terminal(all_levels)
+
+        light_lock.release()
+        await asyncio.sleep(time_delay)
+
+######################################
 
 def setup_pigpio():
     global pi
@@ -132,101 +196,70 @@ def setup_pigpio():
     for i in range(len(pca.channels)):
         pca.channels[i].duty_cycle = 0
 
-#################################################
 
-async def set_light(new_modes, new_bpm, debug=True):
-    global curr_modes
-    global curr_bpm
-    global tick_start
-
-    light_lock.acquire()
-    curr_modes = new_modes
-    curr_bpm = new_bpm
-    # tick_start = time.perf_counter()
-    light_lock.release()
-    if debug:
-        print("mode: " + str(curr_modes))
-
-####################################
-
-async def light(light_array, optional_callback=None):
-    while True:
-        light_lock.acquire()
-        modes = curr_modes
-        rate = curr_bpm / 60 * SUB_BEATS
-        time_start = tick_start
-        light_lock.release()
-        
-        time_curr = time.perf_counter()
-        time_diff = time_curr - time_start
-        num = int(time_diff * rate)
-        time_delay = ((num + 1) / rate) - time_diff
-        
-        all_levels = []
-        for i in range(LIGHT_COUNT):
-            level = 0
-            for mode in modes:
-                index = num % len(light_array[mode])
-                level += light_array[mode][index][i]
-            if optional_callback:
-                all_levels.append(level)
-            else:
-                pca.channels[i].duty_cycle = max(0, min(0xFFFF, int(level * 0xFFFF / 100)))
-        if optional_callback:
-            await optional_callback(all_levels)
-
-        await asyncio.sleep(time_delay)
-
-
-
-######################################
+################################################
 
 def read_config(config_filepath):    
     with open(config_filepath, 'r') as f:
         config = json.loads(f.read())
 
+
     light_dict = {}
     light_array = {}
 
     for mode in config:
-        light_dict[mode] = {}
+        if 'snap' not in config[mode]:
+            config[mode]['snap'] = 1 / SUB_BEATS
+        if 'interpolation' not in config[mode]:
+            config[mode]['interpolation'] = 'smooth'
+
+        light_dict[mode] = {
+            'length': config[mode]['length'],
+            'snap': round(config[mode]['snap'] * SUB_BEATS),
+            'beats': {}
+        }
         config[mode]['beats'][str(config[mode]['length']+1)] = False
         beats = list(config[mode]['beats'].keys())
         config[mode]['beats'][str(config[mode]['length']+1)] = config[mode]['beats'][beats[0]]
         for i in range(len(beats)):
             curr_beat = round((eval(beats[i])-1)*SUB_BEATS) / SUB_BEATS
-            light_dict[mode][curr_beat] = config[mode]['beats'][beats[i]]
-            if 'interpolation' in config[mode] and config[mode]['interpolation'] == 'hold' and i+1 < len(beats):
+            light_dict[mode]['beats'][curr_beat] = config[mode]['beats'][beats[i]]
+            if config[mode]['interpolation'] == 'hold' and i+1 < len(beats):
                 next_beat = eval(beats[i+1]) - 1 - (1/SUB_BEATS)
                 if abs(next_beat - curr_beat) > 0.5/SUB_BEATS:
-                    light_dict[mode][next_beat] = light_dict[mode][curr_beat]
+                    light_dict[mode]['beats'][next_beat] = light_dict[mode]['beats'][curr_beat]
+
 
     for mode in config:
         print(f'{mode}')
-        for beat in light_dict[mode]:
-            print(f'    {beat}: {round(light_dict[mode][beat][0])}, {round(light_dict[mode][beat][1])}, {round(light_dict[mode][beat][2])}')
+        for beat in light_dict[mode]["beats"]:
+            print(f'    {beat}: {round(light_dict[mode]["beats"][beat][0])}, {round(light_dict[mode]["beats"][beat][1])}, {round(light_dict[mode]["beats"][beat][2])}')
 
 
     for mode in config:
-        light_array[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
-        beats = list(light_dict[mode].keys())
+        light_array[mode] = {
+            'length': config[mode]['length'],
+            'snap': round(config[mode]['snap'] * SUB_BEATS),
+            'beats': [False] * round(config[mode]['length'] * SUB_BEATS)
+        }
+        beats = list(light_dict[mode]["beats"].keys())
         for i in range(len(beats)-1):
             start_index = round(beats[i] * SUB_BEATS)
             end_index = round(beats[i+1] * SUB_BEATS)
-            start_light = light_dict[mode][beats[i]]
-            end_light = light_dict[mode][beats[i+1]]
+            start_light = light_dict[mode]["beats"][beats[i]]
+            end_light = light_dict[mode]["beats"][beats[i+1]]
 
             for j in range(start_index, end_index):
-                light_array[mode][j] = [0] * LIGHT_COUNT
+                light_array[mode]["beats"][j] = [0] * LIGHT_COUNT
                 shift = (j - start_index) / (end_index - start_index)
                 for k in range(LIGHT_COUNT):
-                    light_array[mode][j][k] = (end_light[k] * shift) + (start_light[k] * (1 - shift))
+                    light_array[mode]["beats"][j][k] = (end_light[k] * shift) + (start_light[k] * (1 - shift))
 
     for mode in config:
         print(f'{mode}')
-        for i in range(len(light_array[mode])):
-            print(f'    {i}: {round(light_array[mode][i][0])}, {round(light_array[mode][i][1])}, {round(light_array[mode][i][2])}')
-    return light_array
+        for i in range(len(light_array[mode]["beats"])):
+            print(f'    {i}: {round(light_array[mode]["beats"][i][0])}, {round(light_array[mode]["beats"][i][1])}, {round(light_array[mode]["beats"][i][2])}')
+    return config, light_array
 
 ##################################################
 
@@ -242,21 +275,26 @@ def signal_handler(sig, frame):
 
     sys.exit(0)
 
-
-
 #################################################
 
 
-
 if __name__ == "__main__":
-    setup_pigpio()
+    parser = argparse.ArgumentParser(description = 'Take in debug parameters')
+    parser.add_argument('--terminal', dest='print_to_terminal', default=False, action='store_true')
+    args = parser.parse_args()
 
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    if args.print_to_terminal:
+        from rich.console import Console
+        console = Console()
+    else:
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        setup_pigpio()
 
-    light_array = read_config(python_file_directory.joinpath('config.json'))
 
-    http_thread = threading.Thread(target=run_http_server, args=[], daemon=True)
+    config, light_array = read_config(python_file_directory.joinpath('config.json'))
+
+    http_thread = threading.Thread(target=http_server, args=[], daemon=True)
     http_thread.start()
 
     loop = asyncio.new_event_loop()
@@ -265,3 +303,9 @@ if __name__ == "__main__":
     start_server = websockets.serve(init, "0.0.0.0", 8765)
     asyncio.get_event_loop().run_until_complete(start_server)
     asyncio.get_event_loop().run_forever()
+
+    loc = pathlib.Path(__file__).parent.absolute()
+    drink_io_folder = str(loc)
+
+
+    path.join(drink_io_folder, 'config.json'), 'r'

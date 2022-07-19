@@ -27,6 +27,7 @@ def precise_wait(time_to_wait):
         pass
     return
 
+websocket_delay = .002
 
 async def show(websocket, show_name):
     show_obj = shows[show_name]
@@ -60,7 +61,7 @@ async def show(websocket, show_name):
         msg_from_server = await websocket.recv()
 
         beats_per_second = 60 / show_obj['bpm']
-        time_to_wait = beats_per_second * show_obj['show'][show_index][-1]
+        time_to_wait = (beats_per_second * show_obj['show'][show_index][-1]) - websocket_delay
 
         precise_wait(time_to_wait)
         show_index += 1

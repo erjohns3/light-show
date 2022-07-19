@@ -20,7 +20,9 @@ with open(shows_filepath) as f:
 
 def precise_wait(time_to_wait):
     time_start = time.perf_counter()
-    time.sleep(time_to_wait - .005)
+    buffer = .005
+    if time_to_wait > buffer:
+        time.sleep(time_to_wait - buffer)
     while time.perf_counter() < time_start + time_to_wait:
         pass
     return
@@ -64,7 +66,7 @@ async def show(websocket, show_name):
         show_index += 1
 
 
-async def hello():
+async def loop():
     async with websockets.connect(f'ws://{args.ip_to_connect_to}:8765') as websocket:
         msg = {}        
         await websocket.send(json.dumps(msg))
@@ -72,8 +74,6 @@ async def hello():
         config = json.loads(config)['config']
         index_of_config = 0
         keys_of_config = list(config.keys())
-
-        await show(websocket, 'shelter2')
 
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')
@@ -109,4 +109,4 @@ args = parser.parse_args()
 if args.ip_to_connect_to == 'rpi0':
     args.ip_to_connect_to = '192.168.86.224'
 
-asyncio.run(hello())
+asyncio.run(loop())

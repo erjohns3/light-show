@@ -255,11 +255,12 @@
     document.addEventListener('keydown', (e) => {
         console.log(e.keyCode);
         if(e.keyCode == 27){ // escape
-            apply([], rateCurr);
+            sendModes([]);
         }else if(e.keyCode == 13){ // enter
             applyElem.click();
         }else if(e.keyCode == 32 || e.keyCode == 68){ // space
             toggleCurrMode(modeSelected);
+            e.preventDefault(); 
         }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
             var num = 0;
             var found = 0;
@@ -305,7 +306,6 @@
         }else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 37 && e.keyCode <= 40) || e.keyCode == 190 || e.keyCode == 8){
             rateNextElem.focus();
         }
-        e.preventDefault(); 
     });
 
     socketInit();
@@ -326,25 +326,24 @@
 
     #mode-list{
         position: absolute;
-        width: 30%;
+        width: 80vw;
         height: 100%;
         background-color: hsl(0, 0%, 8%);
         overflow: auto;
     }
 
     mode-item {
-        display: block;
-        width: calc(100% - 1vw);
-        height: 10vh;
-        margin: 0.5vw;
+        width: 19.5vw;
+        height: 19.5vw;
+        margin: 0.25vw;
         border-radius: 0.5vw;
         border-left: solid 1vw hsla(0, 0%, 0%, 0%);
         border-right: solid 1vw hsla(0, 0%, 0%, 0%);
         box-sizing: border-box;
         background-color: hsl(0, 0%, 12%);
         text-align: center;
-        font-size: 3vh;
-        display: flex;
+        font-size: 2vh;
+        display: inline-flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;

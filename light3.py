@@ -28,7 +28,7 @@ args = False
 pi = None
 curr_modes = []
 curr_bpm = 120
-tick_start = time.perf_counter()
+time_start = time.perf_counter()
 beat_index = 0
 
 light_lock = threading.Lock()
@@ -37,11 +37,11 @@ light_task = False
 ########################################
 
 async def set_time(new_bpm):
-    global tick_start
+    global time_start
     global curr_bpm
 
     light_lock.acquire()
-    tick_start = time.perf_counter()
+    time_start = time.perf_counter()
     curr_bpm = new_bpm
     light_lock.release()
     print("set time")
@@ -68,21 +68,21 @@ async def light():
         light_lock.acquire()
 
         rate = curr_bpm / 60 * SUB_BEATS
-        time_curr = time.perf_counter()
-        time_diff = time_curr - tick_start
+        time_diff = time.perf_counter() - time_start
         beat_index = int(time_diff * rate)
-        time_delay = ((beat_index + 1) / rate) - time_diff
         
         for i in range(LIGHT_COUNT):
             level = 0
             for j in range(len(curr_modes)):
                 index = (beat_index + curr_offsets[j]) % len(light_array[curr_modes[j]]["beats"])
-
                 level += light_array[curr_modes[j]]["beats"][index][i]
-            pca.channels[i].duty_cycle = max(0, min(0xFFFF, int(level * 0xFFFF / 100)))
-      
-        light_lock.release()
+            pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
 
+        time_diff = time.perf_counter() - time_start
+        time_delay = ((beat_index + 1) / rate) - time_diff
+
+        light_lock.release()
+        # print(beat_index)
         await asyncio.sleep(time_delay)
 
 #################################################

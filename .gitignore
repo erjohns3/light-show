@@ -1,0 +1,4 @@
+__pycache__/
+generated_configs/
+old/
+.pytest_cache/

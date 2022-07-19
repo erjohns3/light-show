@@ -11,20 +11,24 @@ import argparse
 import os
 from os import path
 import math
-import pigpio
-import board
-import busio
-import adafruit_pca9685
 
-i2c = busio.I2C(board.SCL, board.SDA)
-pca = adafruit_pca9685.PCA9685(i2c)
+try:
+    import pigpio
+    import board
+    import busio
+    import adafruit_pca9685
 
-pca.frequency = 200
+    i2c = busio.I2C(board.SCL, board.SDA)
+    pca = adafruit_pca9685.PCA9685(i2c)
+
+    pca.frequency = 200
+except Exception as e:
+    print(f'Cant start with hardware support because of {e}')
+
 
 SUB_BEATS = 24
 LIGHT_COUNT = 7
 
-args = False
 pi = None
 curr_modes = []
 curr_bpm = 120
@@ -59,11 +63,37 @@ async def set_light(new_modes):
     light_lock.release()
     print("mode: " + str(curr_modes))
 
+
+####################################
+
+
+
+async def render_to_terminal(all_levels):
+    rbg_colors = list(map(lambda x: int(x * 2.55), all_levels[:6]))
+    character = '▆ '
+
+    console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
+    console.print(character, style=f'rgb({rbg_colors[3]},{rbg_colors[4]},{rbg_colors[5]})', end='')
+
+    purple = [153, 50, 204]
+    purple = list(map(lambda x: int(x * (all_levels[6] / 100.0)), purple))
+    console.print(character, style=f'rgb({purple[0]},{purple[1]},{purple[2]})', end='')
+
+    console.print(f'Mode: {curr_modes}, BPM: {curr_bpm}{" " * 10}', end='\r')
+
+
+all_levels = [0] * LIGHT_COUNT
+async def terminal(level, i):
+    all_levels[i] = level
+    if i == LIGHT_COUNT - 1:
+        await render_to_terminal(all_levels)
+
+
 ####################################
 
 async def light(): 
     global beat_index
-
+    print_to_terminal = args.print_to_terminal
     while True:
         light_lock.acquire()
 
@@ -76,7 +106,11 @@ async def light():
             for j in range(len(curr_modes)):
                 index = (beat_index + curr_offsets[j]) % len(light_array[curr_modes[j]]["beats"])
                 level += light_array[curr_modes[j]]["beats"][index][i]
-            pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+            
+            if print_to_terminal:
+                await terminal(level, i)
+            else:
+                pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
 
         time_diff = time.perf_counter() - time_start
         time_delay = ((beat_index + 1) / rate) - time_diff
@@ -164,7 +198,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
 
-def http_server(testing=False):
+def http_server():
     httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
     print("serving at port " + str(PORT), flush=True)
     httpd.serve_forever()
@@ -252,28 +286,24 @@ signal.signal(signal.SIGTERM, signal_handler)
 #################################################
 
 
-def main():
-    global args
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--testing', action='store_true', default=False,
-                   help='To run webserver without drinkmaker attached')
-    parser.add_argument('--local', action='store_true', default=False,
-                   help='To run webserver without drinkmaker attached')
-    args = parser.parse_args()
+parser = argparse.ArgumentParser(description = '')
+parser.add_argument('--terminal', dest='print_to_terminal', default=False, action='store_true')
+args = parser.parse_args()
 
-    if not args.testing:
-        setup_pigpio()
+if args.print_to_terminal:
+    from rich.console import Console
+    console = Console()
+else:
+    setup_pigpio()
 
-    http_thread = threading.Thread(target=http_server, args=[args.testing], daemon=True)
-    http_thread.start()
+http_thread = threading.Thread(target=http_server, args=[], daemon=True)
+http_thread.start()
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 
-    start_server = websockets.serve(init, "0.0.0.0", 8765)
-    asyncio.get_event_loop().run_until_complete(start_server)
-    asyncio.get_event_loop().run_forever()
+start_server = websockets.serve(init, "0.0.0.0", 8765)
+asyncio.get_event_loop().run_until_complete(start_server)
+asyncio.get_event_loop().run_forever()
 
 
-if __name__ == "__main__":
-    main()

@@ -2,9 +2,16 @@ import websockets
 import asyncio
 import json
 import time
+import argparse
 
 from helpers import *
 import sound_helpers
+
+
+
+
+
+
 
 shows_filepath = python_file_directory.joinpath('shows.json')
 with open(shows_filepath) as f:
@@ -58,7 +65,7 @@ async def show(websocket, show_name):
 
 
 async def hello():
-    async with websockets.connect("ws://localhost:8765") as websocket:
+    async with websockets.connect(f'ws://{args.ip_to_connect_to}:8765') as websocket:
         msg = {}        
         await websocket.send(json.dumps(msg))
         config = await websocket.recv()
@@ -94,5 +101,12 @@ async def hello():
             await websocket.send(json.dumps(msg))
             msg_from_server = await websocket.recv()
             print(f'{msg_from_server=}')
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--ip', dest='ip_to_connect_to', default='localhost', type=str)
+args = parser.parse_args()
+
+if args.ip_to_connect_to == 'rpi0':
+    args.ip_to_connect_to = '192.168.86.224'
 
 asyncio.run(hello())

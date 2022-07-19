@@ -29,45 +29,60 @@ pi = None
 curr_modes = []
 curr_bpm = 120
 tick_start = time.perf_counter()
+beat_index = 0
 
 light_lock = threading.Lock()
 light_task = False
 
-async def set_light(new_modes, new_bpm):
-    global curr_modes
-    global curr_bpm
+########################################
+
+async def set_time(new_bpm):
     global tick_start
+    global curr_bpm
+
+    light_lock.acquire()
+    tick_start = time.perf_counter()
+    curr_bpm = new_bpm
+    light_lock.release()
+    print("set time")
+
+
+async def set_light(new_modes):
+    global curr_modes
+    global curr_offsets
 
     light_lock.acquire()
     curr_modes = new_modes
-    curr_bpm = new_bpm
-    tick_start = time.perf_counter()
+    curr_offsets = [0] * len(curr_modes)
+    for i in range(len(curr_modes)):
+        curr_offsets[i] = (beat_index % light_array[curr_modes[i]]["snap"]) - beat_index
     light_lock.release()
     print("mode: " + str(curr_modes))
 
 ####################################
 
-async def light():    
+async def light(): 
+    global beat_index
 
     while True:
         light_lock.acquire()
-        modes = curr_modes
+
         rate = curr_bpm / 60 * SUB_BEATS
-        time_start = tick_start
-        light_lock.release()
-        
         time_curr = time.perf_counter()
-        time_diff = time_curr - time_start
-        num = int(time_diff * rate)
-        time_delay = ((num + 1) / rate) - time_diff
+        time_diff = time_curr - tick_start
+        beat_index = int(time_diff * rate)
+        time_delay = ((beat_index + 1) / rate) - time_diff
         
         for i in range(LIGHT_COUNT):
             level = 0
-            for mode in modes:
-                index = num % len(light_array[mode])
-                level += light_array[mode][index][i]
+            for j in range(len(curr_modes)):
+                index = (beat_index + curr_offsets[j]) % len(light_array[curr_modes[j]]["beats"])
+
+                level += light_array[curr_modes[j]]["beats"][index][i]
             pca.channels[i].duty_cycle = max(0, min(0xFFFF, int(level * 0xFFFF / 100)))
       
+        light_lock.release()
+
         await asyncio.sleep(time_delay)
 
 #################################################
@@ -103,19 +118,16 @@ async def init(websocket, path):
 
         if 'type' in msg:
 
-            if msg['type'] == 'apply':
-                if msg['modes'] != '' and msg['rate'] != '':
-                    mode = msg['modes']
-                    bpm = float(msg['rate'])
-                    if bpm > 0:
-                        await set_light(mode, bpm)
+            if msg['type'] == 'modes':
+                if msg['modes'] != '':
+                    modes = msg['modes']
+                    await set_light(modes)
 
-            elif msg['type'] == 'preview':
-                if msg['modes'] != '' and msg['rate'] != '':
-                    mode = msg['modes']
+            elif msg['type'] == 'time':
+                if msg['rate'] != '':
                     bpm = float(msg['rate'])
-                    if bpm > 0:
-                        await set_light(mode, bpm)
+                if bpm > 0:
+                    await set_time(bpm)
 
             message = {
                 'status': {
@@ -169,43 +181,56 @@ light_dict = {}
 light_array = {}
 
 for mode in config:
-    light_dict[mode] = {}
+    if 'snap' not in config[mode]:
+        config[mode]['snap'] = 1 / SUB_BEATS
+    if 'interpolation' not in config[mode]:
+        config[mode]['interpolation'] = 'smooth'
+
+    light_dict[mode] = {
+        'length': config[mode]['length'],
+        'snap': round(config[mode]['snap'] * SUB_BEATS),
+        'beats': {}
+    }
     config[mode]['beats'][str(config[mode]['length']+1)] = False
     beats = list(config[mode]['beats'].keys())
     config[mode]['beats'][str(config[mode]['length']+1)] = config[mode]['beats'][beats[0]]
     for i in range(len(beats)):
         curr_beat = round((eval(beats[i])-1)*SUB_BEATS) / SUB_BEATS
-        light_dict[mode][curr_beat] = config[mode]['beats'][beats[i]]
-        if 'interpolation' in config[mode] and config[mode]['interpolation'] == 'hold' and i+1 < len(beats):
+        light_dict[mode]['beats'][curr_beat] = config[mode]['beats'][beats[i]]
+        if config[mode]['interpolation'] == 'hold' and i+1 < len(beats):
             next_beat = eval(beats[i+1]) - 1 - (1/SUB_BEATS)
             if abs(next_beat - curr_beat) > 0.5/SUB_BEATS:
-                light_dict[mode][next_beat] = light_dict[mode][curr_beat]
+                light_dict[mode]['beats'][next_beat] = light_dict[mode]['beats'][curr_beat]
 
 for mode in config:
     print(f'{mode}')
-    for beat in light_dict[mode]:
-        print(f'    {beat}: {round(light_dict[mode][beat][0])}, {round(light_dict[mode][beat][1])}, {round(light_dict[mode][beat][2])}')
+    for beat in light_dict[mode]["beats"]:
+        print(f'    {beat}: {round(light_dict[mode]["beats"][beat][0])}, {round(light_dict[mode]["beats"][beat][1])}, {round(light_dict[mode]["beats"][beat][2])}')
 
 
 for mode in config:
-    light_array[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
-    beats = list(light_dict[mode].keys())
+    light_array[mode] = {
+        'length': config[mode]['length'],
+        'snap': round(config[mode]['snap'] * SUB_BEATS),
+        'beats': [False] * round(config[mode]['length'] * SUB_BEATS)
+    }
+    beats = list(light_dict[mode]["beats"].keys())
     for i in range(len(beats)-1):
         start_index = round(beats[i] * SUB_BEATS)
         end_index = round(beats[i+1] * SUB_BEATS)
-        start_light = light_dict[mode][beats[i]]
-        end_light = light_dict[mode][beats[i+1]]
+        start_light = light_dict[mode]["beats"][beats[i]]
+        end_light = light_dict[mode]["beats"][beats[i+1]]
 
         for j in range(start_index, end_index):
-            light_array[mode][j] = [0] * LIGHT_COUNT
+            light_array[mode]["beats"][j] = [0] * LIGHT_COUNT
             shift = (j - start_index) / (end_index - start_index)
             for k in range(LIGHT_COUNT):
-                light_array[mode][j][k] = (end_light[k] * shift) + (start_light[k] * (1 - shift))
+                light_array[mode]["beats"][j][k] = (end_light[k] * shift) + (start_light[k] * (1 - shift))
 
 for mode in config:
     print(f'{mode}')
-    for i in range(len(light_array[mode])):
-        print(f'    {i}: {round(light_array[mode][i][0])}, {round(light_array[mode][i][1])}, {round(light_array[mode][i][2])}')
+    for i in range(len(light_array[mode]["beats"])):
+        print(f'    {i}: {round(light_array[mode]["beats"][i][0])}, {round(light_array[mode]["beats"][i][1])}, {round(light_array[mode]["beats"][i][2])}')
 
 ##################################################
 

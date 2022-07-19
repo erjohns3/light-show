@@ -118,6 +118,18 @@
         modesCurr = modes;
     }
 
+    function toggleCurrMode(mode){
+        let index = modesCurr.indexOf(mode);
+        if(index >= 0){
+            modesCurr.splice(index, 1)
+            modeElems[mode].classList.remove('mode-item-curr');
+        }else{
+            modesCurr.push(mode);
+            modeElems[mode].classList.add('mode-item-curr');
+        }
+        sendModes(modesCurr);
+    }
+
     //////////////////////////////////////////////////////////////////
 
     function addNextMode(mode){
@@ -174,7 +186,7 @@
 
             this.onclick = function () {
                 //event.stopPropagation();
-                toggleNextMode(this.name);
+                toggleCurrMode(this.name);
                 selectMode(this.name);
             };
         }
@@ -215,10 +227,19 @@
         rateNextElem.value = Math.max(0.01, Math.min(600, rateNextElem.value));
     }
 
-    function apply(modes, rate){
+    function sendModes(modes){
         let msg = {
-            type: "apply",
+            type: "modes",
             modes: modes,
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg)
+        startTime = Date.now();
+    }
+
+    function sendRate(rate){
+        let msg = {
+            type: "time",
             rate: rate
         };
         socket.send(JSON.stringify(msg));
@@ -228,7 +249,7 @@
 
     applyElem.onclick = function () {
         fixRate();
-        apply(modesNext, rateNextElem.value);
+        sendRate(rateNextElem.value);
     }
 
     document.addEventListener('keydown', (e) => {
@@ -238,7 +259,7 @@
         }else if(e.keyCode == 13){ // enter
             applyElem.click();
         }else if(e.keyCode == 32 || e.keyCode == 68){ // space
-            toggleNextMode(modeSelected);
+            toggleCurrMode(modeSelected);
         }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
             var num = 0;
             var found = 0;
@@ -284,6 +305,7 @@
         }else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 37 && e.keyCode <= 40) || e.keyCode == 190 || e.keyCode == 8){
             rateNextElem.focus();
         }
+        e.preventDefault(); 
     });
 
     socketInit();

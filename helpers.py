@@ -47,9 +47,11 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths_in_directory(directory, only_files=False):
+def get_all_paths_in_directory(directory, only_files=False, exclude_names=None):
     paths = []
     for filename in os.listdir(directory):
+        if exclude_names is not None and filename in exclude_names:
+            continue
         filepath = pathlib.Path(directory).joinpath(filename)
         if not only_files or os.path.isfile(filepath): 
             paths.append((filename, filepath))

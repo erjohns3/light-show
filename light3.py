@@ -102,22 +102,24 @@ async def light():
                 update = True
             else:
                 i+=1
-
         for i in range(LIGHT_COUNT):
             level = 0
             for j in range(len(curr_modes)):
-                index = (beat_index + curr_modes[i][1]) % light_array[curr_modes[i][0]]["length"]
-                level += light_array[curr_modes[i][0]]["beats"][index][i]
+                index = (beat_index + curr_modes[j][1]) % light_array[curr_modes[j][0]]["length"]
+                level += light_array[curr_modes[j][0]]["beats"][index][i]
+
             if print_to_terminal:
                 await terminal(level, i)
             else:
                 pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+
 
         if update:
             await send_update()
 
         time_diff = time.perf_counter() - time_start
         time_delay = ((beat_index + 1) / rate) - time_diff
+
 
         light_lock.release()
         # print(beat_index)
@@ -152,6 +154,7 @@ async def init(websocket, path):
 
     brake_modes = False
 
+    print_to_terminal = args.print_to_terminal
     while True:
         try:
             msg_string = await websocket.recv()
@@ -214,7 +217,8 @@ async def init(websocket, path):
 
             await send_update()
 
-        print(msg, flush=True)
+        if not print_to_terminal:
+            print(msg, flush=True)
 
 ######################################
 
@@ -328,8 +332,8 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
-    print('Attemping to reset lights to off, but exiting in 2 seconds regardless')
-    x = threading.Thread(target=kill_in_n_seconds, args=(2,))
+    print('Attemping to reset lights to off, but exiting in 1 second regardless')
+    x = threading.Thread(target=kill_in_n_seconds, args=(1,))
     x.start()
     if pi is None:
         print('Not turning off lights, in testing mode', flush=True)

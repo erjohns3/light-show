@@ -67,6 +67,7 @@ async def show(websocket, show_name):
         show_index += 1
 
 
+
 async def loop():
     async with websockets.connect(f'ws://{args.ip_to_connect_to}:8765') as websocket:
         msg = {}
@@ -75,6 +76,7 @@ async def loop():
         config = json.loads(config)['config']
         index_of_config = 0
         keys_of_config = list(config.keys())
+        old_mode = None
 
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')
@@ -94,9 +96,18 @@ async def loop():
             else:
                 print('that wasnt anything...')
                 continue
+
             msg = {
-                'type': 'modes',
-                'modes': [stuff]
+                'type': 'clear_modes',
+            }
+            await websocket.send(json.dumps(msg))
+            msg_from_server = await websocket.recv()
+            print(f'{msg_from_server=}')
+
+            old_mode = stuff
+            msg = {
+                'type': 'add_mode',
+                'mode': stuff
             }
 
             await websocket.send(json.dumps(msg))

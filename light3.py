@@ -84,7 +84,7 @@ async def terminal(level, i):
 
 ####################################
 
-async def light(): 
+async def light():
     global beat_index
     print_to_terminal = args.print_to_terminal
     while True:
@@ -179,6 +179,7 @@ async def init(websocket, path):
 
             if msg['type'] == 'add_mode':
                 mode = msg['mode']
+                print(mode)
                 curr_modes.append((mode, (beat_index % light_array[mode]["snap"]) - beat_index))
 
             elif msg['type'] == 'remove_mode':
@@ -246,7 +247,7 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Pragma", "no-cache")
         self.send_header("Expires", "0")
         http.server.SimpleHTTPRequestHandler.end_headers(self)
-        
+
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
 
@@ -371,5 +372,3 @@ asyncio.set_event_loop(loop)
 start_server = websockets.serve(init, "0.0.0.0", 8765)
 asyncio.get_event_loop().run_until_complete(start_server)
 asyncio.get_event_loop().run_forever()
-
-

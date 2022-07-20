@@ -40,11 +40,12 @@ async def show(websocket, show_name):
 
 
     msg = {
-        'type': 'time',
-        'rate': show_obj['bpm'],
+        'type': 'set_bpm',
+        'bpm': show_obj['bpm'],
     }
     await websocket.send(json.dumps(msg))
-
+    msg_from_server = await websocket.recv()
+    print(f'{msg_from_server=}')
 
     sound_helpers.toggle_pause_async_mpv()
 
@@ -52,13 +53,24 @@ async def show(websocket, show_name):
 
     time_start = time.perf_counter()
     show_index = 0
+
     while show_index < len(show_obj['show']):
         msg = {
-            'type': 'modes',
-            'modes': show_obj['show'][show_index][:-1]
+            'type': 'clear_modes',
         }
         await websocket.send(json.dumps(msg))
         msg_from_server = await websocket.recv()
+        print(f'{msg_from_server=}')
+
+        for mode_to_add in show_obj['show'][show_index]:
+            msg = {
+                'type': 'add_mode',
+                'mode': mode_to_add
+            }
+            await websocket.send(json.dumps(msg))
+            msg_from_server = await websocket.recv()
+            print(f'{msg_from_server=}')
+
 
         beats_per_second = 60 / show_obj['bpm']
         time_to_wait = (beats_per_second * show_obj['show'][show_index][-1]) - websocket_delay

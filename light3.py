@@ -179,7 +179,6 @@ async def init(websocket, path):
 
             if msg['type'] == 'add_mode':
                 mode = msg['mode']
-                print(mode)
                 curr_modes.append((mode, (beat_index % light_array[mode]["snap"]) - beat_index))
 
             elif msg['type'] == 'remove_mode':

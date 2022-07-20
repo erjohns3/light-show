@@ -11,6 +11,18 @@
             ["Blue Bottom Flash", 2]
         ]
     },
+    "cnam": {
+        "song_name": "cnam_slander_said_the_sky.mp3",
+        "bpm": 90,
+        "delay": 0.13,
+        "show": [
+            ["Slow UV 8", 8],
+            ["Shelter ay 4", 4],
+            ["Nothing", 4],
+            ["Shelter ay 4", 4],
+            ["Nothing", 4]
+        ]
+    },
     "shelter2": {
         "song_name": "shelter.mp3",
         "bpm": 100,

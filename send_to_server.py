@@ -8,7 +8,8 @@ from helpers import *
 import sound_helpers
 
 
-
+# https://github.com/chrvadala/music-beat-detector
+# https://github.com/shunfu/python-beat-detector
 
 
 
@@ -34,7 +35,7 @@ async def show(websocket, show_name):
 
     song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
     if not sound_helpers.is_audio_running():
-        sound_helpers.play_audio_async(song_filepath, volume=30, paused=True)
+        sound_helpers.play_audio_async(song_filepath, volume=55, paused=True)
         time.sleep(.5)
 
 
@@ -42,7 +43,6 @@ async def show(websocket, show_name):
         'type': 'time',
         'rate': show_obj['bpm'],
     }
-    print(f'bpm is {show_obj["bpm"]}')
     await websocket.send(json.dumps(msg))
 
 
@@ -76,6 +76,7 @@ async def loop():
         index_of_config = 0
         keys_of_config = list(config.keys())
 
+        await show(websocket, 'cnam')
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')
             if stuff in ['j', 'a']:

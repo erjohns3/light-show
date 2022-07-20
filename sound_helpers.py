@@ -100,14 +100,11 @@ def toggle_pause_async_mpv():
 
 
 def play_sound_with_mpv(audio_path, volume=100, paused=False):
-    print('mpv go')
-
     if is_linux_root():
         print(f'{bcolors.FAIL}WARNING: you are running as root, this probably will cause problems with audio{bcolors.ENDC}')
     extra_args = []
     if paused:
         extra_args += ['--pause']
-    print('mpv later')
     run_command_blocking([
         'mpv',
         '--no-resume-playback',

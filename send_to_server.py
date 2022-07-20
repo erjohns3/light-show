@@ -76,7 +76,6 @@ async def loop():
         index_of_config = 0
         keys_of_config = list(config.keys())
 
-        await show(websocket, 'cnam')
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')
             if stuff in ['j', 'a']:

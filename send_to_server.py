@@ -53,7 +53,10 @@ async def show(websocket, show_name):
 
     time_start = time.perf_counter()
     show_index = 0
+    beats_per_second = 60 / show_obj['bpm']
+    beats_so_far_after_pattern = 0
 
+    print('time_start', time_start)
     while show_index < len(show_obj['show']):
         msg = {
             'type': 'clear_modes',
@@ -71,10 +74,15 @@ async def show(websocket, show_name):
             msg_from_server = await websocket.recv()
             print(f'{msg_from_server=}')
 
+        beats_so_far_after_pattern += show_obj['show'][show_index][-1]
+        print(f'{beats_so_far_after_pattern=}')
 
-        beats_per_second = 60 / show_obj['bpm']
-        time_to_wait = (beats_per_second * show_obj['show'][show_index][-1]) - websocket_delay
+        time_to_play_beats = (beats_per_second * beats_so_far_after_pattern)
+        target_time = time_start + time_to_play_beats
+        print(f'{target_time=}')
+        time_to_wait = (target_time - time.perf_counter()) - websocket_delay
 
+        print(f'{time_to_wait=}')
         precise_wait(time_to_wait)
         show_index += 1
 

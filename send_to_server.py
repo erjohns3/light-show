@@ -62,7 +62,7 @@ async def show(websocket, show_name):
         msg_from_server = await websocket.recv()
         print(f'{msg_from_server=}')
 
-        for mode_to_add in show_obj['show'][show_index]:
+        for mode_to_add in show_obj['show'][show_index][:-1]:
             msg = {
                 'type': 'add_mode',
                 'mode': mode_to_add,

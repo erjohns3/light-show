@@ -65,7 +65,8 @@ async def show(websocket, show_name):
         for mode_to_add in show_obj['show'][show_index]:
             msg = {
                 'type': 'add_mode',
-                'mode': mode_to_add
+                'mode': mode_to_add,
+                'snap': 1/24
             }
             await websocket.send(json.dumps(msg))
             msg_from_server = await websocket.recv()

@@ -35,7 +35,7 @@ async def show(websocket, show_name):
 
     song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
     if not sound_helpers.is_audio_running():
-        sound_helpers.play_audio_async(song_filepath, volume=55, paused=True)
+        sound_helpers.play_audio_async(song_filepath, volume=100, paused=True)
         time.sleep(.5)
 
 
@@ -105,7 +105,7 @@ async def loop():
                 index_of_config %= len(keys_of_config)
                 stuff = keys_of_config[index_of_config]
             elif stuff in [';', 'd']:
-                index_of_config -= 1
+                index_of_config += 1
                 index_of_config %= len(keys_of_config)
                 stuff = keys_of_config[index_of_config]
             elif stuff in shows:

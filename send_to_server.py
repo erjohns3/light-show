@@ -3,6 +3,7 @@ import asyncio
 import json
 import time
 import argparse
+import pathlib
 
 from helpers import *
 import sound_helpers
@@ -33,7 +34,10 @@ websocket_delay = .002
 async def show(websocket, show_name):
     show_obj = shows[show_name]
 
-    song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
+    if '/' in show_obj['song_name'] or '\\' in show_obj['song_name']:
+        song_filepath = pathlib.Path(show_obj['song_name'])
+    else:
+        song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
     if not sound_helpers.is_audio_running():
         sound_helpers.play_audio_async(song_filepath, volume=100, paused=True)
         time.sleep(.5)
@@ -49,43 +53,47 @@ async def show(websocket, show_name):
 
     sound_helpers.toggle_pause_async_mpv()
 
-    precise_wait(show_obj['delay'])
+    precise_wait(show_obj.get('delay', 0))
 
     time_start = time.perf_counter()
     show_index = 0
     beats_per_second = 60 / show_obj['bpm']
     beats_so_far_after_pattern = 0
+    show_arr = show_obj['show']
+    
+    while show_index < len(show_arr):
+        await clear_modes(websocket)
 
-    print('time_start', time_start)
-    while show_index < len(show_obj['show']):
-        msg = {
-            'type': 'clear_modes',
-        }
-        await websocket.send(json.dumps(msg))
-        msg_from_server = await websocket.recv()
-        print(f'{msg_from_server=}')
+        for mode_to_add in show_arr[show_index][:-1]:
+            await add_mode(websocket, mode_to_add)
 
-        for mode_to_add in show_obj['show'][show_index][:-1]:
-            msg = {
-                'type': 'add_mode',
-                'mode': mode_to_add,
-            }
-            await websocket.send(json.dumps(msg))
-            msg_from_server = await websocket.recv()
-            print(f'{msg_from_server=}')
-
-        beats_so_far_after_pattern += show_obj['show'][show_index][-1]
-        print(f'{beats_so_far_after_pattern=}')
-
-        time_to_play_beats = (beats_per_second * beats_so_far_after_pattern)
-        target_time = time_start + time_to_play_beats
-        print(f'{target_time=}')
+        if show_obj.get('show_timing_type', None) == 'seconds':
+            target_time = time_start + show_arr[show_index][-1]
+        else:
+            beats_so_far_after_pattern += show_arr[show_index][-1]
+            time_to_play_beats = (beats_per_second * beats_so_far_after_pattern)
+            target_time = time_start + time_to_play_beats
         time_to_wait = (target_time - time.perf_counter()) - websocket_delay
-
-        print(f'{time_to_wait=}')
         precise_wait(time_to_wait)
         show_index += 1
 
+
+async def clear_modes(websocket):
+    msg = {
+        'type': 'clear_modes',
+    }
+    await websocket.send(json.dumps(msg))
+    msg_from_server = await websocket.recv()
+    print(f'{msg_from_server=}')
+
+async def add_mode(websocket, mode_name):
+    msg = {
+        'type': 'add_mode',
+        'mode': mode_name
+    }
+    await websocket.send(json.dumps(msg))
+    msg_from_server = await websocket.recv()
+    print(f'{msg_from_server=}')
 
 
 async def loop():
@@ -117,22 +125,9 @@ async def loop():
                 print('that wasnt anything...')
                 continue
 
-            msg = {
-                'type': 'clear_modes',
-            }
-            await websocket.send(json.dumps(msg))
-            msg_from_server = await websocket.recv()
-            print(f'{msg_from_server=}')
+            await clear_modes(websocket)
+            await add_mode(websocket, stuff)
 
-            old_mode = stuff
-            msg = {
-                'type': 'add_mode',
-                'mode': stuff
-            }
-
-            await websocket.send(json.dumps(msg))
-            msg_from_server = await websocket.recv()
-            print(f'{msg_from_server=}')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--ip', dest='ip_to_connect_to', default='localhost', type=str)

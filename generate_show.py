@@ -57,6 +57,7 @@ sound = AudioSegment.from_file(song_filepath, format='mp3')
 
 modes_to_cycle = ['Red Top', 'Green Top']
 for index, second in enumerate(beats):
+    dcf
     mode = modes_to_cycle[index % len(modes_to_cycle)]
     new_show['show'].append([mode, float(second)])
     

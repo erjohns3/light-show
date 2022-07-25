@@ -60,6 +60,7 @@ async def show(websocket, show_name):
     beats_per_second = 60 / show_obj['bpm']
     beats_so_far_after_pattern = 0
     show_arr = show_obj['show']
+    last_target_time = 0
     
     while show_index < len(show_arr):
         await clear_modes(websocket)
@@ -69,6 +70,8 @@ async def show(websocket, show_name):
 
         if show_obj.get('show_timing_type', None) == 'seconds':
             target_time = time_start + show_arr[show_index][-1]
+            print(f'time since last beat {target_time - last_target_time}')
+            last_target_time = target_time
         else:
             beats_so_far_after_pattern += show_arr[show_index][-1]
             time_to_play_beats = (beats_per_second * beats_so_far_after_pattern)
@@ -105,6 +108,8 @@ async def loop():
         index_of_config = 0
         keys_of_config = list(config.keys())
         old_mode = None
+
+        await show(websocket, 'musician')
 
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')

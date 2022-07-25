@@ -1,11 +1,13 @@
 import pathlib
 import json
 import re
-
 import sys
+
+import numpy as np
 from essentia import *
 from essentia.standard import *
 from pydub import AudioSegment
+import librosa
 # from pylab import *
 
 from helpers import * 
@@ -51,21 +53,30 @@ new_show = {
 
 
 # making inteligent decicions or something
-sound = AudioSegment.from_file(song_filepath, format='mp3')
+# sound = AudioSegment.from_file(song_filepath, format='mp3')
 
 
+# y, sr = librosa.load(librosa.ex('nutcracker'))
+# hop_length = 512
+# y_harmonic, y_percussive = librosa.effects.hpss(y)
+# Beat track on the percussive signal
+# tempo, beat_frames = librosa.beat.beat_track(y=y_percussive, sr=sr)
+# Compute MFCC features from the raw signal
+# mfcc = librosa.feature.mfcc(y=y, sr=sr, hop_length=hop_length, n_mfcc=13)
+# print(mfcc)
+
+# mfcc_delta = librosa.feature.delta(mfcc)
+# print(mfcc_delta)
+
+# output = np.mean(librosa.feature.rms(audio, center=True).T, axis=0)
+# print(output)
+# exit()
 
 modes_to_cycle = ['Red Top', 'Green Top']
 for index, second in enumerate(beats):
-    dcf
     mode = modes_to_cycle[index % len(modes_to_cycle)]
     new_show['show'].append([mode, float(second)])
     
-
-# print(new_show)
-
-
-
 
 # writing into a show
 with open('shows.json') as f:

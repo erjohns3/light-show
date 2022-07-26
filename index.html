@@ -21,6 +21,7 @@
 
     <template id="template-profile-item">
         <div class="profile-name"></div>
+        <div class="profile-playing"></div>
     </template>
 
     <div id="profile-list"></div>
@@ -188,6 +189,7 @@
             if(!this.active){
                 this.classList.add('pad-item-active');
                 this.active = true;
+                profiles[this.profile].increasePlaying();
             }
         }
 
@@ -195,6 +197,7 @@
             if(this.active){
                 this.classList.remove('pad-item-active');
                 this.active = false;
+                profiles[this.profile].decreasePlaying();
             }
         }
     }
@@ -212,15 +215,43 @@
             this.nameElem = this.querySelector(".profile-name");
             this.nameElem.textContent = this.profile;
 
+            this.playingElem = this.querySelector(".profile-playing");
+
             this.active = false;
 
-            this.playing = false;
+            this.playing = 0;
 
             this.onclick = function (event) {
                 event.preventDefault();
                 profiles[activeProfile].deactivate();
                 this.activate();
             };
+        }
+
+        setPlaying(){
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        increasePlaying(){
+            this.playing++;
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        decreasePlaying(){
+            this.playing--;
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
         }
 
         activate(){
@@ -252,11 +283,11 @@
         }
 
         show(){
-            this.style.display = "block";
+            this.classList.add("pad-table-active");
         }
 
         hide(){
-            this.style.display = "none";
+            this.classList.remove("pad-table-active");
         }
     }
     customElements.define('pad-table', PadTable);
@@ -440,15 +471,12 @@
     }
 
     profile-item{
+        position: relative;
         height: 10vh;
         margin: 0.5vw;
         border-radius: 0.5vw;
+        display: block;
         background-color: hsl(0, 0%, 15%);
-        text-align: center;
-        font-size: 3vh;
-        display: flex;
-        justify-content: center;
-        align-items: center;
         cursor: pointer;
     }
 
@@ -461,6 +489,27 @@
         background-color: hsl(204, 100%, 24%);
     }
 
+    .profile-name {
+        position: absolute;
+        width: 65%;
+        top: 50%;
+        left: 10%;
+        transform: translate(0%, -50%);
+        font-size: 3vh;
+    }
+
+    .profile-playing {
+        position: absolute;
+        width: 8%;
+        top: 50%;
+        right: 10%;
+        transform: translate(0%, -50%);
+        text-align: center;
+        font-size: 3vh;
+        font-weight: bold;
+        color: hsl(204, 100%, 32%);
+    }
+
     #pad-table-wrapper{
         position: absolute;
         right: 0;
@@ -471,12 +520,27 @@
     }
 
     pad-table{
-        display: none;
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(5%);
         position: absolute;
         width: calc(100% - 0.5vw);
         height: calc(100% - 0.5vw);
         padding: 0.25vw;
         overflow: hidden;
+        transition: transform 150ms, opacity 150ms linear, visibility 150ms linear;
+    }
+
+    .pad-table-active{
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0%);
+    }
+
+    @keyframes wipe{
+        0% {opacity: 0; display: none;}
+        90% {opacity: 0.9; display: none;}
+        100% {opacity: 1; display: block;}
     }
 
     pad-item {

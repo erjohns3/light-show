@@ -35,6 +35,11 @@
         "Red Bass": {
             "mode": "Red Bass",
             "button": "add"
+        },
+        "Red Bass Q": {
+            "mode": "Red Bass",
+            "button": "add",
+            "snap": 0.25
         }
     },
     "Andrew": {

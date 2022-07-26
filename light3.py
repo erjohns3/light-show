@@ -1,4 +1,3 @@
-from msilib import change_sequence
 import threading
 import time
 import sys
@@ -7,7 +6,6 @@ import signal
 import pathlib
 import asyncio
 from tracemalloc import start
-from numpy import number
 import websockets
 import http.server
 import argparse
@@ -16,7 +14,6 @@ from os import path
 import math
 
 try:
-    import pigpio
     import board
     import busio
     import adafruit_pca9685
@@ -32,7 +29,6 @@ except Exception as e:
 SUB_BEATS = 24
 LIGHT_COUNT = 7
 
-pi = None
 curr_modes = []
 curr_bpm = 120
 time_start = time.perf_counter()
@@ -112,10 +108,10 @@ async def light():
                 index = (beat_index + curr_modes[j][1]) % light_array[curr_modes[j][0]]["length"]
                 level += light_array[curr_modes[j][0]]["beats"][index][i]
 
-            # if print_to_terminal:
-            #     await terminal(level, i)
-            # else:
-            #     pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+            if print_to_terminal:
+                await terminal(level, i)
+            else:
+                pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
 
         if update:
             await send_update()
@@ -213,18 +209,13 @@ async def init(websocket, path):
             light_lock.release()
 
             await send_update() # we might not to lock this
-        print(msg, flush=True)
+        
         if not print_to_terminal:
             print(msg, flush=True)
 
 ######################################
 
-def setup_pigpio():
-    global pi
-    pi = pigpio.pi()
-    if not pi.connected:
-        exit()
-
+def setup_io():
     for i in range(len(pca.channels)):
         pca.channels[i].duty_cycle = 0
 
@@ -236,13 +227,6 @@ def setup_pigpio():
     pca.channels[5].duty_cycle = 0xFFFF
 
 #################################################
-
-class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-        http.server.SimpleHTTPRequestHandler.end_headers(self)
 
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
@@ -405,12 +389,11 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
-    if pi is not None:
-        print('Attemping to reset lights to off, but exiting in 1 second regardless')
+    if not args.print_to_terminal:
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
-        pi.stop()
         time.sleep(1)
+
     x = threading.Thread(target=kill_in_n_seconds, args=(1,))
     x.start()
 
@@ -428,7 +411,7 @@ if args.print_to_terminal:
     from rich.console import Console
     console = Console()
 else:
-    setup_pigpio()
+    setup_io()
 
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()

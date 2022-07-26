@@ -11,21 +11,29 @@
 
 <body>
 
-    <template id="template-mode-item">
-        <div class="mode-name"></div>
+    <template id="template-pad-item">
+        <div class="pad-name"></div>
+        <div class="pad-bpm"></div>
+        <div class="pad-length"></div>
+        <div class="pad-loop"></div>
+        <div class="pad-button"></div>
     </template>
 
-    <div id="mode-list"></div>
+    <template id="template-profile-item">
+        <div class="profile-name"></div>
+    </template>
 
-    <div id="curr-label" class="label">Current</div>
-    <div id="next-label" class="label">Next</div>
+    <div id="profile-list"></div>
 
-    <div id="rate-label" class="label">BPM</div>
-    <div id="rate-curr" class="value"></div>
-    <input type="number" id="rate-next" class="value">
+    <div id="pad-table-wrapper"></div>
 
-    <div id="apply-button">Apply (Enter)</div>
+    <div id="rate-inc" class="button">+</div>
+    <div id="rate-dec" class="button">—</div>
+    <div id="rate-next"></div>
+    <div id="rate-apply" class="button">Apply</div>
+    <div id="rate-curr"></div>
 
+    <div id="pads-clear" class="button">Clear</div>
 </body>
 
 <script>
@@ -74,18 +82,42 @@
             
             if(msg.config){
                 config = msg.config
-                for(let name in config){
-                    modeElems[name] = new ModeItem(name);
-                    modeListElem.append(modeElems[name]);
-                    if(modeSelected == false){
-                        selectMode(name);
+                for(let profile in config){
+                    profiles[profile] = new ProfileItem(profile);
+                    profileList.append(profiles[profile]);
+
+                    padTables[profile] = new PadTable(profile);
+                    padTableWrapper.append(padTables[profile]);
+
+                    pads[profile] = {}
+                    for(let pad in config[profile]){
+                        pads[profile][pad] = new PadItem(profile, pad);
+                        padTables[profile].append(pads[profile][pad]);
+                    }
+                    
+                    if(!activeProfile){
+                        console.log(profiles[profile]);
+                        profiles[profile].activate();
                     }
                 }
             }
 
             if(msg.status){
-                setCurrRate(msg.status.rate)
-                setCurrModes(msg.status.modes)
+                for(let pad of padsCurr){
+                    pads[pad[2]][pad[3]].deactivate();
+                }
+                for(let pad of msg.status.pads){
+                    pads[pad[2]][pad[3]].activate();
+                }
+                padsCurr = msg.status.pads;
+
+                rateCurr = msg.status.rate;
+                rateCurrElem.textContent = rateCurr.toFixed(1);
+                
+                if(rateNext == false){
+                    rateNext = rateCurr;
+                    rateNextElem.textContent = rateNext.toFixed(1);;
+                }
 
                 if(startTime){
                     console.log(Date.now() - startTime);
@@ -94,227 +126,301 @@
         }
     }
 
-    //////////////////////////////////////////////////////////////////
-
-    function setCurrRate(rate){
-        rateCurr = rate;
-        rateCurrElem.textContent = rateCurr;
-        
-        if(rateNext == false){
-            rateNext = rateCurr;
-            rateNextElem.value = rateNext;
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////
-
-    function setCurrModes(modes){
-        for(let mode of modesCurr){
-            modeElems[mode].classList.remove('mode-item-curr');
-        }
-        for(let mode of modes){
-            modeElems[mode].classList.add('mode-item-curr');
-        }
-        modesCurr = modes;
-    }
-
-    function toggleCurrMode(mode){
-        let index = modesCurr.indexOf(mode);
-        if(index >= 0){
-            modesCurr.splice(index, 1)
-            modeElems[mode].classList.remove('mode-item-curr');
-        }else{
-            modesCurr.push(mode);
-            modeElems[mode].classList.add('mode-item-curr');
-        }
-        sendModes(modesCurr);
-    }
-
-    //////////////////////////////////////////////////////////////////
-
-    function addNextMode(mode){
-        let index = modesNext.indexOf(mode);
-        if(index == -1){
-            modesNext.push(mode);
-            modeElems[mode].classList.add('mode-item-next');
-        }
-    }
-
-    function removeNextMode(mode){
-        let index = modesNext.indexOf(mode);
-        if(index >= 0){
-            modesNext.splice(index, 1)
-            modeElems[mode].classList.remove('mode-item-next');
-        }
-    }
-
-    function toggleNextMode(mode){
-        let index = modesNext.indexOf(mode);
-        if(index >= 0){
-            modesNext.splice(index, 1)
-            modeElems[mode].classList.remove('mode-item-next');
-        }else{
-            modesNext.push(mode);
-            modeElems[mode].classList.add('mode-item-next');
-        }
-    }
-
     /////////////////////////////////////////////////////////////////////
 
-    function selectMode(mode){
-        if (modeSelected){
-            modeElems[modeSelected].classList.remove('mode-item-selected');
-        }
-        modeSelected = mode;
-        if (modeSelected){
-            modeElems[modeSelected].classList.add('mode-item-selected');
-        }
-    }
-
-    class ModeItem extends HTMLElement {
-        constructor(name) {
+    class PadItem extends HTMLElement {
+        constructor(profile, pad) {
             super();
 
-            this.appendChild(templateModeItem.content.cloneNode(true));
+            this.appendChild(templatePadItem.content.cloneNode(true));
 
-            this.name = name;
+            this.profile = profile;
+            this.pad = pad;
 
-            this.nameElem = this.querySelector(".mode-name");
-            this.nameElem.textContent = this.name;
+            this.button = config[profile][pad].button;
+            this.toggle = this.button == "toggle";
+            this.hold = this.button == "hold";
+            this.add = this.button == "add";
 
-            //this.colorElem = this.querySelector(".mode-color");
+            this.length = config[profile][pad].length;
+            this.bpm = config[profile][pad].bpm;
 
-            this.onclick = function () {
-                //event.stopPropagation();
-                toggleCurrMode(this.name);
-                selectMode(this.name);
-            };
+            this.querySelector(".pad-name").textContent = this.pad;
+            this.querySelector(".pad-length").textContent = this.length;
+            this.querySelector(".pad-button").textContent = this.button;
+            if(config[profile][pad].loop){
+                this.querySelector(".pad-loop").textContent = "∞";
+            }
+            if(config[profile][pad].bpm){
+                this.querySelector(".pad-bpm").textContent = this.bpm + " bpm";
+            }
+
+            this.active = false;
+
+            //this.colorElem = this.querySelector(".pad-color");
+
+            this.addEventListener('touchstart', this.press, false);
+            this.addEventListener('mousedown', this.press, false);
+
+            this.addEventListener('touchend', this.release, false);
+            this.addEventListener('mouseup', this.release, false);
+        }
+
+        press(event){
+            event.preventDefault();
+            if(this.toggle){
+                togglePad(this.profile, this.pad);
+            }else{
+                addPad(this.profile, this.pad);
+            }
+            this.classList.add('pressed');
+        }
+
+        release(event){
+            event.preventDefault();
+            if(this.hold){
+                removePad(this.profile, this.pad);
+            }
+            this.classList.remove('pressed');
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('pad-item-active');
+                this.active = true;
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('pad-item-active');
+                this.active = false;
+            }
         }
     }
-    customElements.define('mode-item', ModeItem);
+    customElements.define('pad-item', PadItem);
+
+
+    class ProfileItem extends HTMLElement {
+        constructor(profile) {
+            super();
+
+            this.appendChild(templateProfileItem.content.cloneNode(true));
+
+            this.profile = profile;
+
+            this.nameElem = this.querySelector(".profile-name");
+            this.nameElem.textContent = this.profile;
+
+            this.active = false;
+
+            this.playing = false;
+
+            this.onclick = function (event) {
+                event.preventDefault();
+                profiles[activeProfile].deactivate();
+                this.activate();
+            };
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('profile-item-active');
+                this.active = true;
+                padTables[this.profile].show();
+                activeProfile = this.profile;
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('profile-item-active');
+                this.active = false;
+                padTables[this.profile].hide();
+                activeProfile = null;
+            }
+        }
+    }
+    customElements.define('profile-item', ProfileItem);
+
+
+    class PadTable extends HTMLElement {
+        constructor(profile) {
+            super();
+
+            this.profile = profile;
+        }
+
+        show(){
+            this.style.display = "block";
+        }
+
+        hide(){
+            this.style.display = "none";
+        }
+    }
+    customElements.define('pad-table', PadTable);
+
+    function addPad(profile, pad){
+        let msg = {
+            type: "add_pad",
+            pad: pad,
+            profile: profile
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function removePad(profile, pad){
+        let msg = {
+            type: "remove_pad",
+            pad: pad,
+            profile: profile
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function togglePad(profile, pad){
+        let msg = {
+            type: "toggle_pad",
+            pad: pad,
+            profile: profile
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function sendRate(rate){
+        let msg = {
+            type: "set_bpm",
+            bpm: rate
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function sendClear(){
+        let msg = {
+            type: "clear_pads"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
 
     var socket = null;
     var socketConnected = false;
     var socketAttempts = 0;
 
     var startTime = false;
-    var listScroll = 0;
-
-    var modeElems = {};
-    var modeListElem = document.getElementById("mode-list");
-
-    var templateModeItem = document.getElementById("template-mode-item");
 
     var config = {};
+    var pads = {};
+    var profiles = {};
+    var padTables = {};
+
+    var profileList = document.getElementById("profile-list");
+    var padTableWrapper = document.getElementById("pad-table-wrapper");
+
+    var templatePadItem = document.getElementById("template-pad-item");
+    var templateProfileItem = document.getElementById("template-profile-item");
 
     var rateCurr = false;
     var rateNext = false;
-    var modesCurr = [];
-    var modesNext = [];
-    var modeSelected = false;
+    var padsCurr = [];
+    var activeProfile = null;
 
     var rateCurrElem = document.getElementById("rate-curr");
     var rateNextElem = document.getElementById("rate-next");
-    var applyElem = document.getElementById("apply-button");
+    var rateApplyElem = document.getElementById("rate-apply");
+    var rateIncElem = document.getElementById("rate-inc");
+    var rateDecElem = document.getElementById("rate-dec");
 
-    rateNextElem.focus();
+    var padsClearElem = document.getElementById("pads-clear");
 
-    rateNextElem.onblur = function(){
-        fixRate();
+    // rateNextElem.focus();
+
+    // rateNextElem.onblur = function(){
+    //     fixRate();
+    // }
+    
+    function changeValue(num){
+        rateNext = Math.max(0.1, Math.min(300, rateNext + num));
+        rateNextElem.textContent = rateNext.toFixed(1);
+        timer = Math.max(16.67, timer * 0.9);
+        timeout = setTimeout(changeValue, timer, num);
     }
 
-    function fixRate(){
-        rateNextElem.value = Math.max(0.01, Math.min(600, rateNextElem.value));
+    function stopValue(){
+        clearTimeout(timeout);
+        timer = 250;
     }
 
-    function sendModes(modes){
-        let msg = {
-            type: "modes",
-            modes: modes,
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg)
-        startTime = Date.now();
+    var timer = 250;
+    var timeout = null;
+
+    rateIncElem.addEventListener('touchstart', startIncrease, false);
+    rateIncElem.addEventListener('mousedown', startIncrease, false);
+    rateIncElem.addEventListener('touchend', stopIncrease, false);
+    rateIncElem.addEventListener('mouseup', stopIncrease, false);
+
+    rateDecElem.addEventListener('touchstart', startDecrease, false);
+    rateDecElem.addEventListener('mousedown', startDecrease, false);
+    rateDecElem.addEventListener('touchend', stopDecrease, false);
+    rateDecElem.addEventListener('mouseup', stopDecrease, false);
+
+
+    function startIncrease(event){
+        event.preventDefault();
+        rateIncElem.classList.add('pressed');
+        changeValue(0.1);
     }
 
-    function sendRate(rate){
-        let msg = {
-            type: "time",
-            rate: rate
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg)
-        startTime = Date.now();
+    function stopIncrease(event){
+        event.preventDefault();
+        rateIncElem.classList.remove('pressed');
+        stopValue();
     }
 
-    applyElem.onclick = function () {
-        fixRate();
-        sendRate(rateNextElem.value);
+    function startDecrease(event){
+        event.preventDefault();
+        rateDecElem.classList.add('pressed');
+        changeValue(-0.1);
     }
 
-    document.addEventListener('keydown', (e) => {
-        console.log(e.keyCode);
-        if(e.keyCode == 27){ // escape
-            sendModes([]);
-        }else if(e.keyCode == 13){ // enter
-            applyElem.click();
-        }else if(e.keyCode == 32 || e.keyCode == 68){ // space
-            toggleCurrMode(modeSelected);
-            e.preventDefault(); 
-        }else if(e.keyCode == 87 || e.keyCode == 83){ // w + s
-            var num = 0;
-            var found = 0;
-            for(var mode in modeElems){
-                if(mode == modeSelected){
-                    found = num;
-                }
-                num++;
-            }
-            num = 0;
-            if(e.keyCode == 87){
-                found--;
-            }else if(e.keyCode == 83){
-                found++;
-            }
-            for(var mode in modeElems){
-                if(num == found){
-                    selectMode(mode);
-                }
-                num++;
-            }
+    function stopDecrease(event){
+        event.preventDefault();
+        rateDecElem.classList.remove('pressed');
+        stopValue();
+    }
 
-            var margin = window.innerWidth*0.005;
-            
-            var topScroll = Math.round(modeElems[modeSelected].offsetTop - margin);
-            var bottomScroll = Math.round(modeElems[modeSelected].offsetTop + modeElems[modeSelected].offsetHeight + margin - modeListElem.offsetHeight);
+    rateApplyElem.onclick = function () {
+        sendRate(rateNext);
+    }
 
-            if(topScroll < listScroll){
-                listScroll = topScroll;
-                modeListElem.scrollTo({
-                    top: listScroll,
-                    left: 0,
-                    behavior: 'smooth'
-                });
-            }else if(bottomScroll > listScroll){
-                listScroll = bottomScroll;
-                modeListElem.scrollTo({
-                    top: listScroll,
-                    left: 0,
-                    behavior: 'smooth'
-                });
-            }
-        }else if((e.keyCode >= 48 && e.keyCode <= 57) || (e.keyCode >= 37 && e.keyCode <= 40) || e.keyCode == 190 || e.keyCode == 8){
-            rateNextElem.focus();
-        }
-    });
+    padsClearElem.onclick = function () {
+        sendClear();
+    }
 
     socketInit();
+
+    window.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
 
 </script>
 
 <style>
     body {
         color-scheme: dark;
+        user-select: none;
         height: 100vh;
         margin: 0;
         padding: 0;
@@ -324,140 +430,212 @@
         background-color: hsl(0, 0%, 4%);
     }
 
-    #mode-list{
+    #profile-list{
         position: absolute;
-        width: 80vw;
-        height: 100%;
+        width: 30vw;
+        height: 70vh;
+        overflow-y: auto;
+        overflow-x: hidden;
         background-color: hsl(0, 0%, 8%);
-        overflow: auto;
     }
 
-    mode-item {
-        width: 19.5vw;
-        height: 19.5vw;
-        margin: 0.25vw;
+    profile-item{
+        height: 10vh;
+        margin: 0.5vw;
         border-radius: 0.5vw;
-        border-left: solid 1vw hsla(0, 0%, 0%, 0%);
-        border-right: solid 1vw hsla(0, 0%, 0%, 0%);
-        box-sizing: border-box;
-        background-color: hsl(0, 0%, 12%);
+        background-color: hsl(0, 0%, 15%);
         text-align: center;
-        font-size: 2vh;
-        display: inline-flex;
+        font-size: 3vh;
+        display: flex;
         justify-content: center;
         align-items: center;
         cursor: pointer;
     }
 
-    .mode-item-selected{
-        background-color: hsl(0, 0%, 24%);
+    profile-item:active{
+        opacity: 0.8;
+        transform: scale(0.97);
     }
 
-    .mode-item-curr{
-        border-left: solid 1vw hsl(120, 100%, 30%);
+    .profile-item-active{
+        background-color: hsl(204, 100%, 24%);
     }
 
-    .mode-item-next{
-        border-right: solid 1vw hsl(204, 100%, 30%);
-    }
-
-    .label {
+    #pad-table-wrapper{
         position: absolute;
-        width: 12%;
-        height: 6%;
+        right: 0;
+        width: 70vw;
+        height: 100vh;
+        background-color: hsl(0, 0%, 6%);
+        overflow: hidden;
+    }
+
+    pad-table{
+        display: none;
+        position: absolute;
+        width: calc(100% - 0.5vw);
+        height: calc(100% - 0.5vw);
+        padding: 0.25vw;
+        overflow: hidden;
+    }
+
+    pad-item {
+        position: relative;
+        width: calc(20% - 0.5vw);
+        height: calc(25% - 0.5vw);
+        margin: 0.25vw;
+        border-radius: 0.5vw;
+        background-color: hsl(0, 0%, 12%);
+        display: inline-block;
+        cursor: pointer;
+        transition: transform 50ms linear;
+    }
+
+    .pad-item-active{
+        background-color: hsl(204, 100%, 24%);
+    }
+
+    .pressed{
+        transform: scale(0.97);
+    }
+
+    .pad-name {
+        position: absolute;
+        width: 75%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 3vh;
+    }
+
+    .pad-bpm {
+        position: absolute;
+        bottom: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .pad-length {
+        position: absolute;
+        top: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .pad-loop {
+        position: absolute;
+        top: -0.2vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 3.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .pad-button {
+        position: absolute;
+        bottom: 0.5vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 1.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    #pads-clear{
+        position: absolute;
+        left: 9vw;
+        bottom: 21vh;
+        width: 12vw;
+        height: 8vh;
+        border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
         display: flex;
         justify-content: center;
         align-items: center;
-    }
-
-    .value {
-        position: absolute;
-        width: 12%;
-        height: 6%;
-        border-radius: 1vw;
-        font-size: 3vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: hsl(0, 0%, 8%);
-    }
-
-    #curr-label {
-        left: 55%;
-        top: 15%;
-    }
-
-    #next-label {
-        left: 70%;
-        top: 15%;
-    }
-
-    #rate-label {
-        left: 40%;
-        top: 25%;
+        background-color: hsl(0, 100%, 24%);
+        cursor: pointer;
     }
 
     #rate-curr {
-        left: 55%;
-        top: 25%;
+        position: absolute;
+        left: 14vw;
+        bottom: 1vh;
+        width: 6vw;
+        height: 8vh;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        color: hsl(204, 100%, 32%);
     }
 
     #rate-next {
-        left: 70%;
-        top: 25%;
-        box-sizing: border-box;
-        border: none;
-        border-bottom: hsl(0, 0%, 50%) 1px solid;
-    }
-
-    #mode-label {
-        left: 40%;
-        top: 35%;
-    }
-
-    #mode-curr {
-        left: 55%;
-        top: 35%;
-    }
-
-    #mode-next {
-        left: 70%;
-        top: 35%;
-    }
-
-
-    #apply-button{
         position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 25%;
-        height: 8%;
-        border-radius: 1vw;
+        left: 14vw;
+        bottom: 10vh;
+        width: 6vw;
+        height: 8vh;
         font-size: 3vh;
         text-align: center;
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(204, 100%, 30%);
+        font-weight: bold;
+        color: hsl(120, 100%, 32%);
+    }
+
+    #rate-apply{
+        position: absolute;
+        left: 1vw;
+        bottom: 1vh;
+        width: 11vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(204, 100%, 24%);
         cursor: pointer;
     }
 
-    #preview-button{
+    #rate-dec{
         position: absolute;
-        left: 50%;
-        top: 50%;
-        width: 25%;
-        height: 8%;
-        border-radius: 1vw;
-        font-size: 3vh;
+        left: 1vw;
+        bottom: 10vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 4vh;
         text-align: center;
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(204, 100%, 30%);
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #rate-inc{
+        position: absolute;
+        left: 7vw;
+        bottom: 10vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 6vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
         cursor: pointer;
     }
 
@@ -472,12 +650,10 @@
         margin: 0;
     }
 
-    /* Firefox */
     input[type=number] {
         -moz-appearance: textfield;
     }
     
-
     ::-webkit-scrollbar {
         width: 1vw;
     }

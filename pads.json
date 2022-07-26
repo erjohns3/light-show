@@ -1,0 +1,51 @@
+{
+    "Shows":{
+        "Eric Show": {
+            "mode": "Show 1",
+            "delay": 0,
+            "loop": false,
+            "bpm": 90
+        }
+    },
+    "Eric": {
+        "Red Flash 1": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Flash 2": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Flash 3": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Flash 4": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Flash 5": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Flash Hold": {
+            "mode": "Red Top Flash",
+            "button": "hold"
+        },
+        "Red Bass": {
+            "mode": "Red Bass",
+            "button": "add"
+        }
+    },
+    "Andrew": {
+        "Red Bass": {
+            "mode": "Red Bass",
+            "snap": 0.25
+        },
+        "Red Flash Hold": {
+            "mode": "Red Top Flash",
+            "button": "hold",
+            "snap": 0.25
+        }
+    }
+}

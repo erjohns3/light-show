@@ -1,0 +1,44 @@
+{
+    "Red Top Flash": {
+        "length": 0.25,
+        "beats":{
+            "1": [[100, -100, -100, 0, 0, 0, 0], 0.125, 1, 1]
+        } 
+    },
+    "Hat":{
+        "length": 0.5,
+        "beats":{
+            "1": [[0, 0, 100, 0, 0, 0, 0], 0.25, 1, 1]
+        }
+    },
+    "Red Bass":{
+        "length": 2,
+        "loop": false,
+        "beats":{
+            "1": ["Red Top Flash", 2, 1, 0, 0]
+        }
+    },
+    "Bassline":{
+        "length": 4,
+        "beats":{
+            "1": "Red Bass",
+            "3.5": "Red Bass"
+        }
+    },
+    "Bassline 2":{
+        "length": 4,
+        "beats":{
+            "2": [["Red Bass"]],
+            "4": [["Red Bass"]]
+        }
+    },
+    "Show 1":{
+        "length": 64,
+        "beats":{
+            "1": [["Hat", 32, 1, 1, 0], ["Bassline", 4, 0, 1, 0]],
+            "5": [["Bassline", 28, 1, 1, 4]],
+            "37": [["Hat", 3, 1, 1, 0], ["Bassline", 3, 1, 1, 0]], 
+            "41": [["Hat", 24, 1, 1, 4], ["Bassline 2", 24, 1, 1, 4]]
+        }
+    }
+}

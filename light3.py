@@ -10,8 +10,8 @@ import websockets
 import http.server
 import argparse
 import os
-from os import path
 import math
+import pygame
 
 try:
     import board
@@ -25,6 +25,8 @@ try:
 except Exception as e:
     print(f'Cant start with hardware support because of {e}')
 
+pygame.init()
+pygame.mixer.init()
 
 SUB_BEATS = 24
 LIGHT_COUNT = 7
@@ -98,15 +100,17 @@ async def light():
         i = 0
         while i < len(curr_modes):
             if not light_array[curr_modes[i][0]]["loop"] and beat_index + curr_modes[i][1] >= light_array[curr_modes[i][0]]["length"]:
-                curr_modes.pop(i)
+                remove_curr_mode(i)
                 update = True
             else:
                 i+=1
         for i in range(LIGHT_COUNT):
             level = 0
             for j in range(len(curr_modes)):
-                index = (beat_index + curr_modes[j][1]) % light_array[curr_modes[j][0]]["length"]
-                level += light_array[curr_modes[j][0]]["beats"][index][i]
+                index = beat_index + curr_modes[j][1]
+                if index >= 0:
+                    index = index % light_array[curr_modes[j][0]]["length"]
+                    level += light_array[curr_modes[j][0]]["beats"][index][i]
 
             if print_to_terminal:
                 await terminal(level, i)
@@ -126,11 +130,26 @@ async def light():
 
 #################################################
 
+def curr_mode_index(profile, pad):
+    for i in range(len(curr_modes)):
+        if curr_modes[i][2] == profile and curr_modes[i][3] == pad:
+            return i
+    return False
+
+def remove_curr_mode(index):
+    profile = curr_modes[index][2]
+    pad = curr_modes[index][3]
+    curr_modes.pop(index)
+    if "song" in pads[profile][pad]:
+        pygame.mixer.music.stop()
+        pygame.mixer.music.unload()
+
 async def init(websocket, path):
     global light_task
     global curr_modes
     global curr_bpm
     global time_start
+    global beat_index
 
     if not light_task:
         light_task = asyncio.create_task(light())
@@ -172,32 +191,27 @@ async def init(websocket, path):
             if msg['type'] == 'add_pad':
                 profile = msg['profile']
                 pad = msg['pad']
-                mode = pads[profile][pad]["mode"]
-                curr_modes.append([mode, (beat_index % round(pads[profile][pad]["snap"] * SUB_BEATS)) - beat_index, profile, pad])
-                if "bpm" in pads[profile][pad]:
-                    time_start = time.perf_counter() + pads[profile][pad]["delay"]
-                    curr_bpm = pads[profile][pad]["bpm"]
+                if pads[profile][pad]["button"] != "toggle" or curr_mode_index(profile, pad) is False:
+                    mode = pads[profile][pad]["mode"]
+                    if "bpm" in pads[profile][pad]:
+                        time_start = time.perf_counter() + pads[profile][pad]["delay"]
+                        curr_bpm = pads[profile][pad]["bpm"]
+                        curr_modes = []
+                        beat_index = int((-pads[profile][pad]["delay"]) * (curr_bpm / 60 * SUB_BEATS))
+                        offset = 0
+                    else:
+                        offset = (beat_index % round(pads[profile][pad]["snap"] * SUB_BEATS)) - beat_index
+                    if "song" in pads[profile][pad]:
+                        pygame.mixer.music.load('data/'+pads[profile][pad]["song"])
+                        pygame.mixer.music.play()
+                    curr_modes.append([mode, offset, profile, pad])
 
             elif msg['type'] == 'remove_pad':
                 profile = msg['profile']
                 pad = msg['pad']
-                for i in range(len(curr_modes)):
-                    if curr_modes[i][2] == profile and curr_modes[i][3] == pad:
-                        curr_modes.pop(i)
-                        break
-
-            elif msg['type'] == 'toggle_pad':
-                profile = msg['profile']
-                pad = msg['pad']
-                mode = pads[profile][pad]["mode"]
-                found = False
-                for i in range(len(curr_modes)):
-                    if curr_modes[i][2] == profile and curr_modes[i][3] == pad:
-                        curr_modes.pop(i)
-                        found = True
-                        break
-                if not found:
-                    curr_modes.append([mode, (beat_index % round(pads[profile][pad]["snap"] * SUB_BEATS)) - beat_index, profile, pad])
+                index = curr_mode_index(profile, pad)
+                if index is not False:
+                    remove_curr_mode(index)
 
             elif msg['type'] == 'clear_pads':
                 curr_modes = []
@@ -205,6 +219,7 @@ async def init(websocket, path):
             elif msg['type'] == 'set_bpm':
                 time_start = time.perf_counter()
                 curr_bpm = float(msg['bpm'])
+                curr_modes = []
 
             light_lock.release()
 
@@ -238,14 +253,19 @@ def http_server():
 
 ################################################
 
-loc = pathlib.Path(__file__).parent.absolute()
-drink_io_folder = str(loc)
+config = {}
+pads = {}
 
-with open(path.join(drink_io_folder, 'config2.json'), 'r') as f:
-    config = json.loads(f.read())
+filepath = os.path.realpath(__file__)
+dirpath = os.path.dirname(filepath)
 
-with open(path.join(drink_io_folder, 'pads.json'), 'r') as f:
-    pads = json.loads(f.read())
+for file in os.listdir(os.path.join(dirpath, 'configs')):
+    with open(os.path.join(dirpath, 'configs', file), 'r') as f:
+        config.update(json.loads(f.read()))
+
+for file in os.listdir(os.path.join(dirpath, 'pads')):
+    with open(os.path.join(dirpath, 'pads', file), 'r') as f:
+        pads.update(json.loads(f.read()))
 
 light_array = {}
 
@@ -253,7 +273,6 @@ graph = {}
 complex_modes = []
 simple_modes = []
 found = {}
-
 
 for mode in config:
     if 'loop' not in config[mode]:
@@ -378,14 +397,13 @@ for mode in complex_modes:
 ##################################################
 
 def kill_in_n_seconds(seconds):
-    while True:
-        if os.name == 'nt':
-            kill_string = f'taskkill /PID {os.getpid()} /F'
-        else:
-            kill_string = f'kill -9 {os.getpid()}'
-        print(f'{kill_string}')
-        os.system(kill_string)
-        time.sleep(seconds)
+    if os.name == 'nt':
+        kill_string = f'taskkill /PID {os.getpid()} /F'
+    else:
+        kill_string = f'kill -9 {os.getpid()}'
+    print(f'{kill_string}')
+    os.system(kill_string)
+    time.sleep(seconds)
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)

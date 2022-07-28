@@ -170,7 +170,11 @@
         press(event){
             event.preventDefault();
             if(this.toggle){
-                togglePad(this.profile, this.pad);
+                if(this.active){
+                    removePad(this.profile, this.pad);
+                }else{
+                    addPad(this.profile, this.pad);
+                }
             }else{
                 addPad(this.profile, this.pad);
             }
@@ -314,17 +318,6 @@
         startTime = Date.now();
     }
 
-    function togglePad(profile, pad){
-        let msg = {
-            type: "toggle_pad",
-            pad: pad,
-            profile: profile
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
-    }
-
     function sendRate(rate){
         let msg = {
             type: "set_bpm",
@@ -445,6 +438,9 @@
         event.stopPropagation();
         return false;
     };
+
+    navigator.clipboard.readText().then(
+        (clipText) => document.querySelector("#pads-clear").innerText = clipText);
 
 </script>
 

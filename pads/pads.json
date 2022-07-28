@@ -3,8 +3,8 @@
         "Eric Show": {
             "mode": "Show 1",
             "delay": 0,
-            "loop": false,
-            "bpm": 90
+            "bpm": 90,
+            "song": "musician2.mp3"
         }
     },
     "Eric": {

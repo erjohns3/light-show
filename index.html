@@ -26,7 +26,11 @@
 
     <div id="profile-list"></div>
 
-    <div id="pad-table-wrapper"></div>
+    <div id="pad-table-wrapper">
+        <div id="page-up"></div>
+        <div id="page-count"></div>
+        <div id="page-down"></div>
+    </div>
 
     <div id="rate-inc" class="button">+</div>
     <div id="rate-dec" class="button">—</div>
@@ -34,6 +38,7 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
+    <div id="update-config" class="button">Update</div>
     <div id="pads-clear" class="button">Clear</div>
 </body>
 
@@ -84,16 +89,21 @@
             if(msg.config){
                 config = msg.config
                 for(let profile in config){
-                    profiles[profile] = new ProfileItem(profile);
-                    profileList.append(profiles[profile]);
+                    if(!(profile in pads)){
+                        profiles[profile] = new ProfileItem(profile);
+                        profileList.append(profiles[profile]);
 
-                    padTables[profile] = new PadTable(profile);
-                    padTableWrapper.append(padTables[profile]);
+                        padTables[profile] = new PadTable(profile);
+                        padTableWrapper.append(padTables[profile]);
 
-                    pads[profile] = {}
+                        pads[profile] = {}
+                    }
+                    
                     for(let pad in config[profile]){
-                        pads[profile][pad] = new PadItem(profile, pad);
-                        padTables[profile].append(pads[profile][pad]);
+                        if(!(pad in pads[profile])){
+                            pads[profile][pad] = new PadItem(profile, pad);
+                            padTables[profile].append(pads[profile][pad]);
+                        }
                     }
                     
                     if(!activeProfile){
@@ -328,6 +338,15 @@
         startTime = Date.now();
     }
 
+    function sendUpdate(){
+        let msg = {
+            type: "update_config"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
     function sendClear(){
         let msg = {
             type: "clear_pads"
@@ -365,6 +384,7 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
+    var updateConfigElem = document.getElementById("update-config");
     var padsClearElem = document.getElementById("pads-clear");
 
     // rateNextElem.focus();
@@ -427,6 +447,10 @@
         sendRate(rateNext);
     }
 
+    updateConfigElem.onclick = function () {
+        sendUpdate();
+    }
+
     padsClearElem.onclick = function () {
         sendClear();
     }
@@ -438,9 +462,6 @@
         event.stopPropagation();
         return false;
     };
-
-    navigator.clipboard.readText().then(
-        (clipText) => document.querySelector("#pads-clear").innerText = clipText);
 
 </script>
 
@@ -459,7 +480,7 @@
 
     #profile-list{
         position: absolute;
-        width: 30vw;
+        width: 25vw;
         height: 70vh;
         overflow-y: auto;
         overflow-x: hidden;
@@ -509,18 +530,35 @@
     #pad-table-wrapper{
         position: absolute;
         right: 0;
-        width: 70vw;
+        width: 75vw;
         height: 100vh;
         background-color: hsl(0, 0%, 6%);
         overflow: hidden;
     }
 
+    #page-up{
+        position: absolute;
+        left: 0.5vw;
+        top: 3vw;
+        width: 4vw;
+        height: 10vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
     pad-table{
         visibility: hidden;
         opacity: 0;
-        transform: translateY(5%);
+        transform: translateY(5vh);
         position: absolute;
-        width: calc(100% - 0.5vw);
+        right: 0;
+        width: 69.5vw;
         height: calc(100% - 0.5vw);
         padding: 0.25vw;
         overflow: hidden;
@@ -530,7 +568,7 @@
     .pad-table-active{
         visibility: visible;
         opacity: 1;
-        transform: translateY(0%);
+        transform: translateY(0);
     }
 
     @keyframes wipe{
@@ -605,11 +643,27 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
+    #update-config{
+        position: absolute;
+        left: 1vw;
+        bottom: 21vh;
+        width: 11vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(40, 100%, 35%);
+        cursor: pointer;
+    }
+
     #pads-clear{
         position: absolute;
-        left: 9vw;
+        left: 13vw;
         bottom: 21vh;
-        width: 12vw;
+        width: 11vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -623,11 +677,11 @@
 
     #rate-curr {
         position: absolute;
-        left: 14vw;
+        left: 15vw;
         bottom: 1vh;
-        width: 6vw;
+        width: 7vw;
         height: 8vh;
-        font-size: 3vh;
+        font-size: 4vh;
         text-align: center;
         display: flex;
         justify-content: center;
@@ -638,11 +692,11 @@
 
     #rate-next {
         position: absolute;
-        left: 14vw;
+        left: 15vw;
         bottom: 10vh;
-        width: 6vw;
+        width: 7vw;
         height: 8vh;
-        font-size: 3vh;
+        font-size: 4vh;
         text-align: center;
         display: flex;
         justify-content: center;

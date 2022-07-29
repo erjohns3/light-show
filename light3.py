@@ -13,6 +13,7 @@ import os
 import math
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
+from helpers import *
 
 # stop warning in python10 about DeprecationWarning: There is no current event loop asyncio.get_event_loop().run_forever()
 import warnings
@@ -119,10 +120,10 @@ async def light():
                     index = index % light_array[curr_modes[j][0]]["length"]
                     level += light_array[curr_modes[j][0]]["beats"][index][i]
 
-            if print_to_terminal:
-                await terminal(level, i)
-            else:
-                pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+            # if print_to_terminal:
+            #     await terminal(level, i)
+            # else:
+            #     pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
 
         if update:
             await send_update()
@@ -223,6 +224,10 @@ async def init(websocket, path):
             elif msg['type'] == 'clear_pads':
                 curr_modes = []
 
+            elif msg['type'] == 'update_config':
+                curr_modes = []
+                update_config()
+
             elif msg['type'] == 'set_bpm':
                 time_start = time.perf_counter()
                 curr_bpm = float(msg['bpm'])
@@ -231,7 +236,7 @@ async def init(websocket, path):
             light_lock.release()
 
             await send_update() # we might not to lock this
-        
+        print(msg, flush=True)
         if not print_to_terminal:
             print(msg, flush=True)
 
@@ -260,60 +265,17 @@ def http_server():
 
 ################################################
 
-config = {}
-pads = {}
-
 filepath = os.path.realpath(__file__)
 dirpath = os.path.dirname(filepath)
 
-for file in os.listdir(os.path.join(dirpath, 'configs')):
-    with open(os.path.join(dirpath, 'configs', file), 'r') as f:
-        config.update(json.loads(f.read()))
-
-for file in os.listdir(os.path.join(dirpath, 'pads')):
-    with open(os.path.join(dirpath, 'pads', file), 'r') as f:
-        pads.update(json.loads(f.read()))
-
+config = {}
+pads = {}
 light_array = {}
 
 graph = {}
-complex_modes = []
-simple_modes = []
 found = {}
-
-for mode in config:
-    if 'loop' not in config[mode]:
-        config[mode]['loop'] = True
-
-    graph[mode] = {}
-    for beat in config[mode]["beats"]:
-        if type(config[mode]["beats"][beat]) is str:
-            config[mode]["beats"][beat] = [[config[mode]["beats"][beat]]]
-        elif type(config[mode]["beats"][beat][0]) is str:
-            config[mode]["beats"][beat] = [config[mode]["beats"][beat]]
-        elif type(config[mode]["beats"][beat][0]) in [int, float]:
-            config[mode]["beats"][beat] = [[config[mode]["beats"][beat]]]
-        elif type(config[mode]["beats"][beat][0][0]) in [int, float]:
-            config[mode]["beats"][beat] = [config[mode]["beats"][beat]]
-
-        if type(config[mode]["beats"][beat][0][0]) is str:
-            for entry in config[mode]["beats"][beat]:
-                graph[mode][entry[0]] = True
-    graph[mode] = list(graph[mode].keys())
-
-
-for profile in pads:
-    for pad in pads[profile]:
-        if 'snap' not in pads[profile][pad]:
-            pads[profile][pad]['snap'] = 1 / SUB_BEATS
-        if 'button' not in pads[profile][pad]:
-            pads[profile][pad]['button'] = "toggle"
-        if 'bpm' in pads[profile][pad]:
-            if 'delay' not in pads[profile][pad]:
-                pads[profile][pad]['delay'] = 0
-        pads[profile][pad]['length'] = config[pads[profile][pad]['mode']]['length']
-        pads[profile][pad]['loop'] = config[pads[profile][pad]['mode']]['loop']
-
+simple_modes = []
+complex_modes = []
 
 def config_sort(path):
     curr = path[-1]
@@ -330,97 +292,156 @@ def config_sort(path):
     else:
         complex_modes.append(curr)
 
-for mode in graph:
-    config_sort([mode])
+def update_config():
+    global config
+    global pads
+    global light_array
+    global graph
+    global found
+    global simple_modes
+    global complex_modes
+
+    config = {}
+    pads = {}
+    light_array = {}
+
+    graph = {}
+    found = {}
+    simple_modes = []
+    complex_modes = []
+
+    for file in os.listdir(os.path.join(dirpath, 'configs')):
+        with open(os.path.join(dirpath, 'configs', file), 'r') as f:
+            config.update(json.loads(f.read()))
+
+    for file in os.listdir(os.path.join(dirpath, 'pads')):
+        with open(os.path.join(dirpath, 'pads', file), 'r') as f:
+            pads.update(json.loads(f.read()))
+
+    for mode in config:
+        if 'loop' not in config[mode]:
+            config[mode]['loop'] = True
+
+        graph[mode] = {}
+        for beat in config[mode]["beats"]:
+            if type(config[mode]["beats"][beat]) is str:
+                config[mode]["beats"][beat] = [[config[mode]["beats"][beat]]]
+            elif type(config[mode]["beats"][beat][0]) is str:
+                config[mode]["beats"][beat] = [config[mode]["beats"][beat]]
+            elif type(config[mode]["beats"][beat][0]) in [int, float]:
+                config[mode]["beats"][beat] = [[config[mode]["beats"][beat]]]
+            elif type(config[mode]["beats"][beat][0][0]) in [int, float]:
+                config[mode]["beats"][beat] = [config[mode]["beats"][beat]]
+
+            if type(config[mode]["beats"][beat][0][0]) is str:
+                for entry in config[mode]["beats"][beat]:
+                    graph[mode][entry[0]] = True
+        graph[mode] = list(graph[mode].keys())
 
 
-for mode in simple_modes:    
-    light_array[mode] = {
-        'length': round(config[mode]['length'] * SUB_BEATS),
-        'loop': config[mode]['loop'],
-        'beats': [x[:] for x in [[0] * 7] * round(config[mode]['length'] * SUB_BEATS)],
-    }
-    for beat in config[mode]["beats"]:
-        for effect in config[mode]["beats"][beat]: # effect -> ['name', 1, 0, 8, 0]
-            start_beat = round((eval(beat) - 1) * SUB_BEATS)
-            
-            if len(effect) == 1:
-                 effect.append(config[mode]['length'])
-            if len(effect) == 2:
-                effect.append(1)
-            if len(effect) == 3:
-                effect.append(1)
+    for profile in pads:
+        for pad in pads[profile]:
+            if 'snap' not in pads[profile][pad]:
+                pads[profile][pad]['snap'] = 1 / SUB_BEATS
+            if 'button' not in pads[profile][pad]:
+                pads[profile][pad]['button'] = "toggle"
+            if 'bpm' in pads[profile][pad]:
+                if 'delay' not in pads[profile][pad]:
+                    pads[profile][pad]['delay'] = 0
+            pads[profile][pad]['length'] = config[pads[profile][pad]['mode']]['length']
+            pads[profile][pad]['loop'] = config[pads[profile][pad]['mode']]['loop']
 
-            channels = effect[0]
-            length = round(min(effect[1] * SUB_BEATS, light_array[mode]["length"] - start_beat))
-            start_mult = effect[2]
-            end_mult = effect[3]
+    for mode in graph:
+        config_sort([mode])
 
-            for i in range(length):
-                mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
-                for x in range(LIGHT_COUNT):
-                    light_array[mode]["beats"][start_beat + i][x] += channels[x] * mult
-
-
-for mode in complex_modes:
-    light_array[mode] = {
-        'length': round(config[mode]['length'] * SUB_BEATS),
-        'loop': config[mode]['loop'],
-        'beats': [x[:] for x in [[0] * 7] * round(config[mode]['length'] * SUB_BEATS)],
-    }
-    for beat in config[mode]["beats"]:
-        for effect in config[mode]["beats"][beat]:
-            start_beat = round((eval(beat) - 1) * SUB_BEATS)
-            name = effect[0]
-
-            if len(effect) == 1:
-                if config[name]["loop"]:
-                    effect.append(config[mode]['length'])
-                else:
-                    effect.append(config[name]['length'])
-            if len(effect) == 2:
-                effect.append(1)
-            if len(effect) == 3:
-                effect.append(1)
-            if len(effect) == 4:
-                effect.append(0)
-
-            length = round(min(effect[1] * SUB_BEATS, light_array[mode]["length"] - start_beat))
-            start_mult = effect[2]
-            end_mult = effect[3]
-            offset = round(effect[4] * SUB_BEATS)
-
-            for i in range(length):
-                channels = light_array[name]["beats"][(i + offset) % light_array[name]["length"]]
-                mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
-                for x in range(LIGHT_COUNT):
-                    light_array[mode]["beats"][start_beat + i][x] += channels[x] * mult
+    for mode in simple_modes:    
+        light_array[mode] = {
+            'length': round(config[mode]['length'] * SUB_BEATS),
+            'loop': config[mode]['loop'],
+            'beats': [x[:] for x in [[0] * 7] * round(config[mode]['length'] * SUB_BEATS)],
+        }
+        for beat in config[mode]["beats"]:
+            for effect in config[mode]["beats"][beat]: # effect -> ['name', 1, 0, 8, 0]
+                start_beat = round((eval(beat) - 1) * SUB_BEATS)
                 
-    # for i in range(light_array[mode]["length"]):
-    #     for x in range(LIGHT_COUNT):
-    #         light_array[mode]["beats"][i][x] = min(100, max(0, light_array[mode]["beats"][i][x]))
+                if len(effect) == 1:
+                    effect.append(config[mode]['length'])
+                if len(effect) == 2:
+                    effect.append(1)
+                if len(effect) == 3:
+                    effect.append(1)
 
+                channels = effect[0]
+                length = round(min(effect[1] * SUB_BEATS, light_array[mode]["length"] - start_beat))
+                start_mult = effect[2]
+                end_mult = effect[3]
+
+                for i in range(length):
+                    mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    for x in range(LIGHT_COUNT):
+                        light_array[mode]["beats"][start_beat + i][x] += channels[x] * mult
+
+
+    for mode in complex_modes:
+        light_array[mode] = {
+            'length': round(config[mode]['length'] * SUB_BEATS),
+            'loop': config[mode]['loop'],
+            'beats': [x[:] for x in [[0] * 7] * round(config[mode]['length'] * SUB_BEATS)],
+        }
+        for beat in config[mode]["beats"]:
+            for effect in config[mode]["beats"][beat]:
+                start_beat = round((eval(beat) - 1) * SUB_BEATS)
+                name = effect[0]
+
+                if len(effect) == 1:
+                    if config[name]["loop"]:
+                        effect.append(config[mode]['length'])
+                    else:
+                        effect.append(config[name]['length'])
+                if len(effect) == 2:
+                    effect.append(1)
+                if len(effect) == 3:
+                    effect.append(1)
+                if len(effect) == 4:
+                    effect.append(0)
+
+                length = round(min(effect[1] * SUB_BEATS, light_array[mode]["length"] - start_beat))
+                start_mult = effect[2]
+                end_mult = effect[3]
+                offset = round(effect[4] * SUB_BEATS)
+
+                for i in range(length):
+                    channels = light_array[name]["beats"][(i + offset) % light_array[name]["length"]]
+                    mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    for x in range(LIGHT_COUNT):
+                        light_array[mode]["beats"][start_beat + i][x] += channels[x] * mult
+                    
+        # for i in range(light_array[mode]["length"]):
+        #     for x in range(LIGHT_COUNT):
+        #         light_array[mode]["beats"][i][x] = min(100, max(0, light_array[mode]["beats"][i][x]))
+    print("config updated")
+
+update_config()
 
 ##################################################
 
 def kill_in_n_seconds(seconds):
-    if os.name == 'nt':
+    time.sleep(seconds)
+    if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /F'
     else:
         kill_string = f'kill -9 {os.getpid()}'
     print(f'{kill_string}')
     os.system(kill_string)
-    time.sleep(seconds)
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
     if not args.print_to_terminal:
+        x = threading.Thread(target=kill_in_n_seconds, args=(0.5,))
+        x.start()
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
-        time.sleep(1)
-
-    x = threading.Thread(target=kill_in_n_seconds, args=(1,))
-    x.start()
+    exit()
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)

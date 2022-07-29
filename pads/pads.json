@@ -34,7 +34,63 @@
             "mode": "Red Top Flash",
             "snap": 0.25
         },
-        "Red Flash Hold": {
+        "Green Flash 1": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Green Flash 2": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Green Flash 3": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Green Flash 4": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Green Flash 5": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Blue Flash 1": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Blue Flash 2": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Blue Flash 3": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Blue Flash 4": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Blue Flash 5": {
+            "mode": "Red Top Flash",
+            "snap": 0.25
+        },
+        "Red Hold 1": {
+            "mode": "Red Top Flash",
+            "button": "hold"
+        },
+        "Red Hold 2": {
+            "mode": "Red Top Flash",
+            "button": "hold"
+        },
+        "Red Hold 3": {
+            "mode": "Red Top Flash",
+            "button": "hold"
+        },
+        "Red Hold 4": {
+            "mode": "Red Top Flash",
+            "button": "hold"
+        },
+        "Red Hold 5": {
             "mode": "Red Top Flash",
             "button": "hold"
         },

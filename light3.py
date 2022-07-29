@@ -14,6 +14,11 @@ import math
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
+# stop warning in python10 about DeprecationWarning: There is no current event loop asyncio.get_event_loop().run_forever()
+import warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning) 
+
+
 try:
     import board
     import busio

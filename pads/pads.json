@@ -5,6 +5,12 @@
             "delay": 0,
             "bpm": 90,
             "song": "musician2.mp3"
+        },
+        "Andrew's musician": {
+            "mode": "Musician Show",
+            "delay": 0,
+            "bpm": 120,
+            "song": "musician2.mp3"
         }
     },
     "Eric": {

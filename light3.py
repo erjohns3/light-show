@@ -11,6 +11,7 @@ import http.server
 import argparse
 import os
 import math
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
 try:
@@ -64,7 +65,7 @@ async def send_update():
 
 
 async def render_to_terminal(all_levels):
-    rbg_colors = list(map(lambda x: int(x * 2.55), all_levels[:6]))
+    rbg_colors = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels[:6]))
     character = '▆ '
 
     console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
@@ -74,7 +75,8 @@ async def render_to_terminal(all_levels):
     purple = list(map(lambda x: int(x * (all_levels[6] / 100.0)), purple))
     console.print(character, style=f'rgb({purple[0]},{purple[1]},{purple[2]})', end='')
 
-    console.print(f'Mode: {curr_modes}, BPM: {curr_bpm}{" " * 10}', end='\r')
+    mode_useful_info = list(map(lambda x: x[3], curr_modes))
+    console.print(f'Mode: {mode_useful_info}, BPM: {curr_bpm}{" " * 10}', end='\r')
 
 
 all_levels = [0] * LIGHT_COUNT

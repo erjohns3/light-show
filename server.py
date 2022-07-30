@@ -488,7 +488,13 @@ async def start_async():
     websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
 
     if args.starting_show:
-        await add_effect('Shows', args.starting_show)
+        for profile_name, button in profiles_json.items():
+            if args.starting_show in button:
+                await add_effect(profile_name, args.starting_show)
+                break
+        else:
+            print(f'Couldnt find effect named "{args.starting_show}" in any profile')
+
 
     await websocket_server.wait_closed()
 

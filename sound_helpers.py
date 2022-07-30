@@ -41,8 +41,6 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
     ] + extra_args, debug=True)
 
     audio_procs.append(process)
-    print('process:', process)
-    print('dir(process):', dir(process))
 
 def create_mp3(input_filepath, output_directory, seconds_seek_to, seconds_to_play):
     output_filepath = os.path.join(output_directory, f'{random_letters(10)}.mp3')

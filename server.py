@@ -474,7 +474,7 @@ async def start_async():
 
     websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
 
-    await asyncio.sleep(1)
+    await asyncio.sleep(5)
     if args.starting_show:
         add_effect('Shows', args.starting_show)
 

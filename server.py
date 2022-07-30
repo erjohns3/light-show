@@ -20,8 +20,8 @@ from helpers import *
 pca = None
 
 
-# pygame.init()
-# pygame.mixer.init()
+pygame.init()
+pygame.mixer.init()
 
 
 SUB_BEATS = 24

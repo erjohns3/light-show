@@ -3,7 +3,6 @@ import os
 import subprocess
 import pathlib
 import platform
-import pwd
 
 
 

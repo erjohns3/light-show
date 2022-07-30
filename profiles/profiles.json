@@ -8,7 +8,7 @@
         },
         "Andrew's musician": {
             "effect": "Musician Show",
-            "delay": 0.18,
+            "delay": 0,
             "bpm": 125,
             "song": "musician2.mp3"
         }

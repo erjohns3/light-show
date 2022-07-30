@@ -154,8 +154,8 @@ async def render_to_terminal(all_levels):
 
 all_levels = [0] * LIGHT_COUNT
 async def terminal(level, i):
-    if is_windows():
-        return
+    # if is_windows():
+    #     return
     all_levels[i] = level
     if i == LIGHT_COUNT - 1:
         await render_to_terminal(all_levels)

@@ -1,3 +1,4 @@
+import socket
 import threading
 import time
 import sys
@@ -39,10 +40,11 @@ sockets = []
 
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
+local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
-    print("serving at port " + str(PORT), flush=True)
+    print(f'serving at: http://{local_ip}:{PORT}', flush=True)
     httpd.serve_forever()
 
 

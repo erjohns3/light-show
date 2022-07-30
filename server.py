@@ -11,7 +11,8 @@ import websockets
 import http.server
 import argparse
 import os
-import math
+
+
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from helpers import *
@@ -21,6 +22,8 @@ pca = None
 
 pygame.init()
 pygame.mixer.init()
+
+print('test')
 
 SUB_BEATS = 24
 LIGHT_COUNT = 7

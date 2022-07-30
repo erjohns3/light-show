@@ -17,6 +17,7 @@ import pygame
 from helpers import *
 
 
+pca = None
 
 pygame.init()
 pygame.mixer.init()
@@ -244,6 +245,8 @@ def add_effect(profile, button):
 ######################################
 
 def setup_gpio():
+    global pca
+
     import board
     import busio
     import adafruit_pca9685

@@ -20,12 +20,10 @@ from helpers import *
 
 pca = None
 
-print('debuggers suck')
 
 # pygame.init()
 # pygame.mixer.init()
 
-print('test')
 
 SUB_BEATS = 24
 LIGHT_COUNT = 7
@@ -43,7 +41,6 @@ sockets = []
 
 ########################################
 
-print('racist')
 
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler
@@ -286,7 +283,6 @@ def setup_gpio():
 
 ################################################
 
-print('i dont see')
 
 effects_json = {}
 profiles_json = {}
@@ -463,7 +459,6 @@ def signal_handler(sig, frame):
             pca.channels[i].duty_cycle = 0
     exit()
 
-print('uhoh')
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
@@ -482,7 +477,6 @@ if args.local:
 else:
     setup_gpio()
 
-print('ok')
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()
 

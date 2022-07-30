@@ -331,8 +331,6 @@ def update_effects_json():
         with open(profile_dir.joinpath(file), 'r') as f:
             profiles_json.update(json.loads(f.read()))
 
-    start_time = time.time()
-    print('starting defaults for effects', time.time() - start_time)
     for effect in effects_json:
         if 'loop' not in effects_json[effect]:
             effects_json[effect]['loop'] = True
@@ -353,7 +351,6 @@ def update_effects_json():
                     graph[effect][entry[0]] = True
         graph[effect] = list(graph[effect].keys())
     
-    print('starting defaults for profiles', time.time() - start_time)
     for profile in profiles_json:
         for button in profiles_json[profile]:
             if 'snap' not in profiles_json[profile][button]:
@@ -366,11 +363,9 @@ def update_effects_json():
             profiles_json[profile][button]['length'] = effects_json[profiles_json[profile][button]['effect']]['length']
             profiles_json[profile][button]['loop'] = effects_json[profiles_json[profile][button]['effect']]['loop']
 
-    print('sorting effects', time.time() - start_time)
     for effect in graph:
         effects_json_sort([effect])
 
-    print('simple effects', time.time() - start_time)
     for effect in simple_effects:    
         channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),
@@ -398,7 +393,6 @@ def update_effects_json():
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect]["beats"][start_beat + i][x] += channels[x] * mult
 
-    print('complex effects', time.time() - start_time)
     for effect in complex_effects:
         channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),

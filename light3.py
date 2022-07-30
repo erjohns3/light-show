@@ -174,7 +174,7 @@ async def light():
 
         i = 0
         while i < len(curr_effects):
-            if not light_array[curr_effects[i][0]]["loop"] and beat_index + curr_effects[i][1] >= light_array[curr_effects[i][0]]["length"]:
+            if not channel_lut[curr_effects[i][0]]["loop"] and beat_index + curr_effects[i][1] >= channel_lut[curr_effects[i][0]]["length"]:
                 remove_effect(i)
                 update = True
             else:
@@ -184,8 +184,8 @@ async def light():
             for j in range(len(curr_effects)):
                 index = beat_index + curr_effects[j][1]
                 if index >= 0:
-                    index = index % light_array[curr_effects[j][0]]["length"]
-                    level += light_array[curr_effects[j][0]]["beats"][index][i]
+                    index = index % channel_lut[curr_effects[j][0]]["length"]
+                    level += channel_lut[curr_effects[j][0]]["beats"][index][i]
 
             if local:
                 await terminal(level, i)
@@ -266,7 +266,7 @@ def setup_gpio():
 
 effects_json = {}
 profiles_json = {}
-light_array = {}
+channel_lut = {}
 
 graph = {}
 found = {}
@@ -289,11 +289,11 @@ def effects_json_sort(path):
         complex_effects.append(curr)
 
 def update_effects_json():
-    global effects_json, profiles_json, light_array, graph, found, simple_effects, complex_effects
+    global effects_json, profiles_json, channel_lut, graph, found, simple_effects, complex_effects
 
     effects_json = {}
     profiles_json = {}
-    light_array = {}
+    channel_lut = {}
 
     graph = {}
     found = {}
@@ -348,7 +348,7 @@ def update_effects_json():
         effects_json_sort([effect])
 
     for effect in simple_effects:    
-        light_array[effect] = {
+        channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),
             'loop': effects_json[effect]['loop'],
             'beats': [x[:] for x in [[0] * 7] * round(effects_json[effect]['length'] * SUB_BEATS)],
@@ -365,18 +365,18 @@ def update_effects_json():
                     component.append(1)
 
                 channels = component[0]
-                length = round(min(component[1] * SUB_BEATS, light_array[effect]["length"] - start_beat))
+                length = round(min(component[1] * SUB_BEATS, channel_lut[effect]["length"] - start_beat))
                 start_mult = component[2]
                 end_mult = component[3]
 
                 for i in range(length):
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
-                        light_array[effect]["beats"][start_beat + i][x] += channels[x] * mult
+                        channel_lut[effect]["beats"][start_beat + i][x] += channels[x] * mult
 
 
     for effect in complex_effects:
-        light_array[effect] = {
+        channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),
             'loop': effects_json[effect]['loop'],
             'beats': [x[:] for x in [[0] * 7] * round(effects_json[effect]['length'] * SUB_BEATS)],
@@ -398,22 +398,22 @@ def update_effects_json():
                 if len(component) == 4:
                     component.append(0)
 
-                length = round(min(component[1] * SUB_BEATS, light_array[effect]["length"] - start_beat))
+                length = round(min(component[1] * SUB_BEATS, channel_lut[effect]["length"] - start_beat))
                 start_mult = component[2]
                 end_mult = component[3]
                 offset = round(component[4] * SUB_BEATS)
 
                 for i in range(length):
-                    channels = light_array[name]["beats"][(i + offset) % light_array[name]["length"]]
+                    channels = channel_lut[name]["beats"][(i + offset) % channel_lut[name]["length"]]
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
-                        light_array[effect]["beats"][start_beat + i][x] += channels[x] * mult
+                        channel_lut[effect]["beats"][start_beat + i][x] += channels[x] * mult
                     
-        # for i in range(light_array[effect]["length"]):
+        # for i in range(channel_lut[effect]["length"]):
         #     for x in range(LIGHT_COUNT):
-        #         light_array[effect]["beats"][i][x] = min(100, max(0, light_array[effect]["beats"][i][x]))
+        #         channel_lut[effect]["beats"][i][x] = min(100, max(0, channel_lut[effect]["beats"][i][x]))
     print("effects_json updated")
-    # for index, x in enumerate(light_array['Musician Show']['beats']):
+    # for index, x in enumerate(channel_lut['Musician Show']['beats']):
     #     print(f'index {index / 24}: {x}')
 
 update_effects_json()

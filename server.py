@@ -233,18 +233,21 @@ def add_effect_and_maybe_play_song(profile, button, effect):
 
     if "song" in profiles_json[profile][button]:
         pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
-        time.sleep(1)
+        time.sleep(.1)
+        # if profiles_json[profile][button]['skip_song']:
+        #     pygame.mixer.music.set_pos(profiles_json[profile][button]['skip_song'])
         pygame.mixer.music.play()
 
     if "bpm" in profiles_json[profile][button]:
-        time_start = time.perf_counter() + profiles_json[profile][button]['delay']
+        time_start = time.perf_counter() + profiles_json[profile][button]['delay_lights']
         curr_bpm = profiles_json[profile][button]['bpm']
         clear_effects()
-        beat_index = int((-profiles_json[profile][button]['delay']) * (curr_bpm / 60 * SUB_BEATS))
+        beat_index = int((-profiles_json[profile][button]['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
     else:
         offset = (beat_index % round(profiles_json[profile][button]['snap'] * SUB_BEATS)) - beat_index
     curr_effects.append([effect, offset, profile, button])
+
 
 def add_effect(profile, button):
     global beat_index, time_start, curr_bpm
@@ -358,8 +361,8 @@ def update_effects_json():
             if 'type' not in profiles_json[profile][button]:
                 profiles_json[profile][button]['type'] = "toggle"
             if 'bpm' in profiles_json[profile][button]:
-                if 'delay' not in profiles_json[profile][button]:
-                    profiles_json[profile][button]['delay'] = 0
+                if 'delay_lights' not in profiles_json[profile][button]:
+                    profiles_json[profile][button]['delay_lights'] = 0
             profiles_json[profile][button]['length'] = effects_json[profiles_json[profile][button]['effect']]['length']
             profiles_json[profile][button]['loop'] = effects_json[profiles_json[profile][button]['effect']]['loop']
 

@@ -116,7 +116,7 @@
         }
     },
     "Shelter Show":{
-        "length": 16,
+        "length": 2000,
         "beats":{
             "1": [["Pulse", 16]],
             "17": [["Blue Bottom Flash", 8]],

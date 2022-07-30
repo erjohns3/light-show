@@ -455,6 +455,8 @@ def signal_handler(sig, frame):
             pca.channels[i].duty_cycle = 0
     exit()
 
+print('uhoh')
+
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
 

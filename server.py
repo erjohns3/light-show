@@ -140,7 +140,7 @@ async def send_update():
 
 
 async def render_to_terminal(all_levels):
-    rbg_colors = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels[:6]))
+    rbg_colors = list(map(lambda x: int(x * 2.55), 0, all_levels[:6]))
     character = '▆▆▆▆▆ '
 
     console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
@@ -191,11 +191,12 @@ async def light():
                 if index >= 0:
                     index = index % channel_lut[curr_effects[j][0]]["length"]
                     level += channel_lut[curr_effects[j][0]]["beats"][index][i]
+            level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
 
             if local:
                 await terminal(level, i)
             else:
-                pca.channels[i].duty_cycle = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+                pca.channels[i].duty_cycle = level
 
         if update:
             await send_update()

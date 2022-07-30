@@ -45,6 +45,9 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+# go up a line: '\033[A'
+# up a line and begining: '\033[F'
+
 
 def random_letters(num_chars: int) -> str:
     letters = [chr(ord('a') + a) for a in range(26)]
@@ -64,9 +67,6 @@ def get_all_paths_in_directory(directory, only_files=False, exclude_names=None):
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
-# go up a line: '\033[A'
-# up a line and begining: '\033[F'
-
 def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
@@ -79,10 +79,6 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
             full_command_arr[0] += '.exe'
 
     full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
-    if is_windows():
-        if full_command_arr[0] == 'cp':
-            print('doesnt work find out whats wrong')
-            exit()
     process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = process.communicate()
 
@@ -100,6 +96,24 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
     if print_std_out and not process.returncode:
         print(f'stdout: {stdout.decode("utf-8")}')
     return process.returncode, stdout, stderr
+
+def run_command_async(full_command_arr, debug=False):
+    for index in range(len(full_command_arr)):
+        cmd = full_command_arr[index]
+        if type(cmd) != str:
+            print(f'{bcolors.WARNING}WARNING: the parameter "cmd" was not a str, casting and continuing{bcolors.ENDC}')
+            full_command_arr[index] = str(full_command_arr[index])
+
+    if is_windows():
+        if full_command_arr[0] in ['ffmpeg', 'ffplay']:
+            full_command_arr[0] += '.exe'
+
+    full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
+    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    if debug:
+        print(f'started process with "{full_call}"')
+    return process
 
 
 # -ss '120534ms'

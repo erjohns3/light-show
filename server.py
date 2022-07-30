@@ -12,16 +12,11 @@ import http.server
 import argparse
 import os
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-import pygame
 from helpers import *
+import sound_helpers
 
 
 pca = None
-
-
-pygame.init()
-pygame.mixer.init()
 
 
 SUB_BEATS = 24
@@ -90,7 +85,7 @@ async def init_client(websocket, path):
             light_lock.acquire()
 
             if msg['type'] == 'add_button':
-                add_effect(msg['profile'], msg['button'])
+                await add_effect(msg['profile'], msg['button'])
 
             elif msg['type'] == 'remove_button':
                 profile = msg['profile']
@@ -140,19 +135,31 @@ async def send_update():
 
 
 async def render_to_terminal(all_levels):
-    rbg_colors = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels[:6]))
-    character = '▆▆▆▆▆ '
+    levels_capped = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels))
+    character = '▆'
 
-    console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
-    console.print(character, style=f'rgb({rbg_colors[3]},{rbg_colors[4]},{rbg_colors[5]})', end='')
 
     purple = [153, 50, 204]
-    purple = list(map(lambda x: int(x * (all_levels[6] / 100.0)), purple))
-    console.print(character, style=f'rgb({purple[0]},{purple[1]},{purple[2]})', end='')
+    purple = list(map(lambda x: int(x * (levels_capped[6] / 255.0)), purple))
+    uv_style = f'rgb({purple[0]},{purple[1]},{purple[2]})'
+
+    top_rgb_style = f'rgb({levels_capped[0]},{levels_capped[1]},{levels_capped[2]})'
+    bottom_rgb_style = f'rgb({levels_capped[3]},{levels_capped[4]},{levels_capped[5]})'
+
+    console.print(' ' + character * 2, style=uv_style, end='')
+    console.print(character * 10, style=top_rgb_style, end='')
+    console.print(character * 2, style=uv_style, end='\n')
+
+    console.print(' ' + character * 2, style=uv_style, end='')
+    console.print(character * 10, style=top_rgb_style, end='')
+    console.print(character * 2, style=uv_style, end='\n' * 3)
+
+    console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
+    console.print(' ' + character * 14, style=bottom_rgb_style, end='')
 
     effect_useful_info = list(map(lambda x: x[3], curr_effects))
     # console.print(f'Effect: {effect_useful_info}, BPM: {curr_bpm}{" " * 10}', end='\r')
-    console.print(f'', end='\r')
+    console.print('', end='\033[F' * 5)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -221,22 +228,17 @@ def remove_effect(index):
     button = curr_effects[index][3]
     curr_effects.pop(index)
     if "song" in profiles_json[profile][button]:
-        pygame.mixer.music.stop()
-        pygame.mixer.music.unload()
+        sound_helpers.stop_audio()
 
 def clear_effects():
     for index, effect in enumerate(curr_effects):
         remove_effect(index)
 
-def add_effect_and_maybe_play_song(profile, button, effect):
-    global beat_index, time_start, curr_bpm
 
-    if "song" in profiles_json[profile][button]:
-        pygame.mixer.music.load('songs/' + profiles_json[profile][button]['song'])
-        time.sleep(.1)
-        if profiles_json[profile][button]['skip_song']:
-            pygame.mixer.music.set_pos(profiles_json[profile][button]['skip_song'])
-        pygame.mixer.music.play()
+async def add_effect(profile, button):
+    global beat_index, time_start, curr_bpm
+    if profiles_json[profile][button]["type"] != "toggle" or curr_effect_index(profile, button) is False:
+        effect = profiles_json[profile][button]['effect']
 
     if "bpm" in profiles_json[profile][button]:
         time_start = time.perf_counter() + profiles_json[profile][button]['delay_lights']
@@ -248,15 +250,10 @@ def add_effect_and_maybe_play_song(profile, button, effect):
         offset = (beat_index % round(profiles_json[profile][button]['snap'] * SUB_BEATS)) - beat_index
     curr_effects.append([effect, offset, profile, button])
 
-
-def add_effect(profile, button):
-    global beat_index, time_start, curr_bpm
-    if profiles_json[profile][button]["type"] != "toggle" or curr_effect_index(profile, button) is False:
-        effect = profiles_json[profile][button]['effect']
-
-    x = threading.Thread(target=add_effect_and_maybe_play_song, args=(profile, button, effect,))
-    x.start()
-
+    if "song" in profiles_json[profile][button]:
+        filepath = pathlib.Path('songs').joinpath(profiles_json[profile][button]['song'])
+        await sound_helpers.play_sound_with_ffplay(filepath, profiles_json[profile][button]['skip_song'], volume=60)
+        
     
 
 ######################################
@@ -491,7 +488,7 @@ async def start_async():
     websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
 
     if args.starting_show:
-        add_effect('Shows', args.starting_show)
+        await add_effect('Shows', args.starting_show)
 
     await websocket_server.wait_closed()
 

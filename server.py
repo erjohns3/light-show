@@ -38,6 +38,7 @@ sockets = []
 
 ########################################
 
+print('racist')
 
 PORT = 8000
 Handler = http.server.SimpleHTTPRequestHandler

@@ -232,10 +232,10 @@ def add_effect_and_maybe_play_song(profile, button, effect):
     global beat_index, time_start, curr_bpm
 
     if "song" in profiles_json[profile][button]:
-        pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
+        pygame.mixer.music.load('songs/' + profiles_json[profile][button]['song'])
         time.sleep(.1)
-        # if profiles_json[profile][button]['skip_song']:
-        #     pygame.mixer.music.set_pos(profiles_json[profile][button]['skip_song'])
+        if profiles_json[profile][button]['skip_song']:
+            pygame.mixer.music.set_pos(profiles_json[profile][button]['skip_song'])
         pygame.mixer.music.play()
 
     if "bpm" in profiles_json[profile][button]:

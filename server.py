@@ -140,7 +140,7 @@ async def send_update():
 
 
 async def render_to_terminal(all_levels):
-    rbg_colors = list(map(lambda x: int(x * 2.55), 0, all_levels[:6]))
+    rbg_colors = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels[:6]))
     character = '▆▆▆▆▆ '
 
     console.print('  ' + character, style=f'rgb({rbg_colors[0]},{rbg_colors[1]},{rbg_colors[2]})', end='')
@@ -192,7 +192,7 @@ async def light():
                     index = index % channel_lut[curr_effects[j][0]]["length"]
                     level += channel_lut[curr_effects[j][0]]["beats"][index][i]
             level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
-
+            
             if local:
                 await terminal(level, i)
             else:
@@ -331,6 +331,8 @@ def update_effects_json():
         with open(profile_dir.joinpath(file), 'r') as f:
             profiles_json.update(json.loads(f.read()))
 
+    start_time = time.time()
+    print('starting defaults for effects', time.time() - start_time)
     for effect in effects_json:
         if 'loop' not in effects_json[effect]:
             effects_json[effect]['loop'] = True
@@ -350,8 +352,8 @@ def update_effects_json():
                 for entry in effects_json[effect]["beats"][beat]:
                     graph[effect][entry[0]] = True
         graph[effect] = list(graph[effect].keys())
-
-
+    
+    print('starting defaults for profiles', time.time() - start_time)
     for profile in profiles_json:
         for button in profiles_json[profile]:
             if 'snap' not in profiles_json[profile][button]:
@@ -364,9 +366,11 @@ def update_effects_json():
             profiles_json[profile][button]['length'] = effects_json[profiles_json[profile][button]['effect']]['length']
             profiles_json[profile][button]['loop'] = effects_json[profiles_json[profile][button]['effect']]['loop']
 
+    print('sorting effects', time.time() - start_time)
     for effect in graph:
         effects_json_sort([effect])
 
+    print('simple effects', time.time() - start_time)
     for effect in simple_effects:    
         channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),
@@ -394,7 +398,7 @@ def update_effects_json():
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect]["beats"][start_beat + i][x] += channels[x] * mult
 
-
+    print('complex effects', time.time() - start_time)
     for effect in complex_effects:
         channel_lut[effect] = {
             'length': round(effects_json[effect]['length'] * SUB_BEATS),

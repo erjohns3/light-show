@@ -2,7 +2,7 @@
     "Shows":{
         "musician": {
             "effect": "Musician Show",
-            "delay": 0,
+            "delay": 10,
             "bpm": 125,
             "song": "musician2.mp3"
         },

@@ -20,6 +20,8 @@ from helpers import *
 
 pca = None
 
+print('debuggers suck')
+
 pygame.init()
 pygame.mixer.init()
 

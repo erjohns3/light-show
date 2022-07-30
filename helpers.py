@@ -32,8 +32,7 @@ elif is_linux(): # actually only works on andrews computer lol
 else:
     print('ray_directory does not exist')
 
-python_file_directory = pathlib.Path(__file__).parent.resolve()
-
+python_file_directory = pathlib.Path(__file__).parent
 
 
 class bcolors:

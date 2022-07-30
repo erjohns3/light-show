@@ -103,10 +103,10 @@ async def loop():
     async with websockets.connect(f'ws://{args.ip_to_connect_to}:8765') as websocket:
         msg = {}
         await websocket.send(json.dumps(msg))
-        config = await websocket.recv()
-        config = json.loads(config)['config']
-        index_of_config = 0
-        keys_of_config = list(config.keys())
+        effects_json = await websocket.recv()
+        effects_json = json.loads(effects_json)['effects_json']
+        index_of_effects_json = 0
+        keys_of_effects_json = list(effects_json.keys())
         old_mode = None
 
         await show(websocket, 'musician')
@@ -114,17 +114,17 @@ async def loop():
         while True:
             stuff = input('enter "j" or ";", or a name, or a show: ')
             if stuff in ['j', 'a']:
-                index_of_config -= 1
-                index_of_config %= len(keys_of_config)
-                stuff = keys_of_config[index_of_config]
+                index_of_effects_json -= 1
+                index_of_effects_json %= len(keys_of_effects_json)
+                stuff = keys_of_effects_json[index_of_effects_json]
             elif stuff in [';', 'd']:
-                index_of_config += 1
-                index_of_config %= len(keys_of_config)
-                stuff = keys_of_config[index_of_config]
+                index_of_effects_json += 1
+                index_of_effects_json %= len(keys_of_effects_json)
+                stuff = keys_of_effects_json[index_of_effects_json]
             elif stuff in shows:
                 await show(websocket, stuff)
                 continue
-            elif stuff in config:
+            elif stuff in effects_json:
                 pass
             else:
                 print('that wasnt anything...')

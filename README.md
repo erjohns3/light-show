@@ -18,3 +18,6 @@
 
 * fixing octave error (double or half bpm instead of dead on)
     * https://stackoverflow.com/questions/61621282/how-can-we-improve-tempo-detection-accuracy-in-librosa
+
+
+

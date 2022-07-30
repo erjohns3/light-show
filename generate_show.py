@@ -13,15 +13,22 @@ import librosa
 from helpers import * 
 
 
-song_name = 'musician.mp3'
+song_name = 'musician2.mp3'
 song_filepath = python_file_directory.joinpath('data').joinpath(song_name).resolve().relative_to(python_file_directory)
 
 
 
 audio = MonoLoader(filename=str(song_filepath))()
 
-rhythm_extractor = RhythmExtractor2013(method="multifeature")
-bpm, beats, beats_confidence, _, beats_intervals = rhythm_extractor(audio)
+
+rhythm_extractor = BeatsLoudness()
+something1, something2 = rhythm_extractor(audio)
+print('something1', something1)
+print('somehting2', something2)
+exit()
+
+# rhythm_extractor = RhythmExtractor2013(method="multifeature")
+# bpm, beats, beats_confidence, _, beats_intervals = rhythm_extractor(audio)
 
 rounded_bpm = int(round(bpm, 0))
 print(f'BPM: real: {bpm}, rounded: {rounded_bpm}',)

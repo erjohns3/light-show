@@ -1,117 +1,117 @@
 {
     "Shows":{
         "Eric Show": {
-            "mode": "Show 1",
+            "effect": "Show 1",
             "delay": 0,
             "bpm": 90,
             "song": "musician2.mp3"
         },
         "Andrew's musician": {
-            "mode": "Musician Show",
-            "delay": 0,
-            "bpm": 120,
+            "effect": "Musician Show",
+            "delay": 0.18,
+            "bpm": 125,
             "song": "musician2.mp3"
         }
     },
     "Eric": {
         "Red Flash 1": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Red Flash 2": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Red Flash 3": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Red Flash 4": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Red Flash 5": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Green Flash 1": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Green Flash 2": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Green Flash 3": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Green Flash 4": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Green Flash 5": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Blue Flash 1": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Blue Flash 2": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Blue Flash 3": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Blue Flash 4": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Blue Flash 5": {
-            "mode": "Red Top Flash",
+            "effect": "Red Top Flash",
             "snap": 0.25
         },
         "Red Hold 1": {
-            "mode": "Red Top Flash",
-            "button": "hold"
+            "effect": "Red Top Flash",
+            "type": "hold"
         },
         "Red Hold 2": {
-            "mode": "Red Top Flash",
-            "button": "hold"
+            "effect": "Red Top Flash",
+            "type": "hold"
         },
         "Red Hold 3": {
-            "mode": "Red Top Flash",
-            "button": "hold"
+            "effect": "Red Top Flash",
+            "type": "hold"
         },
         "Red Hold 4": {
-            "mode": "Red Top Flash",
-            "button": "hold"
+            "effect": "Red Top Flash",
+            "type": "hold"
         },
         "Red Hold 5": {
-            "mode": "Red Top Flash",
-            "button": "hold"
+            "effect": "Red Top Flash",
+            "type": "hold"
         },
         "Red Bass": {
-            "mode": "Red Bass",
-            "button": "add"
+            "effect": "Red Bass",
+            "type": "add"
         },
         "Red Bass Q": {
-            "mode": "Red Bass",
-            "button": "add",
+            "effect": "Red Bass",
+            "type": "add",
             "snap": 0.25
         }
     },
     "Andrew": {
         "Red Bass": {
-            "mode": "Red Bass",
+            "effect": "Red Bass",
             "snap": 0.25
         },
         "Red Flash Hold": {
-            "mode": "Red Top Flash",
-            "button": "hold",
+            "effect": "Red Top Flash",
+            "type": "hold",
             "snap": 0.25
         }
     }

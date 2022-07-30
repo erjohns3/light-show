@@ -129,18 +129,18 @@ def release_callback(key_obj):
 # l.start()
 
 
-def write_to_random_file(config):
+def write_to_random_file(effects_json):
     output_filename = random_letters(8) + '.json'
     output_filepath = python_file_directory.joinpath('data').joinpath(output_filename)
 
 
-    config_json = json.dumps(config, indent=4, sort_keys=True)
-    config_json = re.sub(r'([0-9]),(\n[ ]*)', r'\g<1>, ', config_json)
-    config_json = re.sub(r'\[\n[ ]*', r'[', config_json)
-    config_json = re.sub(r'\n[ ]*\]', r']', config_json)
+    effects_json_json = json.dumps(effects_json, indent=4, sort_keys=True)
+    effects_json_json = re.sub(r'([0-9]),(\n[ ]*)', r'\g<1>, ', effects_json_json)
+    effects_json_json = re.sub(r'\[\n[ ]*', r'[', effects_json_json)
+    effects_json_json = re.sub(r'\n[ ]*\]', r']', effects_json_json)
 
     with open(output_filepath, 'w') as f:
-        f.write(config_json)
+        f.write(effects_json_json)
 
     return output_filepath
 
@@ -162,9 +162,9 @@ with open(shows_filepath) as f:
     shows = json.loads(f.read())
 
 
-config_filepath = python_file_directory.joinpath('config.json')
+effects_json_filepath = python_file_directory.joinpath('effects_json.json')
 
-light_array = light3.read_config(python_file_directory.joinpath(config_filepath))
+light_array = light3.read_effects_json(python_file_directory.joinpath(effects_json_filepath))
 
 starting_mode = 'Nothing'
 starting_bpm = 100

@@ -55,7 +55,7 @@ async def light():
     while True:
         time_curr = time.perf_counter()
         time_diff = time_curr - tick_start
-        curr_beat = (time_diff * curr_rate) % config[mode]['length']
+        curr_beat = (time_diff * curr_rate) % effects_json[mode]['length']
         
         levels = [0]*LIGHT_COUNT
 
@@ -63,7 +63,7 @@ async def light():
             for i in range(LIGHT_COUNT):
                 prev_beat = False
                 next_beat = False
-                for beat in config[mode]['beats']:
+                for beat in effects_json[mode]['beats']:
                     if curr_beat >= beat:
                         prev_beat = beat
                     if curr_beat < beat:
@@ -72,7 +72,7 @@ async def light():
 
                 diff_beat = (curr_beat - prev_beat) / (next_beat - prev_beat)
 
-                levels[i] = max(levels[i], (config[mode]['beats'][prev_beat][i] * diff_beat) + (config[mode]['beats'][next_beat][i] * (1-diff_beat)))
+                levels[i] = max(levels[i], (effects_json[mode]['beats'][prev_beat][i] * diff_beat) + (effects_json[mode]['beats'][next_beat][i] * (1-diff_beat)))
 
         for i in range(LIGHT_COUNT):
             pi.set_PWM_dutycycle(COLOR_PINS[i], round((100 - levels[i])*2.55))
@@ -87,7 +87,7 @@ async def init(websocket, path):
     global curr_modes
     
     message = {
-        'config': config,
+        'effects_json': effects_json,
         'status': {
             'rate': curr_bpm,
             'modes': curr_modes
@@ -179,22 +179,22 @@ def http_server(testing=False):
 loc = pathlib.Path(__file__).parent.absolute()
 drink_io_folder = str(loc)
 
-with open(path.join(drink_io_folder, 'config.json'), 'r') as f:
-    config = json.loads(f.read())
+with open(path.join(drink_io_folder, 'effects_json.json'), 'r') as f:
+    effects_json = json.loads(f.read())
 
 light_modes = {}
 
 key_frames = {}
 
-for mode in config:
-    light_modes[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
+for mode in effects_json:
+    light_modes[mode] = [False] * round(effects_json[mode]['length'] * SUB_BEATS)
     key_frames[mode] = []
     prev_index = -1
-    for beat in config[mode]['beats']:
+    for beat in effects_json[mode]['beats']:
         index = min(len(light_modes[mode])-1, max(prev_index + 1, round((eval(beat)-1) * SUB_BEATS)))
         prev_index = index
         key_frames[mode].append(index)
-        light_modes[mode][index] = config[mode]['beats'][beat]
+        light_modes[mode][index] = effects_json[mode]['beats'][beat]
    
 ##################################################
 

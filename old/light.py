@@ -71,7 +71,7 @@ async def init(websocket, path):
     global curr_modes
     
     message = {
-        'config': config,
+        'effects_json': effects_json,
         'status': {
             'rate': curr_bpm,
             'modes': curr_modes
@@ -163,22 +163,22 @@ def http_server(testing=False):
 loc = pathlib.Path(__file__).parent.absolute()
 drink_io_folder = str(loc)
 
-with open(path.join(drink_io_folder, 'config.json'), 'r') as f:
-    config = json.loads(f.read())
+with open(path.join(drink_io_folder, 'effects_json.json'), 'r') as f:
+    effects_json = json.loads(f.read())
 
 light_modes = {}
 
 key_frames = {}
 
-for mode in config:
-    light_modes[mode] = [False] * round(config[mode]['length'] * SUB_BEATS)
+for mode in effects_json:
+    light_modes[mode] = [False] * round(effects_json[mode]['length'] * SUB_BEATS)
     key_frames[mode] = []
     prev_index = -1
-    for beat in config[mode]['beats']:
+    for beat in effects_json[mode]['beats']:
         index = min(len(light_modes[mode])-1, max(prev_index + 1, round((eval(beat)-1) * SUB_BEATS)))
         prev_index = index
         key_frames[mode].append(index)
-        light_modes[mode][index] = config[mode]['beats'][beat]
+        light_modes[mode][index] = effects_json[mode]['beats'][beat]
 
 for mode in light_modes:
     for x in range(len(key_frames[mode])):
@@ -201,7 +201,7 @@ for mode in light_modes:
                 for i in range(3):
                     light_modes[mode][y % len(light_modes[mode])][i] = (end_color[i] * shift) + (start_color[i] * (1 - shift))
                     
-for mode in config:
+for mode in effects_json:
     print(f'{mode}')
     for i in range(len(light_modes[mode])):
         print(f'    {i}: {round(light_modes[mode][i][0])}, {round(light_modes[mode][i][1])}, {round(light_modes[mode][i][2])}')

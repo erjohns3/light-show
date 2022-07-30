@@ -11,12 +11,12 @@
 
 <body>
 
-    <template id="template-pad-item">
-        <div class="pad-name"></div>
-        <div class="pad-bpm"></div>
-        <div class="pad-length"></div>
-        <div class="pad-loop"></div>
-        <div class="pad-button"></div>
+    <template id="template-button-item">
+        <div class="button-name"></div>
+        <div class="button-bpm"></div>
+        <div class="button-length"></div>
+        <div class="button-loop"></div>
+        <div class="button-button"></div>
     </template>
 
     <template id="template-profile-item">
@@ -26,7 +26,7 @@
 
     <div id="profile-list"></div>
 
-    <div id="pad-table-wrapper">
+    <div id="button-table-wrapper">
         <div id="page-up"></div>
         <div id="page-count"></div>
         <div id="page-down"></div>
@@ -38,17 +38,18 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <div id="update-config" class="button">Update</div>
-    <div id="pads-clear" class="button">Clear</div>
+    <div id="update-effects_json" class="button">Update</div>
+    <div id="buttons-clear" class="button">Clear</div>
 </body>
 
 <script>
     function socketInit() {
         console.log("socket init");
-
+        
         socket = new WebSocket("ws://" + location.hostname + ":8765");
 
         socket.onopen = function () {
+            // sometimes takes a long time to get here
             console.log("socket open");
 
             socketAttempts = 0;
@@ -86,23 +87,23 @@
             let msg = JSON.parse(event.data);
             console.log(msg);
             
-            if(msg.config){
-                config = msg.config
-                for(let profile in config){
-                    if(!(profile in pads)){
+            if(msg.effects_json){
+                effects_json = msg.effects_json
+                for(let profile in effects_json){
+                    if(!(profile in buttons)){
                         profiles[profile] = new ProfileItem(profile);
                         profileList.append(profiles[profile]);
 
-                        padTables[profile] = new PadTable(profile);
-                        padTableWrapper.append(padTables[profile]);
+                        buttonTables[profile] = new ButtonTable(profile);
+                        buttonTableWrapper.append(buttonTables[profile]);
 
-                        pads[profile] = {}
+                        buttons[profile] = {}
                     }
                     
-                    for(let pad in config[profile]){
-                        if(!(pad in pads[profile])){
-                            pads[profile][pad] = new PadItem(profile, pad);
-                            padTables[profile].append(pads[profile][pad]);
+                    for(let button in effects_json[profile]){
+                        if(!(button in buttons[profile])){
+                            buttons[profile][button] = new ButtonItem(profile, button);
+                            buttonTables[profile].append(buttons[profile][button]);
                         }
                     }
                     
@@ -114,13 +115,13 @@
             }
 
             if(msg.status){
-                for(let pad of padsCurr){
-                    pads[pad[2]][pad[3]].deactivate();
+                for(let effect of effectsCurr){
+                    buttons[effect[2]][effect[3]].deactivate();
                 }
-                for(let pad of msg.status.pads){
-                    pads[pad[2]][pad[3]].activate();
+                for(let effect of msg.status.curr_effects){
+                    buttons[effect[2]][effect[3]].activate();
                 }
-                padsCurr = msg.status.pads;
+                effectsCurr = msg.status.curr_effects;
 
                 rateCurr = msg.status.rate;
                 rateCurrElem.textContent = rateCurr.toFixed(1);
@@ -139,36 +140,36 @@
 
     /////////////////////////////////////////////////////////////////////
 
-    class PadItem extends HTMLElement {
-        constructor(profile, pad) {
+    class ButtonItem extends HTMLElement {
+        constructor(profile, button) {
             super();
 
-            this.appendChild(templatePadItem.content.cloneNode(true));
+            this.appendChild(templateButtonItem.content.cloneNode(true));
 
             this.profile = profile;
-            this.pad = pad;
+            this.button = button;
 
-            this.button = config[profile][pad].button;
-            this.toggle = this.button == "toggle";
-            this.hold = this.button == "hold";
-            this.add = this.button == "add";
+            this.type = effects_json[profile][button].type;
+            this.toggle = this.type == "toggle";
+            this.hold = this.type == "hold";
+            this.add = this.type == "add";
 
-            this.length = config[profile][pad].length;
-            this.bpm = config[profile][pad].bpm;
+            this.length = effects_json[profile][button].length;
+            this.bpm = effects_json[profile][button].bpm;
 
-            this.querySelector(".pad-name").textContent = this.pad;
-            this.querySelector(".pad-length").textContent = this.length;
-            this.querySelector(".pad-button").textContent = this.button;
-            if(config[profile][pad].loop){
-                this.querySelector(".pad-loop").textContent = "∞";
+            this.querySelector(".button-name").textContent = this.button;
+            this.querySelector(".button-length").textContent = this.length;
+            this.querySelector(".button-button").textContent = this.type;
+            if(effects_json[profile][button].loop){
+                this.querySelector(".button-loop").textContent = "∞";
             }
-            if(config[profile][pad].bpm){
-                this.querySelector(".pad-bpm").textContent = this.bpm + " bpm";
+            if(effects_json[profile][button].bpm){
+                this.querySelector(".button-bpm").textContent = this.bpm + " bpm";
             }
 
             this.active = false;
 
-            //this.colorElem = this.querySelector(".pad-color");
+            //this.colorElem = this.querySelector(".button-color");
 
             this.addEventListener('touchstart', this.press, false);
             this.addEventListener('mousedown', this.press, false);
@@ -181,12 +182,12 @@
             event.preventDefault();
             if(this.toggle){
                 if(this.active){
-                    removePad(this.profile, this.pad);
+                    removeButton(this.profile, this.button);
                 }else{
-                    addPad(this.profile, this.pad);
+                    addButton(this.profile, this.button);
                 }
             }else{
-                addPad(this.profile, this.pad);
+                addButton(this.profile, this.button);
             }
             this.classList.add('pressed');
         }
@@ -194,14 +195,14 @@
         release(event){
             event.preventDefault();
             if(this.hold){
-                removePad(this.profile, this.pad);
+                removeButton(this.profile, this.button);
             }
             this.classList.remove('pressed');
         }
 
         activate(){
             if(!this.active){
-                this.classList.add('pad-item-active');
+                this.classList.add('button-item-active');
                 this.active = true;
                 profiles[this.profile].increasePlaying();
             }
@@ -209,13 +210,13 @@
 
         deactivate(){
             if(this.active){
-                this.classList.remove('pad-item-active');
+                this.classList.remove('button-item-active');
                 this.active = false;
                 profiles[this.profile].decreasePlaying();
             }
         }
     }
-    customElements.define('pad-item', PadItem);
+    customElements.define('button-item', ButtonItem);
 
 
     class ProfileItem extends HTMLElement {
@@ -272,7 +273,7 @@
             if(!this.active){
                 this.classList.add('profile-item-active');
                 this.active = true;
-                padTables[this.profile].show();
+                buttonTables[this.profile].show();
                 activeProfile = this.profile;
             }
         }
@@ -281,7 +282,7 @@
             if(this.active){
                 this.classList.remove('profile-item-active');
                 this.active = false;
-                padTables[this.profile].hide();
+                buttonTables[this.profile].hide();
                 activeProfile = null;
             }
         }
@@ -289,7 +290,7 @@
     customElements.define('profile-item', ProfileItem);
 
 
-    class PadTable extends HTMLElement {
+    class ButtonTable extends HTMLElement {
         constructor(profile) {
             super();
 
@@ -297,19 +298,19 @@
         }
 
         show(){
-            this.classList.add("pad-table-active");
+            this.classList.add("button-table-active");
         }
 
         hide(){
-            this.classList.remove("pad-table-active");
+            this.classList.remove("button-table-active");
         }
     }
-    customElements.define('pad-table', PadTable);
+    customElements.define('button-table', ButtonTable);
 
-    function addPad(profile, pad){
+    function addButton(profile, button){
         let msg = {
-            type: "add_pad",
-            pad: pad,
+            type: "add_button",
+            button: button,
             profile: profile
         };
         socket.send(JSON.stringify(msg));
@@ -317,10 +318,10 @@
         startTime = Date.now();
     }
 
-    function removePad(profile, pad){
+    function removeButton(profile, button){
         let msg = {
-            type: "remove_pad",
-            pad: pad,
+            type: "remove_button",
+            button: button,
             profile: profile
         };
         socket.send(JSON.stringify(msg));
@@ -340,7 +341,7 @@
 
     function sendUpdate(){
         let msg = {
-            type: "update_config"
+            type: "update_effects_json"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -349,7 +350,7 @@
 
     function sendClear(){
         let msg = {
-            type: "clear_pads"
+            type: "clear_effects"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -362,20 +363,20 @@
 
     var startTime = false;
 
-    var config = {};
-    var pads = {};
+    var effects_json = {};
+    var buttons = {};
     var profiles = {};
-    var padTables = {};
+    var buttonTables = {};
 
     var profileList = document.getElementById("profile-list");
-    var padTableWrapper = document.getElementById("pad-table-wrapper");
+    var buttonTableWrapper = document.getElementById("button-table-wrapper");
 
-    var templatePadItem = document.getElementById("template-pad-item");
+    var templateButtonItem = document.getElementById("template-button-item");
     var templateProfileItem = document.getElementById("template-profile-item");
 
     var rateCurr = false;
     var rateNext = false;
-    var padsCurr = [];
+    var effectsCurr = [];
     var activeProfile = null;
 
     var rateCurrElem = document.getElementById("rate-curr");
@@ -384,8 +385,8 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
-    var updateConfigElem = document.getElementById("update-config");
-    var padsClearElem = document.getElementById("pads-clear");
+    var updateEffects_jsonElem = document.getElementById("update-effects_json");
+    var buttonsClearElem = document.getElementById("buttons-clear");
 
     // rateNextElem.focus();
 
@@ -447,11 +448,11 @@
         sendRate(rateNext);
     }
 
-    updateConfigElem.onclick = function () {
+    updateEffects_jsonElem.onclick = function () {
         sendUpdate();
     }
 
-    padsClearElem.onclick = function () {
+    buttonsClearElem.onclick = function () {
         sendClear();
     }
 
@@ -471,7 +472,7 @@
         user-select: none;
         height: 100vh;
         margin: 0;
-        padding: 0;
+        buttonding: 0;
         font-family: sans-serif;
         font-size: 0;
         color: hsl(0, 0%, 80%);
@@ -527,7 +528,7 @@
         color: hsl(204, 100%, 32%);
     }
 
-    #pad-table-wrapper{
+    #button-table-wrapper{
         position: absolute;
         right: 0;
         width: 75vw;
@@ -552,7 +553,7 @@
         cursor: pointer;
     }
 
-    pad-table{
+    button-table{
         visibility: hidden;
         opacity: 0;
         transform: translateY(5vh);
@@ -560,12 +561,12 @@
         right: 0;
         width: 69.5vw;
         height: calc(100% - 0.5vw);
-        padding: 0.25vw;
+        buttonding: 0.25vw;
         overflow: hidden;
         transition: transform 150ms, opacity 150ms linear, visibility 150ms linear;
     }
 
-    .pad-table-active{
+    .button-table-active{
         visibility: visible;
         opacity: 1;
         transform: translateY(0);
@@ -577,7 +578,7 @@
         100% {opacity: 1; display: block;}
     }
 
-    pad-item {
+    button-item {
         position: relative;
         width: calc(20% - 0.5vw);
         height: calc(25% - 0.5vw);
@@ -589,7 +590,7 @@
         transition: transform 50ms linear;
     }
 
-    .pad-item-active{
+    .button-item-active{
         background-color: hsl(204, 100%, 24%);
     }
 
@@ -597,7 +598,7 @@
         transform: scale(0.97);
     }
 
-    .pad-name {
+    .button-name {
         position: absolute;
         width: 75%;
         top: 50%;
@@ -607,7 +608,7 @@
         font-size: 3vh;
     }
 
-    .pad-bpm {
+    .button-bpm {
         position: absolute;
         bottom: 0.5vw;
         left: 0.5vw;
@@ -616,7 +617,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    .pad-length {
+    .button-length {
         position: absolute;
         top: 0.5vw;
         left: 0.5vw;
@@ -625,7 +626,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    .pad-loop {
+    .button-loop {
         position: absolute;
         top: -0.2vw;
         right: 0.5vw;
@@ -634,7 +635,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    .pad-button {
+    .button-button {
         position: absolute;
         bottom: 0.5vw;
         right: 0.5vw;
@@ -643,7 +644,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    #update-config{
+    #update-effects_json{
         position: absolute;
         left: 1vw;
         bottom: 21vh;
@@ -659,7 +660,7 @@
         cursor: pointer;
     }
 
-    #pads-clear{
+    #buttons-clear{
         position: absolute;
         left: 13vw;
         bottom: 21vh;

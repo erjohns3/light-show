@@ -1,16 +1,16 @@
 {
     "Shows":{
-        "Eric Show": {
-            "effect": "Show 1",
-            "delay": 0,
-            "bpm": 90,
-            "song": "musician2.mp3"
-        },
-        "Andrew's musician": {
+        "musician": {
             "effect": "Musician Show",
             "delay": 0,
             "bpm": 125,
             "song": "musician2.mp3"
+        },
+        "shelter": {
+            "effect": "Shelter Show",
+            "delay": 0,
+            "bpm": 9100,
+            "song": "shelter.mp3"
         }
     },
     "Eric": {

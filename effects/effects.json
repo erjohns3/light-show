@@ -69,7 +69,7 @@
             "4": [[0, 0, 100, 0, 0, 0, 0], 0.25]
         }
     },
-    "Pulsing":{
+    "Rainbow bad":{
         "length": 4,
         "beats":{
             "1": [[[100, 0, 0, 0, 0, 0, 0], 2, 1, 0], [[0, 0, 100, 0, 0, 0, 0], 2, 0, 1]],
@@ -79,8 +79,42 @@
     "Musician Show":{
         "length": 16,
         "beats":{
-            "1": [["Pulsing", 12], ["sidechain_test", 12]],
+            "1": [["Rainbow bad", 12], ["sidechain_test", 12]],
             "13": [["Musician Lyrical Oo", 4]]
+        }
+    },
+    "Nothing":{
+        "length": 1,
+        "beats":{
+            "1": [[0, 0, 0, 0, 0, 0, 0], 1, 1, 1]
+        }
+    },
+    "Blue Bottom Flash":{
+        "length": 1,
+        "beats":{
+            "1": [[0, 0, 0, 0, 0, 60, 0], 0.25]
+        }
+    },
+    "Blue Top Flash":{
+        "length": 1,
+        "beats":{
+            "1": [[0, 0, 60, 0, 0, 0, 0], 0.25]
+        }
+    },
+    "UV":{
+        "length": 1,
+        "beats":{
+            "1": [[0, 0, 60, 0, 0, 0, 100], 1]
+        }
+    },
+    "Shelter Show":{
+        "length": 10000,
+        "beats":{
+            "1": [["Pulse", 16]],
+            "17": [["Blue Bottom Flash", 8]],
+            "25": [["Blue Bottom Flash", 4], ["Blue Top Flash", 4]],
+            "29": [["UV", 4]],
+            "33": [["Rainbow bad", 12]]
         }
     }
 }

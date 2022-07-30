@@ -466,7 +466,8 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
-parser.add_argument('--starting_show', dest='starting_show', type=str, default='')
+parser.add_argument('--show', dest='show', type=str, default='')
+parser.add_argument('--skip', dest='skip_show', type=int, default=0)
 args = parser.parse_args()
 
 if args.local:
@@ -487,13 +488,15 @@ async def start_async():
 
     websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
 
-    if args.starting_show:
+    if args.show:
         for profile_name, button in profiles_json.items():
-            if args.starting_show in button:
-                await add_effect(profile_name, args.starting_show)
+            if args.show in button:
+                if args.skip_show:
+                    button[args.show]['skip_song'] = args.skip_show
+                await add_effect(profile_name, args.show)
                 break
         else:
-            print(f'Couldnt find effect named "{args.starting_show}" in any profile')
+            print(f'Couldnt find effect named "{args.show}" in any profile')
 
 
     await websocket_server.wait_closed()

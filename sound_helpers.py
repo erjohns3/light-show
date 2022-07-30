@@ -34,7 +34,7 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
         '-autoexit',
         '-nodisp',
         '-volume',
-        volume,
+        str(volume),
         '-ss',
         seconds_to_hmsm_string(start_time),
         str(audio_path)

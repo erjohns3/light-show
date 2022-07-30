@@ -12,8 +12,7 @@ import http.server
 import argparse
 import os
 
-
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
 import pygame
 from helpers import *
 

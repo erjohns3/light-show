@@ -225,23 +225,33 @@ def clear_effects():
     for index, effect in enumerate(curr_effects):
         remove_effect(index)
 
+def add_effect_and_maybe_play_song(profile, button, effect):
+    global beat_index, time_start, curr_bpm
+
+    if "song" in profiles_json[profile][button]:
+        pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
+        time.sleep(4)
+        pygame.mixer.music.play()
+
+    if "bpm" in profiles_json[profile][button]:
+        time_start = time.perf_counter() + profiles_json[profile][button]['delay']
+        curr_bpm = profiles_json[profile][button]['bpm']
+        clear_effects()
+        beat_index = int((-profiles_json[profile][button]['delay']) * (curr_bpm / 60 * SUB_BEATS))
+        offset = 0
+    else:
+        offset = (beat_index % round(profiles_json[profile][button]['snap'] * SUB_BEATS)) - beat_index
+    curr_effects.append([effect, offset, profile, button])
+
 def add_effect(profile, button):
     global beat_index, time_start, curr_bpm
     if profiles_json[profile][button]["type"] != "toggle" or curr_effect_index(profile, button) is False:
         effect = profiles_json[profile][button]['effect']
-        if "bpm" in profiles_json[profile][button]:
-            time_start = time.perf_counter() + profiles_json[profile][button]['delay']
-            curr_bpm = profiles_json[profile][button]['bpm']
-            clear_effects()
-            beat_index = int((-profiles_json[profile][button]['delay']) * (curr_bpm / 60 * SUB_BEATS))
-            offset = 0
-        else:
-            offset = (beat_index % round(profiles_json[profile][button]['snap'] * SUB_BEATS)) - beat_index
-        if "song" in profiles_json[profile][button]:
-            pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
-            time.sleep(2)
-            pygame.mixer.music.play()
-        curr_effects.append([effect, offset, profile, button])
+
+    x = threading.Thread(target=add_effect_and_maybe_play_song, args=(profile, button, effect,))
+    x.start()
+
+    
 
 ######################################
 
@@ -475,7 +485,6 @@ async def start_async():
 
     websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
 
-    await asyncio.sleep(5)
     if args.starting_show:
         add_effect('Shows', args.starting_show)
 

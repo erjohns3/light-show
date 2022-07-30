@@ -471,10 +471,13 @@ asyncio.set_event_loop(loop)
 async def start_async():
     asyncio.create_task(light())
 
+
+    websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
+
+    await asyncio.sleep(1)
     if args.starting_show:
         add_effect('Shows', args.starting_show)
 
-    websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
     await websocket_server.wait_closed()
 
 asyncio.run(start_async())

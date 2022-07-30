@@ -127,3 +127,4 @@ def seconds_to_hmsm_string(seconds) -> str:
     # parser.add_argument('--testing', action='store_true', default=False,
     #                help='To run without rasberry pi support')
     # args = parser.parse_args()
+print('hello')

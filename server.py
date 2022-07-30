@@ -280,6 +280,8 @@ def setup_gpio():
 
 ################################################
 
+print('i dont see')
+
 effects_json = {}
 profiles_json = {}
 channel_lut = {}

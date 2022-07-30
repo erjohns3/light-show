@@ -79,6 +79,12 @@
         }
     },
     "Musician Show":{
+        "length": 100,
+        "beats":{
+            "1": [["Red Top", ]]
+        }
+    },
+    "Musician Shown Real":{
         "length": 16,
         "beats":{
             "1": [["Rainbow bad", 12], ["sidechain_test", 12]],
@@ -116,7 +122,7 @@
         }
     },
     "Shelter Show":{
-        "length": 10000,
+        "length": 100,
         "beats":{
             "1": [["Pulse", 16]],
             "17": [["Blue Bottom Flash", 8]],

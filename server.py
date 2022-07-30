@@ -26,7 +26,7 @@ SUB_BEATS = 24
 LIGHT_COUNT = 7
 
 curr_effects = []
-curr_bpm = 120
+curr_bpm = 20
 time_start = time.perf_counter()
 
 beat_index = 0
@@ -230,7 +230,7 @@ def add_effect_and_maybe_play_song(profile, button, effect):
 
     if "song" in profiles_json[profile][button]:
         pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
-        time.sleep(4)
+        time.sleep(1)
         pygame.mixer.music.play()
 
     if "bpm" in profiles_json[profile][button]:

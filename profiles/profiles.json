@@ -9,7 +9,7 @@
         "shelter": {
             "effect": "Shelter Show",
             "delay": 0,
-            "bpm": 9100,
+            "bpm": 100,
             "song": "shelter.mp3"
         }
     },

@@ -239,6 +239,7 @@ def add_effect(profile, button):
             offset = (beat_index % round(profiles_json[profile][button]['snap'] * SUB_BEATS)) - beat_index
         if "song" in profiles_json[profile][button]:
             pygame.mixer.music.load('data/' + profiles_json[profile][button]['song'])
+            time.sleep(2)
             pygame.mixer.music.play()
         curr_effects.append([effect, offset, profile, button])
 

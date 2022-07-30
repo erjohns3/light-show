@@ -1,13 +1,13 @@
 {
     "Shows":{
         "musician": {
-            "effect": "Musician Show",
+            "effect": "RBBB 1 bar",
             "delay": 0,
             "bpm": 125,
             "song": "musician2.mp3"
         },
         "shelter": {
-            "effect": "Shelter Show",
+            "effect": "RBBB 1 bar",
             "delay": 0.22,
             "bpm": 100,
             "song": "shelter.mp3"

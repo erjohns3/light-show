@@ -22,8 +22,8 @@ pca = None
 
 print('debuggers suck')
 
-pygame.init()
-pygame.mixer.init()
+# pygame.init()
+# pygame.mixer.init()
 
 print('test')
 

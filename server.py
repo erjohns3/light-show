@@ -472,7 +472,7 @@ if args.local:
 else:
     setup_gpio()
 
-
+print('ok')
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()
 

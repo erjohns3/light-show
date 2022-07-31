@@ -1,18 +1,45 @@
 {
+    "Mine":{
+        "UV": {
+            "effect": "UV"
+        }
+    },
     "Shows":{
+        "musician boring": {
+            "effect": "Musician Boring Show",
+            "type": "hold",
+            "delay_lights": 0.3,
+            "skip_song": 0,
+            "bpm": 125,
+            "song": "musician2.mp3"
+        },
         "musician": {
             "effect": "Musician Show",
-            "delay_lights": 0,
+            "delay_lights": 0.3,
             "skip_song": 0,
             "bpm": 125,
             "song": "musician2.mp3"
         },
         "shelter": {
             "effect": "Shelter Show",
-            "delay_lights": 0,
+            "delay_lights": 0.3,
             "skip_song": 0.21,
             "bpm": 100,
             "song": "shelter.mp3"
+        },
+        "attack": {
+            "effect": "Attack on Titan Show",
+            "delay_lights": 0.3,
+            "skip_song": 0.35,
+            "bpm": 144,
+            "song": "attack_season_4_op.mp3"
+        },
+        "Luigi": {
+            "effect": "Luigi Show",
+            "delay_lights": 0.3,
+            "skip_song": 1.74,
+            "bpm": 90,
+            "song": "luigi.mp3"
         }
     },
     "Eric": {

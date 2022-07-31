@@ -271,12 +271,12 @@ def setup_gpio():
     for i in range(len(pca.channels)):
         pca.channels[i].duty_cycle = 0
 
-    pca.channels[0].duty_cycle = 0xFFFF
-    pca.channels[1].duty_cycle = 0xFFFF
-    pca.channels[2].duty_cycle = 0xFFFF
-    pca.channels[3].duty_cycle = 0xFFFF
-    pca.channels[4].duty_cycle = 0xFFFF
-    pca.channels[5].duty_cycle = 0xFFFF
+    pca.channels[0].duty_cycle = 0x0AFF
+    pca.channels[1].duty_cycle = 0x0AFF
+    pca.channels[2].duty_cycle = 0x0AFF
+    pca.channels[3].duty_cycle = 0x0AFF
+    pca.channels[4].duty_cycle = 0x0AFF
+    pca.channels[5].duty_cycle = 0x0AFF
 
 
 ################################################

@@ -148,18 +148,16 @@ async def render_to_terminal(all_levels):
 
     console.print(' ' + character * 2, style=uv_style, end='')
     console.print(character * 10, style=top_rgb_style, end='')
-    console.print(character * 2, style=uv_style, end='\n')
+    console.print(character * 2, style=uv_style, end='')
+    console.print('\n' * 3)
 
-    console.print(' ' + character * 2, style=uv_style, end='')
-    console.print(character * 10, style=top_rgb_style, end='')
-    console.print(character * 2, style=uv_style, end='\n' * 3)
 
-    console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
+    # console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
     console.print(' ' + character * 14, style=bottom_rgb_style, end='')
 
     effect_useful_info = list(map(lambda x: x[3], curr_effects))
     # console.print(f'Effect: {effect_useful_info}, BPM: {curr_bpm}{" " * 10}', end='\r')
-    console.print('', end='\033[F' * 5)
+    console.print('', end='\033[F' * 4)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -252,7 +250,7 @@ async def add_effect(profile, button):
 
     if "song" in profiles_json[profile][button]:
         filepath = pathlib.Path('songs').joinpath(profiles_json[profile][button]['song'])
-        await sound_helpers.play_sound_with_ffplay(filepath, profiles_json[profile][button]['skip_song'], volume=60)
+        await sound_helpers.play_sound_with_ffplay(filepath, profiles_json[profile][button]['skip_song'], volume=100)
         
     
 
@@ -492,7 +490,8 @@ async def start_async():
         for profile_name, button in profiles_json.items():
             if args.show in button:
                 if args.skip_show:
-                    button[args.show]['skip_song'] = args.skip_show
+                    button[args.show]['skip_song'] += args.skip_show
+                    button[args.show]['delay_lights'] -= args.skip_show
                 await add_effect(profile_name, args.show)
                 break
         else:

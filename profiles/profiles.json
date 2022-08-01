@@ -55,7 +55,7 @@
         "Luigi": {
             "effect": "Luigi Show",
             "delay_lights": 0.0,
-            "skip_song": 1.74,
+            "skip_song": 1.92,
             "bpm": 90,
             "song": "luigi.mp3"
         }

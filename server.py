@@ -11,10 +11,14 @@ import websockets
 import http.server
 import argparse
 import os
+import pygame
 
 from helpers import *
 import sound_helpers
 
+
+pygame.init()
+pygame.mixer.init()
 
 pca = None
 
@@ -226,7 +230,9 @@ def remove_effect(index):
     button = curr_effects[index][3]
     curr_effects.pop(index)
     if "song" in profiles_json[profile][button]:
-        sound_helpers.stop_audio()
+        # sound_helpers.stop_audio()
+        # pygame.mixer.stop()
+        pygame.mixer.music.stop()
 
 def clear_effects():
     for index, effect in enumerate(curr_effects):
@@ -234,6 +240,11 @@ def clear_effects():
 
 
 async def add_effect(profile, button):
+    if "song" in profiles_json[profile][button]:
+        music_filepath = pathlib.Path('songs').joinpath(profiles_json[profile][button]['song'])
+        pygame.mixer.music.load(music_filepath)
+        time.sleep(.05)
+
     global beat_index, time_start, curr_bpm
     if profiles_json[profile][button]["type"] != "toggle" or curr_effect_index(profile, button) is False:
         effect = profiles_json[profile][button]['effect']
@@ -249,9 +260,10 @@ async def add_effect(profile, button):
     curr_effects.append([effect, offset, profile, button])
 
     if "song" in profiles_json[profile][button]:
-        filepath = pathlib.Path('songs').joinpath(profiles_json[profile][button]['song'])
-        await sound_helpers.play_sound_with_ffplay(filepath, profiles_json[profile][button]['skip_song'], volume=100)
-        
+        amount_to_skip = profiles_json[profile][button].get('skip_song', 0)
+        # await sound_helpers.play_sound_with_ffplay(music_filepath, amount_to_skip, volume=100)
+        pygame.mixer.music.play(start=amount_to_skip)
+
     
 
 ######################################

@@ -24,6 +24,34 @@
             "1": ["Red Top Flash", 2, 1, 0, 0]
         }
     },
+    "Red Pulse":{
+        "length": 1,
+        "loop": false,
+        "beats":{
+            "1": [[100, 0, 0, 100, 0, 0, 0], 1, 1, 0, 0]
+        }
+    },
+    "Green Pulse":{
+        "length": 1,
+        "loop": false,
+        "beats":{
+            "1": [[0, 100, 0, 0, 100, 0, 0], 1, 1, 0, 0]
+        }
+    },
+    "Blue Pulse":{
+        "length": 1,
+        "loop": false,
+        "beats":{
+            "1": [[0, 0, 100, 0, 0, 100, 0], 1, 1, 0, 0]
+        }
+    },
+    "UV Pulse":{
+        "length": 1,
+        "loop": false,
+        "beats":{
+            "1": [[0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0]
+        }
+    },
     "Bassline":{
         "length": 4,
         "beats":{

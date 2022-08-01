@@ -4,6 +4,24 @@
             "effect": "UV"
         }
     },
+    "Basic":{
+        "Red": {
+            "effect": "Red Pulse",
+            "type": "add"
+        },
+        "Green": {
+            "effect": "Green Pulse",
+            "type": "add"
+        },
+        "Blue": {
+            "effect": "Blue Pulse",
+            "type": "add"
+        },
+        "UV": {
+            "effect": "UV Pulse",
+            "type": "add"
+        }
+    },
     "Shows":{
         "musician boring": {
             "effect": "Musician Boring Show",

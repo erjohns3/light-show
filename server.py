@@ -11,6 +11,7 @@ import websockets
 import http.server
 import argparse
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 
 from helpers import *

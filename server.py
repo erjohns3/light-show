@@ -564,7 +564,6 @@ def update_json():
             show['delay_lights'] = show.get('delay_lights', 0)
             if not args.local:
                 show['delay_lights'] += 0.1
-            print('show: ', show['delay_lights'])
         loop = False
         duration = 1000000
         if 'effect' in show:

@@ -1,0 +1,43 @@
+{
+    "A show": {
+        "effect": "Musician Boring Show",
+        "trigger": "hold",
+        "delay_lights": 0.3,
+        "skip_song": 0,
+        "bpm": 125,
+        "song": "A.mp3",
+        "profiles": ["Shows"]
+    },
+    "B show": {
+        "effect": "Musician Show",
+        "delay_lights": 0.3,
+        "skip_song": 0,
+        "bpm": 125,
+        "song": "B.mp3",
+        "profiles": ["Shows"]
+    },
+    "C show": {
+        "effect": "Shelter Show",
+        "delay_lights": 0.3,
+        "skip_song": 0.21,
+        "bpm": 100,
+        "song": "C.mp3",
+        "profiles": ["Shows"]
+    },
+    "D show": {
+        "effect": "Attack on Titan Show",
+        "delay_lights": 0.3,
+        "skip_song": 0.35,
+        "bpm": 144,
+        "song": "D.mp3",
+        "profiles": ["Shows"]
+    },
+    "E show": {
+        "effect": "Luigi Show",
+        "delay_lights": 0.3,
+        "skip_song": 1.74,
+        "bpm": 90,
+        "song": "E.mp3",
+        "profiles": ["Shows"]
+    }
+}

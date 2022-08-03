@@ -653,8 +653,6 @@ def update_json():
     # for index, x in enumerate(channel_lut['Musician Show']['beats']):
     #     print(f'index {index / 24}: {x}')
 
-update_json()
-
 ##################################################
 
 def kill_in_n_seconds(seconds):
@@ -697,6 +695,8 @@ if args.local:
     console = Console()
 else:
     setup_gpio()
+
+update_json()
 
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()

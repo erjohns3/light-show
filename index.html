@@ -37,8 +37,8 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <div id="update-effects_json" class="button">Update</div>
-    <div id="buttons-clear" class="button">Clear</div>
+    <div id="update" class="button">Update</div>
+    <div id="clear" class="button">Clear</div>
 </body>
 
 <script>
@@ -85,43 +85,52 @@
             console.log("socket message");
             let msg = JSON.parse(event.data);
             console.log(msg);
-            
-            if(msg.effects_json){
-                effects_json = msg.effects_json
-                for(let profile in effects_json){
-                    if(!(profile in buttons)){
-                        profiles[profile] = new ProfileItem(profile);
-                        profileList.append(profiles[profile]);
 
-                        buttonTables[profile] = new ButtonTable(profile);
-                        buttonTableWrapper.append(buttonTables[profile]);
+            if(msg.shows){
+                showsConfig = msg.shows;
+                for(let show_name in showsConfig){
+                    if(!(show_name in buttons)){
+                        buttons[show_name] = {};
+                        for(let profile_name of showsConfig[show_name].profiles){
+                            if(!(profile_name in profiles)){
+                                profiles[profile_name] = new ProfileItem(profile_name);
+                                profileList.append(profiles[profile_name]);
 
-                        buttons[profile] = {}
-                    }
-                    
-                    for(let button in effects_json[profile]){
-                        if(!(button in buttons[profile])){
-                            buttons[profile][button] = new ButtonItem(profile, button);
-                            buttonTables[profile].append(buttons[profile][button]);
+                                buttonTables[profile_name] = new ButtonTable(profile_name);
+                                buttonTableWrapper.append(buttonTables[profile_name]);
+
+                                if(!activeProfile){
+                                    profiles[profile_name].activate();
+                                }
+                            }
+                            if(!(profile_name in buttons[show_name])){
+                                buttons[show_name][profile_name] = new ButtonItem(show_name, profile_name);
+                                buttonTables[profile_name].append(buttons[show_name][profile_name]);
+                            }
                         }
-                    }
-                    
-                    if(!activeProfile){
-                        console.log(profiles[profile]);
-                        profiles[profile].activate();
                     }
                 }
             }
 
-            if(msg.status){
-                for(let effect of effectsCurr){
-                    buttons[effect[2]][effect[3]].deactivate();
-                }
-                for(let effect of msg.status.curr_effects){
-                    buttons[effect[2]][effect[3]].activate();
-                }
-                effectsCurr = msg.status.curr_effects;
+            if(msg.songs){
+                songsConfig = msg.songs;
+            }
 
+            if(msg.status){
+                for(let show_arr of showsCurr){
+                    show_name = show_arr[2];
+                    for(let profile_name in buttons[show_name]){
+                        buttons[show_name][profile_name].deactivate();
+                    }
+                }
+                showsCurr = msg.status.shows;
+                for(let show_arr of showsCurr){
+                    show_name = show_arr[2];
+                    for(let profile_name in buttons[show_name]){
+                        buttons[show_name][profile_name].activate();
+                    }
+                }
+                
                 rateCurr = msg.status.rate;
                 rateCurrElem.textContent = rateCurr.toFixed(1);
                 
@@ -140,29 +149,29 @@
     /////////////////////////////////////////////////////////////////////
 
     class ButtonItem extends HTMLElement {
-        constructor(profile, button) {
+        constructor(show, profile) {
             super();
 
             this.appendChild(templateButtonItem.content.cloneNode(true));
 
+            this.show = show;
             this.profile = profile;
-            this.button = button;
 
-            this.type = effects_json[profile][button].type;
-            this.toggle = this.type == "toggle";
-            this.hold = this.type == "hold";
-            this.add = this.type == "add";
+            this.trigger = showsConfig[this.show].trigger;
+            this.toggle = this.trigger == "toggle";
+            this.hold = this.trigger == "hold";
+            this.add = this.trigger == "add";
 
-            this.length = effects_json[profile][button].length;
-            this.bpm = effects_json[profile][button].bpm;
+            this.length = showsConfig[this.show].length;
+            this.bpm = showsConfig[this.show].bpm;
 
             this.querySelector(".button-name").textContent = this.button;
             this.querySelector(".button-length").textContent = this.length;
-            this.querySelector(".button-button").textContent = this.type;
-            if(effects_json[profile][button].loop){
+            this.querySelector(".button-button").textContent = this.trigger;
+            if(showsConfig[this.show].loop){
                 this.querySelector(".button-loop").textContent = "∞";
             }
-            if(effects_json[profile][button].bpm){
+            if(showsConfig[this.show].bpm){
                 this.querySelector(".button-bpm").textContent = this.bpm + " bpm";
             }
 
@@ -181,12 +190,12 @@
             event.preventDefault();
             if(this.toggle){
                 if(this.active){
-                    removeButton(this.profile, this.button);
+                    removeShow(this.show);
                 }else{
-                    addButton(this.profile, this.button);
+                    addShow(this.show);
                 }
             }else{
-                addButton(this.profile, this.button);
+                addShow(this.show);
             }
             this.classList.add('pressed');
         }
@@ -194,7 +203,7 @@
         release(event){
             event.preventDefault();
             if(this.hold){
-                removeButton(this.profile, this.button);
+                removeShow(this.show);
             }
             this.classList.remove('pressed');
         }
@@ -306,22 +315,20 @@
     }
     customElements.define('button-table', ButtonTable);
 
-    function addButton(profile, button){
+    function addShow(show){
         let msg = {
-            type: "add_button",
-            button: button,
-            profile: profile
+            type: "add_show",
+            show: show
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
         startTime = Date.now();
     }
 
-    function removeButton(profile, button){
+    function removeShow(show){
         let msg = {
-            type: "remove_button",
-            button: button,
-            profile: profile
+            type: "remove_show",
+            show: show
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -340,7 +347,7 @@
 
     function sendUpdate(){
         let msg = {
-            type: "update_effects_json"
+            type: "update_json"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -349,7 +356,7 @@
 
     function sendClear(){
         let msg = {
-            type: "clear_effects"
+            type: "clear_shows"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -362,7 +369,9 @@
 
     var startTime = false;
 
-    var effects_json = {};
+    var showsConfig = {};
+    var songsConfig = {};
+    
     var buttons = {};
     var profiles = {};
     var buttonTables = {};
@@ -375,7 +384,7 @@
 
     var rateCurr = false;
     var rateNext = false;
-    var effectsCurr = [];
+    var showsCurr = [];
     var activeProfile = null;
 
     var rateCurrElem = document.getElementById("rate-curr");
@@ -384,8 +393,8 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
-    var updateEffects_jsonElem = document.getElementById("update-effects_json");
-    var buttonsClearElem = document.getElementById("buttons-clear");
+    var updateElem = document.getElementById("update");
+    var clearElem = document.getElementById("clear");
 
     // rateNextElem.focus();
 
@@ -447,11 +456,11 @@
         sendRate(rateNext);
     }
 
-    updateEffects_jsonElem.onclick = function () {
+    updateElem.onclick = function () {
         sendUpdate();
     }
 
-    buttonsClearElem.onclick = function () {
+    clearElem.onclick = function () {
         sendClear();
     }
 
@@ -643,7 +652,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    #update-effects_json{
+    #update{
         position: absolute;
         left: 1vw;
         bottom: 21vh;
@@ -659,7 +668,7 @@
         cursor: pointer;
     }
 
-    #buttons-clear{
+    #clear{
         position: absolute;
         left: 13vw;
         bottom: 21vh;

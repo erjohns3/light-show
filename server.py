@@ -12,13 +12,13 @@ import websockets
 import http.server
 import argparse
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import eyed3
 import pygame
 
 from helpers import *
 import sound_helpers
 
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 
 pygame.init()
 pygame.mixer.init()
@@ -316,7 +316,7 @@ async def render_to_terminal(all_levels):
     # console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
     console.print(' ' + character * 14, style=bottom_rgb_style, end='')
 
-    effect_useful_info = list(map(lambda x: x[3], curr_effects))
+    # effect_useful_info = list(map(lambda x: x[3], curr_effects))
     # console.print(f'Effect: {effect_useful_info}, BPM: {curr_bpm}{" " * 10}', end='\r')
     console.print('', end='\033[F' * 4)
 

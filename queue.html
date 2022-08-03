@@ -43,7 +43,7 @@
     </div>
 
     <div id="status">
-        <div id="play-button"></div>
+        <div id="play-control"></div>
         <div id="song-playing"></div>
     </div>
 
@@ -151,9 +151,11 @@
             if(msg.status){
                 playing = msg.status.autoplay;
                 if(playing){
-                    playButton.textContent = "Playing";
+                    playButton.classList.add("pause");
+                    playButton.classList.remove("play");
                 }else{
-                    playButton.textContent = "Stopped";
+                    playButton.classList.add("play");
+                    playButton.classList.remove("pause");
                 }
                 
             }
@@ -214,7 +216,7 @@
         setPosition(position){
             if(position != this.position){
                 this.position = position;
-                this.style.transform = "translateY("+(this.position*10.5)+"vh)";
+                this.style.transform = "translateY("+(this.position*11)+"vh)";
             }
         }
 
@@ -334,7 +336,7 @@
     var templateAvailableItem = document.getElementById("template-available-item");
     var templateQueueItem = document.getElementById("template-queue-item");
 
-    var playButton = document.getElementById("play-button");
+    var playButton = document.getElementById("play-control");
 
     for(let i=0; i<100; i++){
         let item = new QueueItem();
@@ -415,10 +417,8 @@
         font-family: sans-serif;
         font-size: 0;
         color: hsl(0, 0%, 80%);
-        background-color: hsl(0, 0%, 4%);
+        background-color: hsl(0, 0%, 6%);
     }
-
-    
 
     #header{
         height: 8%;
@@ -431,7 +431,7 @@
     
     .tab {
         position: absolute;
-        background-color: hsl(0, 100%, 25%);
+        background-color: hsl(0, 0%, 18%);
         box-sizing: border-box;
         font-size: 3vh;
         height: 100%;
@@ -452,13 +452,12 @@
         left: 0;
         height: 0.5vh;
         width: 50%;
-        background-color: hsl(240, 100%, 25%);
+        background-color: hsl(204, 100%, 32%);
         will-change: transform;
     }
 
     .tab-selected{
-        color: blue;
-        background-color: hsl(180, 100%, 25%);
+        color: hsl(204, 100%, 32%);
         font-weight: bold;
     }
 
@@ -469,7 +468,6 @@
     #queue-tab{
         right: 0;
     }
-
 
     #page-view {
         height: 82%;
@@ -507,20 +505,18 @@
 
     #available-page{
         left: 0%;
-        background-color: hsl(120, 100%, 25%);
     }
 
     #available-list{
-        background-color: hsl(120, 100%, 25%);
     }
 
     available-item{
         position: relative;
         height: 10vh;
-        margin: 0.5vw;
+        margin: 1vh;
         border-radius: 1vw;
         display: block;
-        background-color: hsl(180, 100%, 25%);
+        background-color: hsl(0, 0%, 12%);
         cursor: pointer;
     }
 
@@ -557,27 +553,25 @@
         justify-content: center;
         align-items: center;
         border-radius: 1vw;
-        background-color: red;
+        background-color: hsl(204, 100%, 32%);
     }
 
     #queue-page{
         left: 100%;
-        background-color: hsl(240, 100%, 25%);
     }
 
     #queue-list{
-        background-color: hsl(240, 100%, 25%);
     }
 
     queue-item{
         visibility: hidden;
         position: absolute;
-        width: calc(100% - 1vh);
+        width: calc(100% - 2vh);
         height: 10vh;
-        margin: 0.5vh;
+        margin: 1vh;
         border-radius: 1vw;
         display: block;
-        background-color: hsl(300, 100%, 25%);
+        background-color: hsl(0, 0%, 12%);
         cursor: pointer;
         will-change: transform;
         transition: transform 150ms;
@@ -616,11 +610,11 @@
         justify-content: center;
         align-items: center;
         border-radius: 1vw;
-        background-color: red;
+        background-color: hsl(0, 100%, 32%);
     }
 
     #status {
-        background-color: hsl(0, 100%, 25%);
+        background-color: hsl(0, 0%, 18%);
         text-align: center;
         font-size: 3vh;
         height: 10%;
@@ -629,6 +623,38 @@
         bottom: 0;
         z-index: 10;
         box-shadow: 0 0 16px 2px hsla(0, 0%, 0%, 0.5);
+    }
+
+    #status-button{
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border-style: solid;
+        border-width: 3vh 0 3vh 6vh;
+        border-color: transparent transparent transparent hsl(204, 100%, 32%);
+    }
+
+    .play{
+        top: 50%;
+        left: 50%;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border-style: solid;
+        border-width: 3vh 0 3vh 6vh;
+        border-color: transparent transparent transparent hsl(204, 100%, 32%);
+    }
+
+    .pause{
+        top: 50%;
+        left: 50%;
+        width: 2vh;
+        height: 6vh;
+        position: absolute;
+        transform: translate(-50%, -50%);
+        border-style: solid;
+        border-width: 0vh 2vh 0vh 2vh;
+        border-color: transparent hsl(0deg 100% 32%) transparent hsl(0, 100%, 32%);
     }
 
     .button:active{

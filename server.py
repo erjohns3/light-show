@@ -563,7 +563,7 @@ def update_json():
         if 'bpm' in show:
             show['delay_lights'] = show.get('delay_lights', 0)
             if not args.local:
-                show['delay_lights'] += 0.05
+                show['delay_lights'] += 0
             print('show: ', show['delay_lights'])
         loop = False
         duration = 1000000

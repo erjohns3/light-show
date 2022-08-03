@@ -433,8 +433,9 @@ def add_effect(show_name):
 def play_song(show_name):
     song = shows_json[show_name]['song']
     skip = shows_json[show_name]['skip_song']
+    pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
-    pygame.mixer.music.play(start=skip)
+    channel = pygame.mixer.music.play(start=skip)
 
 
 def stop_song():
@@ -685,7 +686,10 @@ parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show', type=int, default=0)
+parser.add_argument('--volume', dest='volume', type=int, default=100)
 args = parser.parse_args()
+
+args.volume = args.volume / 100
 
 if args.local:
     from rich.console import Console

@@ -24,4 +24,8 @@
 
 * youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"
 
-
+Difference between intuitive and real:
+100: 100
+75: 40
+50: 22
+25: 8

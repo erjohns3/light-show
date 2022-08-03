@@ -138,19 +138,21 @@ async def send_update():
 ####################################
 
 
-
+my_color_tuple = [254, 0, 0]
 async def render_to_terminal(all_levels):
-    levels_capped = list(map(lambda x: min(max(int(x * 2.55), 0), 255), all_levels))
-    character = '▆'
+    terminal_color_scaling = 6
+    max_num = (pow(2, 16) - 1) / 100
+    levels_capped = list(map(lambda x: min(max(terminal_color_scaling * int(x / max_num), 0), 255), all_levels))
 
-
+    uv_level_scaling = min(1, (terminal_color_scaling * levels_capped[6]) / 255.0)
     purple = [153, 50, 204]
-    purple = list(map(lambda x: int(x * (levels_capped[6] / 255.0)), purple))
-    uv_style = f'rgb({purple[0]},{purple[1]},{purple[2]})'
+    purple_scaled = list(map(lambda x: int(x * uv_level_scaling), purple))
 
+    uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
     top_rgb_style = f'rgb({levels_capped[0]},{levels_capped[1]},{levels_capped[2]})'
     bottom_rgb_style = f'rgb({levels_capped[3]},{levels_capped[4]},{levels_capped[5]})'
 
+    character = '▆'
     console.print(' ' + character * 2, style=uv_style, end='')
     console.print(character * 10, style=top_rgb_style, end='')
     console.print(character * 2, style=uv_style, end='')
@@ -202,7 +204,7 @@ async def light():
                     index = index % channel_lut[curr_effects[j][0]]["length"]
                     level += channel_lut[curr_effects[j][0]]["beats"][index][i]
             level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
-            
+
             if local:
                 await terminal(level, i)
             else:
@@ -497,7 +499,7 @@ async def start_async():
     asyncio.create_task(light())
 
 
-    websocket_server = await websockets.serve(init_client, "0.0.0.0", 8765)
+    websocket_server = await websockets.serve(init_client, "0.0.0.0", 1337)
 
     if args.show:
         for profile_name, button in profiles_json.items():

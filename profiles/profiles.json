@@ -23,6 +23,14 @@
         }
     },
     "Shows":{
+        "telepathic love": {
+            "effect": "Telepathic Love Show",
+            "delay_lights": 0.0,
+            "type": "hold",
+            "skip_song": 0,
+            "bpm": 128,
+            "song": "Telepathic Love.mp3"
+        },
         "musician boring": {
             "effect": "Musician Boring Show",
             "type": "hold",

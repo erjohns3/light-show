@@ -119,6 +119,12 @@
             "13": [["Musician Lyrical Oo", 4]]
         }
     },
+    "Telepathic Love Show":{
+        "length": 16,
+        "beats":{
+            "1": [["RBBB 1 bar", 2000]]
+        }
+    },
     "Nothing":{
         "length": 1,
         "beats":{

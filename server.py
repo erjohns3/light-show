@@ -434,8 +434,10 @@ def play_song(show_name):
     song = shows_json[show_name]['song']
     skip = shows_json[show_name]['skip_song']
     pygame.mixer.music.set_volume(args.volume)
+    before = time.perf_counter()
     pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
     channel = pygame.mixer.music.play(start=skip)
+    print(f'Time to load + play: {time.perf_counter() - before}')
 
 
 def stop_song():
@@ -564,6 +566,7 @@ def update_json():
             show['delay_lights'] = show.get('delay_lights', 0)
             if not args.local:
                 show['delay_lights'] += 0.1
+            print('show: ', show['delay_lights'])
         loop = False
         duration = 1000000
         if 'effect' in show:

@@ -561,8 +561,9 @@ def update_json():
         if 'trigger' not in show:
             show['trigger'] = "toggle"
         if 'bpm' in show:
-            if 'delay_lights' not in show:
-                show['delay_lights'] = 0
+            show['delay_lights'] = show.get('delay_lights', 0)
+            if not args.local:
+                show['delay_lights'] += 0.1
         loop = False
         duration = 1000000
         if 'effect' in show:

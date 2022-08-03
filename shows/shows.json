@@ -2,7 +2,7 @@
     "A show": {
         "effect": "Musician Boring Show",
         "trigger": "hold",
-        "delay_lights": 0.0,
+        "delay_lights": 0.1,
         "skip_song": 0,
         "bpm": 125,
         "song": "musician2.mp3",

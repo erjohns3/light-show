@@ -437,7 +437,7 @@ def play_song(show_name):
     before = time.perf_counter()
     pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
     channel = pygame.mixer.music.play(start=skip)
-    print(f'Time to load + play: {time.perf_counter() - before}')
+    print(f'Time to load + play: {1000 * (time.perf_counter() - before)}')
 
 
 def stop_song():

@@ -29,3 +29,6 @@ Difference between intuitive and real:
 75: 40
 50: 22
 25: 8
+
+(x*.9) ^ (2) from 0 to 1
+https://www.wolframalpha.com/input?i=%28x*.9%29+%5E+%282%29+from+0+to+1

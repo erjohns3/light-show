@@ -372,7 +372,11 @@ async def light():
                 if index >= 0:
                     index = index % channel_lut[curr_effects[j][0]]['length']
                     level += channel_lut[curr_effects[j][0]]["beats"][index][i]
-            level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+
+            # level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+            level = max(0, min(0xFFFF, level * 0xFFFF / 100))
+            between_0_and_1 = level / 0xFFFF
+            level = round(pow(between_0_and_1, 2.2) * 0xFFFF)
 
             if local:
                 await terminal(level, i)

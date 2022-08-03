@@ -434,10 +434,8 @@ def play_song(show_name):
     song = shows_json[show_name]['song']
     skip = shows_json[show_name]['skip_song']
     pygame.mixer.music.set_volume(args.volume)
-    before = time.perf_counter()
     pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
     channel = pygame.mixer.music.play(start=skip)
-    print(f'Time to load + play: {1000 * (time.perf_counter() - before)}')
 
 
 def stop_song():
@@ -708,7 +706,6 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 async def start_async():
-    asyncio.create_task(light())
 
     light_socket_server = await websockets.serve(init_light_client, "0.0.0.0", 1337)
     song_socket_server = await websockets.serve(init_song_client, "0.0.0.0", 7654)
@@ -722,6 +719,7 @@ async def start_async():
             play_song(args.show)
         else:
             print(f'Couldnt find effect named "{args.show}" in any profile')
+    asyncio.create_task(light())
 
     await light_socket_server.wait_closed()
 

@@ -36,7 +36,7 @@
         "effect": "Luigi Show",
         "delay_lights": 0.0,
         "skip_song": 1.74,
-        "bpm": 90,
+        "bpm": 3,
         "song": "luigi.mp3",
         "profiles": ["Shows"]
     },
@@ -44,7 +44,7 @@
         "effect": "Luigi Show",
         "delay_lights": 0.0,
         "skip_song": 1.74,
-        "bpm": 90,
+        "bpm": 3,
         "song": "luigi.mp3",
         "profiles": ["Shows"]
     }

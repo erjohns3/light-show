@@ -34,12 +34,12 @@ def download_video(dest_path=None):
 
     inject_path_prefix = dest_path or ''
     ydl_opts = {
-        'format': 'mp3/bestaudio/best',
+        'format': 'vorbis/bestaudio/best',
         'outtmpl': f'{str(inject_path_prefix) + os.path.sep}%(title)s.%(ext)s',
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'wav',
+            'preferredcodec': 'vorbis',
         }]
     }
 

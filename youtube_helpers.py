@@ -9,7 +9,6 @@ from scp import SCPClient
 from helpers import *
 
 
-# !DOESNT WORK YET
 def scp_to_doorbell(local_filepath, remote_folder):
     remote_filepath = remote_folder.joinpath(local_filepath.name)
 

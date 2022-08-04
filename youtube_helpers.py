@@ -39,7 +39,7 @@ def download_video(dest_path=None):
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
+            'preferredcodec': 'ogg',
         }]
     }
 

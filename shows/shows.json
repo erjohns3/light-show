@@ -14,7 +14,7 @@
         "delay_lights": 0.1,
         "skip_song": 0.21,
         "bpm": 100,
-        "song": "shelter.mp3",
+        "song": "shelter.ogg",
         "profiles": ["Shows"]
     },
     "B show": {

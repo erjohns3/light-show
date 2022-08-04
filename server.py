@@ -677,7 +677,7 @@ def update_json():
     print("effects_json updated")
     # for index, x in enumerate(channel_lut['Musician Show']['beats']):
     #     print(f'index {index / 24}: {x}')
-    print(f'update_json took {time.perf_counter() - begin}')
+    print(f'update_json took {time.perf_counter() - begin} seconds')
 
 
 ##################################################

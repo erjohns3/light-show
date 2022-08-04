@@ -2,7 +2,29 @@ import json
 import yt_dlp
 import os
 
+# looks like most people use https://www.fabfile.org/ for the higher level library
+import paramiko
+from scp import SCPClient
+
 from helpers import *
+
+
+# !DOESNT WORK YET
+def scp_to_doorbell(local_filepath, remote_folder):
+    remote_filepath = remote_folder.joinpath(local_filepath.name)
+
+    doorbell_ip = '192.168.86.55'
+
+    ssh = paramiko.client.SSHClient()
+    ssh.load_system_host_keys()
+    ssh.connect(hostname=doorbell_ip, # doorbell IP
+                port = 22,
+                username='pi')
+
+    print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
+    scp = SCPClient(ssh.get_transport())
+    scp.put(local_filepath, remote_filepath)
+    scp.close()
 
 
 def download_video(dest_path=None):
@@ -10,15 +32,11 @@ def download_video(dest_path=None):
         os.chdir(dest_path)
 
     url = input('Enter the URL you want to download:\n')
-    url = 'https://www.youtube.com/watch?v=AqAkKOIuCUo'
 
-    inject_path_prefix = ''
-    if dest_path:        
-        inject_path_prefix = str(dest_path) + os.path.sep
-
+    inject_path_prefix = dest_path or ''
     ydl_opts = {
         'format': 'mp3/bestaudio/best',
-        'outtmpl': f'{inject_path_prefix}%(title)s.%(ext)s',
+        'outtmpl': f'{str(inject_path_prefix) + os.path.sep}%(title)s.%(ext)s',
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
@@ -27,7 +45,13 @@ def download_video(dest_path=None):
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        error_code = ydl.download([url])
+        info_dict = ydl.extract_info(url, download=True)
+        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.mp3')
+
+    return downloaded_filepath
+
 
 if __name__ == '__main__':
-    download_video(dest_path=python_file_directory.joinpath('songs'))
+    downloaded_filepath = download_video(dest_path=python_file_directory.joinpath('songs'))
+    remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)

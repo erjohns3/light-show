@@ -56,6 +56,15 @@ def create_mp3(input_filepath, output_directory, seconds_seek_to, seconds_to_pla
     run_command_blocking(['ffmpeg'] + ffmpeg_args)
     return output_filepath
 
-def get_audio_clip_length(filename):
-    ffprobe_args = ['-v', 'error', '-show_entries', 'format=duration', '-of', 'default=noprint_wrappers=1:nokey=1', filename]
-    return float(run_command_blocking(['ffprobe'] + ffprobe_args))
+def get_audio_clip_length(filepath):
+    returncode, stdout, stderr = run_command_blocking([
+        'ffprobe',
+        '-v', 
+        'error', 
+        '-show_entries', 
+        'format=duration', 
+        '-of', 
+        'default=noprint_wrappers=1:nokey=1', 
+        str(filepath)
+    ])
+    return float(stdout)

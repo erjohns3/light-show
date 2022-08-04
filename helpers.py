@@ -75,7 +75,7 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():
-        if full_command_arr[0] in ['ffmpeg', 'ffplay']:
+        if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
     full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))

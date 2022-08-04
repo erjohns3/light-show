@@ -147,6 +147,8 @@ async def init_light_client(websocket, path):
             await send_light_status() # we might want to lock this
 
 
+
+
 async def init_song_client(websocket, path):
     global curr_bpm, time_start, beat_index, queue_autoplay
 
@@ -353,6 +355,8 @@ async def light():
             if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) or time_diff >= shows_json[show_name]['duration']:
                 remove_effect(i)
                 if has_song(show_name):
+                    # print(f'{index=}, {effect_name=}, {channel_lut[effect_name]["length"]=}, {time_diff=}, {shows_json[show_name]["duration"]=}')
+                    # print('stopping song')
                     stop_song()
                     song_queue.pop(0)
                     if queue_autoplay and len(song_queue) > 0:
@@ -413,6 +417,7 @@ def clear_effects():
     for index, effect in enumerate(curr_effects):
         remove_effect(index)
 
+# index=8710, effect_name='Shelter Show', channel_lut[effect_name]["length"]=48000, time_diff=217.75038656499237, shows_json[show_name]["duration"]=217.728
 
 def add_effect(show_name):
     global beat_index, time_start, curr_bpm
@@ -427,7 +432,9 @@ def add_effect(show_name):
         clear_effects()
         time_start = time.perf_counter() + show['delay_lights']
         curr_bpm = show['bpm']
+        # !TODO why do we set this, isn't is just overwritten in the light()
         beat_index = int((-show['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
+        # print(f'{show["delay_lights"]=}, {beat_index=}')
         offset = 0
     else:
         offset = (beat_index % round(show['snap'] * SUB_BEATS)) - beat_index
@@ -439,7 +446,15 @@ def play_song(show_name):
     skip = shows_json[show_name]['skip_song']
     pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
+
+    # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
+    # python server.py --local --show "shelter" --skip 215
+    # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
+    print(f'starting song {skip} seconds in')
     channel = pygame.mixer.music.play(start=skip)
+    # channel = pygame.mixer.music.play()
+    # channel = pygame.mixer.music.set_pos(skip)
+    # print(pygame.mixer.music.get_pos())
 
 
 def stop_song():
@@ -524,19 +539,24 @@ def update_json():
             shows_json.update(json.loads(f.read()))
 
     song_dir = python_file_directory.joinpath('songs')
-    for file in os.listdir(song_dir):
-        if file[-4:] == '.mp3':
-            filepath = song_dir.joinpath(file)
-            metadata = eyed3.load(filepath)
-            if metadata.tag.title != None:
-                name = metadata.tag.title
-            else:
-                name = pathlib.Path(file).stem
-            songs_json[file] = {
-                'name': name,
-                'artist': metadata.tag.artist,
-                'duration': metadata.info.time_secs
+    for filename in os.listdir(song_dir):
+        filepath = pathlib.Path(song_dir.joinpath(filename))
+        if filepath.suffix in ['.mp3', '.ogg']:
+            song_name = filepath.stem
+            duration = sound_helpers.get_audio_clip_length(filepath)
+            artist = None
+            if filepath.suffix == '.mp3':
+                metadata = eyed3.load(filepath)
+                if metadata.tag.title is not None:
+                    song_name = metadata.tag.title
+                artist = metadata.tag.artist
+
+            songs_json[filename] = {
+                'name': song_name,
+                'artist': artist,
+                'duration': duration
             }
+
 
     for effect_name, effect in effects_json.items():
         if 'loop' not in effect:
@@ -688,7 +708,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
-parser.add_argument('--skip', dest='skip_show', type=int, default=0)
+parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 args = parser.parse_args()
 
@@ -714,10 +734,13 @@ async def start_async():
     song_socket_server = await websockets.serve(init_song_client, "0.0.0.0", 7654)
 
     if args.show:
+        print('Trying to start show from CLI')
         if args.show in shows_json:
+            print(f'Duration of song: {shows_json[args.show]["duration"]} seconds')
             if args.skip_show:
                 shows_json[args.show]['skip_song'] += args.skip_show
                 shows_json[args.show]['delay_lights'] -= args.skip_show
+            song_queue.append([args.show, get_show_num()])
             add_effect(args.show)
             play_song(args.show)
         else:

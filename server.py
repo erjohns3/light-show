@@ -517,6 +517,7 @@ def effects_json_sort(path):
 def update_json():
     global effects_json, shows_json, songs_json, channel_lut, graph, found, simple_effects, complex_effects
 
+    begin = time.perf_counter()
     effects_json = {}
     shows_json = {}
     songs_json = {}
@@ -676,6 +677,8 @@ def update_json():
     print("effects_json updated")
     # for index, x in enumerate(channel_lut['Musician Show']['beats']):
     #     print(f'index {index / 24}: {x}')
+    print(f'update_json took {time.perf_counter() - begin}')
+
 
 ##################################################
 

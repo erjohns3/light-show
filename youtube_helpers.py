@@ -47,7 +47,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=True)
-        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.mp3')
+        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.ogg')
 
     return downloaded_filepath
 

@@ -594,7 +594,6 @@ def update_json():
         if 'effect' in show:
             loop = effects_json[show['effect']]['loop']
             length = effects_json[show['effect']]['length']
-        print(show)
         if 'song' in show:
             duration = songs_json[show['song']]['duration']
         if 'duration' in show:

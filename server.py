@@ -542,7 +542,7 @@ def update_json():
     song_dir = python_file_directory.joinpath('songs')
     for filename in os.listdir(song_dir):
         filepath = pathlib.Path(song_dir.joinpath(filename))
-        if filepath.suffix in ['.mp3', '.ogg']:
+        if filepath.suffix in ['.mp3', '.ogg', '.wav']:
             song_name = filepath.stem
             duration = sound_helpers.get_audio_clip_length(filepath)
             artist = None

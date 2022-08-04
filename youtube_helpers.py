@@ -1,6 +1,7 @@
 import json
 import yt_dlp
 import os
+import sys
 
 # looks like most people use https://www.fabfile.org/ for the higher level library
 import paramiko
@@ -26,11 +27,12 @@ def scp_to_doorbell(local_filepath, remote_folder):
     scp.close()
 
 
-def download_video(dest_path=None):
+def download_youtube_url_to_ogg(url=None, dest_path=None):
     if dest_path:
         os.chdir(dest_path)
 
-    url = input('Enter the URL you want to download:\n')
+    if url is None:
+        url = input('Enter the URL you want to download:\n')
 
     inject_path_prefix = dest_path or ''
     ydl_opts = {
@@ -51,6 +53,9 @@ def download_video(dest_path=None):
 
 
 if __name__ == '__main__':
-    downloaded_filepath = download_video(dest_path=python_file_directory.joinpath('songs'))
+    url = None
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
     remote_folder = pathlib.Path('/home/pi/light-show/songs')
     scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)

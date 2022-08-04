@@ -32,3 +32,6 @@ Difference between intuitive and real:
 
 (x*.9) ^ (2) from 0 to 1
 https://www.wolframalpha.com/input?i=%28x*.9%29+%5E+%282%29+from+0+to+1
+
+
+Eric found something saying it should just be x^2.2, so thats what we are doing

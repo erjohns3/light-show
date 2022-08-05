@@ -1,6 +1,7 @@
 import json
 import yt_dlp
 import os
+import sys
 
 # looks like most people use https://www.fabfile.org/ for the higher level library
 import paramiko
@@ -26,31 +27,35 @@ def scp_to_doorbell(local_filepath, remote_folder):
     scp.close()
 
 
-def download_video(dest_path=None):
+def download_youtube_url_to_ogg(url=None, dest_path=None):
     if dest_path:
         os.chdir(dest_path)
 
-    url = input('Enter the URL you want to download:\n')
+    if url is None:
+        url = input('Enter the URL you want to download:\n')
 
     inject_path_prefix = dest_path or ''
     ydl_opts = {
-        'format': 'mp3/bestaudio/best',
+        'format': 'vorbis/bestaudio/best',
         'outtmpl': f'{str(inject_path_prefix) + os.path.sep}%(title)s.%(ext)s',
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
+            'preferredcodec': 'vorbis',
         }]
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=True)
-        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.mp3')
+        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.ogg')
 
     return downloaded_filepath
 
 
 if __name__ == '__main__':
-    downloaded_filepath = download_video(dest_path=python_file_directory.joinpath('songs'))
+    url = None
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+    downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
     remote_folder = pathlib.Path('/home/pi/light-show/songs')
     scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)

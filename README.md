@@ -34,6 +34,7 @@ Difference between intuitive and real:
 https://www.wolframalpha.com/input?i=%28x*.9%29+%5E+%282%29+from+0+to+1
 
 
+Eric found something saying it should just be x^2.2, so thats what we are doing
 * shelter notes
 16 bars intro
 16 bars build-up (last 4 are softer)

@@ -45,3 +45,7 @@ Eric found something saying it should just be x^2.2, so thats what we are doing
 16 build
 16 build more
 32 chorus
+
+
+* find port for python
+sudo ss -lptn 'sport = :8000'

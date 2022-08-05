@@ -13,6 +13,7 @@ from helpers import *
 def scp_to_doorbell(local_filepath, remote_folder):
     remote_filepath = remote_folder.joinpath(local_filepath.name)
 
+    # doorbell_ip = 'doorbell'
     doorbell_ip = '192.168.86.55'
 
     ssh = paramiko.client.SSHClient()

@@ -1,13 +1,11 @@
-import profile
 import socket
 import threading
 import time
-import sys
 import json
 import signal
+import importlib
 import pathlib
 import asyncio
-from tracemalloc import start
 import websockets
 import http.server
 import argparse
@@ -513,15 +511,10 @@ def effects_json_sort(path):
     else:
         complex_effects.append(curr)
 
-
 def update_json():
     global effects_json, shows_json, songs_json, channel_lut, graph, found, simple_effects, complex_effects
 
     begin = time.perf_counter()
-    effects_json = {}
-    shows_json = {}
-    songs_json = {}
-
     channel_lut = {}
 
     graph = {}
@@ -529,16 +522,18 @@ def update_json():
     simple_effects = []
     complex_effects = []
 
-    effect_dir = python_file_directory.joinpath('effects')
-    for file in os.listdir(effect_dir):
-        with open(effect_dir.joinpath(file), 'r') as f:
-            effects_json.update(json.loads(f.read()))
+    effects_json = {}
+    for name, path in get_all_paths('effects', only_files=True):
+        module = 'effects.' + path.stem
+        effects_json.update(importlib.import_module(module).effects)
 
-    profile_dir = python_file_directory.joinpath('shows')
-    for file in os.listdir(profile_dir):
-        with open(profile_dir.joinpath(file), 'r') as f:
-            shows_json.update(json.loads(f.read()))
+    shows_json = {}
+    for name, path in get_all_paths('shows', only_files=True):
+        module = 'shows.' + path.stem
+        shows_json.update(importlib.import_module(module).shows)
+    print(f'finishing up to imports took {time.perf_counter() - begin:.2f} seconds')
 
+    songs_json = {}
     song_dir = python_file_directory.joinpath('songs')
     for filename in os.listdir(song_dir):
         filepath = pathlib.Path(song_dir.joinpath(filename))
@@ -557,7 +552,7 @@ def update_json():
                 'artist': artist,
                 'duration': duration
             }
-
+    print(f'finishing up to ffprobing song lengths took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name, effect in effects_json.items():
         if 'loop' not in effect:
@@ -579,7 +574,8 @@ def update_json():
                 for entry in beats[beat]:
                     graph[effect_name][entry[0]] = True
         graph[effect_name] = list(graph[effect_name].keys())
-    
+    print(f'finishing up to beat reading took {time.perf_counter() - begin:.2f} seconds')
+
     for show_name, show in shows_json.items():
         if 'snap' not in show:
             show['snap'] = 1 / SUB_BEATS
@@ -601,6 +597,7 @@ def update_json():
         show['length'] = length
         show['duration'] = duration
         show['loop'] = loop
+    print(f'finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
 
 
     for effect_name in graph:
@@ -634,6 +631,7 @@ def update_json():
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect_name]["beats"][start_beat + i][x] += channels[x] * mult
+    print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in complex_effects:
         effect = effects_json[effect_name]
@@ -674,10 +672,7 @@ def update_json():
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
-    print("effects_json updated")
-    # for index, x in enumerate(channel_lut['Musician Show']['beats']):
-    #     print(f'index {index / 24}: {x}')
-    print(f'update_json took {time.perf_counter() - begin} seconds')
+    print(f'update_json took {time.perf_counter() - begin:.2f} seconds')
 
 
 ##################################################

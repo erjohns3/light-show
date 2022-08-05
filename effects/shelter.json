@@ -27,7 +27,7 @@
             "1": [[0, 0, 0, 0, 25, 0, 0], 0.55, 1, 0.5]
         }
     },
-    "bottom sidechain":{
+    "shelter bottom sidechain":{
         "length": 1,
         "beats":{
             "1": [[0, 0, 0, -100, -100, -100, 0], 0.1, 0, 1],
@@ -79,15 +79,15 @@
     "Chorus bottom":{
         "length": 3,
         "beats":{
-            "1": [[[0, 0, 0, 20, 200, 255, 0], 1, 0.08, 0.08]],
-            "2": [[[0, 0, 0, 200, 255, 20, 0], 1, 0.08, 0.08]],
-            "3": [[[0, 0, 0, 255, 20, 200, 0], 1, 0.08, 0.08]]
+            "1": [["Cyan bottom", 1, 0.08, 0.08]],
+            "2": [["Yellow bottom", 1, 0.08, 0.08]],
+            "3": [["Pink bottom", 1, 0.08, 0.08]]
         }
     },
     "Shelter sub Chorus": {
         "length": 16,
         "beats": {
-            "1": [["bottom sidechain", 12], ["muddy yellow ay", 1], ["Chorus bottom", 3]],
+            "1": [["shelter bottom sidechain", 12], ["muddy yellow ay", 1], ["Chorus bottom", 3]],
             "2": [["top blue kick", 2]],
             "5": [["muddy yellow ay", 1], ["Chorus bottom", 3]],
             "6": [["top blue kick", 2]],

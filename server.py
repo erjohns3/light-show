@@ -296,7 +296,7 @@ async def send_song_status():
 
 my_color_tuple = [254, 0, 0]
 async def render_to_terminal(all_levels):
-    terminal_color_scaling = 2
+    terminal_color_scaling = 12
     max_num = (pow(2, 16) - 1) / 100
     levels_capped = list(map(lambda x: min(max(terminal_color_scaling * int(x / max_num), 0), 255), all_levels))
 

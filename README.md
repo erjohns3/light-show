@@ -49,3 +49,11 @@ Eric found something saying it should just be x^2.2, so thats what we are doing
 
 * find port for python
 sudo ss -lptn 'sport = :8000'
+
+
+## todo songs
+* joji: https://www.youtube.com/watch?v=PEBS2jbZce4
+
+
+* https://www.youtube.com/watch?v=Luq2a3Q244U&t=1950s
+   * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o

@@ -32,3 +32,15 @@ Difference between intuitive and real:
 
 (x*.9) ^ (2) from 0 to 1
 https://www.wolframalpha.com/input?i=%28x*.9%29+%5E+%282%29+from+0+to+1
+
+
+* shelter notes
+16 bars intro
+16 bars build-up (last 4 are softer)
+32 bars chorus
+4 bars 
+8 bars porter singing
+16 bars porter singing
+16 build
+16 build more
+32 chorus

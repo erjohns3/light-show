@@ -55,7 +55,6 @@ effects = {
         }
     },
     "Ghosts Show": {
-        "length": 1000,
         "beats":{
             "17": [["Ghosts melody", 96], ["Ghosts bassline", 96]],
             "81": [["Ghosts UV", 32]],

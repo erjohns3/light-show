@@ -533,14 +533,6 @@ def update_json():
             all_globals[module] = importlib.import_module(module)
         effects_json.update(all_globals[module].effects)
 
-    profile_name = 'All Effects'
-    counter = 0
-    for effect_name in effects_json:
-        shows_json[effect_name] = {
-            'effect': effect_name, 
-            'profiles': [profile_name]
-        }
-
     for name, path in get_all_paths('shows', only_files=True):
         module = 'shows.' + path.stem
         if module in all_globals:
@@ -549,6 +541,13 @@ def update_json():
             all_globals[module] = importlib.import_module(module)
         shows_json.update(all_globals[module].shows)
     print(f'finishing up to imports took {time.perf_counter() - begin:.2f} seconds')
+
+    for effect_name in effects_json:
+        shows_json[effect_name] = {
+            'effect': effect_name, 
+            'profiles': ['All Effects']
+        }
+    print(f'finishing up to setting all_effects defaults took {time.perf_counter() - begin:.2f} seconds')
 
     songs_json = {}
     song_dir = python_file_directory.joinpath('songs')
@@ -575,7 +574,7 @@ def update_json():
             effect['loop'] = True
 
         graph[effect_name] = {}
-        beats = effect["beats"]
+        beats = effect['beats']
         for beat in beats:
             if type(beats[beat]) is str:
                 beats[beat] = [[beats[beat]]]
@@ -626,7 +625,7 @@ def update_json():
             'loop': effect['loop'],
             'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],
         }
-        beats = effect["beats"]
+        beats = effect['beats']
         for beat in beats:
             for component in beats[beat]: # component -> ['name', 1, 0, 8, 0]
                 start_beat = round((eval(beat) - 1) * SUB_BEATS)
@@ -646,17 +645,24 @@ def update_json():
                 for i in range(length):
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
-                        channel_lut[effect_name]["beats"][start_beat + i][x] += channels[x] * mult
+                        channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
     print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
+    begin_cost = 0
+    after_cost = 0
+
     for effect_name in complex_effects:
+        before = time.perf_counter()
         effect = effects_json[effect_name]
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
-            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],
+            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],        
         }
-        beats = effect["beats"]
+        begin_cost += time.perf_counter() - before
+
+        before = time.perf_counter()
+        beats = effect['beats']
         for beat in beats:
             for component in beats[beat]:
                 start_beat = round((eval(beat) - 1) * SUB_BEATS)
@@ -680,15 +686,20 @@ def update_json():
                 offset = round(component[4] * SUB_BEATS)
 
                 for i in range(length):
-                    channels = channel_lut[name]["beats"][(i + offset) % channel_lut[name]['length']]
+                    channels = channel_lut[name]['beats'][(i + offset) % channel_lut[name]['length']]
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
-                        channel_lut[effect_name]["beats"][start_beat + i][x] += channels[x] * mult
-                    
+                        channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
+
+        after_cost += time.perf_counter() - before
+  
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
-    print(f'update_json took {time.perf_counter() - begin:.2f} seconds')
+    print(f'(done with update_json) finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
+    
+    print('begin_cost:', begin_cost)
+    print('after_cost:', after_cost)
 
 
 ##################################################

@@ -11,8 +11,8 @@ import http.server
 import argparse
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import eyed3
 import pygame
+from tinytag import TinyTag
 
 from helpers import *
 import sound_helpers
@@ -555,17 +555,16 @@ def update_json():
     for filename in os.listdir(song_dir):
         filepath = pathlib.Path(song_dir.joinpath(filename))
         if filepath.suffix in ['.mp3', '.ogg', '.wav']:
-            song_name = filepath.stem
-            duration = sound_helpers.get_audio_clip_length(filepath)
-            artist = None
-            if filepath.suffix == '.mp3':
-                metadata = eyed3.load(filepath)
-                if metadata.tag.title is not None:
-                    song_name = metadata.tag.title
-                artist = metadata.tag.artist
+            tags = TinyTag.get(filepath)
+            artist = tags.artist
+            duration = tags.duration
+
+            if not duration:
+                print(f'{bcolors.WARNING}No tag found for file: "{filepath}", ffprobing, but this is slow {bcolors.ENDC}')
+                duration = sound_helpers.get_audio_clip_length(filepath)
 
             songs_json[filename] = {
-                'name': song_name,
+                'name': filepath.stem,
                 'artist': artist,
                 'duration': duration
             }

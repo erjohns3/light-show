@@ -225,7 +225,7 @@ async def init_song_client(websocket, path):
                     song_playing = False
 
             elif msg['type'] == 'play_queue':
-                if len(song_queue) > 0:
+                if len(song_queue) > 0 and not song_playing:
                     show_name = song_queue[0][0]
                     play_song(show_name)
                     song_playing = True
@@ -233,7 +233,7 @@ async def init_song_client(websocket, path):
                     broadcast_light = True
 
             elif msg['type'] == 'pause_queue':
-                if len(song_queue) > 0:
+                if len(song_queue) > 0 and song_playing:
                     show_name = song_queue[0][0]
                     song_queue.pop(0)
                     stop_song()
@@ -536,15 +536,10 @@ def update_json():
     profile_name = 'All Effects'
     counter = 0
     for effect_name in effects_json:
-        if counter == 0:
-            to_set = 0
-        else:
-            to_set = counter // 20
         shows_json[effect_name] = {
             'effect': effect_name, 
-            'profiles': [profile_name + '_' + str(to_set)]
+            'profiles': [profile_name]
         }
-        counter += 1
 
     for name, path in get_all_paths('shows', only_files=True):
         module = 'shows.' + path.stem
@@ -612,7 +607,7 @@ def update_json():
         if 'effect' in show:
             loop = effects_json[show['effect']]['loop']
             length = effects_json[show['effect']]['length']
-        if 'song' in show:
+        if 'song' in show and show['song'] in songs_json:
             duration = songs_json[show['song']]['duration']
         if 'duration' in show:
             duration = min(duration, show['duration'])

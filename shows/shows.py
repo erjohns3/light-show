@@ -96,5 +96,13 @@ shows = {
         "bpm": 100,
         "song": "shelter.ogg",
         "profiles": ["Shows"]
-    }
+    },
+    "Visitor": {
+        "effect": "RGB Flash",
+        "delay_lights": 0,
+        "skip_song": 0,
+        "bpm": 170,
+        "song": "Mad Zach - The Visitor.ogg",
+        "profiles": ["Shows"]
+    },
 }

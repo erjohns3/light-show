@@ -225,7 +225,7 @@ async def init_song_client(websocket, path):
                     song_playing = False
 
             elif msg['type'] == 'play_queue':
-                if len(song_queue) > 0:
+                if len(song_queue) > 0 and not song_playing:
                     show_name = song_queue[0][0]
                     play_song(show_name)
                     song_playing = True
@@ -233,7 +233,7 @@ async def init_song_client(websocket, path):
                     broadcast_light = True
 
             elif msg['type'] == 'pause_queue':
-                if len(song_queue) > 0:
+                if len(song_queue) > 0 and song_playing:
                     show_name = song_queue[0][0]
                     song_queue.pop(0)
                     stop_song()

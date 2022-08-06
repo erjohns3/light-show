@@ -102,7 +102,7 @@ shows = {
         "delay_lights": 0,
         "skip_song": 0,
         "bpm": 170,
-        "song": "visitor.ogg",
+        "song": "Mad Zach - The Visitor.ogg",
         "profiles": ["Shows"]
     },
 }

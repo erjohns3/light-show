@@ -154,7 +154,8 @@
             }
 
             if(msg.status){
-                if(playing !== msg.status.playing){
+                if(playing != msg.status.playing){
+                    playing = msg.status.playing;
                     if(playing){
                         playButton.classList.add("pause");
                         playButton.classList.remove("play");
@@ -695,7 +696,7 @@
     }
 
     .gray{
-        opacity: 50%;
+        opacity: 25%;
     }
 
 </style>

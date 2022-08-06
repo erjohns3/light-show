@@ -26,9 +26,6 @@
     <div id="profile-list"></div>
 
     <div id="button-table-wrapper">
-        <div id="page-up"></div>
-        <div id="page-count"></div>
-        <div id="page-down"></div>
     </div>
 
     <div id="rate-inc" class="button">+</div>
@@ -37,7 +34,7 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <div id="update" class="button">Update</div>
+    <!-- <div id="update" class="button">Update</div> -->
     <div id="clear" class="button">Clear</div>
 </body>
 
@@ -106,6 +103,7 @@
                             if(!(profile_name in buttons[show_name])){
                                 buttons[show_name][profile_name] = new ButtonItem(show_name, profile_name);
                                 buttonTables[profile_name].append(buttons[show_name][profile_name]);
+                                buttonTables[profile_name].addButton();
                             }
                         }
                     }
@@ -303,6 +301,9 @@
             super();
 
             this.profile = profile;
+            this.page = 0;
+            this.pageCount = 0;
+            this.buttonCount = 0;
         }
 
         show(){
@@ -311,6 +312,15 @@
 
         hide(){
             this.classList.remove("button-table-active");
+        }
+
+        addButton(){
+            this.buttonCount++;
+            this.pageCount = Math.floor(this.buttonCount / 20);
+        }
+
+        down(){
+            this.page
         }
     }
     customElements.define('button-table', ButtonTable);
@@ -346,9 +356,9 @@
     }
 
     function sendUpdate(){
-        let msg = {
-            type: "update_json"
-        };
+        // let msg = {
+        //     type: "update_json"
+        // };
         socket.send(JSON.stringify(msg));
         console.log(msg);
         startTime = Date.now();
@@ -456,9 +466,9 @@
         sendRate(rateNext);
     }
 
-    updateElem.onclick = function () {
-        sendUpdate();
-    }
+    // updateElem.onclick = function () {
+    //     sendUpdate();
+    // }
 
     clearElem.onclick = function () {
         sendClear();
@@ -489,7 +499,7 @@
 
     #profile-list{
         position: absolute;
-        width: 25vw;
+        width: 20vw;
         height: 70vh;
         overflow-y: auto;
         overflow-x: hidden;
@@ -539,7 +549,7 @@
     #button-table-wrapper{
         position: absolute;
         right: 0;
-        width: 75vw;
+        width: 80vw;
         height: 100vh;
         background-color: hsl(0, 0%, 6%);
         overflow: hidden;
@@ -548,9 +558,39 @@
     #page-up{
         position: absolute;
         left: 0.5vw;
-        top: 3vw;
+        top: 12vh;
         width: 4vw;
-        height: 10vh;
+        height: 9vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #page-count{
+        position: absolute;
+        left: 0vw;
+        top: 30.5vh;
+        width: 5vw;
+        height: 9vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #page-down{
+        position: absolute;
+        left: 0.5vw;
+        top: 49vh;
+        width: 4vw;
+        height: 9vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -566,11 +606,12 @@
         opacity: 0;
         transform: translateY(5vh);
         position: absolute;
-        right: 0;
-        width: 69.5vw;
+        right: 0.5vw;
+        width: 79vw;
         height: calc(100% - 0.5vw);
         padding: 0.25vw;
-        overflow: hidden;
+        overflow-x: hidden;
+        overflow-y: scroll;
         transition: transform 150ms, opacity 150ms linear, visibility 150ms linear;
     }
 
@@ -670,7 +711,7 @@
 
     #clear{
         position: absolute;
-        left: 13vw;
+        left: 1vw;
         bottom: 21vh;
         width: 11vw;
         height: 8vh;
@@ -686,7 +727,7 @@
 
     #rate-curr {
         position: absolute;
-        left: 15vw;
+        left: 13vw;
         bottom: 1vh;
         width: 7vw;
         height: 8vh;
@@ -701,7 +742,7 @@
 
     #rate-next {
         position: absolute;
-        left: 15vw;
+        left: 13vw;
         bottom: 10vh;
         width: 7vw;
         height: 8vh;
@@ -778,11 +819,11 @@
     }
     
     ::-webkit-scrollbar {
-        width: 1vw;
+        width: 7vw;
     }
 
     ::-webkit-scrollbar-thumb {
-        background-color: hsl(0, 0%, 20%);
+        background-color: hsl(120, 100%, 24%);
         border-radius: 1vw;
     }
 

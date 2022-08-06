@@ -50,8 +50,8 @@ effects = {
     "Ghosts blue fade":{
         "length": 4,
         "beats":{
-            "1": [["Blue top", 2, .1, .2]],
-            "3": [["Blue top", 2, .2, .11]],
+            "1": [["Blue top", 2, .08, .15]],
+            "3": [["Blue top", 2, .15, .08]],
         }
     },
     "Ghosts UV fade":{

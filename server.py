@@ -40,7 +40,6 @@ light_sockets = []
 song_sockets = []
 
 song_playing = False
-queue_autoplay = False
 show_num = 0
 
 pygame.init()
@@ -62,7 +61,7 @@ def http_server():
 ########################################
 
 async def init_light_client(websocket, path):
-    global curr_bpm, time_start, beat_index, queue_autoplay
+    global curr_bpm, time_start, beat_index, song_playing
 
     message = {
         'shows': shows_json,
@@ -102,21 +101,21 @@ async def init_light_client(websocket, path):
                 show_name = msg['show']
 
                 if has_song(show_name):
-                    if queue_autoplay and len(song_queue) > 0:
+                    if song_playing and len(song_queue) > 0:
                         song_queue.pop()
                     song_queue.insert(0, [show_name, get_show_num()])
                     play_song(show_name)
-                    queue_autoplay = True
+                    song_playing = True
                     broadcast_song = True
                 add_effect(show_name)
 
             elif msg['type'] == 'remove_show':
                 show_name = msg['show']
                 if has_song(show_name):
-                    if queue_autoplay and len(song_queue) > 0:
+                    if song_playing and len(song_queue) > 0:
                         song_queue.pop()
                     stop_song()
-                    queue_autoplay = False
+                    song_playing = False
                     broadcast_song = True
                 index = curr_effect_index(show_name)
                 if index is not False:
@@ -148,15 +147,14 @@ async def init_light_client(websocket, path):
 
 
 async def init_song_client(websocket, path):
-    global curr_bpm, time_start, beat_index, queue_autoplay
+    global curr_bpm, time_start, beat_index, song_playing
 
     message = {
         'shows': shows_json,
         'songs': songs_json,
         'queue': song_queue,
         'status': {
-            'playing': song_playing,
-            'autoplay': queue_autoplay
+            'playing': song_playing
         }
     }
     dump = json.dumps(message)
@@ -190,7 +188,7 @@ async def init_song_client(websocket, path):
                 song_queue.append([show_name, get_show_num()])
                 if len(song_queue) == 1:
                     play_song(show_name)
-                    queue_autoplay = True
+                    song_playing = True
                     add_effect(show_name)
                     broadcast_light = True
             
@@ -202,7 +200,7 @@ async def init_song_client(websocket, path):
                     song_queue.insert(1, [show_name, get_show_num()])
                 if len(song_queue) == 1:
                     play_song(show_name)
-                    queue_autoplay = True
+                    song_playing = True
                     add_effect(show_name)
                     broadcast_light = True
 
@@ -217,24 +215,24 @@ async def init_song_client(websocket, path):
                             index = curr_effect_index(show_name)
                             if index is not False:
                                 remove_effect(index)
-                            if queue_autoplay and len(song_queue) > 0:
+                            if song_playing and len(song_queue) > 0:
                                 new_show_name = song_queue[0][0]
                                 add_effect(new_show_name)
                                 play_song(new_show_name)
                             broadcast_light = True
                         break
                 if len(song_queue) == 0:
-                    queue_autoplay = False
+                    song_playing = False
 
             elif msg['type'] == 'play_queue':
                 if len(song_queue) > 0:
                     show_name = song_queue[0][0]
                     play_song(show_name)
-                    queue_autoplay = True
+                    song_playing = True
                     add_effect(show_name)
                     broadcast_light = True
 
-            elif msg['type'] == 'stop_queue':
+            elif msg['type'] == 'pause_queue':
                 if len(song_queue) > 0:
                     show_name = song_queue[0][0]
                     song_queue.pop(0)
@@ -242,7 +240,7 @@ async def init_song_client(websocket, path):
                     index = curr_effect_index(show_name)
                     if index is not False:
                         remove_effect(index)
-                    queue_autoplay = False
+                    song_playing = False
                     broadcast_light = True
 
             song_lock.release()
@@ -278,11 +276,11 @@ async def send_light_status():
 
 
 async def send_song_status():
-    global queue_autoplay
+    global song_playing
     message = {
         'queue': song_queue,
         'status': {
-            'autoplay': queue_autoplay
+            'playing': song_playing
         }
     }
     dump = json.dumps(message)
@@ -333,7 +331,8 @@ async def terminal(level, i):
 ####################################
 
 async def light():
-    global beat_index, queue_autoplay
+    global beat_index, song_playing
+
     while True:
         light_lock.acquire()
 
@@ -355,12 +354,12 @@ async def light():
                     # print('stopping song')
                     stop_song()
                     song_queue.pop(0)
-                    if queue_autoplay and len(song_queue) > 0:
+                    if song_playing and len(song_queue) > 0:
                         new_show_name = song_queue[0][0]
                         add_effect(new_show_name)
                         play_song(new_show_name)
                     elif len(song_queue) == 0:
-                        queue_autoplay = False
+                        song_playing = False
                     broadcast_song = True
                 broadcast_light = True
             else:

@@ -44,7 +44,6 @@
 
     <div id="status">
         <div id="play-control"></div>
-        <div id="song-playing"></div>
     </div>
 
 </body>
@@ -144,20 +143,26 @@
                     }
                 }
 
+                if(queueConfig.length == 0){
+                    playButton.classList.add("gray");
+                }else{
+                    playButton.classList.remove("gray");
+                }
+
                 console.log("--QUEUE--");
                 console.log(queue);
             }
 
             if(msg.status){
-                playing = msg.status.autoplay;
-                if(playing){
-                    playButton.classList.add("pause");
-                    playButton.classList.remove("play");
-                }else{
-                    playButton.classList.add("play");
-                    playButton.classList.remove("pause");
+                if(playing !== msg.status.playing){
+                    if(playing){
+                        playButton.classList.add("pause");
+                        playButton.classList.remove("play");
+                    }else{
+                        playButton.classList.add("play");
+                        playButton.classList.remove("pause");
+                    }
                 }
-                
             }
         }
     }
@@ -279,6 +284,22 @@
         console.log(msg);
     }
 
+    function playQueue(){
+        let msg = {
+            type: "play_queue"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+    }
+
+    function pauseQueue(){
+        let msg = {
+            type: "pause_queue"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+    }
+
     /////////////////////////////////////////
 
     var socket = null;
@@ -317,6 +338,8 @@
     var available = {};
     var queue = {};
 
+    var playing = null;
+
     var queueArray = [];
 
     var availableTab = document.getElementById("available-tab");
@@ -337,6 +360,15 @@
     var templateQueueItem = document.getElementById("template-queue-item");
 
     var playButton = document.getElementById("play-control");
+    playButton.onclick = function(){
+        if(queueConfig.length > 0){
+            if(playing){
+                pauseQueue();
+            }else{
+                playQueue();
+            }
+        }
+    }
 
     for(let i=0; i<100; i++){
         let item = new QueueItem();

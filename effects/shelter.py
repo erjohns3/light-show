@@ -114,7 +114,6 @@ effects = {
         }
     },
     "Shelter Show": {
-        "length": 1000,
         "beats":{
             "1": [["muddy yellow ay", 1], ["Blue fade bottom", 16]],
             "5": [["muddy yellow ay", 1]],

@@ -60,7 +60,7 @@ def http_server():
 
 ########################################
 
-async def init_light_client(websocket, path):
+async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing
 
     message = {
@@ -146,7 +146,7 @@ async def init_light_client(websocket, path):
 
 
 
-async def init_song_client(websocket, path):
+async def init_queue_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing
 
     message = {
@@ -310,8 +310,6 @@ async def render_to_terminal(all_levels):
     console.print(character * 2, style=uv_style, end='')
     console.print('\n' * 3)
 
-
-    # console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
     console.print(' ' + character * 14, style=bottom_rgb_style, end='')
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
@@ -350,8 +348,6 @@ async def light():
             if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) or time_diff >= shows_json[show_name]['duration']:
                 remove_effect(i)
                 if has_song(show_name):
-                    # print(f'{index=}, {effect_name=}, {channel_lut[effect_name]["length"]=}, {time_diff=}, {shows_json[show_name]["duration"]=}')
-                    # print('stopping song')
                     stop_song()
                     song_queue.pop(0)
                     if song_playing and len(song_queue) > 0:
@@ -452,11 +448,8 @@ def play_song(show_name):
     # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
-    print(f'starting song {skip} seconds in')
+    print(f'{bcolors.OKBLUE}Starting music "{song}" at {skip} seconds at {args.volume * 100}% volume{bcolors.ENDC}')
     channel = pygame.mixer.music.play(start=skip)
-    # channel = pygame.mixer.music.play()
-    # channel = pygame.mixer.music.set_pos(skip)
-    # print(pygame.mixer.music.get_pos())
 
 
 def stop_song():
@@ -596,32 +589,10 @@ def update_json():
         graph[effect_name] = list(graph[effect_name].keys())
     print(f'finishing up to beat reading took {time.perf_counter() - begin:.2f} seconds')
 
-    for show_name, show in shows_json.items():
-        if 'snap' not in show:
-            show['snap'] = 1 / SUB_BEATS
-        if 'trigger' not in show:
-            show['trigger'] = "toggle"
-        if 'bpm' in show:
-            show['delay_lights'] = show.get('delay_lights', 0)
-            if not args.local:
-                show['delay_lights'] += 0.1
-        loop = False
-        duration = 1000000
-        if 'effect' in show:
-            loop = effects_json[show['effect']]['loop']
-            length = effects_json[show['effect']]['length']
-        if 'song' in show and show['song'] in songs_json:
-            duration = songs_json[show['song']]['duration']
-        if 'duration' in show:
-            duration = min(duration, show['duration'])
-        show['length'] = length
-        show['duration'] = duration
-        show['loop'] = loop
-    print(f'finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
-
 
     for effect_name in graph:
         effects_json_sort([effect_name])
+    print(f'finishing up the graph sorting took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in simple_effects:
         effect = effects_json[effect_name]
@@ -655,18 +626,11 @@ def update_json():
 
     for effect_name in complex_effects:
         effect = effects_json[effect_name]
-        channel_lut[effect_name] = {
-            'length': round(effect['length'] * SUB_BEATS),
-            'loop': effect['loop'],
-            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],        
-        }
-
         beats = effect['beats']
+
+        calced_effect_length = 0
         for beat in beats:
             for component in beats[beat]:
-                start_beat = round((eval(beat) - 1) * SUB_BEATS)
-                name = component[0]
-
                 if len(component) == 1:
                     if effects_json[name]['loop']:
                         component.append(effect['length'])
@@ -677,7 +641,21 @@ def update_json():
                 if len(component) == 3:
                     component.append(1)
                 if len(component) == 4:
-                    component.append(0)
+                    component.append(0)    
+                calced_effect_length = max(calced_effect_length, float(beat) + component[1] - 1)
+        if 'length' not in effect:
+            effect['length'] = calced_effect_length
+
+        channel_lut[effect_name] = {
+            'length': round(effect['length'] * SUB_BEATS),
+            'loop': effect['loop'],
+            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],        
+        }
+
+        for beat in beats:
+            for component in beats[beat]:
+                start_beat = round((eval(beat) - 1) * SUB_BEATS)
+                name = component[0]
 
                 length = round(min(component[1] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
                 start_mult = component[2]
@@ -693,8 +671,31 @@ def update_json():
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
-    print(f'(done with update_json) finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
+    print(f'finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
     
+    for show_name, show in shows_json.items():
+        if 'snap' not in show:
+            show['snap'] = 1 / SUB_BEATS
+        if 'trigger' not in show:
+            show['trigger'] = "toggle"
+        if 'bpm' in show:
+            show['delay_lights'] = show.get('delay_lights', 0)
+            if not args.local:
+                show['delay_lights'] += 0.1
+        loop = False
+        duration = 1000000
+        if 'effect' in show:
+            loop = effects_json[show['effect']]['loop']
+            length = effects_json[show['effect']]['length']
+        if 'song' in show and show['song'] in songs_json:
+            duration = songs_json[show['song']]['duration']
+        if 'duration' in show:
+            duration = min(duration, show['duration'])
+        show['length'] = length
+        show['duration'] = duration
+        show['loop'] = loop
+    print(f'(done with update_json) finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
+
 
 ##################################################
 
@@ -750,8 +751,8 @@ asyncio.set_event_loop(loop)
 
 async def start_async():
 
-    light_socket_server = await websockets.serve(init_light_client, "0.0.0.0", 1337)
-    song_socket_server = await websockets.serve(init_song_client, "0.0.0.0", 7654)
+    dj_socket_server = await websockets.serve(init_dj_client, "0.0.0.0", 1337)
+    queue_socket_server = await websockets.serve(init_queue_client, "0.0.0.0", 7654)
 
     if args.show:
         print('Trying to start show from CLI')
@@ -767,6 +768,6 @@ async def start_async():
             print(f'Couldnt find effect named "{args.show}" in any profile')
     asyncio.create_task(light())
 
-    await light_socket_server.wait_closed()
+    await dj_socket_server.wait_closed() and queue_socket_server.wait_closed()
 
 asyncio.run(start_async())

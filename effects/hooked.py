@@ -1,6 +1,5 @@
 effects = {
     "Hooked 4 Bar Timing Show":{
-        "length": 1000,
         "beats":{
             "1": [["Blue top", 8]],
             "9": [["RBBB 1 bar", 20]]
@@ -53,10 +52,10 @@ effects = {
         }
     },
     "hooked bottom kick increase":{
-        "length": 32,
+        "length":32,
         "beats":{
-            "1": [["hooked red kick bottom", 0.50, .1, .3]],
-            "17": [["hooked red kick bottom", 0.50, .3, .8]],
+            "1": [["hooked red kick bottom", 16, .1, .3]],
+            "17": [["hooked red kick bottom", 16, .3, .8]],
         }
     },
     "hooked hear you":{
@@ -130,7 +129,6 @@ effects = {
         }
     },
     "Hooked Show": {
-        "length": 1000,
         "beats":{
             "8": [["hooked scream fade", 2, 0.4, 0.2]],
             "9": [["hooked bottom kick intro", 12, .1, .6]],

@@ -591,32 +591,10 @@ def update_json():
         graph[effect_name] = list(graph[effect_name].keys())
     print(f'finishing up to beat reading took {time.perf_counter() - begin:.2f} seconds')
 
-    for show_name, show in shows_json.items():
-        if 'snap' not in show:
-            show['snap'] = 1 / SUB_BEATS
-        if 'trigger' not in show:
-            show['trigger'] = "toggle"
-        if 'bpm' in show:
-            show['delay_lights'] = show.get('delay_lights', 0)
-            if not args.local:
-                show['delay_lights'] += 0.1
-        loop = False
-        duration = 1000000
-        if 'effect' in show:
-            loop = effects_json[show['effect']]['loop']
-            length = effects_json[show['effect']]['length']
-        if 'song' in show and show['song'] in songs_json:
-            duration = songs_json[show['song']]['duration']
-        if 'duration' in show:
-            duration = min(duration, show['duration'])
-        show['length'] = length
-        show['duration'] = duration
-        show['loop'] = loop
-    print(f'finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
-
 
     for effect_name in graph:
         effects_json_sort([effect_name])
+    print(f'finishing up the graph sorting took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in simple_effects:
         effect = effects_json[effect_name]
@@ -688,8 +666,31 @@ def update_json():
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
-    print(f'(done with update_json) finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
+    print(f'finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
     
+    for show_name, show in shows_json.items():
+        if 'snap' not in show:
+            show['snap'] = 1 / SUB_BEATS
+        if 'trigger' not in show:
+            show['trigger'] = "toggle"
+        if 'bpm' in show:
+            show['delay_lights'] = show.get('delay_lights', 0)
+            if not args.local:
+                show['delay_lights'] += 0.1
+        loop = False
+        duration = 1000000
+        if 'effect' in show:
+            loop = effects_json[show['effect']]['loop']
+            length = effects_json[show['effect']]['length']
+        if 'song' in show and show['song'] in songs_json:
+            duration = songs_json[show['song']]['duration']
+        if 'duration' in show:
+            duration = min(duration, show['duration'])
+        show['length'] = length
+        show['duration'] = duration
+        show['loop'] = loop
+    print(f'(done with update_json) finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
+
 
 ##################################################
 

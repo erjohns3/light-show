@@ -654,6 +654,7 @@ def update_json():
     for effect_name in complex_effects:
         before = time.perf_counter()
         effect = effects_json[effect_name]
+        print('length', round(effect['length'] * SUB_BEATS))
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],

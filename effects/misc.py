@@ -120,7 +120,7 @@ effects = {
         }
     },
     "Cheesecake Show":{
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],
             "65": [["Ghosts bassline", 14]],
@@ -129,9 +129,9 @@ effects = {
         }
     },
     "4 Bar Timing Show":{
-        "length": 2000,
+        "length": 1000,
         "beats":{
-            "1": [["RBBB 1 bar", 2000]]
+            "1": [["RBBB 1 bar", 1000]]
         }
     },
     "Musician Show":{
@@ -144,7 +144,7 @@ effects = {
     "Telepathic Love Show":{
         "length": 16,
         "beats":{
-            "1": [["RBBB 1 bar", 2000]]
+            "1": [["RBBB 1 bar", 1000]]
         }
     },
     "Blue Bottom Flash":{
@@ -180,7 +180,7 @@ effects = {
         }
     },
     "Attack on Titan Show":{
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "1": [["Green fade", 1]],
             "3": [["Yellow fade", 1]],
@@ -236,7 +236,7 @@ effects = {
         }
     },
     "Luigi Show":{
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "1": [["Luigi Bassline", 32]],
             "13": [["UV", 4], ["Luigi Hats", 4]],

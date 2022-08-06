@@ -1,6 +1,6 @@
 effects = {
     "Automatic Show": {
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "25": [["Blue top", 1]],
         }

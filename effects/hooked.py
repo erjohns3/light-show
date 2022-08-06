@@ -1,6 +1,6 @@
 effects = {
     "Hooked 4 Bar Timing Show":{
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "1": [["Blue top", 8]],
             "9": [["RBBB 1 bar", 20]]
@@ -130,7 +130,7 @@ effects = {
         }
     },
     "Hooked Show": {
-        "length": 2000,
+        "length": 1000,
         "beats":{
             "8": [["hooked scream fade", 2, 0.4, 0.2]],
             "9": [["hooked bottom kick intro", 12, .1, .6]],

@@ -434,7 +434,12 @@ def add_effect(show_name):
         # print(f'{show["delay_lights"]=}, {beat_index=}')
         offset = 0
     else:
-        offset = (beat_index % round(show['snap'] * SUB_BEATS)) - beat_index
+        # offset = (beat_index % round(show['snap'] * SUB_BEATS)) - beat_index
+        snap = round(show['snap'] * SUB_BEATS)
+        offset = beat_index % snap
+        if offset > snap * 0.5:
+            offset -= snap
+        offset -= beat_index
     curr_effects.append([effect, offset, show_name])
 
 

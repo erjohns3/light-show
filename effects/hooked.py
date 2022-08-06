@@ -52,10 +52,10 @@ effects = {
         }
     },
     "hooked bottom kick increase":{
-        "length":32,
+        "length": 28,
         "beats":{
             "1": [["hooked red kick bottom", 16, .1, .3]],
-            "17": [["hooked red kick bottom", 16, .3, .8]],
+            "17": [["hooked red kick bottom", 12, .3, .8]],
         }
     },
     "hooked hear you":{
@@ -75,7 +75,7 @@ effects = {
     "hooked claps":{
         "length": 1,
         "beats":{
-            "1": ["Cyan top", 0.2, 0.15, 0.1],
+            "1": ["Cyan top", 0.2, 0.2, 0.1],
             "1.2": ["Cyan top", 0.8, 0.1, 0.1]
         }
     },
@@ -125,7 +125,7 @@ effects = {
         "beats":{
             "1": [["UV", 4, 1, .28], ["hooked wandering bottom", 16, .8, .5]],
             "5": [["UV", 12, .28, 0]],
-            "17": [["Purple bottom", 16, 0.3, 0.05], ["hooked wandering top", 16, .8, .5]],
+            "17": [["Purple bottom", 16, 0.2, 0.05], ["hooked wandering top", 16, .8, .5]],
         }
     },
     "Hooked Show": {
@@ -135,11 +135,15 @@ effects = {
             "10": [["hooked scream fade", 6, 0.2, 0.1]],
             "21": [["hooked bottom kick intro", 12, .6, .6]],
             "33": [["hooked bottom kick intro", 8, .6, .2]],
-            "41": [["wandering", 32]],
-            "73": [["wandering", 32]],
-            "105": [["hooked bottom kick increase", 32]],
+            "41": [["wandering", 64]],
+            "105": [["hooked bottom kick increase", 28]],
             "133": [["hooked buildup", 4]],
-            "137": [["hooked chorus", 128]]
+            "137": [["hooked chorus", 96]],
+            "233": [["wandering", 64]],
+            "297": [["hooked bottom kick increase", 28]],
+            "325": [["hooked buildup", 4]],
+            "329": [["hooked chorus", 96]],
+            "425": [["Nothing", 6]],
         }
     }
 }

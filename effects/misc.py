@@ -119,6 +119,13 @@ effects = {
             "7.5": ["Yellow top", .5, 1, 0],
         }
     },
+    "RB Strobe Top Bottom":{
+        "length": 0.4,
+        "beats":{
+            "1": [[[50, 100, 0, 0, 0, 0, 0], 0.07]],
+            "1.2": [[[0, 100, 50, 0, 0, 0, 0], 0.07]],
+        }
+    },
     "Cheesecake Show":{
         "beats":{
             "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],

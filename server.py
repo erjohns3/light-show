@@ -292,9 +292,9 @@ async def send_song_status():
 
 my_color_tuple = [254, 0, 0]
 async def render_to_terminal(all_levels):
-    terminal_color_scaling = 12
-    max_num = (pow(2, 16) - 1) / 100
-    levels_capped = list(map(lambda x: min(max(terminal_color_scaling * int(x / max_num), 0), 255), all_levels))
+    terminal_color_scaling = 1
+    max_num = pow(2, 16) - 1
+    levels_capped = list(map(lambda x: min(max(int(((x * 15) / max_num) * 255), 0), 255), all_levels))
 
     uv_level_scaling = min(1, (terminal_color_scaling * levels_capped[6]) / 255.0)
     purple = [153, 50, 204]
@@ -310,11 +310,11 @@ async def render_to_terminal(all_levels):
     console.print(character * 2, style=uv_style, end='')
     console.print('\n' * 3)
 
-    console.print(' ' + character * 14, style=bottom_rgb_style, end='')
+    console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
-    # console.print(f'Effect: {effect_useful_info}, BPM: {curr_bpm}{" " * 10}', end='\r')
-    console.print('', end='\033[F' * 4)
+    console.print(f'BPM: {curr_bpm}, Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {round(time.perf_counter() - time_start)}', end='')
+    console.print('', end='\033[F' * 5)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -383,7 +383,7 @@ async def light():
         if broadcast_song:
             await send_song_status()
 
-        if args.print_beat and beat_index % SUB_BEATS == 0:
+        if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
             print((beat_index // SUB_BEATS) + 1)
 
         time_diff = time.perf_counter() - time_start
@@ -631,6 +631,7 @@ def update_json():
         calced_effect_length = 0
         for beat in beats:
             for component in beats[beat]:
+                name = component[0]
                 if len(component) == 1:
                     if effects_json[name]['loop']:
                         component.append(effect['length'])
@@ -644,7 +645,9 @@ def update_json():
                     component.append(0)    
                 calced_effect_length = max(calced_effect_length, float(beat) + component[1] - 1)
         if 'length' not in effect:
+            # print(f'{effect_name=}, {calced_effect_length=}')
             effect['length'] = calced_effect_length
+            effects_json[effect_name]['loop'] = False
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
@@ -745,6 +748,9 @@ update_json()
 
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()
+# allows prints from http_server to finish to not mess up terminal output
+if args.local:
+    time.sleep(.01)
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)

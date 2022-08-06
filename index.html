@@ -34,7 +34,7 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <!-- <div id="update" class="button">Update</div> -->
+    <div id="update" class="button">Update</div>
     <div id="clear" class="button">Clear</div>
 </body>
 
@@ -356,9 +356,9 @@
     }
 
     function sendUpdate(){
-        // let msg = {
-        //     type: "update_json"
-        // };
+        let msg = {
+            type: "update_json"
+        };
         socket.send(JSON.stringify(msg));
         console.log(msg);
         startTime = Date.now();
@@ -466,9 +466,9 @@
         sendRate(rateNext);
     }
 
-    // updateElem.onclick = function () {
-    //     sendUpdate();
-    // }
+    updateElem.onclick = function () {
+        sendUpdate();
+    }
 
     clearElem.onclick = function () {
         sendClear();
@@ -697,7 +697,7 @@
         position: absolute;
         left: 1vw;
         bottom: 21vh;
-        width: 11vw;
+        width: 8.5vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -711,9 +711,9 @@
 
     #clear{
         position: absolute;
-        left: 1vw;
+        left: 10.5vw;
         bottom: 21vh;
-        width: 11vw;
+        width: 8.5vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;

@@ -1,12 +1,12 @@
 shows = {
-    "butter": {
-        "effect": "Not Butter",
-        "delay_lights": 0,
-        "skip_song": 0,
-        "bpm": 130,
-        "song": "Not Butter.ogg",
-        "profiles": ["Shows"]
-    },
+    # "butter": {
+    #     "effect": "Not Butter",
+    #     "delay_lights": 0,
+    #     "skip_song": 0,
+    #     "bpm": 130,
+    #     "song": "Not Butter.ogg",
+    #     "profiles": ["Shows"]
+    # },
     "automatic": {
         "effect": "4 Bar Timing Show",
         "delay_lights": .6,

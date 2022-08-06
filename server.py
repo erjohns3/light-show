@@ -29,7 +29,7 @@ LIGHT_COUNT = 7
 curr_effects = []
 song_queue = []
 
-curr_bpm = 120.5
+curr_bpm = 72
 time_start = time.perf_counter()
 beat_index = 0
 

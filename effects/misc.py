@@ -112,6 +112,22 @@ effects = {
             "2.7": [[[0, 30, 20, 0, 0, 0, 0], 0.3, 1, 0], [[40, 0, 0, 0, 0, 0, 0], 0.3, 0, 1]]
         }
     },
+    "Cheesecake time":{
+        "length": 8,
+        "beats":{
+            "7": ["Yellow top", .5, 1, 0],
+            "7.5": ["Yellow top", .5, 1, 0],
+        }
+    },
+    "Cheesecake Show":{
+        "length": 2000,
+        "beats":{
+            "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],
+            "65": [["Ghosts bassline", 14]],
+            "79": [["RB Strobe Top Bottom", 2]],
+            "81": [["Cheesecake time", 32], ["Rainbow bad", 32]],
+        }
+    },
     "4 Bar Timing Show":{
         "length": 2000,
         "beats":{

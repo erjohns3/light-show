@@ -1,4 +1,12 @@
 shows = {
+    "butter": {
+        "effect": "Not Butter",
+        "delay_lights": 0,
+        "skip_song": 0,
+        "bpm": 130,
+        "song": "Not Butter.ogg",
+        "profiles": ["Shows"]
+    },
     "automatic": {
         "effect": "4 Bar Timing Show",
         "delay_lights": .6,
@@ -37,6 +45,14 @@ shows = {
         "skip_song": 0.35,
         "bpm": 144,
         "song": "attack_season_4_op.ogg",
+        "profiles": ["Shows"]
+    },
+    "cheesecake": {
+        "effect": "Cheesecake Show",
+        "delay_lights": 6.3,
+        "skip_song": 0.0,
+        "bpm": 97,
+        "song": "Cheesecake.ogg",
         "profiles": ["Shows"]
     },
     "luigi": {

@@ -334,8 +334,6 @@ async def terminal(level, i):
 
 async def light():
     global beat_index, queue_autoplay
-
-    local = args.local
     while True:
         light_lock.acquire()
 
@@ -380,7 +378,7 @@ async def light():
             between_0_and_1 = level / 0xFFFF
             level = round(pow(between_0_and_1, 2.2) * 0xFFFF)
 
-            if local:
+            if args.local:
                 await terminal(level, i)
             else:
                 pca.channels[i].duty_cycle = level
@@ -390,11 +388,13 @@ async def light():
         if broadcast_song:
             await send_song_status()
 
+        if args.print_beat and beat_index % SUB_BEATS == 0:
+            print((beat_index // SUB_BEATS) + 1)
+
         time_diff = time.perf_counter() - time_start
         time_delay = ((beat_index + 1) / rate) - time_diff
 
         light_lock.release()
-        # print(beat_index)
         await asyncio.sleep(time_delay)
 
 #################################################
@@ -523,11 +523,24 @@ def update_json():
     complex_effects = []
 
     effects_json = {}
+    shows_json = {}
     for name, path in get_all_paths('effects', only_files=True):
         module = 'effects.' + path.stem
         effects_json.update(importlib.import_module(module).effects)
 
-    shows_json = {}
+    profile_name = 'All Effects'
+    counter = 0
+    for effect_name in effects_json:
+        if counter == 0:
+            to_set = 0
+        else:
+            to_set = counter // 20
+        shows_json[effect_name] = {
+            'effect': effect_name, 
+            'profiles': [profile_name + '_' + str(to_set)]
+        }
+        counter += 1
+
     for name, path in get_all_paths('shows', only_files=True):
         module = 'shows.' + path.stem
         shows_json.update(importlib.import_module(module).shows)
@@ -708,6 +721,7 @@ parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
+parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
 args = parser.parse_args()
 
 args.volume = args.volume / 100

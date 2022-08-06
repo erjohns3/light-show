@@ -15,29 +15,29 @@ effects = {
     "hooked wandering bottom":{
         "length": 16,
         "beats":{
-            "1": [["Cyan bottom", 1, 0.19, 0.19]],
-            "2": [["Yellow bottom", 1, 0.19, 0.19]],
-            "3": [["Pink bottom", 1, 0.19, 0.19]],
-            "4": [["Indigo bottom", 1, 0.19, 0.19]],
-            "5": [["Cyan bottom", 1, 0.19, 0.19]],
-            "6": [["Yellow bottom", 1, 0.19, 0.19]],
-            "7": [["Pink bottom", 1, 0.19, 0.19]],
-            "8": [["Indigo bottom", 1, 0.19, 0.19]],
-            "9": [["Cyan bottom", 8, 0.19, 0.06]]
+            "1": [["Cyan bottom", 1, 1, 1]],
+            "2": [["Yellow bottom", 1, 1, 1]],
+            "3": [["Pink bottom", 1, 1, 1]],
+            "4": [["Indigo bottom", 1, 1, 1]],
+            "5": [["Cyan bottom", 1, 1, 1]],
+            "6": [["Yellow bottom", 1, 1, 1]],
+            "7": [["Pink bottom", 1, 1, 1]],
+            "8": [["Indigo bottom", 1, 1, 1]],
+            "9": [["Cyan bottom", 8, 1, .2]]
         }
     },
     "hooked wandering top":{
         "length": 16,
         "beats":{
-            "1": [["Cyan top", 1, 0.25, 0.15]],
-            "2": [["Yellow top", 1, 0.15, 0.15]],
-            "3": [["Pink top", 1, 0.15, 0.15]],
-            "4": [["Indigo top", 1, 0.15, 0.15]],
-            "5": [["Cyan top", 1, 0.15, 0.15]],
-            "6": [["Yellow top", 1, 0.15, 0.15]],
-            "7": [["Pink top", 1, 0.15, 0.15]],
-            "8": [["Indigo top", 1, 0.15, 0.15]],
-            "9": [["Cyan top", 8, 0.15, 0.06]]
+            "1": [["Cyan top", 1, 1, 1]],
+            "2": [["Yellow top", 1, 1, 1]],
+            "3": [["Pink top", 1, 1, 1]],
+            "4": [["Indigo top", 1, 1, 1]],
+            "5": [["Cyan top", 1, 1, 1]],
+            "6": [["Yellow top", 1, 1, 1]],
+            "7": [["Pink top", 1, 1, 1]],
+            "8": [["Indigo top", 1, 1, 1]],
+            "9": [["Cyan top", 8, 1, 0.2]]
         }
     },
     "hooked bottom kick intro":{
@@ -46,37 +46,17 @@ effects = {
             "1": [["Rosy brown bottom", 0.4, 1, 0]]
         }
     },
+    "hooked red kick bottom":{
+        "length": 1,
+        "beats":{
+            "1": [["Red bottom", 0.50, 1, 0]],
+        }
+    },
     "hooked bottom kick increase":{
         "length": 32,
         "beats":{
-            "1": [["Red bottom", 0.50, 0.07, 0.05]],
-            "2": [["Red bottom", 0.50, 0.07, 0.05]],
-            "3": [["Red bottom", 0.50, 0.07, 0.05]],
-            "4": [["Red bottom", 0.50, 0.07, 0.05]],
-            "5": [["Red bottom", 0.50, 0.08, 0.05]],
-            "6": [["Red bottom", 0.50, 0.08, 0.05]],
-            "7": [["Red bottom", 0.50, 0.09, 0.05]],
-            "8": [["Red bottom", 0.50, 0.09, 0.05]],
-            "9": [["Red bottom", 0.50, 0.09, 0.05]],
-            "10": [["Red bottom", 0.50, 0.1, 0.05]],
-            "11": [["Red bottom", 0.50, 0.1, 0.05]],
-            "12": [["Red bottom", 0.50, 0.1, 0.05]],
-            "13": [["Red bottom", 0.50, 0.11, 0.05]],
-            "14": [["Red bottom", 0.50, 0.11, 0.05]],
-            "15": [["Red bottom", 0.50, 0.11, 0.05]],
-            "16": [["Red bottom", 0.50, 0.12, 0.05]],
-            "17": [["Red bottom", 0.50, 0.12, 0.05]],
-            "18": [["Red bottom", 0.50, 0.13, 0.05]],
-            "19": [["Red bottom", 0.50, 0.13, 0.05]],
-            "20": [["Red bottom", 0.50, 0.13, 0.05]],
-            "21": [["Red bottom", 0.50, 0.13, 0.05]],
-            "22": [["Red bottom", 0.50, 0.14, 0.05]],
-            "23": [["Red bottom", 0.50, 0.14, 0.05]],
-            "24": [["Red bottom", 0.50, 0.14, 0.05]],
-            "25": [["Red bottom", 0.50, 0.15, 0.05]],
-            "26": [["Red bottom", 0.50, 0.16, 0.05]],
-            "27": [["Red bottom", 0.50, 0.17, 0.05]],
-            "28": [["Red bottom", 0.50, 0.18, 0.05]]
+            "1": [["hooked red kick bottom", 0.50, .1, .3]],
+            "17": [["hooked red kick bottom", 0.50, .3, .8]],
         }
     },
     "hooked hear you":{
@@ -144,9 +124,9 @@ effects = {
     "wandering":{
         "length": 32,
         "beats":{
-            "1": [["UV", 4, 1, .5], ["hooked wandering bottom", 16, .8, .5]],
-            "5": [["UV", 12, .5, .1]],
-            "17": [["Purple bottom", 16, 0.3, 0.1], ["hooked wandering top", 16, .8, .5]],
+            "1": [["UV", 4, 1, .28], ["hooked wandering bottom", 16, .8, .5]],
+            "5": [["UV", 12, .28, 0]],
+            "17": [["Purple bottom", 16, 0.3, 0.05], ["hooked wandering top", 16, .8, .5]],
         }
     },
     "Hooked Show": {

@@ -510,6 +510,8 @@ def effects_json_sort(path):
     else:
         complex_effects.append(curr)
 
+all_globals = globals()
+
 def update_json():
     global effects_json, shows_json, songs_json, channel_lut, graph, found, simple_effects, complex_effects
 
@@ -525,7 +527,11 @@ def update_json():
     shows_json = {}
     for name, path in get_all_paths('effects', only_files=True):
         module = 'effects.' + path.stem
-        effects_json.update(importlib.import_module(module).effects)
+        if module in all_globals:
+            importlib.reload(all_globals[module])
+        else:
+            all_globals[module] = importlib.import_module(module)
+        effects_json.update(all_globals[module].effects)
 
     profile_name = 'All Effects'
     counter = 0
@@ -542,7 +548,11 @@ def update_json():
 
     for name, path in get_all_paths('shows', only_files=True):
         module = 'shows.' + path.stem
-        shows_json.update(importlib.import_module(module).shows)
+        if module in all_globals:
+            importlib.reload(all_globals[module])
+        else:
+            all_globals[module] = importlib.import_module(module)
+        shows_json.update(all_globals[module].shows)
     print(f'finishing up to imports took {time.perf_counter() - begin:.2f} seconds')
 
     songs_json = {}

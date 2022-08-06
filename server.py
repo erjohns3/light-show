@@ -648,21 +648,14 @@ def update_json():
                         channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
     print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
-    begin_cost = 0
-    after_cost = 0
-
     for effect_name in complex_effects:
-        before = time.perf_counter()
         effect = effects_json[effect_name]
-        print('length', round(effect['length'] * SUB_BEATS))
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
             'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],        
         }
-        begin_cost += time.perf_counter() - before
 
-        before = time.perf_counter()
         beats = effect['beats']
         for beat in beats:
             for component in beats[beat]:
@@ -691,17 +684,12 @@ def update_json():
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
-
-        after_cost += time.perf_counter() - before
   
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
     print(f'(done with update_json) finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
     
-    print('begin_cost:', begin_cost)
-    print('after_cost:', after_cost)
-
 
 ##################################################
 

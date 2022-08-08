@@ -635,6 +635,7 @@ def update_json():
         effect = effects_json[effect_name]
         beats = effect['beats']
 
+        # if length isn't specified, generate a length
         calced_effect_length = 0
         for beat in beats:
             for component in beats[beat]:
@@ -651,11 +652,8 @@ def update_json():
                 if len(component) == 4:
                     component.append(0)    
                 calced_effect_length = max(calced_effect_length, float(beat) + component[1] - 1)
-        
-        # if length isn't specified, generate a length
         if 'length' not in effect:
             effect['length'] = calced_effect_length
-            effect['loop'] = False
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
@@ -747,7 +745,7 @@ parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
-parser.add_argument('--jump', dest='jump_back', type=int, default=0)
+parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 args = parser.parse_args()
 
 args.volume = args.volume / 100
@@ -792,6 +790,7 @@ if args.reload:
 
                 # add show
                 if has_song(show_name):
+                    time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)
                     shows_json[args.show]['skip_song'] += time_in_show
                     shows_json[args.show]['delay_lights'] -= time_in_show
                     play_song(show_name)

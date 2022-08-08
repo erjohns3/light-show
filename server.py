@@ -730,7 +730,7 @@ parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
-parser.add_argument('--jump', dest='jump_back', type=int, default=1)
+parser.add_argument('--jump', dest='jump_back', type=int, default=0)
 args = parser.parse_args()
 
 args.volume = args.volume / 100

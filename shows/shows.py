@@ -23,6 +23,14 @@ shows = {
         "song": "Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg",
         "profiles": ["Shows"]
     },
+    "cnam": {
+        "effect": "CNam Show",
+        "delay_lights": .65,
+        "skip_song": 0,
+        "bpm": 120,
+        "song": "Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg",
+        "profiles": ["Shows"]
+    },
     "automatic": {
         "effect": "4 Bar Timing Show",
         "delay_lights": .6,

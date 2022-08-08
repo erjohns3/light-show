@@ -317,7 +317,22 @@ async def render_to_terminal(all_levels):
     console.print('\n', end='')
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
-    useful_info = f'BPM: {curr_bpm}, Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {round(time.perf_counter() - time_start)}'
+    
+    show_specific = ''
+    if curr_effects and has_song(curr_effects[0][2]):
+        index = (beat_index + curr_effects[0][1])
+        time_diff = time.perf_counter() - time_start
+        show_specific = f"""\
+, {round(100 * (index / channel_lut[curr_effects[0][0]]['length']))}% lights\
+, {round(100 * (time_diff / shows_json[curr_effects[0][2]]['duration']))}% song\
+"""
+
+    useful_info = f"""\
+BPM: {curr_bpm}, \
+Beat: {(beat_index // SUB_BEATS) + 1}, \
+Seconds: {round(time.perf_counter() - time_start)}\
+{show_specific}\
+"""
     console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
     console.print('', end='\033[F' * 5)
 
@@ -367,7 +382,7 @@ async def light():
             level = 0
             for j in range(len(curr_effects)):
                 index = beat_index + curr_effects[j][1]
-                if index >= 0:
+                if index >= 0 and (channel_lut[effect_name]['loop'] or channel_lut[curr_effects[j][0]]['length'] > index):
                     index = index % channel_lut[curr_effects[j][0]]['length']
                     level += channel_lut[curr_effects[j][0]]["beats"][index][i]
 
@@ -636,10 +651,11 @@ def update_json():
                 if len(component) == 4:
                     component.append(0)    
                 calced_effect_length = max(calced_effect_length, float(beat) + component[1] - 1)
+        
+        # if length isn't specified, generate a length
         if 'length' not in effect:
-            # print(f'{effect_name=}, {calced_effect_length=}')
             effect['length'] = calced_effect_length
-            effects_json[effect_name]['loop'] = False
+            effect['loop'] = False
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
@@ -689,6 +705,7 @@ def update_json():
         show['length'] = length
         show['duration'] = duration
         show['loop'] = loop
+    
     print(f'(done with update_json) finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
 
 
@@ -792,7 +809,7 @@ http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()
 # allows prints from http_server to finish to not mess up terminal output
 if args.local:
-    time.sleep(.01)
+    time.sleep(.03)
 
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)

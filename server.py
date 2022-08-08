@@ -291,7 +291,7 @@ async def send_song_status():
 
 
 my_color_tuple = [254, 0, 0]
-terminal_size = os.get_terminal_size()
+terminal_size = os.get_terminal_size().columns
 async def render_to_terminal(all_levels):
     terminal_color_scaling = 1
     max_num = pow(2, 16) - 1
@@ -306,15 +306,19 @@ async def render_to_terminal(all_levels):
     bottom_rgb_style = f'rgb({levels_capped[3]},{levels_capped[4]},{levels_capped[5]})'
 
     character = '▆'
+    dead_space = terminal_size - 15
     console.print(' ' + character * 2, style=uv_style, end='')
     console.print(character * 10, style=top_rgb_style, end='')
-    console.print(character * 2, style=uv_style, end='\n')
-    console.print(f'{" " * terminal_size.columns}\n' * 3, end='')
+    console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
+    console.print('\n', end='')
+    console.print(f'{" " * terminal_size}\n' * 3, end='')
 
-    console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
+    console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
+    console.print('\n', end='')
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
-    console.print(f'BPM: {curr_bpm}, Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {round(time.perf_counter() - time_start)}', end='')
+    useful_info = f'BPM: {curr_bpm}, Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {round(time.perf_counter() - time_start)}'
+    console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
     console.print('', end='\033[F' * 5)
 
 
@@ -344,7 +348,7 @@ async def light():
             index = beat_index + curr_effects[i][1]
             effect_name = curr_effects[i][0]
             show_name = curr_effects[i][2]
-            if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) or time_diff >= shows_json[show_name]['duration']:
+            if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) and time_diff >= shows_json[show_name]['duration']:
                 remove_effect(i)
                 if has_song(show_name):
                     stop_song()
@@ -674,7 +678,7 @@ def update_json():
             if not args.local:
                 show['delay_lights'] += 0.1
         loop = False
-        duration = 1000000
+        duration = -1
         if 'effect' in show:
             loop = effects_json[show['effect']]['loop']
             length = effects_json[show['effect']]['length']
@@ -726,6 +730,7 @@ parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
+parser.add_argument('--jump', dest='jump_back', type=int, default=1)
 args = parser.parse_args()
 
 args.volume = args.volume / 100
@@ -753,7 +758,30 @@ if args.reload:
             print(f'Reloading json because: "{event.src_path}" was modified')
             FilesystemHandler.last_updated = time.time()
             print(FilesystemHandler.last_updated)
-            update_json()
+            
+            
+            if curr_effects:
+                # remove show
+                index = beat_index + curr_effects[0][1]
+                effect_name = curr_effects[0][0]
+                show_name = curr_effects[0][2]
+                remove_effect(0)
+                if has_song(show_name):
+                    time_in_show = (time.perf_counter() - time_start) - args.jump_back
+                    print('Stopped show')
+                    stop_song()
+
+                update_json()
+
+                # add show
+                if has_song(show_name):
+                    shows_json[args.show]['skip_song'] += time_in_show
+                    shows_json[args.show]['delay_lights'] -= time_in_show
+                    play_song(show_name)
+                add_effect(show_name)
+            else:
+                update_json()
+
 
     observer = Observer()
     observer.schedule(FilesystemHandler(), python_file_directory, recursive = True)
@@ -769,13 +797,13 @@ if args.local:
 loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
-async def start_async():
 
+async def start_async():
     dj_socket_server = await websockets.serve(init_dj_client, "0.0.0.0", 1337)
     queue_socket_server = await websockets.serve(init_queue_client, "0.0.0.0", 7654)
 
     if args.show:
-        print('Trying to start show from CLI')
+        print('Starting show from CLI')
         if args.show in shows_json:
             print(f'Duration of song: {shows_json[args.show]["duration"]} seconds')
             if args.skip_show:

@@ -131,7 +131,7 @@ effects = {
             "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],
             "65": [["Ghosts bassline", 14]],
             "79": [["RB Strobe Top Bottom", 2]],
-            "81": [["Cheesecake time", 32], ["Rainbow bad", 32]],
+            "81": [["Cheesecake time", 32], ["Rainbow bad", 32]]
         }
     },
     "4 Bar Timing Show":{

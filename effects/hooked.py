@@ -82,7 +82,7 @@ effects = {
     "hooked bassline":{
         "length": 8,
         "beats":{
-            "1": [["Firebrick bottom", 0.7, 0.20, 0.05], ["hooked top sidechain non red", 8], ["hooked claps", 8]]
+            "1": [["Firebrick bottom", 0.7, 0.40, 0.05], ["hooked top sidechain non red", 8], ["hooked claps", 8]]
         }
     },
     "hooked sub melody":{

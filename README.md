@@ -1,5 +1,11 @@
 # club time
 
+## example execution
+To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads 1 second behind when you save any of the files in the directory
+```python server.py --volume 5 --local --show hooked --jump 1 --reload```
+
+To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe
 * https://github.com/tyiannak/pyAudioAnalysis

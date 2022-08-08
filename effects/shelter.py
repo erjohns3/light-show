@@ -136,7 +136,7 @@ effects = {
             "82": [["Pulse", 15, 0.2, 0.2]],
             "97": [["Rainbow bad", 16]],
             "98": [["Green fade", 14]],
-            "129": [["Shelter Chorus", 32]]
+            "129": [["Shelter Chorus", 32]],
         }
     }
 }

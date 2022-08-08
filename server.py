@@ -291,6 +291,7 @@ async def send_song_status():
 
 
 my_color_tuple = [254, 0, 0]
+terminal_size = os.get_terminal_size()
 async def render_to_terminal(all_levels):
     terminal_color_scaling = 1
     max_num = pow(2, 16) - 1
@@ -307,8 +308,8 @@ async def render_to_terminal(all_levels):
     character = '▆'
     console.print(' ' + character * 2, style=uv_style, end='')
     console.print(character * 10, style=top_rgb_style, end='')
-    console.print(character * 2, style=uv_style, end='')
-    console.print('\n' * 3)
+    console.print(character * 2, style=uv_style, end='\n')
+    console.print(f'{" " * terminal_size.columns}\n' * 3, end='')
 
     console.print(' ' + character * 14, style=bottom_rgb_style, end='\n')
 
@@ -319,8 +320,6 @@ async def render_to_terminal(all_levels):
 
 all_levels = [0] * LIGHT_COUNT
 async def terminal(level, i):
-    # if is_windows():
-    #     return
     all_levels[i] = level
     if i == LIGHT_COUNT - 1:
         await render_to_terminal(all_levels)
@@ -410,8 +409,6 @@ def clear_effects():
     for index, effect in enumerate(curr_effects):
         remove_effect(index)
 
-# index=8710, effect_name='Shelter Show', channel_lut[effect_name]["length"]=48000, time_diff=217.75038656499237, shows_json[show_name]["duration"]=217.728
-
 def add_effect(show_name):
     global beat_index, time_start, curr_bpm
 
@@ -425,9 +422,7 @@ def add_effect(show_name):
         clear_effects()
         time_start = time.perf_counter() + show['delay_lights']
         curr_bpm = show['bpm']
-        # !TODO why do we set this, isn't is just overwritten in the light()
         beat_index = int((-show['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
-        # print(f'{show["delay_lights"]=}, {beat_index=}')
         offset = 0
     else:
         # offset = (beat_index % round(show['snap'] * SUB_BEATS)) - beat_index
@@ -471,13 +466,6 @@ def setup_gpio():
 
     for i in range(len(pca.channels)):
         pca.channels[i].duty_cycle = 0
-
-    # pca.channels[0].duty_cycle = 0x0AFF
-    # pca.channels[1].duty_cycle = 0x0AFF
-    # pca.channels[2].duty_cycle = 0x0AFF
-    # pca.channels[3].duty_cycle = 0x0AFF
-    # pca.channels[4].duty_cycle = 0x0AFF
-    # pca.channels[5].duty_cycle = 0x0AFF
 
 
 ################################################
@@ -713,12 +701,15 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
-    if not args.local:    
+    if not args.local:
         # tries to turn off lights
         x = threading.Thread(target=kill_in_n_seconds, args=(0.5,))
         x.start()
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
+    if args.reload:
+        observer.stop()
+        observer.join()
     exit()
 
 
@@ -734,10 +725,10 @@ parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
+parser.add_argument('--reload', dest='reload', default=False, action='store_true')
 args = parser.parse_args()
 
 args.volume = args.volume / 100
-
 if args.local:
     from rich.console import Console
     console = Console()
@@ -745,6 +736,29 @@ else:
     setup_gpio()
 
 update_json()
+
+if args.reload:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+
+    class FilesystemHandler(FileSystemEventHandler):
+        last_updated = 0
+
+        @staticmethod
+        def on_any_event(event):
+            if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path:
+                return None
+            if FilesystemHandler.last_updated > (time.time() - .05):
+                print('not updating not enough time!!!')
+            print(f'Reloading json because: "{event.src_path}" was modified')
+            FilesystemHandler.last_updated = time.time()
+            print(FilesystemHandler.last_updated)
+            update_json()
+
+    observer = Observer()
+    observer.schedule(FilesystemHandler(), python_file_directory, recursive = True)
+    observer.start()
+
 
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()

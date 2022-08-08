@@ -55,5 +55,5 @@ sudo ss -lptn 'sport = :8000'
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
 
 
-* https://www.youtube.com/watch?v=Luq2a3Q244U&t=1950s
+* https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o

@@ -7,6 +7,22 @@ shows = {
     #     "song": "Not Butter.ogg",
     #     "profiles": ["Shows"]
     # },
+    "okaerinasae": {
+        "effect": "Okaerinasae Show",
+        "delay_lights": .65,
+        "skip_song": 0,
+        "bpm": 176,
+        "song": "Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg",
+        "profiles": ["Shows"]
+    },
+    "okaerinasae timing": {
+        "effect": "4 Bar Timing Show",
+        "delay_lights": 0.65,
+        "skip_song": 0,
+        "bpm": 176,
+        "song": "Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg",
+        "profiles": ["Shows"]
+    },
     "automatic": {
         "effect": "4 Bar Timing Show",
         "delay_lights": .6,

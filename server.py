@@ -660,7 +660,7 @@ def update_json():
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
-            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],        
+            'beats': [x[:] for x in [[0] * 7] * round(effect['length'] * SUB_BEATS)],
         }
 
         for beat in beats:

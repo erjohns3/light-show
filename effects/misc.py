@@ -192,7 +192,7 @@ effects = {
             "9": [["Green fade", 1]],
             "11": [["Yellow fade", 1]],
             "13": [["Green fade", 1]],
-            "15": [["Triplets Top", 2]],
+            "15": [["Triplets top", 2]],
             "17": [["Flash all", 1], ["Attack repeater", 8]],
             "25": ["Attack repeater", 24]
         }

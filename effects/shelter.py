@@ -1,5 +1,5 @@
 effects = {
-    "Triplets":{
+    "Triplets bottom":{
         "length": 1,
         "beats":{
             "1": [[0, 0, 0, 10, 40, 0, 0], 0.33],
@@ -7,10 +7,10 @@ effects = {
             "1.66": [[0, 0, 0, 40, 0, 10, 0], 0.33]
         }
     },
-    "Triplets Top":{
+    "Triplets top":{
         "length": 1,
         "beats":{
-            "1": [[10, 40, 0, 0, 0, 0, 0], 0.33, 0.3, 0.2],
+            "1": [[10, 40, 10, 0, 0, 0, 0], 0.33, 0.3, 0.2],
             "1.33": [[0, 10, 40, 0, 0, 0, 0], 0.33, 0.3, 0.2],
             "1.66": [[40, 0, 10, 0, 0, 0, 0], 0.33, 0.3, 0.2]
         }
@@ -94,7 +94,7 @@ effects = {
             "6": [["top blue kick", 2]],
             "9": [["muddy yellow ay", 1], ["Chorus bottom", 3]],
             "10": [["top blue kick", 2]],
-            "13": [["Triplets", 4]]    
+            "13": [["Triplets bottom", 4]]    
         }
     },
     "Shelter Chorus": {
@@ -130,7 +130,7 @@ effects = {
             "31": [["Cyan bottom", 1, 0.1, 0.1]],
             "32": [["Cyan bottom", 1, 0.18, 0.18]],
             "33": [["Shelter Chorus", 32]],
-            "61": [["Triplets", 4]],
+            "61": [["Triplets bottom", 4]],
             "73": [["Pulse", 8, 0.2, 0.2]],
             "81": [["Yellow fade", 1]],
             "82": [["Pulse", 15, 0.2, 0.2]],

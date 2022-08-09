@@ -402,7 +402,7 @@ async def light():
             await send_song_status()
 
         if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
-            print((beat_index // SUB_BEATS) + 1)
+            print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.2f}')
 
         time_diff = time.perf_counter() - time_start
         time_delay = ((beat_index + 1) / rate) - time_diff
@@ -743,7 +743,7 @@ parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
-parser.add_argument('--beat', dest='print_beat', default=False, action='store_true')
+parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 args = parser.parse_args()
@@ -766,15 +766,12 @@ if args.reload:
 
         @staticmethod
         def on_any_event(event):
-            if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path:
+            if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path or not event.src_path.endswith('.py'):
                 return None
             if FilesystemHandler.last_updated > (time.time() - .05):
                 print('not updating not enough time!!!')
             print(f'Reloading json because: "{event.src_path}" was modified')
-            FilesystemHandler.last_updated = time.time()
-            print(FilesystemHandler.last_updated)
-            
-            
+            FilesystemHandler.last_updated = time.time()            
             if curr_effects:
                 # remove show
                 index = beat_index + curr_effects[0][1]
@@ -783,6 +780,8 @@ if args.reload:
                 remove_effect(0)
                 if has_song(show_name):
                     time_in_show = (time.perf_counter() - time_start) - args.jump_back
+                    if not args.jump_back and args.skip_show:
+                        time_in_show = args.skip_show
                     print('Stopped show')
                     stop_song()
 

@@ -28,7 +28,8 @@ effects = {
     },
     "CNam Show": {
         "beats":{
-            "1": [["4 Bar Timing Show", 192]],
+            "1": [["wandering", 64, 0, 1]],
+            "65": [["wandering", 128]],
             "193": [["cnam drop", 96]],
         }
     }

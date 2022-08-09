@@ -88,17 +88,17 @@ effects = {
     "hooked sub melody":{
         "length": 8,
         "beats": {
-            "2.25": [["Yellow bottom", 0.15, 0.20, 0.20]],
-            "2.5": [["Green bottom", 0.15, 0.20, 0.20]],
-            "3": [["Yellow bottom", 0.15, 0.20, 0.20]],
-            "3.5": [["Yellow bottom", 0.15, 0.20, 0.20]],
-            "4.75": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "5.25": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "5.75": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "6.25": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "6.75": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "7.25": [["Yellow bottom", 0.15, 0.20, 0.10]],
-            "7.75": [["Yellow bottom", 0.15, 0.20, 0.10]]
+            "2.25": [["Yellow bottom", 0.15, 0.30, 0.30]],
+            "2.5": [["Green bottom", 0.15, 0.30, 0.30]],
+            "3": [["Yellow bottom", 0.15, 0.30, 0.30]],
+            "3.5": [["Yellow bottom", 0.15, 0.30, 0.30]],
+            "4.75": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.25": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.75": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.25": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.75": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.25": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.75": [["Yellow bottom", 0.10, 0.30, .30]]
         }
     },
     "hooked melody":{

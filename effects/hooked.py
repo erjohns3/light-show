@@ -92,13 +92,13 @@ effects = {
             "2.5": [["Green bottom", 0.15, 0.30, 0.30]],
             "3": [["Yellow bottom", 0.15, 0.30, 0.30]],
             "3.5": [["Yellow bottom", 0.15, 0.30, 0.30]],
-            "4.75": [["Yellow bottom", 0.10, 0.30, .30]],
-            "5.25": [["Yellow bottom", 0.10, 0.30, .30]],
-            "5.75": [["Yellow bottom", 0.10, 0.30, .30]],
-            "6.25": [["Yellow bottom", 0.10, 0.30, .30]],
-            "6.75": [["Yellow bottom", 0.10, 0.30, .30]],
-            "7.25": [["Yellow bottom", 0.10, 0.30, .30]],
-            "7.75": [["Yellow bottom", 0.10, 0.30, .30]]
+            "4.60": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.10": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.60": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.10": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.60": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.10": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.65": [["Yellow bottom", 0.10, 0.30, .30]],
         }
     },
     "hooked melody":{

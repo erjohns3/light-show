@@ -47,6 +47,7 @@ def change_speed_audio(input_filepath, speed):
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_{speed}{input_filepath.suffix}')
     if os.path.exists(output_filepath):
         return output_filepath
+    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed}{bcolors.ENDC}"')
     run_command_blocking([
         'ffmpeg',
         '-i',

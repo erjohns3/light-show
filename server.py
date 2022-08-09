@@ -326,7 +326,7 @@ async def render_to_terminal(all_levels):
 
     useful_info = f"""\
 BPM: {curr_bpm}, \
-Beat: {(beat_index // SUB_BEATS) + 1}, \
+Beat: {round((beat_index / SUB_BEATS) + 1, 1)}, \
 Seconds: {round(time.perf_counter() - time_start)}\
 {show_specific}\
 """
@@ -794,6 +794,7 @@ if args.reload:
                 if has_song(show_name):
                     if args.speed != 1 and 'song' in shows_json[args.show]:
                         shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+                    # adding a delay here stopped a crash for some reason
                     time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)
                     shows_json[args.show]['skip_song'] += time_in_show
                     shows_json[args.show]['delay_lights'] -= time_in_show

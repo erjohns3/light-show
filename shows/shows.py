@@ -1,7 +1,7 @@
 shows = {
     "butter": {
         "effect": "Not Butter Show",
-        "delay_lights": 0,
+        "delay_lights": .08,
         "skip_song": 0,
         "bpm": 112,
         "song": "Not Butter.ogg",

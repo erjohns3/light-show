@@ -51,7 +51,8 @@ local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
-    print(f'serving at: http://{local_ip}:{PORT}', flush=True)
+    print(f'{bcolors.OKGREEN}serving dj set at: http://{local_ip}:{PORT}')
+    print(f'serving queue at: http://{local_ip}:{PORT}/queue.html{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
 
 

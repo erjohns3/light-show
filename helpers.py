@@ -98,6 +98,13 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
         print(f'stdout: {stdout.decode("utf-8")}')
     return process.returncode, stdout, stderr
 
+def get_temp_dir():
+    output_dir = python_file_directory.joinpath('temp')
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    return output_dir
+
+
 def run_command_async(full_command_arr, debug=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]

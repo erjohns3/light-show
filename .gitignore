@@ -10,3 +10,4 @@ data/nonsense/
 *.mp3
 *.ogg
 *.webm
+temp/

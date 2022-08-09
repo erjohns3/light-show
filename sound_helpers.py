@@ -42,6 +42,23 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
 
     audio_procs.append(process)
 
+#   ffmpeg -i input.mkv -filter_complex "[0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a]" -map "[v]" -map "[a]" output.mkv
+def change_speed_audio(input_filepath, speed):
+    output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_{speed}{input_filepath.suffix}')
+    if os.path.exists(output_filepath):
+        return output_filepath
+    run_command_blocking([
+        'ffmpeg',
+        '-i',
+        str(input_filepath),
+        '-filter_complex',
+        f'[0:a]atempo={speed}[a]',
+        '-map',
+        '[a]', 
+        str(output_filepath),
+    ], debug=True)
+    return output_filepath
+
 def create_mp3(input_filepath, output_directory, seconds_seek_to, seconds_to_play):
     output_filepath = os.path.join(output_directory, f'{random_letters(10)}.mp3')
     ffmpeg_args = [

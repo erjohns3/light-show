@@ -18,9 +18,6 @@ from helpers import *
 import sound_helpers
 
 
-pygame.init()
-pygame.mixer.init()
-
 pca = None
 
 SUB_BEATS = 24
@@ -42,8 +39,8 @@ song_sockets = []
 song_playing = False
 show_num = 0
 
-pygame.init()
 pygame.mixer.init()
+
 
 ########################################
 
@@ -458,12 +455,16 @@ def play_song(show_name):
     song = shows_json[show_name]['song']
     skip = shows_json[show_name]['skip_song']
     pygame.mixer.music.set_volume(args.volume)
-    pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
+
+    if type(song) == pathlib.Path:
+        pygame.mixer.music.load(song)
+    else:
+        pygame.mixer.music.load(pathlib.Path('songs').joinpath(song))
 
     # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
-    print(f'{bcolors.OKBLUE}Starting music "{song}" at {skip} seconds at {args.volume * 100}% volume{bcolors.ENDC}')
+    print(f'{bcolors.OKBLUE}Starting music "{song}" at {skip} seconds at {round(args.volume * 100)}% volume{bcolors.ENDC}')
     channel = pygame.mixer.music.play(start=skip)
 
 
@@ -747,6 +748,7 @@ parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
+parser.add_argument('--speed', dest='speed', type=float, default=1)
 args = parser.parse_args()
 
 args.volume = args.volume / 100
@@ -790,6 +792,8 @@ if args.reload:
 
                 # add show
                 if has_song(show_name):
+                    if args.speed != 1 and 'song' in shows_json[args.show]:
+                        shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
                     time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)
                     shows_json[args.show]['skip_song'] += time_in_show
                     shows_json[args.show]['delay_lights'] -= time_in_show
@@ -822,6 +826,11 @@ async def start_async():
         print('Starting show from CLI')
         if args.show in shows_json:
             print(f'Duration of song: {shows_json[args.show]["duration"]} seconds')
+            
+            if args.speed != 1 and 'song' in shows_json[args.show]:
+                shows_json[args.show]['bpm'] *= args.speed
+                shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+                args.skip_show *= 2
             if args.skip_show:
                 shows_json[args.show]['skip_song'] += args.skip_show
                 shows_json[args.show]['delay_lights'] -= args.skip_show

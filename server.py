@@ -347,66 +347,70 @@ async def terminal(level, i):
 async def light():
     global beat_index, song_playing
 
-    while True:
-        light_lock.acquire()
+    try:
+        while True:
+            light_lock.acquire()
 
-        rate = curr_bpm / 60 * SUB_BEATS
-        time_diff = time.perf_counter() - time_start
-        beat_index = int(time_diff * rate)
-        broadcast_light = False
-        broadcast_song = False        
-            
-        i = 0
-        while i < len(curr_effects):
-            index = beat_index + curr_effects[i][1]
-            effect_name = curr_effects[i][0]
-            show_name = curr_effects[i][2]
-            if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) and time_diff >= shows_json[show_name]['duration']:
-                remove_effect(i)
-                if has_song(show_name):
-                    stop_song()
-                    song_queue.pop(0)
-                    if song_playing and len(song_queue) > 0:
-                        new_show_name = song_queue[0][0]
-                        add_effect(new_show_name)
-                        play_song(new_show_name)
-                    elif len(song_queue) == 0:
-                        song_playing = False
-                    broadcast_song = True
-                broadcast_light = True
-            else:
-                i+=1
-        for i in range(LIGHT_COUNT):
-            level = 0
-            for j in range(len(curr_effects)):
-                index = beat_index + curr_effects[j][1]
-                if index >= 0 and (channel_lut[effect_name]['loop'] or channel_lut[curr_effects[j][0]]['length'] > index):
-                    index = index % channel_lut[curr_effects[j][0]]['length']
-                    level += channel_lut[curr_effects[j][0]]["beats"][index][i]
+            rate = curr_bpm / 60 * SUB_BEATS
+            time_diff = time.perf_counter() - time_start
+            beat_index = int(time_diff * rate)
+            broadcast_light = False
+            broadcast_song = False        
+                
+            i = 0
+            while i < len(curr_effects):
+                index = beat_index + curr_effects[i][1]
+                effect_name = curr_effects[i][0]
+                show_name = curr_effects[i][2]
+                if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) and time_diff >= shows_json[show_name]['duration']:
+                    remove_effect(i)
+                    if has_song(show_name):
+                        stop_song()
+                        song_queue.pop(0)
+                        if song_playing and len(song_queue) > 0:
+                            new_show_name = song_queue[0][0]
+                            add_effect(new_show_name)
+                            play_song(new_show_name)
+                        elif len(song_queue) == 0:
+                            song_playing = False
+                        broadcast_song = True
+                    broadcast_light = True
+                else:
+                    i+=1
+            for i in range(LIGHT_COUNT):
+                level = 0
+                for j in range(len(curr_effects)):
+                    index = beat_index + curr_effects[j][1]
+                    if index >= 0 and (channel_lut[effect_name]['loop'] or channel_lut[curr_effects[j][0]]['length'] > index):
+                        index = index % channel_lut[curr_effects[j][0]]['length']
+                        level += channel_lut[curr_effects[j][0]]["beats"][index][i]
 
-            # level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
-            level = max(0, min(0xFFFF, level * 0xFFFF / 100))
-            between_0_and_1 = level / 0xFFFF
-            level = round(pow(between_0_and_1, 2.2) * 0xFFFF)
+                # level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
+                level = max(0, min(0xFFFF, level * 0xFFFF / 100))
+                between_0_and_1 = level / 0xFFFF
+                level = round(pow(between_0_and_1, 2.2) * 0xFFFF)
 
-            if args.local:
-                await terminal(level, i)
-            else:
-                pca.channels[i].duty_cycle = level
+                if args.local:
+                    await terminal(level, i)
+                else:
+                    pca.channels[i].duty_cycle = level
 
-        if broadcast_light:
-            await send_light_status()
-        if broadcast_song:
-            await send_song_status()
+            if broadcast_light:
+                await send_light_status()
+            if broadcast_song:
+                await send_song_status()
 
-        if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
-            print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.2f}')
+            if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
+                print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.2f}')
 
-        time_diff = time.perf_counter() - time_start
-        time_delay = ((beat_index + 1) / rate) - time_diff
+            time_diff = time.perf_counter() - time_start
+            time_delay = ((beat_index + 1) / rate) - time_diff
 
-        light_lock.release()
-        await asyncio.sleep(time_delay)
+            light_lock.release()
+            await asyncio.sleep(time_delay)
+    except Exception:
+        import traceback
+        print(traceback.format_exc())
 
 #################################################
 
@@ -793,6 +797,7 @@ if args.reload:
                 # add show
                 if has_song(show_name):
                     if args.speed != 1 and 'song' in shows_json[args.show]:
+                        shows_json[args.show]['bpm'] *= args.speed
                         shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
                     # adding a delay here stopped a crash for some reason
                     time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)

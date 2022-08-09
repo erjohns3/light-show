@@ -262,9 +262,4 @@ effects = {
             "83": [["UV", 4], ["Luigi Hats", 4]]
         }
     },
-    "Okaerinasae Show":{
-        "beats":{
-            "1": [["Pulse", 32]],
-        }
-    },
 }

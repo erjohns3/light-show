@@ -333,8 +333,9 @@ Beat: {(beat_index // SUB_BEATS) + 1}, \
 Seconds: {round(time.perf_counter() - time_start)}\
 {show_specific}\
 """
+    extra_lines_up = (len(useful_info) // terminal_size) + 1
     console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
-    console.print('', end='\033[F' * 5)
+    console.print('', end='\033[F' * (4 + extra_lines_up))
 
 
 all_levels = [0] * LIGHT_COUNT

@@ -5,6 +5,18 @@ effects = {
             "1": [[[0, 0, 0, 0, 0, 0, 0], 1]],
         }
     },
+    "Sidechain bottom g":{
+        "length": 1,
+        "beats":{
+            "1": [[[0, -100, -100, 0, 0, 0, 0], 1]],
+        }
+    },
+    "Sidechain top bg":{
+        "length": 1,
+        "beats":{
+            "1": [[[0, -100, -100, 0, 0, 0, 0], 1]],
+        }
+    },
     "Sidechain top rbg":{
         "length": 1,
         "beats":{
@@ -142,5 +154,5 @@ effects = {
         "beats":{
             "1": [[[0, 0, 0, 70, 30, 30, 0], 1]]
         }
-    }
+    },
 }

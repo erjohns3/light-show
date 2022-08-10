@@ -15,28 +15,28 @@ effects = {
         "length": 16,
         "beats":{
             "1": [["Cyan bottom", 1, 1, 1]],
-            "2": [["Yellow bottom", 1, 1, 1]],
-            "3": [["Pink bottom", 1, 1, 1]],
-            "4": [["Indigo bottom", 1, 1, 1]],
+            "2": [["Pink bottom", 1, 1, 1]],
+            "3": [["Yellow bottom", 1, 1, 1]],
+            "4": [["Green bottom", 1, 1, 1]],
             "5": [["Cyan bottom", 1, 1, 1]],
             "6": [["Yellow bottom", 1, 1, 1]],
             "7": [["Pink bottom", 1, 1, 1]],
-            "8": [["Indigo bottom", 1, 1, 1]],
-            "9": [["Cyan bottom", 8, 1, .2]]
+            "8": [["Cyan bottom", 1, 1, 1]],
+            "9": [["Green bottom", 8, 1, .2]]
         }
     },
     "hooked wandering top":{
         "length": 16,
         "beats":{
             "1": [["Cyan top", 1, 1, 1]],
-            "2": [["Yellow top", 1, 1, 1]],
-            "3": [["Pink top", 1, 1, 1]],
-            "4": [["Indigo top", 1, 1, 1]],
+            "2": [["Pink top", 1, 1, 1]],
+            "3": [["Yellow top", 1, 1, 1]],
+            "4": [["Green top", 1, 1, 1]],
             "5": [["Cyan top", 1, 1, 1]],
             "6": [["Yellow top", 1, 1, 1]],
             "7": [["Pink top", 1, 1, 1]],
-            "8": [["Indigo top", 1, 1, 1]],
-            "9": [["Cyan top", 8, 1, 0.2]]
+            "8": [["Cyan top", 1, 1, 1]],
+            "9": [["Green top", 8, 1, 0.2]]
         }
     },
     "hooked bottom kick intro":{
@@ -88,17 +88,18 @@ effects = {
     "hooked sub melody":{
         "length": 8,
         "beats": {
+            "2": [["Yellow bottom", 0.15, 0.30, 0.30]],
             "2.25": [["Yellow bottom", 0.15, 0.30, 0.30]],
             "2.5": [["Green bottom", 0.15, 0.30, 0.30]],
             "3": [["Yellow bottom", 0.15, 0.30, 0.30]],
             "3.5": [["Yellow bottom", 0.15, 0.30, 0.30]],
-            "4.60": [["Yellow bottom", 0.10, 0.30, .30]],
-            "5.10": [["Yellow bottom", 0.10, 0.30, .30]],
-            "5.60": [["Yellow bottom", 0.10, 0.30, .30]],
-            "6.10": [["Yellow bottom", 0.10, 0.30, .30]],
-            "6.60": [["Yellow bottom", 0.10, 0.30, .30]],
-            "7.10": [["Yellow bottom", 0.10, 0.30, .30]],
-            "7.65": [["Yellow bottom", 0.10, 0.30, .30]],
+            "4.55": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.05": [["Yellow bottom", 0.10, 0.30, .30]],
+            "5.55": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.05": [["Yellow bottom", 0.10, 0.30, .30]],
+            "6.55": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.05": [["Yellow bottom", 0.10, 0.30, .30]],
+            "7.55": [["Yellow bottom", 0.10, 0.30, .30]],
         }
     },
     "hooked melody":{

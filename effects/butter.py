@@ -203,7 +203,7 @@ effects = {
     },
     "Not Butter Show":{
         "beats":{
-            "1": [["Testing", 32]],
+            "1": [["Nothing", 32]],
             "33": [["wandering", 32]],
             "65": [["RBBB 1 bar", 32]],
             "97": [["Ghosts bassline", 24]],

@@ -8,13 +8,19 @@ effects = {
     "Sidechain bottom g":{
         "length": 1,
         "beats":{
-            "1": [[[0, -100, -100, 0, 0, 0, 0], 1]],
+            "1": [[[0, 0, 0, 0, -100, 0, 0], 1]],
         }
     },
     "Sidechain top bg":{
         "length": 1,
         "beats":{
             "1": [[[0, -100, -100, 0, 0, 0, 0], 1]],
+        }
+    },
+    "Sidechain top r":{
+        "length": 1,
+        "beats":{
+            "1": [[[-100, 0, 0, 0, 0, 0, 0], 1]],
         }
     },
     "Sidechain top rbg":{

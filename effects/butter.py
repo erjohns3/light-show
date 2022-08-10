@@ -19,7 +19,7 @@ effects = {
             "3.25": [["Red top", .2]],
             "4": [["Red top", .2]],
             "4.75": [["Red top", .2], ["Green top", 4, 0, 1]],
-            "4.95": [["Sidechain top bg", .55]],
+            "4.95": [["Sidechain top bg", .55], ["Sidechain top r", 3, 0, 1]],
             "5.5": [["Red top", .2]],
             "5.7": [["Sidechain top bg", .55]],
             "6.25": [["Red top", .2]],
@@ -131,9 +131,9 @@ effects = {
     "butter kicks":{
         "length": 2,
         "beats":{
-            "1": ["Green bottom", 0.1, 0.2, 0.1],
-            "1.1": ["Green bottom", 3, 0.1, 0.1],
-            "2": [["Sidechain bottom g", 0.3, 1, 0], ["Some color bottom", 0.3, 0.4, 0.3]],
+            "1": ["Green bottom", 0.1, 0.6, 0.17],
+            "1.1": ["Green bottom", 3, 0.17, 0.17],
+            "2": [["Sidechain bottom g", 0.5, 1, 0], ["Some color bottom", 0.3, 1, .7]],
 
         }
     },
@@ -157,9 +157,53 @@ effects = {
             "1": [["butter melody", 64], ["butter bassline", 64], ["butter ho", 64]],
         }
     },
+    # Green:
+    # 1: 100%
+    # .9: 95%
+    # .5: 70%
+    # .4: 60%
+    # .3: 45%
+    # .2: 30%
+    # .15: 15%
+    # .14: 10%
+    # .13: 8%
+    # .12: 5%
+    # .11: 1%
+    # .1: 0%
+
+    # Red:
+    # 1: 100%
+    # .9: 95%
+    # .5: 70%
+    # .4: 60%
+    # .3: 40%
+    # .25: 25%
+    # .2: 10%
+    # .14: 2%
+    # .13: 1%
+    # .12: 0%
+
+    # Blue:
+    # 1: 100%
+    # .9: 90%
+    # .5: 65%
+    # .4: 50%
+    # .3: 35%
+    # .25: 28%
+    # .2: 20%
+    # .14: 5%
+    # .13: 3%
+    # .12: 1%
+    # .11: 0%
+    "Testing":{
+        "length": 64,
+        "beats":{
+            "1": ["Blue bottom", 64, 1, 1],
+        }
+    },
     "Not Butter Show":{
         "beats":{
-            "1": [["Pulse", 32]],
+            "1": [["Testing", 32]],
             "33": [["wandering", 32]],
             "65": [["RBBB 1 bar", 32]],
             "97": [["Ghosts bassline", 24]],

@@ -1,4 +1,12 @@
 shows = {
+    "remember": {
+        "effect": "I Remember Show",
+        "delay_lights": 0.1,
+        "skip_song": 0,
+        "bpm": 128,
+        "song": "deadmau5 & Kaskade - I Remember (HQ).ogg",
+        "profiles": ["Shows"]
+    },
     "butter": {
         "effect": "Not Butter Show",
         "delay_lights": .08,

@@ -799,7 +799,7 @@ if args.reload:
                 if has_song(show_name):
                     if args.speed != 1 and 'song' in shows_json[args.show]:
                         shows_json[args.show]['bpm'] *= args.speed
-                        shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+                        shows_json[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
                     # adding a delay here stopped a crash for some reason
                     time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)
                     shows_json[args.show]['skip_song'] += time_in_show
@@ -836,8 +836,8 @@ async def start_async():
             
             if args.speed != 1 and 'song' in shows_json[args.show]:
                 shows_json[args.show]['bpm'] *= args.speed
-                shows_json[args.show]['song'] = sound_helpers.change_speed_audio(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
-                args.skip_show *= 2
+                shows_json[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+                args.skip_show *= 1 / args.speed
             if args.skip_show:
                 shows_json[args.show]['skip_song'] += args.skip_show
                 shows_json[args.show]['delay_lights'] -= args.skip_show

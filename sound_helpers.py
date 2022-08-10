@@ -42,8 +42,46 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
 
     audio_procs.append(process)
 
+
+# rubberband -D 843 deadmau5\ \&\ Kaskade\ -\ I\ Remember\ \(HQ\).ogg slowed_deadmau.ogg
+def change_speed_audio_rubberband(input_filepath, speed):
+    output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_rubberband_{speed}{input_filepath.suffix}')
+    if os.path.exists(output_filepath):
+        return output_filepath
+
+    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using rubberband{bcolors.ENDC}"')
+    run_command_blocking([
+        'rubberband',
+        '-t',
+        1 / speed,
+        str(input_filepath),
+        str(output_filepath),
+    ], debug=True)
+    return output_filepath
+
+
+def change_speed_audio_asetrate(input_filepath, speed):
+    import tinytag
+
+    output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_asetrate_{speed}{input_filepath.suffix}')
+    if os.path.exists(output_filepath):
+        return output_filepath
+
+    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using asetrate{bcolors.ENDC}"')
+    run_command_blocking([
+        'ffmpeg',
+        '-i',
+        str(input_filepath),
+        '-filter:a',
+        f'asetrate={tinytag.TinyTag.get(input_filepath).samplerate * speed}',
+        '-y',
+        str(output_filepath),
+    ], debug=True)
+    return output_filepath
+
+
 #   ffmpeg -i input.mkv -filter_complex "[0:v]setpts=0.5*PTS[v];[0:a]atempo=2.0[a]" -map "[v]" -map "[a]" output.mkv
-def change_speed_audio(input_filepath, speed):
+def change_speed_audio_atempo(input_filepath, speed):
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_{speed}{input_filepath.suffix}')
     if os.path.exists(output_filepath):
         return output_filepath

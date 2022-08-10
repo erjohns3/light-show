@@ -45,14 +45,14 @@ pygame.mixer.init()
 ########################################
 
 
-PORT = 8000
+PORT = 9555
 Handler = http.server.SimpleHTTPRequestHandler
 local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
-    print(f'{bcolors.OKGREEN}serving dj set at: http://{local_ip}:{PORT}')
-    print(f'serving queue at: http://{local_ip}:{PORT}/queue.html{bcolors.ENDC}', flush=True)
+    print(f'{bcolors.OKGREEN}serving dj set at: http://{local_ip}:{PORT}/dj.html')
+    print(f'serving queue at: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
 
 

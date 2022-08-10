@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Light Show</title>
+</head>
+
+<body>
+
+    <template id="template-button-item">
+        <div class="button-name"></div>
+        <div class="button-bpm"></div>
+        <div class="button-length"></div>
+        <div class="button-loop"></div>
+        <div class="button-button"></div>
+    </template>
+
+    <template id="template-profile-item">
+        <div class="profile-name"></div>
+        <div class="profile-playing"></div>
+    </template>
+
+    <div id="profile-list"></div>
+
+    <div id="button-table-wrapper">
+    </div>
+
+    <div id="rate-inc" class="button">+</div>
+    <div id="rate-dec" class="button">—</div>
+    <div id="rate-next"></div>
+    <div id="rate-apply" class="button">Apply</div>
+    <div id="rate-curr"></div>
+
+    <div id="update" class="button">Update</div>
+    <div id="clear" class="button">Clear</div>
+</body>
+
+<script>
+    function socketInit() {
+        console.log("socket init");
+        
+        socket = new WebSocket("ws://" + location.hostname + ":1337");
+
+        socket.onopen = function () {
+            // sometimes takes a long time to get here
+            console.log("socket open");
+
+            socketAttempts = 0;
+
+            if (!socketConnected) {
+                socketConnected = true;
+            }
+        }
+
+        socket.onclose = function () {
+            console.log("socket close");
+            if (socketConnected) {
+                socketConnected = false;
+            }
+            let delay = 3000;
+            if (socketAttempts == 0) {
+                delay = 0;
+            }
+            setTimeout(() => {
+                if (socket.readyState == WebSocket.CLOSED) {
+                    socketInit();
+                }
+            }, delay);
+
+            socketAttempts++;
+        }
+
+        socket.onerror = function () {
+            console.log("socket error");
+            socket.close();
+        }
+
+        socket.onmessage = function (event) {
+            console.log("socket message");
+            let msg = JSON.parse(event.data);
+            console.log(msg);
+
+            if(msg.shows){
+                showsConfig = msg.shows;
+                for(let show_name in showsConfig){
+                    if(!(show_name in buttons)){
+                        buttons[show_name] = {};
+                        for(let profile_name of showsConfig[show_name].profiles){
+                            if(!(profile_name in profiles)){
+                                profiles[profile_name] = new ProfileItem(profile_name);
+                                profileList.append(profiles[profile_name]);
+
+                                buttonTables[profile_name] = new ButtonTable(profile_name);
+                                buttonTableWrapper.append(buttonTables[profile_name]);
+
+                                if(!activeProfile){
+                                    profiles[profile_name].activate();
+                                }
+                            }
+                            if(!(profile_name in buttons[show_name])){
+                                buttons[show_name][profile_name] = new ButtonItem(show_name, profile_name);
+                                buttonTables[profile_name].append(buttons[show_name][profile_name]);
+                                buttonTables[profile_name].addButton();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if(msg.songs){
+                songsConfig = msg.songs;
+            }
+
+            if(msg.status){
+                for(let show_arr of showsCurr){
+                    show_name = show_arr[2];
+                    for(let profile_name in buttons[show_name]){
+                        buttons[show_name][profile_name].deactivate();
+                    }
+                }
+                showsCurr = msg.status.shows;
+                for(let show_arr of showsCurr){
+                    show_name = show_arr[2];
+                    for(let profile_name in buttons[show_name]){
+                        buttons[show_name][profile_name].activate();
+                    }
+                }
+                
+                rateCurr = msg.status.rate;
+                rateCurrElem.textContent = rateCurr.toFixed(1);
+                
+                if(rateNext == false){
+                    rateNext = rateCurr;
+                    rateNextElem.textContent = rateNext.toFixed(1);;
+                }
+
+                if(startTime){
+                    console.log(Date.now() - startTime);
+                }
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////
+
+    class ButtonItem extends HTMLElement {
+        constructor(show, profile) {
+            super();
+
+            this.appendChild(templateButtonItem.content.cloneNode(true));
+
+            this.show = show;
+            this.profile = profile;
+
+            this.trigger = showsConfig[this.show].trigger;
+            this.toggle = this.trigger == "toggle";
+            this.hold = this.trigger == "hold";
+            this.add = this.trigger == "add";
+
+            this.length = showsConfig[this.show].length;
+            this.bpm = showsConfig[this.show].bpm;
+
+            this.querySelector(".button-name").textContent = this.show;
+            this.querySelector(".button-length").textContent = this.length;
+            this.querySelector(".button-button").textContent = this.trigger;
+            if(showsConfig[this.show].loop){
+                this.querySelector(".button-loop").textContent = "∞";
+            }
+            if(showsConfig[this.show].bpm){
+                this.querySelector(".button-bpm").textContent = this.bpm + " bpm";
+            }
+
+            this.active = false;
+
+            //this.colorElem = this.querySelector(".button-color");
+
+            this.addEventListener('touchstart', this.press, false);
+            this.addEventListener('mousedown', this.press, false);
+
+            this.addEventListener('touchend', this.release, false);
+            this.addEventListener('mouseup', this.release, false);
+        }
+
+        press(event){
+            event.preventDefault();
+            if(this.toggle){
+                if(this.active){
+                    removeShow(this.show);
+                }else{
+                    addShow(this.show);
+                }
+            }else{
+                addShow(this.show);
+            }
+            this.classList.add('pressed');
+        }
+
+        release(event){
+            event.preventDefault();
+            if(this.hold){
+                removeShow(this.show);
+            }
+            this.classList.remove('pressed');
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('button-item-active');
+                this.active = true;
+                profiles[this.profile].increasePlaying();
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('button-item-active');
+                this.active = false;
+                profiles[this.profile].decreasePlaying();
+            }
+        }
+    }
+    customElements.define('button-item', ButtonItem);
+
+
+    class ProfileItem extends HTMLElement {
+        constructor(profile) {
+            super();
+
+            this.appendChild(templateProfileItem.content.cloneNode(true));
+
+            this.profile = profile;
+
+            this.nameElem = this.querySelector(".profile-name");
+            this.nameElem.textContent = this.profile;
+
+            this.playingElem = this.querySelector(".profile-playing");
+
+            this.active = false;
+
+            this.playing = 0;
+
+            this.onclick = function (event) {
+                event.preventDefault();
+                profiles[activeProfile].deactivate();
+                this.activate();
+            };
+        }
+
+        setPlaying(){
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        increasePlaying(){
+            this.playing++;
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        decreasePlaying(){
+            this.playing--;
+            if(this.playing == 0){
+                this.playingElem.textContent = "";
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('profile-item-active');
+                this.active = true;
+                buttonTables[this.profile].show();
+                activeProfile = this.profile;
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('profile-item-active');
+                this.active = false;
+                buttonTables[this.profile].hide();
+                activeProfile = null;
+            }
+        }
+    }
+    customElements.define('profile-item', ProfileItem);
+
+
+    class ButtonTable extends HTMLElement {
+        constructor(profile) {
+            super();
+
+            this.profile = profile;
+            this.page = 0;
+            this.pageCount = 0;
+            this.buttonCount = 0;
+        }
+
+        show(){
+            this.classList.add("button-table-active");
+        }
+
+        hide(){
+            this.classList.remove("button-table-active");
+        }
+
+        addButton(){
+            this.buttonCount++;
+            this.pageCount = Math.floor(this.buttonCount / 20);
+        }
+
+        down(){
+            this.page
+        }
+    }
+    customElements.define('button-table', ButtonTable);
+
+    function addShow(show){
+        let msg = {
+            type: "add_show",
+            show: show
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function removeShow(show){
+        let msg = {
+            type: "remove_show",
+            show: show
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function sendRate(rate){
+        let msg = {
+            type: "set_bpm",
+            bpm: rate
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function sendUpdate(){
+        let msg = {
+            type: "update_json"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    function sendClear(){
+        let msg = {
+            type: "clear_shows"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        startTime = Date.now();
+    }
+
+    var socket = null;
+    var socketConnected = false;
+    var socketAttempts = 0;
+
+    var startTime = false;
+
+    var showsConfig = {};
+    var songsConfig = {};
+    
+    var buttons = {};
+    var profiles = {};
+    var buttonTables = {};
+
+    var profileList = document.getElementById("profile-list");
+    var buttonTableWrapper = document.getElementById("button-table-wrapper");
+
+    var templateButtonItem = document.getElementById("template-button-item");
+    var templateProfileItem = document.getElementById("template-profile-item");
+
+    var rateCurr = false;
+    var rateNext = false;
+    var showsCurr = [];
+    var activeProfile = null;
+
+    var rateCurrElem = document.getElementById("rate-curr");
+    var rateNextElem = document.getElementById("rate-next");
+    var rateApplyElem = document.getElementById("rate-apply");
+    var rateIncElem = document.getElementById("rate-inc");
+    var rateDecElem = document.getElementById("rate-dec");
+
+    var updateElem = document.getElementById("update");
+    var clearElem = document.getElementById("clear");
+
+    // rateNextElem.focus();
+
+    // rateNextElem.onblur = function(){
+    //     fixRate();
+    // }
+    
+    function changeValue(num){
+        rateNext = Math.max(0.1, Math.min(300, rateNext + num));
+        rateNextElem.textContent = rateNext.toFixed(1);
+        timer = Math.max(16.67, timer * 0.9);
+        timeout = setTimeout(changeValue, timer, num);
+    }
+
+    function stopValue(){
+        clearTimeout(timeout);
+        timer = 250;
+    }
+
+    var timer = 250;
+    var timeout = null;
+
+    rateIncElem.addEventListener('touchstart', startIncrease, false);
+    rateIncElem.addEventListener('mousedown', startIncrease, false);
+    rateIncElem.addEventListener('touchend', stopIncrease, false);
+    rateIncElem.addEventListener('mouseup', stopIncrease, false);
+
+    rateDecElem.addEventListener('touchstart', startDecrease, false);
+    rateDecElem.addEventListener('mousedown', startDecrease, false);
+    rateDecElem.addEventListener('touchend', stopDecrease, false);
+    rateDecElem.addEventListener('mouseup', stopDecrease, false);
+
+
+    function startIncrease(event){
+        event.preventDefault();
+        rateIncElem.classList.add('pressed');
+        changeValue(0.1);
+    }
+
+    function stopIncrease(event){
+        event.preventDefault();
+        rateIncElem.classList.remove('pressed');
+        stopValue();
+    }
+
+    function startDecrease(event){
+        event.preventDefault();
+        rateDecElem.classList.add('pressed');
+        changeValue(-0.1);
+    }
+
+    function stopDecrease(event){
+        event.preventDefault();
+        rateDecElem.classList.remove('pressed');
+        stopValue();
+    }
+
+    rateApplyElem.onclick = function () {
+        sendRate(rateNext);
+    }
+
+    updateElem.onclick = function () {
+        sendUpdate();
+    }
+
+    clearElem.onclick = function () {
+        sendClear();
+    }
+
+    socketInit();
+
+    window.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
+
+</script>
+
+<style>
+    body {
+        color-scheme: dark;
+        user-select: none;
+        height: 100vh;
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        font-size: 0;
+        color: hsl(0, 0%, 80%);
+        background-color: hsl(0, 0%, 4%);
+    }
+
+    #profile-list{
+        position: absolute;
+        width: 20vw;
+        height: 70vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background-color: hsl(0, 0%, 8%);
+    }
+
+    profile-item{
+        position: relative;
+        height: 10vh;
+        margin: 0.5vw;
+        border-radius: 0.5vw;
+        display: block;
+        background-color: hsl(0, 0%, 15%);
+        cursor: pointer;
+    }
+
+    profile-item:active{
+        opacity: 0.8;
+        transform: scale(0.97);
+    }
+
+    .profile-item-active{
+        background-color: hsl(204, 100%, 24%);
+    }
+
+    .profile-name {
+        position: absolute;
+        width: 65%;
+        top: 50%;
+        left: 10%;
+        transform: translate(0%, -50%);
+        font-size: 3vh;
+    }
+
+    .profile-playing {
+        position: absolute;
+        width: 8%;
+        top: 50%;
+        right: 10%;
+        transform: translate(0%, -50%);
+        text-align: center;
+        font-size: 3vh;
+        font-weight: bold;
+        color: hsl(204, 100%, 32%);
+    }
+
+    #button-table-wrapper{
+        position: absolute;
+        right: 0;
+        width: 80vw;
+        height: 100vh;
+        background-color: hsl(0, 0%, 6%);
+        overflow: hidden;
+    }
+
+    #page-up{
+        position: absolute;
+        left: 0.5vw;
+        top: 12vh;
+        width: 4vw;
+        height: 9vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #page-count{
+        position: absolute;
+        left: 0vw;
+        top: 30.5vh;
+        width: 5vw;
+        height: 9vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #page-down{
+        position: absolute;
+        left: 0.5vw;
+        top: 49vh;
+        width: 4vw;
+        height: 9vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    button-table{
+        visibility: hidden;
+        opacity: 0;
+        transform: translateY(5vh);
+        position: absolute;
+        right: 0.5vw;
+        width: 79vw;
+        height: calc(100% - 0.5vw);
+        padding: 0.25vw;
+        overflow-x: hidden;
+        overflow-y: scroll;
+        transition: transform 150ms, opacity 150ms linear, visibility 150ms linear;
+    }
+
+    .button-table-active{
+        visibility: visible;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    @keyframes wipe{
+        0% {opacity: 0; display: none;}
+        90% {opacity: 0.9; display: none;}
+        100% {opacity: 1; display: block;}
+    }
+
+    button-item {
+        position: relative;
+        width: calc(20% - 0.5vw);
+        height: calc(25% - 0.5vw);
+        margin: 0.25vw;
+        border-radius: 0.5vw;
+        background-color: hsl(0, 0%, 12%);
+        display: inline-block;
+        cursor: pointer;
+        transition: transform 50ms linear;
+    }
+
+    .button-item-active{
+        background-color: hsl(204, 100%, 24%);
+    }
+
+    .pressed{
+        transform: scale(0.97);
+    }
+
+    .button-name {
+        position: absolute;
+        width: 75%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 3vh;
+    }
+
+    .button-bpm {
+        position: absolute;
+        bottom: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-length {
+        position: absolute;
+        top: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-loop {
+        position: absolute;
+        top: -0.2vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 3.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-button {
+        position: absolute;
+        bottom: 0.5vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 1.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    #update{
+        position: absolute;
+        left: 1vw;
+        bottom: 21vh;
+        width: 8.5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(40, 100%, 35%);
+        cursor: pointer;
+    }
+
+    #clear{
+        position: absolute;
+        left: 10.5vw;
+        bottom: 21vh;
+        width: 8.5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(0, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #rate-curr {
+        position: absolute;
+        left: 13vw;
+        bottom: 1vh;
+        width: 7vw;
+        height: 8vh;
+        font-size: 4vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        color: hsl(204, 100%, 32%);
+    }
+
+    #rate-next {
+        position: absolute;
+        left: 13vw;
+        bottom: 10vh;
+        width: 7vw;
+        height: 8vh;
+        font-size: 4vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+        color: hsl(120, 100%, 32%);
+    }
+
+    #rate-apply{
+        position: absolute;
+        left: 1vw;
+        bottom: 1vh;
+        width: 11vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(204, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #rate-dec{
+        position: absolute;
+        left: 1vw;
+        bottom: 10vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 4vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    #rate-inc{
+        position: absolute;
+        left: 7vw;
+        bottom: 10vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 6vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(120, 100%, 24%);
+        cursor: pointer;
+    }
+
+    .button:active{
+        opacity: 0.8;
+        transform: scale(0.97);
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+    
+    ::-webkit-scrollbar {
+        width: 7vw;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background-color: hsl(120, 100%, 24%);
+        border-radius: 1vw;
+    }
+
+</style>
+
+</html>

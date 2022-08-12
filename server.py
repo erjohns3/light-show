@@ -13,6 +13,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from tinytag import TinyTag
+from operator import add
 
 from helpers import *
 import sound_helpers
@@ -579,7 +580,7 @@ def update_json():
                 'artist': artist,
                 'duration': duration
             }
-    print(f'finishing up to ffprobing song lengths took {time.perf_counter() - begin:.2f} seconds')
+    print(f'finishing up to getting song detail lengths {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name, effect in effects_json.items():
         if 'loop' not in effect:
@@ -643,6 +644,7 @@ def update_json():
                         tmp[2], tmp[5] = tmp[5], tmp[2]
     print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
+    amt = 0
     for effect_name in complex_effects:
         effect = effects_json[effect_name]
         beats = effect['beats']
@@ -685,9 +687,12 @@ def update_json():
 
                 for i in range(length):
                     channels = channel_lut[name]['beats'][(i + offset) % channel_lut[name]['length']]
+
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    
+                    final_channel = channel_lut[effect_name]['beats'][start_beat + i]
                     for x in range(LIGHT_COUNT):
-                        channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
+                        final_channel[x] += channels[x] * mult
 
 
         # for i in range(channel_lut[effect_name]['length']):

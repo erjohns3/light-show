@@ -635,7 +635,9 @@ def update_json():
                 for i in range(length):
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
-                        channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
+                        beats[start_beat + i][x] += channels[x] * mult
+                    if args.invert:
+                        pass
     print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in complex_effects:

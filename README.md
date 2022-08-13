@@ -2,7 +2,7 @@
 
 ## example execution
 To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads 1 second behind when you save any of the files in the directory
-```python server.py --volume 5 --local --show hooked --jump_back 1 --reload```
+```python server.py --local --volume 7 --show butter --reload --skip 30```
 
 To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
 
@@ -30,28 +30,9 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 * youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"
 
-Difference between intuitive and real:
-100: 100
-75: 40
-50: 22
-25: 8
 
-(x*.9) ^ (2) from 0 to 1
-https://www.wolframalpha.com/input?i=%28x*.9%29+%5E+%282%29+from+0+to+1
-
-
-Eric found something saying it should just be x^2.2, so thats what we are doing
-* shelter notes
-16 bars intro
-16 bars build-up (last 4 are softer)
-32 bars chorus
-4 bars 
-8 bars porter singing
-16 bars porter singing
-16 build
-16 build more
-32 chorus
-
+* python server.py --local --volume 7 --show butter
+--reload --speed 1 --skip 80
 
 * find port for python
 sudo ss -lptn 'sport = :8000'
@@ -63,3 +44,45 @@ sudo ss -lptn 'sport = :8000'
 
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o
+
+
+
+## to fix the terminal output scaling, here are some mappings:
+* Green:
+    * 1: 100%
+    * .9: 95%
+    * .5: 70%
+    * .4: 60%
+    * .3: 45%
+    * .2: 30%
+    * .15: 15%
+    * .14: 10%
+    * .13: 8%
+    * .12: 5%
+    * .11: 1%
+    * .1: 0%
+
+* Red:
+    * 1: 100%
+    * .9: 95%
+    * .5: 70%
+    * .4: 60%
+    * .3: 40%
+    * .25: 25%
+    * .2: 10%
+    * .14: 2%
+    * .13: 1%
+    * .12: 0%
+
+* Blue:
+    * 1: 100%
+    * .9: 90%
+    * .5: 65%
+    * .4: 50%
+    * .3: 35%
+    * .25: 28%
+    * .2: 20%
+    * .14: 5%
+    * .13: 3%
+    * .12: 1%
+    * .11: 0%

@@ -13,6 +13,7 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from tinytag import TinyTag
+from operator import add
 
 from helpers import *
 import sound_helpers
@@ -579,7 +580,7 @@ def update_json():
                 'artist': artist,
                 'duration': duration
             }
-    print(f'finishing up to ffprobing song lengths took {time.perf_counter() - begin:.2f} seconds')
+    print(f'finishing up to getting song detail lengths {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name, effect in effects_json.items():
         if 'loop' not in effect:
@@ -636,8 +637,14 @@ def update_json():
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
+                    if args.invert:
+                        tmp = channel_lut[effect_name]['beats'][start_beat + i]
+                        tmp[0], tmp[3] = tmp[3], tmp[0]
+                        tmp[1], tmp[4] = tmp[4], tmp[1]
+                        tmp[2], tmp[5] = tmp[5], tmp[2]
     print(f'finishing up to simple effects took {time.perf_counter() - begin:.2f} seconds')
 
+    amt = 0
     for effect_name in complex_effects:
         effect = effects_json[effect_name]
         beats = effect['beats']
@@ -680,10 +687,14 @@ def update_json():
 
                 for i in range(length):
                     channels = channel_lut[name]['beats'][(i + offset) % channel_lut[name]['length']]
+
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    
+                    final_channel = channel_lut[effect_name]['beats'][start_beat + i]
                     for x in range(LIGHT_COUNT):
-                        channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
-  
+                        final_channel[x] += channels[x] * mult
+
+
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
         #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
@@ -754,6 +765,7 @@ parser.add_argument('--print_beat', dest='print_beat', default=False, action='st
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
+parser.add_argument('--invert', dest='invert', default=False, action='store_true')
 args = parser.parse_args()
 
 args.volume = args.volume / 100

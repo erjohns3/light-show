@@ -6,7 +6,7 @@ effects = {
     # 265 - 393
     "Okaerinasai Show":{
         "beats":{
-            "1": [["Pulse", 64]],
+            "1": [["RBBB 1 bar", 64]],
             "65": [["wandering", 64]],
             "129": [["RBBB 1 bar", 64]],
             "193": [["Pink bottom", 8]],

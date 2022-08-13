@@ -850,6 +850,8 @@ async def start_async():
                 shows_json[args.show]['bpm'] *= args.speed
                 shows_json[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
                 args.skip_show *= 1 / args.speed
+                shows_json[args.show]['skip_song'] *= 1 / args.speed
+                shows_json[args.show]['delay_lights'] *= 1 / args.speed
             if args.skip_show:
                 shows_json[args.show]['skip_song'] += args.skip_show
                 shows_json[args.show]['delay_lights'] -= args.skip_show

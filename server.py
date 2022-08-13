@@ -706,7 +706,7 @@ def update_json():
         if 'song' in show and show['song'] in songs_json:
             duration = songs_json[show['song']]['duration']
         if 'duration' in show:
-            duration = min(duration, show['duration'])
+            duration = show['duration']
         show['length'] = length
         show['duration'] = duration
         show['loop'] = loop

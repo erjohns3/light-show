@@ -6,7 +6,7 @@ effects = {
         "delay_lights": .6,
         "skip_song": 0,
         "bpm": 130,
-        "song": "Brett Kavanaugh Hearing Automatic x Levels Remix.ogg",
+        "song_path": "songs/Brett Kavanaugh Hearing Automatic x Levels Remix.ogg",
         "profiles": ["Shows"],
     },
 }

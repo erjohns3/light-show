@@ -141,7 +141,7 @@ effects = {
         "delay_lights": 0.1,
         "skip_song": 0.21,
         "bpm": 100,
-        "song": "shelter.ogg",
+        "song_path": "songs/shelter.ogg",
         "profiles": ["Shows"],
     },
 }

@@ -149,7 +149,7 @@ effects = {
         "delay_lights": 0,
         "skip_song": 0,
         "bpm": 128,
-        "song": "Notion - Hooked.ogg",
+        "song_path": "songs/Notion - Hooked.ogg",
         "profiles": ["Shows"],
     },
 }

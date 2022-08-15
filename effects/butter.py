@@ -179,7 +179,7 @@ effects = {
         "delay_lights": .14,
         "skip_song": 0,
         "bpm": 112,
-        "song": "Not Butter.ogg",
+        "song_path": "songs/Not Butter.ogg",
         "profiles": ["Shows"],
     },
 }

@@ -35,7 +35,7 @@ effects = {
         "delay_lights": .22,
         "skip_song": 0,
         "bpm": 120,
-        "song": "Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg",
+        "song_path": "songs/Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg",
         "profiles": ["Shows"],
     },
 }

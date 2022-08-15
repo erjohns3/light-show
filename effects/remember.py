@@ -12,7 +12,7 @@ effects = {
         "delay_lights": 0.1,
         "skip_song": 0,
         "bpm": 128,
-        "song": "deadmau5 & Kaskade - I Remember (HQ).ogg",
+        "song_path": "songs/deadmau5 & Kaskade - I Remember (HQ).ogg",
         "profiles": ["Shows"],
     },
 }

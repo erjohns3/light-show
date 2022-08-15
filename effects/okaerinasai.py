@@ -17,7 +17,7 @@ effects = {
         "delay_lights": .65,
         "skip_song": 0,
         "bpm": 176,
-        "song": "Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg",
+        "song_path": "songs/Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg",
         "profiles": ["Shows"],
     },
 }

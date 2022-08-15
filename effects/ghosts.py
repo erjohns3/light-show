@@ -99,7 +99,7 @@ effects = {
         "delay_lights": 0,
         "skip_song": 4.2,
         "bpm": 128,
-        "song": "deadmau5 feat. Rob Swire - Ghosts N Stuff.ogg",
+        "song_path": "songs/deadmau5 feat. Rob Swire - Ghosts N Stuff.ogg",
         "profiles": ["Shows"],
     },
 }

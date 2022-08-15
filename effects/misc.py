@@ -136,7 +136,7 @@ effects = {
         "delay_lights": 6.3,
         "skip_song": 0.0,
         "bpm": 97,
-        "song": "Cheesecake.ogg",
+        "song_path": "songs/Cheesecake.ogg",
         "profiles": ["Shows"]
     },
     "4 Bar Timing Show":{
@@ -153,7 +153,7 @@ effects = {
         "delay_lights": 0.0,
         "skip_song": 0,
         "bpm": 125,
-        "song": "musician2.ogg",
+        "song_path": "songs/musician2.ogg",
         "profiles": ["Shows"],
     },
     "Telepathic Love Show":{
@@ -209,7 +209,7 @@ effects = {
         "delay_lights": 0.0,
         "skip_song": 0.35,
         "bpm": 144,
-        "song": "attack_season_4_op.ogg",
+        "song_path": "songs/attack_season_4_op.ogg",
         "profiles": ["Shows"],
     },
     "Luigi Bass hits":{
@@ -279,7 +279,7 @@ effects = {
         "delay_lights": 0.0,
         "skip_song": 1.74,
         "bpm": 90,
-        "song": "luigi.ogg",
+        "song_path": "songs/luigi.ogg",
         "profiles": ["Shows"],
     },
 }

@@ -25,7 +25,7 @@ def generate_show(song_filepath):
     # exit()
 
     rhythm_extractor = RhythmExtractor2013(method="multifeature")
-    bpm, beats, beats_confidence, _, beats_intervals = rhythm_extractor(audio)
+    bpm, model_beat_seconds, beats_confidence, _, beats_intervals = rhythm_extractor(audio)
 
     rounded_bpm = int(round(bpm, 0))
     print(f'BPM: real: {bpm}, rounded: {rounded_bpm}',)
@@ -34,14 +34,15 @@ def generate_show(song_filepath):
     # Write to an audio file in a temporary directory.
     beats_filepath = get_temp_dir().joinpath(f'{song_filepath.stem}_beat_data.dat')
     with open(beats_filepath, 'w') as f:
-        f.writelines([' '.join(map(str, beats))])
+        f.writelines([' '.join(map(str, model_beat_seconds))])
 
 
     # Mark beat positions in the audio with beeps and write it to a file.
-    marker = AudioOnsetsMarker(onsets=beats, type='beep')
+    marker = AudioOnsetsMarker(onsets=model_beat_seconds, type='beep')
     marked_audio = marker(audio)
     click_filepath = get_temp_dir().joinpath(f'{song_filepath.stem}_beeps{song_filepath.suffix}')
     MonoWriter(filename=str(click_filepath))(marked_audio)
+
 
     show = {
         'bpm': rounded_bpm,
@@ -52,31 +53,26 @@ def generate_show(song_filepath):
         'beats': {}
     }
 
+    # Finding proper delay
+    static_beat_times = []
+    second_medians = []
+    for beat, second_predicted in enumerate(model_beat_seconds):
+        seconds_passed = beat * (60 / rounded_bpm)
+        second_medians.append(second_predicted - seconds_passed)
 
-    # !making inteligent decicions or something
-    # sound = AudioSegment.from_file(song_filepath, format='mp3')
 
-    # y, sr = librosa.load(librosa.ex('nutcracker'))
-    # hop_length = 512
-    # y_harmonic, y_percussive = librosa.effects.hpss(y)
-    # Beat track on the percussive signal
-    # tempo, beat_frames = librosa.beat.beat_track(y=y_percussive, sr=sr)
-    # Compute MFCC features from the raw signal
-    # mfcc = librosa.feature.mfcc(y=y, sr=sr, hop_length=hop_length, n_mfcc=13)
-    # print(mfcc)
+    # this stuff sucks for some reason. the model is prob just trash
+    # delay_amount = sum(second_medians) / len(second_medians)
+    # show['delay_lights'] = delay_amount
+    show['delay_lights'] = 0
 
-    # mfcc_delta = librosa.feature.delta(mfcc)
-    # print(mfcc_delta)
-
-    # output = np.mean(librosa.feature.rms(audio, center=True).T, axis=0)
-    # print(output)
-    # exit()
-    
+    # applying lights
     modes_to_cycle = ['Red top', 'Green top']
-    for index, second in enumerate(beats):
-        beat = str(round(second * (rounded_bpm / 60), 3)) 
-        mode = modes_to_cycle[index % len(modes_to_cycle)]
-        show['beats'][beat] = [mode, .25]
+    total_beats = 1 + int(model_beat_seconds[-1] * (rounded_bpm / 60))
+    for beat in range(1, total_beats):
+        # beat = str(round(second * (rounded_bpm / 60), 3))
+        mode = modes_to_cycle[beat % len(modes_to_cycle)]
+        show['beats'][str(int_or_float(beat))] = [mode, .25]
     return {
         f'generated_{song_filepath.stem}': show
     }
@@ -122,3 +118,24 @@ if __name__ == '__main__':
 
         effects_str = 'effects = ' + effects_str
         f.writelines([effects_str])
+
+
+
+
+
+# old stuff
+# y, sr = librosa.load(librosa.ex('nutcracker'))
+# hop_length = 512
+# y_harmonic, y_percussive = librosa.effects.hpss(y)
+# Beat track on the percussive signal
+# tempo, beat_frames = librosa.beat.beat_track(y=y_percussive, sr=sr)
+# Compute MFCC features from the raw signal
+# mfcc = librosa.feature.mfcc(y=y, sr=sr, hop_length=hop_length, n_mfcc=13)
+# print(mfcc)
+
+# mfcc_delta = librosa.feature.delta(mfcc)
+# print(mfcc_delta)
+
+# output = np.mean(librosa.feature.rms(audio, center=True).T, axis=0)
+# print(output)
+# exit()

@@ -15,7 +15,7 @@ from helpers import *
 
 
 def generate_show(song_filepath):
-    print(f'{bcolors.OKCYAN}Generating show for "{song_filepath}"{bcolors.ENDC}')
+    print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
     audio = MonoLoader(filename=str(song_filepath))()
 
     # rhythm_extractor = BeatsLoudness()
@@ -74,9 +74,9 @@ def generate_show(song_filepath):
     
     modes_to_cycle = ['Red top', 'Green top']
     for index, second in enumerate(beats):
+        beat = str(round(second * (rounded_bpm / 60), 3)) 
         mode = modes_to_cycle[index % len(modes_to_cycle)]
-        show['beats'][str(index + 1)] = [mode, float(second)]
-
+        show['beats'][beat] = [mode, .25]
     return {
         f'generated_{song_filepath.stem}': show
     }
@@ -94,27 +94,31 @@ def eliminate(string, matches):
     return string
 
 
+def int_or_float(i):
+    i = float(i)
+    if abs(i - round(i)) < .0001:
+        return round(i)
+    return i
 
 if __name__ == '__main__':
-    print("SHOULDNT RUN")
-    output_filepath = get_temp_dir().joinpath('temp_generated_show.py')
-    print(f'{bcolors.OKGREEN}Running generate_show for "{2}" and outputting to "{output_filepath}"{bcolors.ENDC}')
-
     song_name = 'musician2.ogg'
     song_filepath = pathlib.Path('songs').joinpath(song_name)
+    output_filepath = get_temp_dir().joinpath(f'generated_show_{song_filepath.stem}.py')
+
     effect_dict = generate_show(song_filepath)
     
+    print(f'{bcolors.OKGREEN}Outputting generated show to "{output_filepath}"{bcolors.ENDC}')
     with open(output_filepath, 'w') as f:
+        for effect in effect_dict.values():
+            effect['beats'] = {int_or_float(i):v for i, v in effect['beats'].items()}
         effects_str = json.dumps(effect_dict, indent=4, sort_keys=True)
 
+        # jank formatting
         before_string_matches = re.findall(r"\[(\s+)\"", effects_str)
         effects_str = eliminate(effects_str, before_string_matches)
-        after_digit = re.findall(r"\d(\s+)\]", effects_str)
-        effects_str = eliminate(effects_str, after_digit)
-        effects_str = effects_str.replace('[[', '[\n            [')
-        effects_str = effects_str.replace('],[', '],\n            [')
-        
+        effects_str = effects_str.replace('],"', '],\n            "')
+        effects_str = effects_str.replace('"beats": {"', '"beats": {\n            "')
+        effects_str = effects_str.replace('"Generated Shows"\n        ],', '"Generated Shows"],')
+
         effects_str = 'effects = ' + effects_str
-
         f.writelines([effects_str])
-

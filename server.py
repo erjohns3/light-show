@@ -206,9 +206,9 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'remove_queue':
                 effect_name = msg['effect']
-                num = msg['num']
+                salt = msg['salt']
                 for i in range(len(song_queue)):
-                    if song_queue[i][0] == effect_name and song_queue[i][1] == num:
+                    if song_queue[i][0] == effect_name and song_queue[i][1] == salt:
                         song_queue.pop(i)
                         if i == 0:
                             stop_song()

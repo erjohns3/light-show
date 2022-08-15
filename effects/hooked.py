@@ -129,7 +129,7 @@ effects = {
             "17": [["Purple bottom", 16, 0.2, 0.05], ["hooked wandering top", 16, .8, .5]],
         }
     },
-    "Hooked Show": {
+    "hooked show": {
         "beats":{
             "8": [["hooked scream fade", 2, 0.4, 0.2]],
             "9": [["hooked bottom kick intro", 12, .1, .6]],
@@ -145,6 +145,11 @@ effects = {
             "325": [["hooked buildup", 4]],
             "329": [["hooked chorus", 96]],
             "425": [["Nothing", 6]],
-        }
-    }
+        },
+        "delay_lights": 0,
+        "skip_song": 0,
+        "bpm": 128,
+        "song": "Notion - Hooked.ogg",
+        "profiles": ["Shows"],
+    },
 }

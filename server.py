@@ -322,12 +322,15 @@ async def render_to_terminal(all_levels):
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
     
     effect_specific = ''
-    if curr_effects and has_song(curr_effects[0][0]):
-        index = (beat_index + curr_effects[0][1])
-        time_diff = time.perf_counter() - time_start
-        effect_specific = f"""\
-, {round(100 * (index / channel_lut[curr_effects[0][0]]['length']))}% lights\
-, {round(100 * (time_diff / songs_config[curr_effects[0][0]['song']]['duration']))}% song\
+    if curr_effects:
+        show_name = curr_effects[0][0]
+        if has_song(show_name):
+            index = (beat_index + curr_effects[0][1])
+            time_diff = time.perf_counter() - time_start
+            filename = effects_config[show_name]['song']
+            effect_specific = f"""\
+, {round(100 * (index / channel_lut[show_name]['length']))}% lights\
+, {round(100 * (time_diff / songs_config[filename]['duration']))}% song\
 """
 
     useful_info = f"""\
@@ -545,7 +548,6 @@ def update_config():
         else:
             all_globals[module] = importlib.import_module(module)
         effects_config.update(all_globals[module].effects)
-
     print(f'finishing up to imports took {time.perf_counter() - begin:.2f} seconds')
 
     songs_config = {}
@@ -688,7 +690,7 @@ def update_config():
                 if len(component) == 3:
                     component.append(1)
                 if len(component) == 4:
-                    component.append(0)    
+                    component.append(0)
                 calced_effect_length = max(calced_effect_length, float(beat) + component[1] - 1)
         if 'length' not in effect:
             effect['length'] = calced_effect_length
@@ -846,8 +848,6 @@ async def start_async():
     if args.show:
         print('Starting show from CLI')
         if args.show in effects_config:
-            print(f'Duration of song: {effects_config[args.show]["duration"]} seconds')
-            
             if args.speed != 1 and 'song' in effects_config[args.show]:
                 effects_config[args.show]['bpm'] *= args.speed
                 effects_config[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(effects_config[args.show]['song']), args.speed)
@@ -861,7 +861,7 @@ async def start_async():
             add_effect(args.show)
             play_song(args.show)
         else:
-            print(f'Couldnt find effect named "{args.show}" in any profile')
+            print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
     asyncio.create_task(light())
 
     await dj_socket_server.wait_closed() and queue_socket_server.wait_closed()

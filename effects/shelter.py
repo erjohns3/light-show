@@ -113,7 +113,7 @@ effects = {
             "5": [[[0, 255, 0, 0, 0, 0, 0], 3, 0.08, 0.08]]
         }
     },
-    "Shelter Show": {
+    "shelter show": {
         "beats":{
             "1": [["muddy yellow ay", 1], ["Blue fade bottom", 16]],
             "5": [["muddy yellow ay", 1]],
@@ -137,6 +137,11 @@ effects = {
             "97": [["Rainbow bad", 16]],
             "98": [["Green fade", 14]],
             "129": [["Shelter Chorus", 32]],
-        }
-    }
+        },
+        "delay_lights": 0.1,
+        "skip_song": 0.21,
+        "bpm": 100,
+        "song": "shelter.ogg",
+        "profiles": ["Shows"],
+    },
 }

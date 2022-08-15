@@ -82,7 +82,7 @@ effects = {
         }
     },
 
-    "Ghosts Show": {
+    "ghosts show": {
         "beats":{
             "17": [["Ghosts melody", 96], ["Ghosts bassline", 96], ["Ghosts blue fade", 96], ["Ghosts UV fade", 96]],
             "81": [["Ghosts UV", 32]],
@@ -95,6 +95,11 @@ effects = {
             "305": [["Ghosts breakdown", 32], ["Ghosts bassline", 64, 0.3, 0.3]],
             "337": [["UV", 32]],
             "369": [["Ghosts bassline", 32]],
-        }
-    }
+        },
+        "delay_lights": 0,
+        "skip_song": 4.2,
+        "bpm": 128,
+        "song": "deadmau5 feat. Rob Swire - Ghosts N Stuff.ogg",
+        "profiles": ["Shows"],
+    },
 }

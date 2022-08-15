@@ -1,5 +1,5 @@
 effects = {
-    "Visitor":{
+    "visitor show":{
         "length": 1,
         "beats":{
             "1": [[100, 0, 0, 100, 0, 0, 0], 0.04],

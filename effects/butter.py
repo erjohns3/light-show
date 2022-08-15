@@ -163,7 +163,7 @@ effects = {
             "1": ["Blue bottom", 64, 1, 1],
         }
     },
-    "Not Butter Show":{
+    "butter show":{
         "beats":{
             "1": [["Nothing", 32]],
             "33": [["wandering", 32]],
@@ -175,6 +175,11 @@ effects = {
             "193": [["UV Pulse", 64]],
             "257": [["RBBB 1 bar", 64]], # buildup
             "321": [["butter chorus", 64]],
-        }
+        },
+        "delay_lights": .14,
+        "skip_song": 0,
+        "bpm": 112,
+        "song": "Not Butter.ogg",
+        "profiles": ["Shows"],
     },
 }

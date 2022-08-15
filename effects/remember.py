@@ -1,6 +1,6 @@
 effects = {
     # 1 - 64: 
-    "I Remember Show":{
+    "remember show":{
         "beats":{
             "1": [["RBBB 1 bar", 64]],
             "65": [["wandering", 64]],
@@ -8,6 +8,11 @@ effects = {
             "193": [["Ghosts bassline", 64]],
             "257": [["RBBB 1 bar", 64]],
             # "394": [["Blue top", 64]],
-        }
+        },
+        "delay_lights": 0.1,
+        "skip_song": 0,
+        "bpm": 128,
+        "song": "deadmau5 & Kaskade - I Remember (HQ).ogg",
+        "profiles": ["Shows"],
     },
 }

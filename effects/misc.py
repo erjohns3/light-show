@@ -126,25 +126,35 @@ effects = {
             "1.2": [[[0, 100, 50, 0, 0, 0, 0], 0.07]],
         }
     },
-    "Cheesecake Show":{
+    "cheesecake show":{
         "beats":{
             "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],
             "65": [["Ghosts bassline", 14]],
             "79": [["RB Strobe Top Bottom", 2]],
             "81": [["Cheesecake time", 32], ["Rainbow bad", 32]]
-        }
+        },
+        "delay_lights": 6.3,
+        "skip_song": 0.0,
+        "bpm": 97,
+        "song": "Cheesecake.ogg",
+        "profiles": ["Shows"]
     },
     "4 Bar Timing Show":{
         "beats":{
             "1": [["RBBB 1 bar", 200]]
         }
     },
-    "Musician Show":{
+    "musician show":{
         "length": 16,
         "beats":{
             "1": [["Rainbow bad", 12], ["sidechain_test", 12]],
             "13": [["Musician Lyrical Oo", 4]]
-        }
+        },
+        "delay_lights": 0.0,
+        "skip_song": 0,
+        "bpm": 125,
+        "song": "musician2.ogg",
+        "profiles": ["Shows"],
     },
     "Telepathic Love Show":{
         "beats":{
@@ -183,7 +193,7 @@ effects = {
             "7": [[0, 0, 0, 0, 0, 0, 70], 1.2, 1, 0]
         }
     },
-    "Attack on Titan Show":{
+    "attack show":{
         "beats":{
             "1": [["Green fade", 1]],
             "3": [["Yellow fade", 1]],
@@ -195,7 +205,12 @@ effects = {
             "15": [["Triplets top", 2]],
             "17": [["Flash all", 1], ["Attack repeater", 8]],
             "25": ["Attack repeater", 24]
-        }
+        },
+        "delay_lights": 0.0,
+        "skip_song": 0.35,
+        "bpm": 144,
+        "song": "attack_season_4_op.ogg",
+        "profiles": ["Shows"],
     },
     "Luigi Bass hits":{
         "length": 4,
@@ -238,7 +253,7 @@ effects = {
             "1.5": [[0, 5, 0, 10, 0, 10, 5], 0.35, 1, 0]
         }
     },
-    "Luigi Show":{
+    "luigi show":{
         "beats":{
             "1": [["Luigi Bassline", 32]],
             "13": [["UV", 4], ["Luigi Hats", 4]],
@@ -260,6 +275,11 @@ effects = {
             "59": [["Luigi Bassline", 32]],
             "71": [["UV", 4], ["Luigi Hats", 4]],
             "83": [["UV", 4], ["Luigi Hats", 4]]
-        }
+        },
+        "delay_lights": 0.0,
+        "skip_song": 1.74,
+        "bpm": 90,
+        "song": "luigi.ogg",
+        "profiles": ["Shows"],
     },
 }

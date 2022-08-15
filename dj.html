@@ -433,14 +433,11 @@
     var pageLabelElem = document.getElementById("page-label");
     var pageDownElem = document.getElementById("page-down");
 
-    pageUpElem.addEventListener('touchstart', pageUp, false);
-    pageDownElem.addEventListener('touchstart', pageDown, false);
-
-    function pageUp(){
+    pageUpElem.onclick = function(){
         buttonTables[activeProfile].up();
     }
 
-    function pageDown(){
+    pageDownElem.onclick = function(){
         buttonTables[activeProfile].down();
     }
 

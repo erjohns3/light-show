@@ -97,13 +97,13 @@
                 songsConfig = msg.songs;
             }
             
-            if(msg.shows){
-                showsConfig = msg.shows;
-                for(let show_name in showsConfig){
-                    if('song' in showsConfig[show_name]){
-                        if(!(show_name in available)){
-                            available[show_name] = new AvailableItem(show_name);
-                            availableList.append(available[show_name]);
+            if(msg.effects){
+                effectsConfig = msg.effects;
+                for(let effect_name in effectsConfig){
+                    if('song' in effectsConfig[effect_name]){
+                        if(!(effect_name in available)){
+                            available[effect_name] = new AvailableItem(effect_name);
+                            availableList.append(available[effect_name]);
                         }
                     }
                 }
@@ -129,7 +129,7 @@
                     }
                 }
                 for(let i=0; i<queueConfig.length; i++){
-                    let show_name = queueConfig[i][0];
+                    let effect_name = queueConfig[i][0];
                     let num = queueConfig[i][1];
                     let key = queueConfig[i].join('-');
 
@@ -138,7 +138,7 @@
                             index++;
                         }
                         queue[key] = queueArray[index];
-                        queue[key].setSong(show_name, num, key);
+                        queue[key].setSong(effect_name, num, key);
                         queue[key].setPosition(i);
                     }
                 }
@@ -171,15 +171,15 @@
     /////////////////////////////////////////////////////////////////////
 
     class AvailableItem extends HTMLElement {
-        constructor(show) {
+        constructor(effect) {
             super();
 
             this.appendChild(templateAvailableItem.content.cloneNode(true));
 
-            this.show = show;
+            this.effect = effect;
             this.name = this.querySelector(".available-item-name");
             this.artist = this.querySelector(".available-item-artist");
-            this.song = showsConfig[this.show].song;
+            this.song = effectsConfig[this.effect].song;
 
             this.name.textContent = songsConfig[this.song].name;
             this.artist.textContent = songsConfig[this.song].artist;
@@ -187,7 +187,7 @@
             this.queueBackButton = this.querySelector(".available-item-back");
             this.queueBackButton.onclick = (event)=>{
                 event.preventDefault();
-                addQueueBack(this.show);
+                addQueueBack(this.effect);
             };
         }
 
@@ -201,7 +201,7 @@
 
             this.appendChild(templateQueueItem.content.cloneNode(true));
 
-            this.show = null
+            this.effect = null
             this.num = null;
             this.name = this.querySelector(".queue-item-name");
             this.artist = this.querySelector(".queue-item-artist");
@@ -215,7 +215,7 @@
             this.removeButton = this.querySelector(".queue-item-remove");
             this.removeButton.onclick = (event)=>{
                 event.preventDefault();
-                removeQueue(this.show, this.num);
+                removeQueue(this.effect, this.num);
             };
         }
 
@@ -226,12 +226,12 @@
             }
         }
 
-        setSong(show, num, key){
-            this.show = show;
+        setSong(effect, num, key){
+            this.effect = effect;
             this.num = num;
             this.key = key;
             this.used = true;
-            this.song = showsConfig[this.show].song;
+            this.song = effectsConfig[this.effect].song;
             this.name.textContent = songsConfig[this.song].name;
             this.artist.textContent = songsConfig[this.song].artist;
             this.style.visibility = "visible";
@@ -248,37 +248,37 @@
 
     /////////////////////////////////////////////////////////////
 
-    function addQueueBack(show){
+    function addQueueBack(effect){
         let msg = {
             type: "add_queue_back",
-            show: show
+            effect: effect
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
     }
 
-    function addQueueFront(show){
+    function addQueueFront(effect){
         let msg = {
             type: "add_queue_back",
-            show: show
+            effect: effect
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
     }
 
-    function addQueueFront(show){
+    function addQueueFront(effect){
         let msg = {
             type: "add_queue_front",
-            show: show
+            effect: effect
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
     }
 
-    function removeQueue(show, num){
+    function removeQueue(effect, num){
         let msg = {
             type: "remove_queue",
-            show: show,
+            effect: effect,
             num: num
         };
         socket.send(JSON.stringify(msg));
@@ -332,7 +332,7 @@
 
     document.documentElement.style.setProperty('--vh', (windowHeight * 0.01) + "px");
 
-    var showsConfig = {};
+    var effectsConfig = {};
     var songsConfig = {};
     var queueConfig = [];
 

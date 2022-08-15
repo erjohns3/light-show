@@ -10,7 +10,7 @@ import websockets
 import http.server
 import argparse
 import os
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 from tinytag import TinyTag
 from operator import add
@@ -38,7 +38,7 @@ light_sockets = []
 song_sockets = []
 
 song_playing = False
-show_num = 0
+queue_salt = 0
 
 pygame.mixer.init()
 
@@ -51,7 +51,7 @@ Handler = http.server.SimpleHTTPRequestHandler
 local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
-    httpd = http.server.ThreadingHTTPServer(("", PORT), Handler)
+    httpd = http.server.ThreadingHTTPServer(('', PORT), Handler)
     print(f'{bcolors.OKGREEN}serving dj set at: http://{local_ip}:{PORT}/dj.html')
     print(f'serving queue at: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
@@ -63,10 +63,10 @@ async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing
 
     message = {
-        'shows': shows_json,
-        'songs': songs_json,
+        'effects': effects_config,
+        'songs': songs_config,
         'status': {
-            'shows': curr_effects,
+            'effects': curr_effects,
             'rate': curr_bpm
         }
     }
@@ -74,7 +74,7 @@ async def init_dj_client(websocket, path):
     try:
         await websocket.send(dump)
     except:
-        print("socket send failed", flush=True)
+        print('socket send failed', flush=True)
 
     light_sockets.append(websocket)
 
@@ -86,48 +86,50 @@ async def init_dj_client(websocket, path):
                 if light_sockets[i] == websocket:
                     light_sockets.pop(i)
                     break
-            print("socket recv FAILED - " + websocket.remote_address[0] + " : " + str(websocket.remote_address[1]), flush=True)
+            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
         msg = json.loads(msg_string)
+
+        print(msg)
 
         if 'type' in msg:
             light_lock.acquire()
 
             broadcast_song = False
 
-            if msg['type'] == 'add_show':
-                show_name = msg['show']
+            if msg['type'] == 'add_effect':
+                effect_name = msg['effect']
 
-                if has_song(show_name):
+                if has_song(effect_name):
                     if song_playing and len(song_queue) > 0:
                         song_queue.pop()
-                    song_queue.insert(0, [show_name, get_show_num()])
-                    play_song(show_name)
+                    song_queue.insert(0, [effect_name, get_queue_salt()])
+                    play_song(effect_name)
                     song_playing = True
                     broadcast_song = True
-                add_effect(show_name)
+                add_effect(effect_name)
 
-            elif msg['type'] == 'remove_show':
-                show_name = msg['show']
-                if has_song(show_name):
+            elif msg['type'] == 'remove_effect':
+                effect_name = msg['effect']
+                if has_song(effect_name):
                     if song_playing and len(song_queue) > 0:
                         song_queue.pop()
                     stop_song()
                     song_playing = False
                     broadcast_song = True
-                index = curr_effect_index(show_name)
+                index = curr_effect_index(effect_name)
                 if index is not False:
                     remove_effect(index)
 
-            elif msg['type'] == 'clear_shows':
+            elif msg['type'] == 'clear_effects':
                 clear_effects()
                 stop_song()
                 #BROKEN
 
-            elif msg['type'] == 'update_json':
+            elif msg['type'] == 'update_config':
                 clear_effects()
-                update_json()
+                update_config()
                 #BROKEN
 
             elif msg['type'] == 'set_bpm':
@@ -143,14 +145,12 @@ async def init_dj_client(websocket, path):
             await send_light_status() # we might want to lock this
 
 
-
-
 async def init_queue_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing
 
     message = {
-        'shows': shows_json,
-        'songs': songs_json,
+        'effects': effects_config,
+        'songs': songs_config,
         'queue': song_queue,
         'status': {
             'playing': song_playing
@@ -160,7 +160,7 @@ async def init_queue_client(websocket, path):
     try:
         await websocket.send(dump)
     except:
-        print("socket send failed", flush=True)
+        print('socket send failed', flush=True)
 
     song_sockets.append(websocket)
 
@@ -172,7 +172,7 @@ async def init_queue_client(websocket, path):
                 if song_sockets[i] == websocket:
                     song_sockets.pop(i)
                     break
-            print("socket recv FAILED - " + websocket.remote_address[0] + " : " + str(websocket.remote_address[1]), flush=True)
+            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
         msg = json.loads(msg_string)
@@ -183,41 +183,41 @@ async def init_queue_client(websocket, path):
             broadcast_light = False
 
             if msg['type'] == 'add_queue_back':
-                show_name = msg['show']
-                song_queue.append([show_name, get_show_num()])
+                effect_name = msg['effect']
+                song_queue.append([effect_name, get_queue_salt()])
                 if len(song_queue) == 1:
-                    play_song(show_name)
+                    play_song(effect_name)
                     song_playing = True
-                    add_effect(show_name)
+                    add_effect(effect_name)
                     broadcast_light = True
             
             elif msg['type'] == 'add_queue_front':
-                show_name = msg['show']
+                effect_name = msg['effect']
                 if len(song_queue) == 0:
-                    song_queue.append([show_name, get_show_num()])
+                    song_queue.append([effect_name, get_queue_salt()])
                 else:
-                    song_queue.insert(1, [show_name, get_show_num()])
+                    song_queue.insert(1, [effect_name, get_queue_salt()])
                 if len(song_queue) == 1:
-                    play_song(show_name)
+                    play_song(effect_name)
                     song_playing = True
-                    add_effect(show_name)
+                    add_effect(effect_name)
                     broadcast_light = True
 
             elif msg['type'] == 'remove_queue':
-                show_name = msg['show']
+                effect_name = msg['effect']
                 num = msg['num']
                 for i in range(len(song_queue)):
-                    if song_queue[i][0] == show_name and song_queue[i][1] == num:
+                    if song_queue[i][0] == effect_name and song_queue[i][1] == num:
                         song_queue.pop(i)
                         if i == 0:
                             stop_song()
-                            index = curr_effect_index(show_name)
+                            index = curr_effect_index(effect_name)
                             if index is not False:
                                 remove_effect(index)
                             if song_playing and len(song_queue) > 0:
-                                new_show_name = song_queue[0][0]
-                                add_effect(new_show_name)
-                                play_song(new_show_name)
+                                new_effect_name = song_queue[0][0]
+                                add_effect(new_effect_name)
+                                play_song(new_effect_name)
                             broadcast_light = True
                         break
                 if len(song_queue) == 0:
@@ -225,18 +225,18 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'play_queue':
                 if len(song_queue) > 0 and not song_playing:
-                    show_name = song_queue[0][0]
-                    play_song(show_name)
+                    effect_name = song_queue[0][0]
+                    play_song(effect_name)
                     song_playing = True
-                    add_effect(show_name)
+                    add_effect(effect_name)
                     broadcast_light = True
 
             elif msg['type'] == 'pause_queue':
                 if len(song_queue) > 0 and song_playing:
-                    show_name = song_queue[0][0]
+                    effect_name = song_queue[0][0]
                     song_queue.pop(0)
                     stop_song()
-                    index = curr_effect_index(show_name)
+                    index = curr_effect_index(effect_name)
                     if index is not False:
                         remove_effect(index)
                     song_playing = False
@@ -249,10 +249,10 @@ async def init_queue_client(websocket, path):
             await send_song_status() # we might want to lock this
 
 
-def get_show_num():
-    global show_num
-    show_num += 1
-    return show_num
+def get_queue_salt():
+    global queue_salt
+    queue_salt += 1
+    return queue_salt
 
 
 async def broadcast(sockets, msg):
@@ -260,13 +260,13 @@ async def broadcast(sockets, msg):
         try:
             await socket.send(msg)
         except:
-            print("socket send failed", flush=True)
+            print('socket send failed', flush=True)
 
 
 async def send_light_status():
     message = {
         'status': {
-            'shows': curr_effects,
+            'effects': curr_effects,
             'rate': curr_bpm
         }
     }
@@ -317,20 +317,20 @@ async def render_to_terminal(all_levels):
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
     
-    show_specific = ''
-    if curr_effects and has_song(curr_effects[0][2]):
+    effect_specific = ''
+    if curr_effects and has_song(curr_effects[0][0]):
         index = (beat_index + curr_effects[0][1])
         time_diff = time.perf_counter() - time_start
-        show_specific = f"""\
+        effect_specific = f"""\
 , {round(100 * (index / channel_lut[curr_effects[0][0]]['length']))}% lights\
-, {round(100 * (time_diff / shows_json[curr_effects[0][2]]['duration']))}% song\
+, {round(100 * (time_diff / songs_config[curr_effects[0][0]['song']]['duration']))}% song\
 """
 
     useful_info = f"""\
 BPM: {curr_bpm}, \
 Beat: {round((beat_index / SUB_BEATS) + 1, 1)}, \
 Seconds: {round(time.perf_counter() - time_start)}\
-{show_specific}\
+{effect_specific}\
 """
     extra_lines_up = (len(useful_info) // terminal_size) + 1
     console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
@@ -363,16 +363,15 @@ async def light():
             while i < len(curr_effects):
                 index = beat_index + curr_effects[i][1]
                 effect_name = curr_effects[i][0]
-                show_name = curr_effects[i][2]
-                if (not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']) and time_diff >= shows_json[show_name]['duration']:
+                if not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']:
                     remove_effect(i)
-                    if has_song(show_name):
+                    if has_song(effect_name):
                         stop_song()
                         song_queue.pop(0)
                         if song_playing and len(song_queue) > 0:
-                            new_show_name = song_queue[0][0]
-                            add_effect(new_show_name)
-                            play_song(new_show_name)
+                            new_effect_name = song_queue[0][0]
+                            add_effect(new_effect_name)
+                            play_song(new_effect_name)
                         elif len(song_queue) == 0:
                             song_playing = False
                         broadcast_song = True
@@ -383,9 +382,9 @@ async def light():
                 level = 0
                 for j in range(len(curr_effects)):
                     index = beat_index + curr_effects[j][1]
-                    if index >= 0 and (channel_lut[effect_name]['loop'] or channel_lut[curr_effects[j][0]]['length'] > index):
+                    if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[curr_effects[j][0]]['length']):
                         index = index % channel_lut[curr_effects[j][0]]['length']
-                        level += channel_lut[curr_effects[j][0]]["beats"][index][i]
+                        level += channel_lut[curr_effects[j][0]]['beats'][index][i]
 
                 # level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
                 level = max(0, min(0xFFFF, level * 0xFFFF / 100))
@@ -416,12 +415,12 @@ async def light():
 
 #################################################
 
-def has_song(show_name):
-    return "song" in shows_json[show_name]
+def has_song(name):
+    return 'song' in effects_config[name]
 
-def curr_effect_index(show_name):
+def curr_effect_index(name):
     for i in range(len(curr_effects)):
-        if curr_effects[i][2] == show_name:
+        if curr_effects[i][0] == name:
             return i
     return False
 
@@ -432,34 +431,32 @@ def clear_effects():
     for index, effect in enumerate(curr_effects):
         remove_effect(index)
 
-def add_effect(show_name):
+def add_effect(name):
     global beat_index, time_start, curr_bpm
 
-    show = shows_json[show_name]
-    if (show['trigger'] == 'toggle' or show['trigger'] == 'hold') and curr_effect_index(show_name) is not False:
+    effect = effects_config[name]
+    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(name) is not False:
         return
 
-    effect = show['effect']
-
-    if "bpm" in show:
+    if 'bpm' in effect:
         clear_effects()
-        time_start = time.perf_counter() + show['delay_lights']
-        curr_bpm = show['bpm']
-        beat_index = int((-show['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
+        time_start = time.perf_counter() + effect['delay_lights']
+        curr_bpm = effect['bpm']
+        beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
     else:
-        # offset = (beat_index % round(show['snap'] * SUB_BEATS)) - beat_index
-        snap = round(show['snap'] * SUB_BEATS)
+        # offset = (beat_index % round(effect['snap'] * SUB_BEATS)) - beat_index
+        snap = round(effect['snap'] * SUB_BEATS)
         offset = beat_index % snap
         if offset > snap * 0.5:
             offset -= snap
         offset -= beat_index
-    curr_effects.append([effect, offset, show_name])
+    curr_effects.append([name, offset])
 
 
-def play_song(show_name):
-    song = shows_json[show_name]['song']
-    skip = shows_json[show_name]['skip_song']
+def play_song(effect_name):
+    song = effects_config[effect_name]['song']
+    skip = effects_config[effect_name]['skip_song']
     pygame.mixer.music.set_volume(args.volume)
 
     if type(song) == pathlib.Path:
@@ -497,9 +494,8 @@ def setup_gpio():
 
 ################################################
 
-shows_json = {}
-effects_json = {}
-songs_json = {}
+effects_config = {}
+songs_config = {}
 
 channel_lut = {}
 
@@ -508,7 +504,7 @@ found = {}
 simple_effects = []
 complex_effects = []
 
-def effects_json_sort(path):
+def effects_config_sort(path):
     curr = path[-1]
     if curr in found:
         return
@@ -517,7 +513,7 @@ def effects_json_sort(path):
         if next in path:
             print(f'Cycle Found: {curr} -> {next}')
             exit()
-        effects_json_sort(path + [next])
+        effects_config_sort(path + [next])
     if len(graph[curr]) == 0:
         simple_effects.append(curr)
     else:
@@ -525,8 +521,8 @@ def effects_json_sort(path):
 
 all_globals = globals()
 
-def update_json():
-    global effects_json, shows_json, songs_json, channel_lut, graph, found, simple_effects, complex_effects
+def update_config():
+    global effects_config, songs_config, channel_lut, graph, found, simple_effects, complex_effects
 
     begin = time.perf_counter()
     channel_lut = {}
@@ -536,33 +532,18 @@ def update_json():
     simple_effects = []
     complex_effects = []
 
-    effects_json = {}
-    shows_json = {}
+    effects_config = {}
     for name, path in get_all_paths('effects', only_files=True):
         module = 'effects.' + path.stem
         if module in all_globals:
             importlib.reload(all_globals[module])
         else:
             all_globals[module] = importlib.import_module(module)
-        effects_json.update(all_globals[module].effects)
+        effects_config.update(all_globals[module].effects)
 
-    for name, path in get_all_paths('shows', only_files=True):
-        module = 'shows.' + path.stem
-        if module in all_globals:
-            importlib.reload(all_globals[module])
-        else:
-            all_globals[module] = importlib.import_module(module)
-        shows_json.update(all_globals[module].shows)
     print(f'finishing up to imports took {time.perf_counter() - begin:.2f} seconds')
 
-    for effect_name in effects_json:
-        shows_json[effect_name] = {
-            'effect': effect_name, 
-            'profiles': ['All Effects']
-        }
-    print(f'finishing up to setting all_effects defaults took {time.perf_counter() - begin:.2f} seconds')
-
-    songs_json = {}
+    songs_config = {}
     song_dir = python_file_directory.joinpath('songs')
     for filename in os.listdir(song_dir):
         filepath = pathlib.Path(song_dir.joinpath(filename))
@@ -575,14 +556,14 @@ def update_json():
                 print(f'{bcolors.WARNING}No tag found for file: "{filepath}", ffprobing, but this is slow {bcolors.ENDC}')
                 duration = sound_helpers.get_audio_clip_length(filepath)
 
-            songs_json[filename] = {
+            songs_config[filename] = {
                 'name': filepath.stem,
                 'artist': artist,
                 'duration': duration
             }
     print(f'finishing up to getting song detail lengths {time.perf_counter() - begin:.2f} seconds')
 
-    for effect_name, effect in effects_json.items():
+    for effect_name, effect in effects_config.items():
         if 'loop' not in effect:
             effect['loop'] = True
 
@@ -606,11 +587,49 @@ def update_json():
 
 
     for effect_name in graph:
-        effects_json_sort([effect_name])
+        effects_config_sort([effect_name])
     print(f'finishing up the graph sorting took {time.perf_counter() - begin:.2f} seconds')
 
+    for effect_name, effect in effects_config.items():
+        if 'snap' not in effect:
+            effect['snap'] = 1 / SUB_BEATS
+        else:
+            effect['snap'] = max(effect['snap'], 1 / SUB_BEATS)
+        if 'trigger' not in effect:
+            effect['trigger'] = 'toggle'
+        if 'profiles' not in effect:
+            effect['profiles'] = []
+        if 'song' in effect and effect['song'] in songs_config:
+            if 'bpm' not in effect:
+                print('song effects must have bpm')
+                exit()
+            effect['delay_lights'] = effect.get('delay_lights', 0)
+            if not args.local:
+                effect['delay_lights'] += 0.1
+            if 'length' not in effect:
+                effect['length'] = songs_config[effect['song']]['duration'] * effect['bpm'] / 60
+            if 'loop' not in effect:
+                effect['loop'] = False
+        else:
+            if 'length' not in effect:
+                max_length = 0
+                beats = effect['beats']
+                for beat in beats:
+                    for component in beats[beat]: # component -> ['name', 1, 0, 8, 0]
+                        max_length = max(max_length, (eval(beat) - 1) + component[1])  
+                effect['length'] = max_length
+            if 'loop' not in effect:
+                effect['loop'] = True
+                
+    
+    print(f'(done with update_config) finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
+
+    for effect_name in effects_config:
+        effects_config[effect_name]['profiles'].append('All Effects')
+    print(f'finishing up to setting all_effects defaults took {time.perf_counter() - begin:.2f} seconds')
+
     for effect_name in simple_effects:
-        effect = effects_json[effect_name]
+        effect = effects_config[effect_name]
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
@@ -634,7 +653,10 @@ def update_json():
                 end_mult = component[3]
 
                 for i in range(length):
-                    mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    if length == 1:
+                        mult = start_mult
+                    else:
+                        mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     for x in range(LIGHT_COUNT):
                         channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
                     if args.invert:
@@ -646,7 +668,7 @@ def update_json():
 
     amt = 0
     for effect_name in complex_effects:
-        effect = effects_json[effect_name]
+        effect = effects_config[effect_name]
         beats = effect['beats']
 
         # if length isn't specified, generate a length
@@ -655,10 +677,10 @@ def update_json():
             for component in beats[beat]:
                 name = component[0]
                 if len(component) == 1:
-                    if effects_json[name]['loop']:
+                    if effects_config[name]['loop']:
                         component.append(effect['length'])
                     else:
-                        component.append(effects_json[name]['length'])
+                        component.append(effects_config[name]['length'])
                 if len(component) == 2:
                     component.append(1)
                 if len(component) == 3:
@@ -688,7 +710,10 @@ def update_json():
                 for i in range(length):
                     channels = channel_lut[name]['beats'][(i + offset) % channel_lut[name]['length']]
 
-                    mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    if length == 1:
+                        mult = start_mult
+                    else:
+                        mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                     
                     final_channel = channel_lut[effect_name]['beats'][start_beat + i]
                     for x in range(LIGHT_COUNT):
@@ -697,32 +722,8 @@ def update_json():
 
         # for i in range(channel_lut[effect_name]['length']):
         #     for x in range(LIGHT_COUNT):
-        #         channel_lut[effect_name]["beats"][i][x] = min(100, max(0, channel_lut[effect_name]["beats"][i][x]))
+        #         channel_lut[effect_name]['beats'][i][x] = min(100, max(0, channel_lut[effect_name]['beats'][i][x]))
     print(f'finishing up to complex effects took {time.perf_counter() - begin:.2f} seconds')
-    
-    for show_name, show in shows_json.items():
-        if 'snap' not in show:
-            show['snap'] = 1 / SUB_BEATS
-        if 'trigger' not in show:
-            show['trigger'] = "toggle"
-        if 'bpm' in show:
-            show['delay_lights'] = show.get('delay_lights', 0)
-            if not args.local:
-                show['delay_lights'] += 0.1
-        loop = False
-        duration = -1
-        if 'effect' in show:
-            loop = effects_json[show['effect']]['loop']
-            length = effects_json[show['effect']]['length']
-        if 'song' in show and show['song'] in songs_json:
-            duration = songs_json[show['song']]['duration']
-        if 'duration' in show:
-            duration = show['duration']
-        show['length'] = length
-        show['duration'] = duration
-        show['loop'] = loop
-    
-    print(f'(done with update_json) finishing up to show defaults took {time.perf_counter() - begin:.2f} seconds')
 
 
 ##################################################
@@ -775,7 +776,7 @@ if args.local:
 else:
     setup_gpio()
 
-update_json()
+update_config()
 
 if args.reload:
     from watchdog.observers import Observer
@@ -793,33 +794,32 @@ if args.reload:
             print(f'Reloading json because: "{event.src_path}" was modified')
             FilesystemHandler.last_updated = time.time()            
             if curr_effects:
-                # remove show
+                # remove effect
                 index = beat_index + curr_effects[0][1]
                 effect_name = curr_effects[0][0]
-                show_name = curr_effects[0][2]
                 remove_effect(0)
-                if has_song(show_name):
-                    time_in_show = (time.perf_counter() - time_start) - args.jump_back
+                if has_song(effect_name):
+                    time_in_effect = (time.perf_counter() - time_start) - args.jump_back
                     if not args.jump_back and args.skip_show:
-                        time_in_show = args.skip_show
-                    print('Stopped show')
+                        time_in_effect = args.skip_show
+                    print('Stopped effect')
                     stop_song()
 
-                update_json()
+                update_config()
 
-                # add show
-                if has_song(show_name):
-                    if args.speed != 1 and 'song' in shows_json[args.show]:
-                        shows_json[args.show]['bpm'] *= args.speed
-                        shows_json[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+                # add effect
+                if has_song(effect_name):
+                    if args.speed != 1 and 'song' in effects_config[args.show]:
+                        effects_config[args.show]['bpm'] *= args.speed
+                        effects_config[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(effects_config[args.show]['song']), args.speed)
                     # adding a delay here stopped a crash for some reason
-                    time_in_show = max(-shows_json[args.show]['skip_song'], time_in_show)
-                    shows_json[args.show]['skip_song'] += time_in_show
-                    shows_json[args.show]['delay_lights'] -= time_in_show
-                    play_song(show_name)
-                add_effect(show_name)
+                    time_in_effect = max(-effects_config[args.show]['skip_song'], time_in_effect)
+                    effects_config[args.show]['skip_song'] += time_in_effect
+                    effects_config[args.show]['delay_lights'] -= time_in_effect
+                    play_song(effect_name)
+                add_effect(effect_name)
             else:
-                update_json()
+                update_config()
 
 
     observer = Observer()
@@ -838,24 +838,24 @@ asyncio.set_event_loop(loop)
 
 
 async def start_async():
-    dj_socket_server = await websockets.serve(init_dj_client, "0.0.0.0", 1337)
-    queue_socket_server = await websockets.serve(init_queue_client, "0.0.0.0", 7654)
+    dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
+    queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
 
     if args.show:
         print('Starting show from CLI')
-        if args.show in shows_json:
-            print(f'Duration of song: {shows_json[args.show]["duration"]} seconds')
+        if args.show in effects_config:
+            print(f'Duration of song: {effects_config[args.show]["duration"]} seconds')
             
-            if args.speed != 1 and 'song' in shows_json[args.show]:
-                shows_json[args.show]['bpm'] *= args.speed
-                shows_json[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(shows_json[args.show]['song']), args.speed)
+            if args.speed != 1 and 'song' in effects_config[args.show]:
+                effects_config[args.show]['bpm'] *= args.speed
+                effects_config[args.show]['song'] = sound_helpers.change_speed_audio_asetrate(pathlib.Path('songs').joinpath(effects_config[args.show]['song']), args.speed)
                 args.skip_show *= 1 / args.speed
-                shows_json[args.show]['skip_song'] *= 1 / args.speed
-                shows_json[args.show]['delay_lights'] *= 1 / args.speed
+                effects_config[args.show]['skip_song'] *= 1 / args.speed
+                effects_config[args.show]['delay_lights'] *= 1 / args.speed
             if args.skip_show:
-                shows_json[args.show]['skip_song'] += args.skip_show
-                shows_json[args.show]['delay_lights'] -= args.skip_show
-            song_queue.append([args.show, get_show_num()])
+                effects_config[args.show]['skip_song'] += args.skip_show
+                effects_config[args.show]['delay_lights'] -= args.skip_show
+            song_queue.append([args.show, get_queue_salt()])
             add_effect(args.show)
             play_song(args.show)
         else:

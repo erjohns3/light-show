@@ -6,9 +6,11 @@
     <meta name="viewport"
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Light Show</title>
+    <link rel="manifest" href="manifest.webmanifest">
 </head>
 
 <body>
+    <div id="ruler"></div>
 
     <template id="template-button-item">
         <div class="button-name"></div>
@@ -27,6 +29,9 @@
 
     <div id="button-table-wrapper">
     </div>
+    <div id="page-up" class="button">Up</div>
+    <div id="page-label">0/0</div>
+    <div id="page-down" class="button">Dn</div>
 
     <div id="rate-inc" class="button">+</div>
     <div id="rate-dec" class="button">—</div>
@@ -34,6 +39,7 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
+    <div id="fullscreen">Fullscreen</div>
     <div id="update" class="button">Update</div>
     <div id="clear" class="button">Clear</div>
 </body>
@@ -83,12 +89,12 @@
             let msg = JSON.parse(event.data);
             console.log(msg);
 
-            if(msg.shows){
-                showsConfig = msg.shows;
-                for(let show_name in showsConfig){
-                    if(!(show_name in buttons)){
-                        buttons[show_name] = {};
-                        for(let profile_name of showsConfig[show_name].profiles){
+            if(msg.effects){
+                effectsConfig = msg.effects;
+                for(let effect_name in effectsConfig){
+                    if(!(effect_name in buttons)){
+                        buttons[effect_name] = {};
+                        for(let profile_name of effectsConfig[effect_name].profiles){
                             if(!(profile_name in profiles)){
                                 profiles[profile_name] = new ProfileItem(profile_name);
                                 profileList.append(profiles[profile_name]);
@@ -100,9 +106,9 @@
                                     profiles[profile_name].activate();
                                 }
                             }
-                            if(!(profile_name in buttons[show_name])){
-                                buttons[show_name][profile_name] = new ButtonItem(show_name, profile_name);
-                                buttonTables[profile_name].append(buttons[show_name][profile_name]);
+                            if(!(profile_name in buttons[effect_name])){
+                                buttons[effect_name][profile_name] = new ButtonItem(effect_name, profile_name);
+                                buttonTables[profile_name].append(buttons[effect_name][profile_name]);
                                 buttonTables[profile_name].addButton();
                             }
                         }
@@ -115,17 +121,17 @@
             }
 
             if(msg.status){
-                for(let show_arr of showsCurr){
-                    show_name = show_arr[2];
-                    for(let profile_name in buttons[show_name]){
-                        buttons[show_name][profile_name].deactivate();
+                for(let effect_arr of effectsCurr){
+                    effect_name = effect_arr[0];
+                    for(let profile_name in buttons[effect_name]){
+                        buttons[effect_name][profile_name].deactivate();
                     }
                 }
-                showsCurr = msg.status.shows;
-                for(let show_arr of showsCurr){
-                    show_name = show_arr[2];
-                    for(let profile_name in buttons[show_name]){
-                        buttons[show_name][profile_name].activate();
+                effectsCurr = msg.status.effects;
+                for(let effect_arr of effectsCurr){
+                    effect_name = effect_arr[0];
+                    for(let profile_name in buttons[effect_name]){
+                        buttons[effect_name][profile_name].activate();
                     }
                 }
                 
@@ -147,31 +153,35 @@
     /////////////////////////////////////////////////////////////////////
 
     class ButtonItem extends HTMLElement {
-        constructor(show, profile) {
+        constructor(effect, profile) {
             super();
 
             this.appendChild(templateButtonItem.content.cloneNode(true));
 
-            this.show = show;
+            this.effect = effect;
             this.profile = profile;
 
-            this.trigger = showsConfig[this.show].trigger;
+            this.trigger = effectsConfig[this.effect].trigger;
             this.toggle = this.trigger == "toggle";
             this.hold = this.trigger == "hold";
             this.add = this.trigger == "add";
 
-            this.length = showsConfig[this.show].length;
-            this.bpm = showsConfig[this.show].bpm;
+            this.length = effectsConfig[this.effect].length;
+            this.bpm = effectsConfig[this.effect].bpm;
 
-            this.querySelector(".button-name").textContent = this.show;
+            this.querySelector(".button-name").textContent = this.effect;
             this.querySelector(".button-length").textContent = this.length;
             this.querySelector(".button-button").textContent = this.trigger;
-            if(showsConfig[this.show].loop){
+            if(effectsConfig[this.effect].loop){
                 this.querySelector(".button-loop").textContent = "∞";
             }
-            if(showsConfig[this.show].bpm){
+            if(effectsConfig[this.effect].bpm){
                 this.querySelector(".button-bpm").textContent = this.bpm + " bpm";
             }
+
+            let index = buttonTables[this.profile].buttonCount;
+            this.style.top = (Math.floor(index / 5) * 20) + "%";
+            this.style.left = ((index % 5) * 20) + "%";
 
             this.active = false;
 
@@ -188,12 +198,12 @@
             event.preventDefault();
             if(this.toggle){
                 if(this.active){
-                    removeShow(this.show);
+                    removeEffect(this.effect);
                 }else{
-                    addShow(this.show);
+                    addEffect(this.effect);
                 }
             }else{
-                addShow(this.show);
+                addEffect(this.effect);
             }
             this.classList.add('pressed');
         }
@@ -201,7 +211,7 @@
         release(event){
             event.preventDefault();
             if(this.hold){
-                removeShow(this.show);
+                removeEffect(this.effect);
             }
             this.classList.remove('pressed');
         }
@@ -304,41 +314,63 @@
             this.page = 0;
             this.pageCount = 0;
             this.buttonCount = 0;
+            this.active = false;
         }
 
         show(){
             this.classList.add("button-table-active");
+            this.active = true;
+            this.label();
         }
 
         hide(){
             this.classList.remove("button-table-active");
+            this.active = false;
         }
 
         addButton(){
             this.buttonCount++;
-            this.pageCount = Math.floor(this.buttonCount / 20);
+            this.pageCount = Math.ceil(this.buttonCount / 25);
+            this.label();
+        }
+
+        up(){
+            this.page = Math.max(this.page-1, 0);
+            this.scroll();
         }
 
         down(){
-            this.page
+            this.page = Math.min(this.page+1, this.pageCount-1);
+            this.scroll();
+        }
+
+        scroll(){
+            this.style.transform = "translateY(calc(" + this.page + " * (-100%)))";
+            this.label();
+        }
+
+        label(){
+            if(this.active){
+                pageLabelElem.textContent = this.page+1 + "/" + this.pageCount;
+            }
         }
     }
     customElements.define('button-table', ButtonTable);
 
-    function addShow(show){
+    function addEffect(effect){
         let msg = {
-            type: "add_show",
-            show: show
+            type: "add_effect",
+            effect: effect
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
         startTime = Date.now();
     }
 
-    function removeShow(show){
+    function removeEffect(effect){
         let msg = {
-            type: "remove_show",
-            show: show
+            type: "remove_effect",
+            effect: effect
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -357,7 +389,7 @@
 
     function sendUpdate(){
         let msg = {
-            type: "update_json"
+            type: "update_config"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -366,7 +398,7 @@
 
     function sendClear(){
         let msg = {
-            type: "clear_shows"
+            type: "clear_effects"
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
@@ -379,7 +411,7 @@
 
     var startTime = false;
 
-    var showsConfig = {};
+    var effectsConfig = {};
     var songsConfig = {};
     
     var buttons = {};
@@ -394,8 +426,23 @@
 
     var rateCurr = false;
     var rateNext = false;
-    var showsCurr = [];
+    var effectsCurr = [];
     var activeProfile = null;
+
+    var pageUpElem = document.getElementById("page-up");
+    var pageLabelElem = document.getElementById("page-label");
+    var pageDownElem = document.getElementById("page-down");
+
+    pageUpElem.addEventListener('touchstart', pageUp, false);
+    pageDownElem.addEventListener('touchstart', pageDown, false);
+
+    function pageUp(){
+        buttonTables[activeProfile].up();
+    }
+
+    function pageDown(){
+        buttonTables[activeProfile].down();
+    }
 
     var rateCurrElem = document.getElementById("rate-curr");
     var rateNextElem = document.getElementById("rate-next");
@@ -403,6 +450,7 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
+    var fullscreenElem = document.getElementById("fullscreen");
     var updateElem = document.getElementById("update");
     var clearElem = document.getElementById("clear");
 
@@ -466,6 +514,17 @@
         sendRate(rateNext);
     }
 
+    fullscreenElem.onclick = function () {
+        
+        if (!document.webkitFullscreenElement) {
+            document.documentElement.webkitRequestFullscreen();
+            console.log("enter fullscreen");
+        } else if (document.exitFullscreen) {
+            document.exitFullscreen();
+            console.log("exit fullscreen");
+        }
+    }
+
     updateElem.onclick = function () {
         sendUpdate();
     }
@@ -473,6 +532,14 @@
     clearElem.onclick = function () {
         sendClear();
     }
+
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    const smallVH = windowHeight * 0.01;
+    const bigVH = document.getElementById('ruler').clientHeight * 0.02;
+
+    document.documentElement.style.setProperty('--vh', (windowHeight * 0.01) + "px");
 
     socketInit();
 
@@ -485,22 +552,36 @@
 </script>
 
 <style>
+    :root {
+        --vh: 1vh;
+    }
+
     body {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         color-scheme: dark;
         user-select: none;
-        height: 100vh;
         margin: 0;
         padding: 0;
         font-family: sans-serif;
         font-size: 0;
         color: hsl(0, 0%, 80%);
-        background-color: hsl(0, 0%, 4%);
+        background-color: hsl(0, 0%, 8%);
+    }
+
+    #ruler {
+        position: absolute;
+        height: 50vh;
+        visibility: hidden;
     }
 
     #profile-list{
         position: absolute;
         width: 20vw;
-        height: 70vh;
+        height: 60%;
         overflow-y: auto;
         overflow-x: hidden;
         background-color: hsl(0, 0%, 8%);
@@ -548,19 +629,20 @@
 
     #button-table-wrapper{
         position: absolute;
-        right: 0;
-        width: 80vw;
-        height: 100vh;
+        top: 0;
+        right: 6vw;
+        width: 74vw;
+        height: 100%;
         background-color: hsl(0, 0%, 6%);
         overflow: hidden;
     }
 
     #page-up{
         position: absolute;
-        left: 0.5vw;
-        top: 12vh;
-        width: 4vw;
-        height: 9vh;
+        right: 0.5vw;
+        top: 0.5vw;
+        width: 5vw;
+        height: 15vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -571,12 +653,12 @@
         cursor: pointer;
     }
 
-    #page-count{
+    #page-label{
         position: absolute;
-        left: 0vw;
-        top: 30.5vh;
-        width: 5vw;
-        height: 9vh;
+        right: 0vw;
+        top: 19vh;
+        width: 6vw;
+        height: 4vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -587,10 +669,10 @@
 
     #page-down{
         position: absolute;
-        left: 0.5vw;
-        top: 49vh;
-        width: 4vw;
-        height: 9vh;
+        right: 0.5vw;
+        top: 26vh;
+        width: 5vw;
+        height: 15vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -604,21 +686,15 @@
     button-table{
         visibility: hidden;
         opacity: 0;
-        transform: translateY(5vh);
         position: absolute;
-        right: 0.5vw;
-        width: 79vw;
-        height: calc(100% - 0.5vw);
-        padding: 0.25vw;
-        overflow-x: hidden;
-        overflow-y: scroll;
-        transition: transform 150ms, opacity 150ms linear, visibility 150ms linear;
+        width: 100%;
+        height: 100%;
+        transition: transform 250ms, opacity 250ms linear, visibility 250ms linear;
     }
 
     .button-table-active{
         visibility: visible;
         opacity: 1;
-        transform: translateY(0);
     }
 
     @keyframes wipe{
@@ -628,10 +704,11 @@
     }
 
     button-item {
-        position: relative;
-        width: calc(20% - 0.5vw);
-        height: calc(25% - 0.5vw);
-        margin: 0.25vw;
+        position: absolute;
+        width: 20%;
+        height: 20%;
+        border: 0.25vw solid hsl(0, 0%, 6%);
+        box-sizing: border-box;
         border-radius: 0.5vw;
         background-color: hsl(0, 0%, 12%);
         display: inline-block;
@@ -654,7 +731,7 @@
         left: 50%;
         transform: translate(-50%, -50%);
         text-align: center;
-        font-size: 3vh;
+        font-size: 2.5vh;
     }
 
     .button-bpm {
@@ -691,6 +768,22 @@
         text-align: center;
         font-size: 1.5vh;
         color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    #fullscreen{
+        position: absolute;
+        left: 1vw;
+        bottom: 31vh;
+        width: 18vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsl(20, 100%, 35%);
+        cursor: pointer;
     }
 
     #update{
@@ -731,7 +824,7 @@
         bottom: 1vh;
         width: 7vw;
         height: 8vh;
-        font-size: 4vh;
+        font-size: 3vh;
         text-align: center;
         display: flex;
         justify-content: center;
@@ -746,7 +839,7 @@
         bottom: 10vh;
         width: 7vw;
         height: 8vh;
-        font-size: 4vh;
+        font-size: 3vh;
         text-align: center;
         display: flex;
         justify-content: center;
@@ -807,24 +900,9 @@
         opacity: 0.8;
         transform: scale(0.97);
     }
-
-    input::-webkit-outer-spin-button,
-    input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    input[type=number] {
-        -moz-appearance: textfield;
-    }
     
     ::-webkit-scrollbar {
-        width: 7vw;
-    }
-
-    ::-webkit-scrollbar-thumb {
-        background-color: hsl(120, 100%, 24%);
-        border-radius: 1vw;
+        width: 0vw;
     }
 
 </style>

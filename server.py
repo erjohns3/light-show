@@ -330,8 +330,9 @@ async def render_to_terminal(all_levels):
             song_path = effects_config[effect_name]['song_path']
             effect_specific = f"""\
 , {round(100 * (index / channel_lut[effect_name]['length']))}% lights\
-, {round(100 * (time_diff / songs_config[song_path]['duration']))}% song\
 """
+            if 'song_path' in songs_config:
+                f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
 
     useful_info = f"""\
 BPM: {curr_bpm}, \
@@ -831,7 +832,7 @@ if args.reload:
                 if has_song(effect_name):
                     if args.speed != 1 and 'song_path' in effects_config[args.show]:
                         effects_config[args.show]['bpm'] *= args.speed
-                        effects_config[args.show]['song_path'] = sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed)
+                        effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
                     # adding a delay here stopped a crash for some reason
                     time_in_effect = max(-effects_config[args.show]['skip_song'], time_in_effect)
                     effects_config[args.show]['skip_song'] += time_in_effect
@@ -866,7 +867,7 @@ async def start_async():
         if args.show in effects_config:
             if args.speed != 1 and 'song_path' in effects_config[args.show]:
                 effects_config[args.show]['bpm'] *= args.speed
-                effects_config[args.show]['song_path'] = sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed)
+                effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
                 args.skip_show *= 1 / args.speed
                 effects_config[args.show]['skip_song'] *= 1 / args.speed
                 effects_config[args.show]['delay_lights'] *= 1 / args.speed

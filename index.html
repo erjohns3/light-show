@@ -13,8 +13,8 @@
     <template id="template-available-item">
         <div class="available-item-name"></div>
         <div class="available-item-artist"></div>
-        <div class="available-item-back">Add</div>
-        <div class="available-item-front">Next</div>
+        <div class="available-item-back button">Add</div>
+        <div class="available-item-front button">Next</div>
     </template>
 
     <template id="template-queue-item">
@@ -541,6 +541,7 @@
     }
 
     #available-list{
+
     }
 
     available-item{
@@ -550,7 +551,6 @@
         border-radius: 1vw;
         display: block;
         background-color: hsl(0, 0%, 12%);
-        cursor: pointer;
     }
 
     .available-item-name {
@@ -605,7 +605,6 @@
         border-radius: 1vw;
         display: block;
         background-color: hsl(0, 0%, 12%);
-        cursor: pointer;
         will-change: transform;
         transition: transform 150ms;
     }

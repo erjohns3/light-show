@@ -38,6 +38,7 @@ light_sockets = []
 song_sockets = []
 
 song_playing = False
+song_time = 0
 queue_salt = 0
 
 pygame.mixer.init()
@@ -60,7 +61,7 @@ def http_server():
 ########################################
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing
+    global curr_bpm, time_start, beat_index, song_playing, song_time
 
     message = {
         'effects': effects_config,
@@ -91,8 +92,6 @@ async def init_dj_client(websocket, path):
 
         msg = json.loads(msg_string)
 
-        print(msg)
-
         if 'type' in msg:
             light_lock.acquire()
 
@@ -100,7 +99,7 @@ async def init_dj_client(websocket, path):
 
             if msg['type'] == 'add_effect':
                 effect_name = msg['effect']
-
+                song_time = 0
                 if has_song(effect_name):
                     if song_playing and len(song_queue) > 0:
                         song_queue.pop()
@@ -146,7 +145,7 @@ async def init_dj_client(websocket, path):
 
 
 async def init_queue_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing
+    global curr_bpm, time_start, beat_index, song_playing, song_time
 
     message = {
         'effects': effects_config,
@@ -186,6 +185,7 @@ async def init_queue_client(websocket, path):
                 effect_name = msg['effect']
                 song_queue.append([effect_name, get_queue_salt()])
                 if len(song_queue) == 1:
+                    song_time = 0
                     play_song(effect_name)
                     song_playing = True
                     add_effect(effect_name)
@@ -198,6 +198,7 @@ async def init_queue_client(websocket, path):
                 else:
                     song_queue.insert(1, [effect_name, get_queue_salt()])
                 if len(song_queue) == 1:
+                    song_time = 0
                     play_song(effect_name)
                     song_playing = True
                     add_effect(effect_name)
@@ -215,6 +216,7 @@ async def init_queue_client(websocket, path):
                             if index is not False:
                                 remove_effect(index)
                             if song_playing and len(song_queue) > 0:
+                                song_time = 0
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
@@ -234,7 +236,9 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'pause_queue':
                 if len(song_queue) > 0 and song_playing:
                     effect_name = song_queue[0][0]
-                    song_queue.pop(0)
+                    #song_queue.pop(0)
+                    song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
+                    print(song_time)
                     stop_song()
                     index = curr_effect_index(effect_name)
                     if index is not False:
@@ -369,6 +373,7 @@ async def light():
                         stop_song()
                         song_queue.pop(0)
                         if song_playing and len(song_queue) > 0:
+                            song_time = 0
                             new_effect_name = song_queue[0][0]
                             add_effect(new_effect_name)
                             play_song(new_effect_name)
@@ -440,7 +445,7 @@ def add_effect(name):
 
     if 'bpm' in effect:
         clear_effects()
-        time_start = time.perf_counter() + effect['delay_lights']
+        time_start = time.perf_counter() + effect['delay_lights'] - song_time
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
@@ -456,7 +461,7 @@ def add_effect(name):
 
 def play_song(effect_name):
     song = effects_config[effect_name]['song']
-    skip = effects_config[effect_name]['skip_song']
+    skip = effects_config[effect_name]['skip_song'] + song_time
     pygame.mixer.music.set_volume(args.volume)
 
     if type(song) == pathlib.Path:
@@ -564,9 +569,6 @@ def update_config():
     print(f'finishing up to getting song detail lengths {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name, effect in effects_config.items():
-        if 'loop' not in effect:
-            effect['loop'] = True
-
         graph[effect_name] = {}
         beats = effect['beats']
         for beat in beats:

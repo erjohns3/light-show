@@ -94,7 +94,9 @@ async def init_dj_client(websocket, path):
 
     while True:
         try:
+            print('dj waiting for message')
             msg_string = await websocket.recv()
+            print('dj got message')
         except:
             for i in range(len(light_sockets)):
                 if light_sockets[i] == websocket:
@@ -178,7 +180,9 @@ async def init_queue_client(websocket, path):
 
     while True:
         try:
+            print('queue waiting for message')
             msg_string = await websocket.recv()
+            print('queue waiting for message')
         except:
             for i in range(len(song_sockets)):
                 if song_sockets[i] == websocket:
@@ -308,53 +312,49 @@ async def send_song_status():
 
 # terminal specific
 if args.local:
+    # straight pow(2, 16) to what i think it should be
     green_vals = {
         1: 1,
-        .9: .95,
-        .5: .70,
-        .4: .60,
-        .3: .45,
-        .2: .30,
-        .15: .25,
-        .14: .2,
-        .13: .18,
-        .12: .15,
-        .11: .1,
-        .1: 0,
-        0: 0,
+        .7: .6,
+        .6: .4,
+        .4: .2,
+        .20: .13,
+        0.1: .05,
+        0: 0,    
     }
     red_vals = {
         1: 1,
-        .9: .95,
-        .5: .70,
-        .4: .60,
-        .3: .40,
-        .25: .25,
-        .2: .20,
-        .14: .12,
-        .13: .11,
-        .12: 0,
-        0: 0,
+        .7: .6,
+        .6: .4,
+        .4: .2,
+        .20: .13,
+        0.1: .05,
+        0: 0,    
     }
     blue_vals = {
         1: 1,
-        .9: .90,
-        .5: .65,
-        .4: .50,
-        .3: .35,
-        .25: .28,
-        .2: .2,
-        .14: .15,
-        .13: .13,
-        .12: .11,
-        .11: 0,
-        0: 0,
+        .7: .6,
+        .6: .4,
+        .4: .2,
+        .20: .13,
+        0.1: .05,
+        0: 0,    
     }
+    green_vals = {y:x for x, y in green_vals.items()}
+    red_vals = {y:x for x, y in red_vals.items()}
+    blue_vals = {y:x for x, y in blue_vals.items()}
+
+    # floor to perceieved
+    # green_vals = { 1: 1, .9: .95, .5: .70, .4: .60, .3: .45, .2: .30, .15: .25, .14: .2, .13: .18, .12: .15, .11: .1, .1: 0,  0: 0,  }
+    # red_vals = { 1: 1,.9: .95,.5: .70,.4: .60,.3: .40,.25: .25,.2: .20,.14: .12,.13: .11,.12: 0, 0: 0, }
+    # blue_vals = { 1: 1, .9: .90, .5: .65, .4: .50, .3: .35, .25: .28, .2: .2, .14: .15, .13: .13, .12: .11, .11: 0,  0: 0,  }
 
     max_num = pow(2, 16) - 1
     def get_interpolated_value(interpolation_dict, value):
-        if 255 <= value or value == 0:
-            return value
+        if value == 0:
+            return 0
+        if 255 <= value:
+            return 255
 
         # print(f'before scale: {value=}')
         value /= 255
@@ -372,28 +372,25 @@ if args.local:
                 # print(f'got {value}, returning: {final_output}')
                 return int(final_output)
 
-    terminal_lut = {'red': [0] * (max_num + 1), 'green': [0] * (max_num + 1), 'blue': [0] * (max_num + 1)}
-    for i in range(max_num + 1):
+    terminal_lut = {'red': [0] * (255 + 1), 'green': [0] * (255 + 1), 'blue': [0] * (255 + 1)}
+    for i in range(255 + 1):
         terminal_lut['red'][i] = get_interpolated_value(red_vals, i)
         terminal_lut['green'][i] = get_interpolated_value(green_vals, i)
         terminal_lut['blue'][i] = get_interpolated_value(blue_vals, i)
-    # for i in range(max_num + 1):
-    #     print(f'{i=}: {terminal_lut["green"][i]=}')
-    terminal_color_scaling = 1
     purple = [153, 50, 204]
-
-    my_color_tuple = [254, 0, 0]
     terminal_size = os.get_terminal_size().columns
+
+
 async def render_to_terminal(all_levels):
-    # print('pre 255:', all_levels)
+    # print('pre 255:', list(map(lambda x: x / max_num, all_levels)))
     levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
     # print('after 255:', levels_255)
-    # levels_255[0] = terminal_lut['red'][levels_255[0]]
-    # levels_255[1] = terminal_lut['green'][levels_255[1]]
-    # levels_255[2] = terminal_lut['blue'][levels_255[2]]
-    # levels_255[3] = terminal_lut['red'][levels_255[3]]
-    # levels_255[4] = terminal_lut['green'][levels_255[4]]
-    # levels_255[5] = terminal_lut['blue'][levels_255[5]]
+    levels_255[0] = terminal_lut['red'][levels_255[0]]
+    levels_255[1] = terminal_lut['green'][levels_255[1]]
+    levels_255[2] = terminal_lut['blue'][levels_255[2]]
+    levels_255[3] = terminal_lut['red'][levels_255[3]]
+    levels_255[4] = terminal_lut['green'][levels_255[4]]
+    levels_255[5] = terminal_lut['blue'][levels_255[5]]
     # print('after terminal lut', levels_255)
 
     # uv_level_scaling = min(1, levels_255[6] / 255.0)
@@ -490,15 +487,14 @@ async def light():
                         index = index % channel_lut[curr_effects[j][0]]['length']
                         level += channel_lut[curr_effects[j][0]]['beats'][index][i]
 
-                # level = max(0, min(0xFFFF, round(level * 0xFFFF / 100)))
-                level = max(0, min(0xFFFF, level * 0xFFFF / 100))
-                between_0_and_1 = level / 0xFFFF
-                level = round(pow(between_0_and_1, 2.2) * 0xFFFF)
+                level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
+                level_between_0_and_1 = level_bounded / 0xFFFF
+                level_scaled = round(pow(level_between_0_and_1, 2.2) * 0xFFFF)
 
                 if args.local:
-                    await terminal(level, i)
+                    await terminal(level_bounded, i)
                 else:
-                    pca.channels[i].duty_cycle = level
+                    pca.channels[i].duty_cycle = level_scaled
 
             if broadcast_light:
                 await send_light_status()

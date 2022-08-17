@@ -1,4 +1,12 @@
 effects = {
+    "Cyan top 20%":{
+        "length": 1,
+        "profiles": ["rbg_experiment"],
+        "beats":{
+            "1": [["Cyan top", 1, .2, .2]]
+        }
+    },
+
     "Red top 100%":{
         "length": 1,
         "profiles": ["rbg_experiment"],

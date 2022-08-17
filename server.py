@@ -18,6 +18,19 @@ from operator import add
 from helpers import *
 import sound_helpers
 
+parser = argparse.ArgumentParser(description = '')
+parser.add_argument('--local', dest='local', default=False, action='store_true')
+parser.add_argument('--show', dest='show', type=str, default='')
+parser.add_argument('--skip', dest='skip_show', type=float, default=0)
+parser.add_argument('--volume', dest='volume', type=int, default=100)
+parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
+parser.add_argument('--reload', dest='reload', default=False, action='store_true')
+parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
+parser.add_argument('--speed', dest='speed', type=float, default=1)
+parser.add_argument('--invert', dest='invert', default=False, action='store_true')
+parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
+args = parser.parse_args()
+
 
 pca = None
 
@@ -293,20 +306,102 @@ async def send_song_status():
 ####################################
 
 
-my_color_tuple = [254, 0, 0]
-terminal_size = os.get_terminal_size().columns
-async def render_to_terminal(all_levels):
-    terminal_color_scaling = 1
-    max_num = pow(2, 16) - 1
-    levels_capped = list(map(lambda x: min(max(int(((x * 15) / max_num) * 255), 0), 255), all_levels))
+# terminal specific
+if args.local:
+    green_vals = {
+        1: 1,
+        .9: .95,
+        .5: .70,
+        .4: .60,
+        .3: .45,
+        .2: .30,
+        .15: .25,
+        .14: .2,
+        .13: .18,
+        .12: .15,
+        .11: .1,
+        .1: 0,
+        0: 0,
+    }
+    red_vals = {
+        1: 1,
+        .9: .95,
+        .5: .70,
+        .4: .60,
+        .3: .40,
+        .25: .25,
+        .2: .20,
+        .14: .12,
+        .13: .11,
+        .12: 0,
+        0: 0,
+    }
+    blue_vals = {
+        1: 1,
+        .9: .90,
+        .5: .65,
+        .4: .50,
+        .3: .35,
+        .25: .28,
+        .2: .2,
+        .14: .15,
+        .13: .13,
+        .12: .11,
+        .11: 0,
+        0: 0,
+    }
 
-    uv_level_scaling = min(1, (terminal_color_scaling * levels_capped[6]) / 255.0)
+    max_num = pow(2, 16) - 1
+    def get_interpolated_value(interpolation_dict, value):
+        if 255 <= value or value == 0:
+            return value
+
+        # print(f'before scale: {value=}')
+        value /= 255
+        # print(f'after scale: {value=}')
+        pairs = sorted([(i, o) for i, o in interpolation_dict.items()])
+        for index, (i1, o1) in enumerate(pairs):
+            (i2, o2) = pairs[index + 1]
+            if value <= pairs[index + 1][0]:
+                difference_in_outputs = o2 - o1
+                difference_in_inputs = i2 - i1
+                difference_in_value = value - i1
+                scaling = difference_in_value / difference_in_inputs
+                # print(f'({i1=}, {i2=}), ({o1=}, {o2=}), {scaling=}, {difference_in_outputs=}, {difference_in_inputs=}, {difference_in_value=}')
+                final_output = 255 * (o1 + (difference_in_outputs * scaling))
+                # print(f'got {value}, returning: {final_output}')
+                return int(final_output)
+
+    terminal_lut = {'red': [0] * (max_num + 1), 'green': [0] * (max_num + 1), 'blue': [0] * (max_num + 1)}
+    for i in range(max_num + 1):
+        terminal_lut['red'][i] = get_interpolated_value(red_vals, i)
+        terminal_lut['green'][i] = get_interpolated_value(green_vals, i)
+        terminal_lut['blue'][i] = get_interpolated_value(blue_vals, i)
+    # for i in range(max_num + 1):
+    #     print(f'{i=}: {terminal_lut["green"][i]=}')
+    terminal_color_scaling = 1
     purple = [153, 50, 204]
-    purple_scaled = list(map(lambda x: int(x * uv_level_scaling), purple))
+
+    my_color_tuple = [254, 0, 0]
+    terminal_size = os.get_terminal_size().columns
+async def render_to_terminal(all_levels):
+    # print('pre 255:', all_levels)
+    levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
+    # print('after 255:', levels_255)
+    # levels_255[0] = terminal_lut['red'][levels_255[0]]
+    # levels_255[1] = terminal_lut['green'][levels_255[1]]
+    # levels_255[2] = terminal_lut['blue'][levels_255[2]]
+    # levels_255[3] = terminal_lut['red'][levels_255[3]]
+    # levels_255[4] = terminal_lut['green'][levels_255[4]]
+    # levels_255[5] = terminal_lut['blue'][levels_255[5]]
+    # print('after terminal lut', levels_255)
+
+    # uv_level_scaling = min(1, levels_255[6] / 255.0)
+    purple_scaled = list(map(lambda x: int(x * (levels_255[6] / 255)), purple))
 
     uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
-    top_rgb_style = f'rgb({levels_capped[0]},{levels_capped[1]},{levels_capped[2]})'
-    bottom_rgb_style = f'rgb({levels_capped[3]},{levels_capped[4]},{levels_capped[5]})'
+    top_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
+    bottom_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
 
     character = '▆'
     dead_space = terminal_size - 15
@@ -630,7 +725,8 @@ def update_config(autogenerated_effects=None):
     print(f'(done with update_config) finishing up to effect defaults took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in effects_config:
-        effects_config[effect_name]['profiles'].append('All Effects')
+        if 'song_path' not in effects_config[effect_name]:
+            effects_config[effect_name]['profiles'].append('All Effects')
     print(f'finishing up to setting all_effects defaults took {time.perf_counter() - begin:.2f} seconds')
 
     for effect_name in simple_effects:
@@ -762,18 +858,7 @@ signal.signal(signal.SIGTERM, signal_handler)
 #################################################
 
 
-parser = argparse.ArgumentParser(description = '')
-parser.add_argument('--local', dest='local', default=False, action='store_true')
-parser.add_argument('--show', dest='show', type=str, default='')
-parser.add_argument('--skip', dest='skip_show', type=float, default=0)
-parser.add_argument('--volume', dest='volume', type=int, default=100)
-parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
-parser.add_argument('--reload', dest='reload', default=False, action='store_true')
-parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
-parser.add_argument('--speed', dest='speed', type=float, default=1)
-parser.add_argument('--invert', dest='invert', default=False, action='store_true')
-parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
-args = parser.parse_args()
+
 
 args.volume = args.volume / 100
 if args.local:

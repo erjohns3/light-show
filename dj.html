@@ -598,7 +598,7 @@
     }
 
     profile-item:active{
-        opacity: 0.8;
+        opacity: 0.5;
         transform: scale(0.97);
     }
 
@@ -685,8 +685,10 @@
         visibility: hidden;
         opacity: 0;
         position: absolute;
-        width: 100%;
-        height: 100%;
+        left: 0.5vw;
+        top: 0.5vw;
+        width: calc(100% - 0.5vw);
+        height: calc(100% - 0.5vw);
         transition: transform 250ms, opacity 250ms linear, visibility 250ms linear;
     }
 
@@ -703,14 +705,10 @@
 
     button-item {
         position: absolute;
-        width: 20%;
-        height: 20%;
-        border: 0.25vw solid hsl(0, 0%, 6%);
-        box-sizing: border-box;
+        width: calc(20% - 0.5vw);
+        height: calc(20% - 0.5vw);
         border-radius: 0.5vw;
         background-color: hsl(0, 0%, 12%);
-        display: inline-block;
-        transition: transform 50ms linear;
     }
 
     .button-item-active{
@@ -888,7 +886,7 @@
     }
 
     .button:active{
-        opacity: 0.8;
+        opacity: 0.5;
         transform: scale(0.97);
     }
     

@@ -2,7 +2,7 @@ effects = {
     "Nothing":{
         "length": 1,
         "beats":{
-            "1": [[[0, 0, 0, 0, 0, 0, 0], 1]],
+            "1": [[[-1000, -1000, -1000, -1000, -1000, -1000, -1000], 1]],
         }
     },
     "Sidechain bottom g":{
@@ -81,7 +81,8 @@ effects = {
         "length": 1,
         "beats":{
             "1": [[[100, 0, 0, 0, 0, 0, 0], 1]]
-        }
+        },
+        "trigger": "hold"
     },
     "Red bottom":{
         "length": 1,

@@ -43,6 +43,10 @@
     </div>
 
     <div id="status">
+        <div id="curr-time"></div>
+        <div id="end-time"></div>
+        <div id="seek-time"></div>
+        <div id="slide-time"></div>
         <div id="play-control"></div>
     </div>
 
@@ -109,19 +113,6 @@
                 }
             }
 
-            if(msg.status){
-                if(playing != msg.status.playing){
-                    playing = msg.status.playing;
-                    if(playing){
-                        playButton.classList.add("pause");
-                        playButton.classList.remove("play");
-                    }else{
-                        playButton.classList.add("play");
-                        playButton.classList.remove("pause");
-                    }
-                }
-            }
-
             if(msg.queue){
                 queueConfig = msg.queue;
                 let index = 0;
@@ -164,6 +155,47 @@
 
                 console.log("--QUEUE--");
                 console.log(queue);
+            }
+
+            if(msg.status){
+                if(queuePlaying != msg.status.playing){
+                    queuePlaying = msg.status.playing;
+                    if(queuePlaying){
+                        playButton.classList.add("pause");
+                        playButton.classList.remove("play");
+                    }else{
+                        playButton.classList.add("play");
+                        playButton.classList.remove("pause");
+                    }
+                }
+                currTime = msg.status.time;
+                let key = false;
+                if(queueConfig.length > 0){
+                    key = queueConfig[0].join('-');
+                }
+
+                if(key == false){
+                    if(queueKey && queue[queueKey]){
+                        queue[queueKey].clearPlay();
+                    }
+                    queueKey = key;
+                    currTimeElem.textContent = '';
+                    endTimeElem.textContent = '';
+                    slideTimeElem.style.transform = 'scaleX(0)';
+                    slideTimeElem.style.opacity = 0;
+                }else if(queueKey != key){
+                    if(queueKey && queue[queueKey]){
+                        queue[queueKey].clearPlay();
+                    }
+                    queueKey = key;
+                    queue[queueKey].setPlay();
+                    endTime = queue[queueKey].duration;
+                    currTimeElem.textContent = '0:00';
+                    endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');
+                    slideTimeElem.style.transform = 'scaleX(0)';
+                    slideTimeElem.style.opacity = 1;
+                }
+                
             }
         }
     }
@@ -224,11 +256,14 @@
                 this.position = position;
                 this.style.transform = "translateY("+(this.position*11)+"vh)";
             }
-            if(position == 0 && playing){
-                this.classList.add('queue-playing');
-            }else{
-                this.classList.remove('queue-playing');
-            }
+        }
+
+        setPlay(){
+            this.classList.add('queue-playing');
+        }
+
+        clearPlay(){
+            this.classList.remove('queue-playing');
         }
 
         setSong(effect, salt, key){
@@ -240,6 +275,7 @@
             this.name.textContent = songsConfig[this.song].name;
             this.artist.textContent = songsConfig[this.song].artist;
             this.style.visibility = "visible";
+            this.duration = effectsConfig[this.effect].length / effectsConfig[this.effect].bpm * 60;
         }
 
         clearSong(){
@@ -345,9 +381,10 @@
     var available = {};
     var queue = {};
 
-    var playing = null;
-
     var queueArray = [];
+    var queueKey = false;
+    var queuePlaying = null;
+    var currTime = 0;
 
     var availableTab = document.getElementById("available-tab");
     var queueTab = document.getElementById("queue-tab");
@@ -366,10 +403,15 @@
     var templateAvailableItem = document.getElementById("template-available-item");
     var templateQueueItem = document.getElementById("template-queue-item");
 
+    var currTimeElem = document.getElementById("curr-time");
+    var endTimeElem = document.getElementById("end-time");
+    var seekTimeElem = document.getElementById("seek-time");
+    var slideTimeElem = document.getElementById("slide-time");
+
     var playButton = document.getElementById("play-control");
     playButton.onclick = function(){
         if(queueConfig.length > 0){
-            if(playing){
+            if(queuePlaying){
                 pauseQueue();
             }else{
                 playQueue();
@@ -417,6 +459,17 @@
     };
 
     //////////////////////////////////////////////////////////////
+
+    setInterval(()=>{
+        if(queuePlaying){
+            currTime += 1;
+            endTime = queue[queueKey].duration;
+            currTimeElem.textContent = Math.floor(currTime/60)+":"+Math.floor(currTime%60).toString().padStart(2, '0');
+            endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');
+            slideTimeElem.style.transform = 'scaleX(' + (currTime / endTime) + ')';
+            slideTimeElem.style.opacity = 1;
+        }
+    }, 1000);
 
     socketInit();
 
@@ -537,7 +590,6 @@
     .list{
         position: absolute;
         width: 100%;
-        height: 100%;
         top: 0;
         left: 0;
     }
@@ -583,16 +635,16 @@
 
     .available-item-back{
         position: absolute;
-        width: 16%;
-        height: 80%;
-        top: 10%;
-        right: 1vh;
+        width: 13%;
+        height: 70%;
+        top: 15%;
+        right: 2vh;
         font-size: 3vw;
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 1vw;
-        background-color: hsl(204, 100%, 32%);
+        background-color: hsl(204, 100%, 24%);
     }
 
     #queue-page{
@@ -644,16 +696,16 @@
 
     .queue-item-remove{
         position: absolute;
-        width: 16%;
-        height: 80%;
-        top: 10%;
-        right: 1vh;
+        width: 13%;
+        height: 70%;
+        top: 15%;
+        right: 2vh;
         font-size: 3vw;
         display: flex;
         justify-content: center;
         align-items: center;
         border-radius: 1vw;
-        background-color: hsl(0, 100%, 32%);
+        background-color: hsl(0, 100%, 24%);
     }
 
     #status {
@@ -678,8 +730,45 @@
         border-color: transparent transparent transparent hsl(204, 100%, 32%);
     }
 
+    #curr-time{
+        top: 2vh;
+        left: 1vh;
+        position: absolute;
+        font-size: 2vh;
+    }
+
+    #end-time{
+        top: 2vh;
+        right: 1vh;
+        position: absolute;
+        font-size: 2vh;
+    }
+
+    #seek-time{
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1vh;
+        background-color: hsl(0, 0%, 14%);
+        position: absolute;
+    }
+
+    #slide-time{
+        opacity: 0;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 1vh;
+        background-color: hsl(204, 100%, 24%);
+        position: absolute;
+        transform-origin: 0% 0%;
+        transform: scaleX(0);
+        transition: transform 1000ms linear;
+        will-change: transform, opacity;
+    }
+
     .play{
-        top: 50%;
+        top: calc(50% + 0.5vh);
         left: 50%;
         position: absolute;
         transform: translate(-50%, -50%);
@@ -689,7 +778,7 @@
     }
 
     .pause{
-        top: 50%;
+        top: calc(50% + 0.5vh);
         left: 50%;
         width: 2vh;
         height: 6vh;

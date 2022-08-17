@@ -152,6 +152,15 @@ async def init_dj_client(websocket, path):
                 clear_effects()
                 #BROKEN
 
+            elif msg['type'] == 'inc_time':
+                time_start += 0.1
+
+            elif msg['type'] == 'dec_time':
+                time_start -= 0.1
+
+            elif msg['type'] == 'inc_time':
+                time_start += 0.1
+
             light_lock.release()
 
             if broadcast_song:
@@ -167,7 +176,8 @@ async def init_queue_client(websocket, path):
         'songs': songs_config,
         'queue': song_queue,
         'status': {
-            'playing': song_playing
+            'playing': song_playing,
+            'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
         }
     }
     dump = json.dumps(message)
@@ -192,6 +202,8 @@ async def init_queue_client(websocket, path):
             break
 
         msg = json.loads(msg_string)
+
+        print(msg)
 
         if 'type' in msg:
             song_lock.acquire()
@@ -229,11 +241,11 @@ async def init_queue_client(websocket, path):
                         song_queue.pop(i)
                         if i == 0:
                             stop_song()
+                            song_time = 0
                             index = curr_effect_index(effect_name)
                             if index is not False:
                                 remove_effect(index)
                             if song_playing and len(song_queue) > 0:
-                                song_time = 0
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
@@ -253,14 +265,21 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'pause_queue':
                 if len(song_queue) > 0 and song_playing:
                     effect_name = song_queue[0][0]
-                    #song_queue.pop(0)
                     song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
-                    print(song_time)
                     stop_song()
                     index = curr_effect_index(effect_name)
                     if index is not False:
                         remove_effect(index)
                     song_playing = False
+                    broadcast_light = True
+
+            elif msg['type'] == 'set_time':
+                song_time = msg['time']
+                if len(song_queue) > 0 and song_playing:
+                    effect_name = song_queue[0][0]
+                    play_song(effect_name)
+                    song_playing = True
+                    add_effect(effect_name)
                     broadcast_light = True
 
             song_lock.release()
@@ -296,11 +315,11 @@ async def send_light_status():
 
 
 async def send_song_status():
-    global song_playing
     message = {
         'queue': song_queue,
         'status': {
-            'playing': song_playing
+            'playing': song_playing,
+            'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
         }
     }
     dump = json.dumps(message)
@@ -447,7 +466,7 @@ async def terminal(level, i):
 ####################################
 
 async def light():
-    global beat_index, song_playing
+    global beat_index, song_playing, song_time
 
     try:
         while True:
@@ -468,8 +487,8 @@ async def light():
                     if has_song(effect_name):
                         stop_song()
                         song_queue.pop(0)
+                        song_time = 0
                         if song_playing and len(song_queue) > 0:
-                            song_time = 0
                             new_effect_name = song_queue[0][0]
                             add_effect(new_effect_name)
                             play_song(new_effect_name)

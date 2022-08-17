@@ -66,8 +66,8 @@ local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(('', PORT), Handler)
-    print(f'{bcolors.OKGREEN}serving dj set at: http://{local_ip}:{PORT}/dj.html')
-    print(f'serving queue at: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
+    print(f'{bcolors.OKGREEN}serving static page dj set at: http://{local_ip}:{PORT}/dj.html')
+    print(f'serving static page queue at: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
 
 
@@ -501,10 +501,11 @@ async def light():
             for i in range(LIGHT_COUNT):
                 level = 0
                 for j in range(len(curr_effects)):
+                    effect_name = curr_effects[j][0]
                     index = beat_index + curr_effects[j][1]
-                    if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[curr_effects[j][0]]['length']):
-                        index = index % channel_lut[curr_effects[j][0]]['length']
-                        level += channel_lut[curr_effects[j][0]]['beats'][index][i]
+                    if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
+                        index = index % channel_lut[effect_name]['length']
+                        level += channel_lut[effect_name]['beats'][index][i]
 
                 level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
                 level_between_0_and_1 = level_bounded / 0xFFFF
@@ -961,6 +962,7 @@ asyncio.set_event_loop(loop)
 async def start_async():
     dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
     queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
+    print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
     if args.show:
         print('Starting show from CLI')

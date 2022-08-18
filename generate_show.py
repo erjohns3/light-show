@@ -50,7 +50,7 @@ def generate_show(song_filepath):
         'delay_lights': 0.0,
         'skip_song': 0.0,
         'profiles': ['Generated Shows'],
-        'beats': {}
+        'beats': []
     }
 
     # Finding proper delay
@@ -72,7 +72,7 @@ def generate_show(song_filepath):
     for beat in range(1, total_beats):
         # beat = str(round(second * (rounded_bpm / 60), 3))
         mode = modes_to_cycle[beat % len(modes_to_cycle)]
-        show['beats'][str(int_or_float(beat))] = [mode, .25]
+        show['beats'].append([int_or_float(beat), mode, .25])
     return {
         f'generated_{song_filepath.stem}': show
     }

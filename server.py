@@ -945,7 +945,6 @@ asyncio.set_event_loop(loop)
 
 def find_show_name(name, valid_show_names):
     all_canidates = []
-    print(valid_show_names)
     valid_show_names = list(filter(lambda x: 'show' in x.lower(), valid_show_names))
     lower_to_real = {x.lower():x for x in valid_show_names}
     for show_name in lower_to_real:

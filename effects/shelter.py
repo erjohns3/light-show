@@ -163,10 +163,10 @@ effects = {
     "shelter drum build": {
         "length": 3,
         "beats": [
-            [1.95, "Green top", .05],
-            [2.05, "Green top", .05],
-            [2.15, "Green top", .05],
-            [2.25, "Green top", .05],
+            [2, "Green top", .05],
+            [2.1, "Green top", .05],
+            [2.2, "Green top", .08],
+            # [2.25, "Green top", .05],
             [2.45, "Green top", .05],
             [2.7, "Green top", .05],
             [2.95, "Green top", .05],

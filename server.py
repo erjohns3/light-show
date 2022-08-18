@@ -943,12 +943,30 @@ loop = asyncio.new_event_loop()
 asyncio.set_event_loop(loop)
 
 
+def find_show_name(name, valid_show_names):
+    all_canidates = []
+    print(valid_show_names)
+    valid_show_names = list(filter(lambda x: 'show' in x.lower(), valid_show_names))
+    lower_to_real = {x.lower():x for x in valid_show_names}
+    for show_name in lower_to_real:
+        if name in show_name:
+            all_canidates.append(lower_to_real[show_name])
+    if not all_canidates:
+        print(f'{bcolors.FAIL}No shows for "{name}" were found{bcolors.ENDC}')
+        exit()
+    if len(all_canidates) > 1:
+        print(f'{bcolors.FAIL}Too many canidates for show "{name}" {all_canidates}{bcolors.ENDC}')
+        exit()
+    return all_canidates[0]
+
+
 async def start_async():
     dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
     queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
     print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
     if args.show:
+        args.show = find_show_name(args.show, list(effects_config.keys()))
         print('Starting show from CLI')
         if args.show in effects_config:
             if args.speed != 1 and 'song_path' in effects_config[args.show]:

@@ -1,11 +1,12 @@
 effects = {
-    "hooked scream fade":{
+    "hooked scream fade": {
         "length": 1,
         "beats": [
+            # [beat, "effect_name", beat_length, starting_intensity (default 1), ending_intensity (default 1)]
             [1, "Firebrick top", 0.8, 1, 0],
         ],
     },
-    "hooked wandering bottom":{
+    "hooked wandering bottom": {
         "length": 16,
         "beats": [
             [1, "Cyan bottom", 1, 1, 1],
@@ -19,7 +20,7 @@ effects = {
             [9, "Green bottom", 8, 1, .2],
         ],
     },
-    "hooked wandering top":{
+    "hooked wandering top": {
         "length": 16,
         "beats": [
             [1, "Cyan top", 1, 1, 1],
@@ -33,47 +34,47 @@ effects = {
             [9, "Green top", 8, 1, 0.2],
         ],
     },
-    "hooked bottom kick intro":{
+    "hooked bottom kick intro": {
         "length": 1,
         "beats": [
             [1, "Rosy brown bottom", 0.4, 1, 0]
         ],
     },
-    "hooked red kick bottom":{
+    "hooked red kick bottom": {
         "length": 1,
         "beats": [
             [1, "Red bottom", 0.50, 1, 0],
         ],
     },
-    "hooked bottom kick increase":{
+    "hooked bottom kick increase": {
         "length": 28,
         "beats": [
             [1, "hooked red kick bottom", 16, .1, .3],
             [17, "hooked red kick bottom", 12, .3, .8],
         ],
     },
-    "hooked hear you":{
+    "hooked hear you": {
         "length": 1,
         "beats": [
             [1, "Cyan top", 0.4, 0.14, 0.14],
             [1.4, "Yellow bottom", 0.4, 0.14, 0.14],
         ],
     },
-    "hooked top sidechain non red":{
+    "hooked top sidechain non red": {
         "length": 2,
         "beats": [
             [1, [0, -100, -100, 0, 0, 0, 0], 0.1, 0, 1],
             [1.1, [0, -100, -100, 0, 0, 0, 0], 0.3, 1, 0],
         ],
     },
-    "hooked claps":{
+    "hooked claps": {
         "length": 1,
         "beats": [
             [1, "Cyan top", 0.2, 0.2, 0.1],
             [1.2, "Cyan top", 0.8, 0.1, 0.1],
         ],
     },
-    "hooked bassline":{
+    "hooked bassline": {
         "length": 8,
         "beats": [
             [1, "Firebrick bottom", 0.7, 0.40, 0.05], 
@@ -81,7 +82,7 @@ effects = {
             [1, "hooked claps", 8],
         ],
     },
-    "hooked sub melody":{
+    "hooked sub melody": {
         "length": 8,
         "beats": [
             [2, "Yellow bottom", 0.15, 0.30, 0.30],
@@ -98,27 +99,27 @@ effects = {
             [7.55, "Yellow bottom", 0.10, 0.30, .30],
         ],
     },
-    "hooked melody":{
+    "hooked melody": {
         "length": 16,
         "beats": [
             [1, "hooked sub melody", 24],
         ],
     },
-    "hooked buildup":{
+    "hooked buildup": {
         "length": 4,
         "beats": [
             [1, "hooked hear you", 3],
             [4, "UV", 1]
         ],
     },
-    "hooked chorus":{
+    "hooked chorus": {
         "length": 32,
         "beats": [
             [1, "hooked bassline", 32], 
             [1, "hooked melody", 32],
         ],
     },
-    "wandering":{
+    "wandering": {
         "length": 32,
         "beats": [
             [1, "UV", 4, 1, .28], 

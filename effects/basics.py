@@ -47,6 +47,20 @@ effects = {
             [1, [0, 0, 0, 0, 0, 0, 100], 1],
         ],
     },
+    "UV pulse":{
+        "length": 1,
+        "loop": False,
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
+        ]
+    },
+    "UV pulse slow":{
+        "length": 2,
+        "loop": False,
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
+        ]
+    },
     "Pulse":{
         "length": 1,
         "beats": [

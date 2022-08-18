@@ -884,7 +884,7 @@ if args.autogen:
 
 if args.reload:
     from watchdog.observers import Observer
-    from watchdog.events import Fileffects_configeSystemEventHandler
+    from watchdog.events import FileSystemEventHandler
 
     class FilesystemHandler(FileSystemEventHandler):
         last_updated = 0
@@ -916,6 +916,8 @@ if args.reload:
                     if args.speed != 1 and 'song_path' in effects_config[args.show]:
                         effects_config[args.show]['bpm'] *= args.speed
                         effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
+                        effects_config[args.show]['skip_song'] *= 1 / args.speed
+                        effects_config[args.show]['delay_lights'] *= 1 / args.speed
                     # adding a delay here stopped a crash for some reason
                     time_in_effect = max(-effects_config[args.show]['skip_song'], time_in_effect)
                     effects_config[args.show]['skip_song'] += time_in_effect

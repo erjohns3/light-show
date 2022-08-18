@@ -172,7 +172,7 @@ effects = {
             "121": [["wandering", 4]],
             "125": [["UV", 4]],
             "129": [["butter chorus", 64]],
-            "193": [["UV Pulse", 64]],
+            "193": [["UV pulse", 64]],
             "257": [["RBBB 1 bar", 64]], # buildup
             "321": [["butter chorus", 64]],
         },

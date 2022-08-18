@@ -31,7 +31,7 @@ effects = {
             [1, "UV", .6, 0.6, .2],
         ],
     },
-    "Ghosts rainbow":{
+    "Ghosts rainbow": {
         "length": 2,
         "beats": [
             [1, [40, 0, 0, 0, 0, 0, 0], 0.7],
@@ -42,28 +42,28 @@ effects = {
             [2.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 0, 1],
         ],
     },
-    "Ghosts riser":{
+    "Ghosts riser": {
         "length": 4,
         "beats": [
             [1, "Pink bottom", 2, .15, .3],
             [3, "Pink bottom", 2, .3, .15],
         ],
     },
-    "Ghosts blue fade":{
+    "Ghosts blue fade": {
         "length": 4,
         "beats": [
             [1, "Blue top", 2, .08, .15],
             [3, "Blue top", 2, .15, .08],
         ],
     },
-    "Ghosts UV fade":{
+    "Ghosts UV fade": {
         "length": 16,
         "beats": [
             [1, "UV", 8, .1, .4],
             [9, "UV", 8, .4, .1],
         ],
     },
-    # "Ghosts ay strobe":{
+    # "Ghosts ay strobe": {
     #     "length": 0.4,
     #     "beats": [
     #         "1": [[[20, 50, 0, 0, 0, 0, 0], 0.07],
@@ -81,7 +81,7 @@ effects = {
             [2.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 0, 1],
         ],
     },
-    "Ghosts breakdown":{
+    "Ghosts breakdown": {
         "length": 32,
         "beats": [
             [1, "UV Strobe", 4, .4, .4],

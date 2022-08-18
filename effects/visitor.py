@@ -1,5 +1,5 @@
 effects = {
-    "visitor show":{
+    "visitor show": {
         "beats": [
             [1, "RGB Flash", 912],
         ],
@@ -9,7 +9,7 @@ effects = {
         "song_path": "songs/Mad Zach - The Visitor.ogg",
         "profiles": ["Shows"]
     },
-    "RGB Flash":{
+    "RGB Flash": {
         "length": 1,
         "beats": [
             [1, [100, 0, 0, 0, 0, 0, 0], 0.04],

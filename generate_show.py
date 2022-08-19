@@ -64,7 +64,8 @@ def generate_show(song_filepath):
     # this stuff sucks for some reason. the model is prob just trash
     # delay_amount = sum(second_medians) / len(second_medians)
     # show['delay_lights'] = delay_amount
-    show['delay_lights'] = 0
+    show['delay_lights'] = float(model_beat_seconds[0])
+    print(f'The generated show thinks the first beat of the song hits on {show["delay_lights"]=}')
 
     # applying lights
     modes_to_cycle = ['Red top', 'Green top']
@@ -74,7 +75,7 @@ def generate_show(song_filepath):
         mode = modes_to_cycle[beat % len(modes_to_cycle)]
         show['beats'].append([int_or_float(beat), mode, .25])
     return {
-        f'generated_{song_filepath.stem}': show
+        f'generated_{song_filepath.stem}_show': show
     }
 
 

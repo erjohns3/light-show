@@ -157,7 +157,7 @@ effects = {
             [6.3, "Red top", 7.3, 0.2, 0],
             [6.3, "Blue top", 5.3, 0, .2],
             [11.6, "Blue top", 7.3, 0.2, 0],
-            [11.6, "Green top", 5.3, 0, 0.2],
+            [11.6, "Green top", 5.4, 0, 0.2],
         ],
     },
     "shelter drum build": {

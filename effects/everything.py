@@ -9,16 +9,16 @@ effects = {
         "length": 8,
         "beats": [
             [1, "Pink bottom", 3.5, 0.15, 0.15],
-            [4.5, "Green bottom", 2, 0.15, 0.15],
-            [6.5, "Blue bottom", 3, 0.15, 0.15],
+            [4.5, "Orange bottom", 2, 0.15, 0.15],
+            [6.5, "Cyan bottom", 3, 0.15, 0.15],
         ],
     },
     "everything melody 2 glow": {
         "length": 8,
         "beats": [
             [1, "Pink bottom", 3.5, 0.15, 0.15],
-            [4.5, "Green bottom", 2, 0.15, 0.15],
-            [6.5, "Blue bottom", 3, 0.15, 0.15],
+            [4.5, "Orange bottom", 2, 0.15, 0.15],
+            [6.5, "Cyan bottom", 3, 0.15, 0.15],
         ],
     },
     "everything kick": {

@@ -35,7 +35,7 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 --reload --speed 1 --skip 80
 
 * find port for python
-sudo ss -lptn 'sport = :8000'
+sudo ss -lptn 'sport = :1337'
 
 
 ## todo songs
@@ -45,44 +45,3 @@ sudo ss -lptn 'sport = :8000'
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o
 
-
-
-## to fix the terminal output scaling, here are some mappings:
-* Green:
-    * 1: 100%
-    * .9: 95%
-    * .5: 70%
-    * .4: 60%
-    * .3: 45%
-    * .2: 30%
-    * .15: 15%
-    * .14: 10%
-    * .13: 8%
-    * .12: 5%
-    * .11: 1%
-    * .1: 0%
-
-* Red:
-    * 1: 100%
-    * .9: 95%
-    * .5: 70%
-    * .4: 60%
-    * .3: 40%
-    * .25: 25%
-    * .2: 10%
-    * .14: 2%
-    * .13: 1%
-    * .12: 0%
-
-* Blue:
-    * 1: 100%
-    * .9: 90%
-    * .5: 65%
-    * .4: 50%
-    * .3: 35%
-    * .25: 28%
-    * .2: 20%
-    * .14: 5%
-    * .13: 3%
-    * .12: 1%
-    * .11: 0%

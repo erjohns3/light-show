@@ -41,7 +41,8 @@ effects = {
         "beats": [
             [1, "rainbow good slow top", 120, .1, .6],
             [1, "everything bottom glow", 120],
-            [1, "everything kick", 56],
+            [1, "everything kick", 31],
+            [33, "everything kick", 24],
             [65, "everything kick line", 56],
             [121, "everything melody glow", 72],
             [121, "UV", 8],

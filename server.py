@@ -24,7 +24,8 @@ import sound_helpers
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
-parser.add_argument('--skip', dest='skip_show', type=float, default=0)
+parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
+parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--reload', dest='reload', default=False, action='store_true')
@@ -932,8 +933,8 @@ if args.reload:
                 remove_effect(0)
                 if has_song(effect_name):
                     time_in_effect = (time.perf_counter() - time_start) - args.jump_back
-                    if not args.jump_back and args.skip_show:
-                        time_in_effect = args.skip_show
+                    if not args.jump_back and args.skip_show_seconds:
+                        time_in_effect = args.skip_show_seconds
                     print('Stopped effect')
                     stop_song()
 
@@ -999,12 +1000,14 @@ async def start_async():
             if args.speed != 1 and 'song_path' in effects_config[args.show]:
                 effects_config[args.show]['bpm'] *= args.speed
                 effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
-                args.skip_show *= 1 / args.speed
+                args.skip_show_seconds *= 1 / args.speed
                 effects_config[args.show]['skip_song'] *= 1 / args.speed
                 effects_config[args.show]['delay_lights'] *= 1 / args.speed
-            if args.skip_show:
-                effects_config[args.show]['skip_song'] += args.skip_show
-                effects_config[args.show]['delay_lights'] -= args.skip_show
+            if args.skip_show_beats:
+                args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / effects_config[args.show]['bpm'])
+            if args.skip_show_seconds:
+                effects_config[args.show]['skip_song'] += args.skip_show_seconds
+                effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
             song_queue.append([args.show, get_queue_salt()])
             add_effect(args.show)
             play_song(args.show)

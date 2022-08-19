@@ -87,47 +87,6 @@ effects = {
             "2": [[-30, -30, -30, 0, 0, 0, 100], 0.7, 1, 0]
         }
     },
-    "RBBB 1 bar":{
-        "length": 4,
-        "beats":{
-            "1": [[100, 0, 0, 0, 0, 0, 0], 0.25],
-            "2": [[0, 0, 100, 0, 0, 0, 0], 0.25],
-            "3": [[0, 0, 100, 0, 0, 0, 0], 0.25],
-            "4": [[0, 0, 100, 0, 0, 0, 0], 0.25]
-        }
-    },
-    "Cheesecake time":{
-        "length": 8,
-        "beats":{
-            "7": ["Yellow top", .5, 1, 0],
-            "7.5": ["Yellow top", .5, 1, 0],
-        }
-    },
-    "RB Strobe Top Bottom":{
-        "length": 0.4,
-        "beats":{
-            "1": [[[50, 100, 0, 0, 0, 0, 0], 0.07]],
-            "1.2": [[[0, 100, 50, 0, 0, 0, 0], 0.07]],
-        }
-    },
-    "cheesecake show":{
-        "beats":{
-            "1": [["Cheesecake time", 64], ["Rainbow bad", 64]],
-            "65": [["Ghosts bassline", 14]],
-            "79": [["RB Strobe Top Bottom", 2]],
-            "81": [["Cheesecake time", 32], ["Rainbow bad", 32]]
-        },
-        "delay_lights": 6.3,
-        "skip_song": 0.0,
-        "bpm": 97,
-        "song_path": "songs/Cheesecake.ogg",
-        "profiles": ["Shows"]
-    },
-    "4 Bar Timing Show":{
-        "beats":{
-            "1": [["RBBB 1 bar", 200]]
-        }
-    },
     "musician show":{
         "length": 16,
         "beats":{

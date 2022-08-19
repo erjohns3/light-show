@@ -30,8 +30,8 @@ effects = {
     "shelter bottom sidechain": {
         "length": 1,
         "beats": [
-            [1, [0, 0, 0, -100, -100, -100, 0], 0.1, 0, 1],
-            [1.1, [0, 0, 0, -100, -100, -100, 0], 0.3, 1, 0],
+            [1, [0, 0, 0, -30, -30, -30, 0], .1, 1, .5],
+            [1.1, [0, 0, 0, -30, -30, -30, 0], 0.9, .5, 0],
         ],
     },
     "top blue kick": {
@@ -80,9 +80,9 @@ effects = {
     "Chorus bottom": {
         "length": 3,
         "beats": [
-            [1, "Cyan bottom", 1, 0.08, 0.08],
-            [2, "Yellow bottom", 1, 0.08, 0.08],
-            [3, "Pink bottom", 1, 0.08, 0.08],
+            [1, "Cyan bottom", 1, 0.25, 0.25],
+            [2, "Yellow bottom", 1, 0.25, 0.25],
+            [3, "Pink bottom", 1, 0.35, 0.35],
         ],
     },
     "Shelter sub Chorus": {
@@ -141,23 +141,23 @@ effects = {
     "rainbow good top": {
         "length": 8,
         "beats": [
-            [1, "Green top", 3.7, .2, 0],
-            [1, "Red top", 2.66, 0, .2],
-            [3.66, "Red top", 3.7, 0.2, 0],
-            [3.66, "Blue top", 2.66, 0, .2],
-            [6.32, "Blue top", 3.7, 0.2, 0],
-            [6.32, "Green top", 2.66, 0, 0.2],
+            [1, "Green top", 3.7, 1, 0],
+            [1, "Red top", 2.66, 0, 1],
+            [3.66, "Red top", 3.7, 1, 0],
+            [3.66, "Blue top", 2.66, 0, 1],
+            [6.32, "Blue top", 3.7, 1, 0],
+            [6.32, "Green top", 2.66, 0, 1],
         ],
     },
     "rainbow good slow top": {
         "length": 16,
         "beats": [
-            [1, "Green top", 7.3, .2, 0],
-            [1, "Red top", 5.3, 0, .2],
-            [6.3, "Red top", 7.3, 0.2, 0],
-            [6.3, "Blue top", 5.3, 0, .2],
-            [11.6, "Blue top", 7.3, 0.2, 0],
-            [11.6, "Green top", 5.4, 0, 0.2],
+            [1, "Green top", 7.3, 1, 0],
+            [1, "Red top", 5.3, 0, 1],
+            [6.3, "Red top", 7.3, 1, 0],
+            [6.3, "Blue top", 5.3, 0, 1],
+            [11.6, "Blue top", 7.3, 1, 0],
+            [11.6, "Green top", 5.4, 0, 1],
         ],
     },
     "shelter drum build": {

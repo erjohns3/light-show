@@ -148,6 +148,30 @@ effects = {
             # [209, "everything kick 2", 16, 1, 0],
 
 
+# snap to shelter
+# -skip 280 Beat: 323.6, Pygame pos: 193.9,
+# Seconds: 193.6, 94% lights
+
+
+# dkew?
+# BPM: 50.0, Beat: 320.0, Pygame pos: 19.3,
+# 383.4, Seconds: 382.8, 93% ligh
+
+
+
+
+
+# snap to 
+#  ▆▆▆▆▆▆▆▆▆▆▆▆▆▆
+# BPM: 120, Beat: 402.1, Pygame pos: 200.6,
+# Seconds: 200.6, 90% lights
+
+
+# skew 3 min play
+# BPM: 120, Beat: 448.9, Pygame pos: 223.9,
+# Seconds: 223.9, 100% lights
+
+
             [305, "everything kick line", 16, 0, 1],
             [321, "everything kick line 2", 128],
             [321, "everything melody glow bottom", 128, .7, .7],

@@ -3,6 +3,7 @@ effects = {
         "length": 1,
         "beats": [
             [1, "Green bottom", 0.25, 1, 0],
+            [1, "UV", 0.25, 1, 0],
         ],
     },
     "young_love show": {

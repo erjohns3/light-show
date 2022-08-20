@@ -1,13 +1,13 @@
 {
     "$schema": "https://json.schemastore.org/web-manifest-combined.json",
-    "name": "Light Name",
-    "short_name": "Lights",
-    "start_url": "dj.html",
+    "name": "DJ Song",
+    "short_name": "DJ Songs",
+    "start_url": "index.html",
     "display": "fullscreen",
     "background_color": "#006655",
     "theme_color": "#006655",
-    "orientation": "landscape",
-    "description": "Light Show",
+    "orientation": "portrait",
+    "description": "DJ Songs",
     "icons": [{
       "src": "static/icon48.png",
       "sizes": "48x48",

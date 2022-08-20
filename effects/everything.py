@@ -5,7 +5,15 @@ effects = {
             [1, "Pink bottom", 1],
         ],
     },
-    "everything melody glow": {
+    "everything melody glow top": {
+        "length": 8,
+        "beats": [
+            [1, "Pink top", 3.5],
+            [4.5, "Green top", 2],
+            [6.5, "Cyan top", 2.5],
+        ],
+    },
+    "everything melody glow bottom": {
         "length": 8,
         "beats": [
             [1, "Pink bottom", 3.5],
@@ -13,7 +21,16 @@ effects = {
             [6.5, "Cyan bottom", 2.5],
         ],
     },
-    "everything melody 2 glow": {
+    "everything melody 2 glow top": {
+        "length": 10,
+        "beats": [
+            [1, "Pink top", 3.5],
+            [4.5, "Green top", 2],
+            [6.5, "Cyan top", 2.5],
+            [9, "Yellow top", 2],
+        ],
+    },
+    "everything melody 2 glow bottom": {
         "length": 10,
         "beats": [
             [1, "Pink bottom", 3.5],
@@ -67,11 +84,11 @@ effects = {
             [1, "Sidechain top b", 1, 1, 1],
 
             [2, "Sidechain top r", 1, .6, .6],
-            [2, "Sidechain top g", 1, .5, .5],
+            [2, "Sidechain top g", 1, .2, .2],
             [2, "Sidechain top b", 1, 1, 1],
             
             [3, "Sidechain top r", 1, .4, .4],
-            [3, "Sidechain top g", 1, .85, .85],
+            [3, "Sidechain top g", 1, .4, .4],
             [3, "Sidechain top b", 1, 1, 1],
                         
             # 3.66: full red
@@ -99,6 +116,14 @@ effects = {
             [8, "Sidechain top b", 1, .7, .7],
         ],
     },
+    "everything UV waver": {
+        "length": 1.5,
+        "beats": [
+            [1, "UV", .5, 1, 0],
+            [1.25, "UV", .25, 0, 1],
+            [2, "UV", .4, .2, .8],
+        ],
+    },
     "everything show": {
         "beats": [
             [1, "rainbow good slow top", 120, 0, .35],
@@ -106,16 +131,28 @@ effects = {
             [1, "everything kick", 31],
             [33, "everything kick", 24],
             [65, "everything kick line", 56],
-            [121, "everything melody glow", 72, .25, .5],
+            [121, "everything melody glow bottom", 8, .5, .7],
             [121, "UV", 8],
+            [129, "everything melody glow bottom", 72, .7, .7],
             # [129, "rainbow good slow top", 60, .35, .35],
-            [129, "everything kick top RGB", 64, 1, 1],
-            [129, "everything kick line 2", 64],
+            # [129, "everything kick top RGB", 64, 1, 1],
+            [129, "everything melody glow top", 60, .4, .4],
+            [129, "everything kick line 2", 60],
             [189, "UV", 4],
-            [193, "rainbow good slow top", 64, .35, 0],
+            [193, "everything melody 2 glow top", 16, .4, .05],
             [193, "everything kick 2", 16],
-            [193, "everything melody 2 glow", 48, .5, .5],
-            [209, "everything kick 2", 16, 1, 0],
+            [193, "everything melody 2 glow bottom", 48, .5, .5],
+            [193, "everything UV waver", 8, .1, 1],
+            [201, "everything UV waver", 16],
+            [217, "everything UV waver", 8, 1, .4],
+            # [209, "everything kick 2", 16, 1, 0],
+
+
+            [305, "everything kick line", 16, 0, 1],
+            [321, "everything kick line 2", 128],
+            [321, "everything melody glow bottom", 128, .7, .7],
+            [321, "everything melody glow top", 128, .4, .4],
+
         ],
         "delay_lights": .02,
         "skip_song": 0,

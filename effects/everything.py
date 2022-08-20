@@ -148,6 +148,19 @@ effects = {
             # [209, "everything kick 2", 16, 1, 0],
 
 
+# snap to hooked ending
+# BPM: 128, Sub: 10559, Beat: 440.96, Pygame
+# pos: 206.23, Seconds: 206.24, 102% lights
+
+
+# played whole way through hooked ending
+# BPM: 128, Sub: 10547, Beat: 440.46, Pygame s:
+# pos: 205.98, Seconds: 206.0, 102% lightss
+
+
+
+
+
 # snap to shelter
 # -skip 280 Beat: 323.6, Pygame pos: 193.9,
 # Seconds: 193.6, 94% lights

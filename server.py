@@ -427,14 +427,15 @@ async def render_to_terminal(all_levels):
 
     character = '▆'
     dead_space = terminal_size - 15
-    console.print(' ' + character * 2, style=uv_style, end='')
-    console.print(character * 10, style=top_rgb_style, end='')
-    console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
-    console.print('\n', end='')
-    console.print(f'{" " * terminal_size}\n' * 3, end='')
+    if pygame.mixer.music.get_busy():
+        console.print(' ' + character * 2, style=uv_style, end='')
+        console.print(character * 10, style=top_rgb_style, end='')
+        console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
+        console.print('\n', end='')
+        console.print(f'{" " * terminal_size}\n' * 3, end='')
 
-    console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('\n', end='')
+        console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
+        console.print('\n', end='')
 
     # effect_useful_info = list(map(lambda x: x[3], curr_effects))
     
@@ -451,18 +452,19 @@ async def render_to_terminal(all_levels):
             if 'song_path' in songs_config:
                 f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
 
-# Sub beat: {round(beat_index, 1)}, \
-
-    useful_info = f"""\
+    if pygame.mixer.music.get_busy():
+        # Sub beat: {round(beat_index, 1)}, \
+        useful_info = f"""\
 BPM: {curr_bpm}, \
-Beat: {round((beat_index / SUB_BEATS) + 1, 1)}, \
-Pygame pos: {round((pygame.mixer.music.get_pos() / 1000) + effects_config[effect_name]["skip_song"], 1)}, \
-Seconds: {round(time.time() - time_start, 1)}\
+Sub: {beat_index}, \
+Beat: {round((beat_index / SUB_BEATS) + 1, 2)}, \
+Pygame pos: {round((pygame.mixer.music.get_pos() / 1000) + effects_config[effect_name]["skip_song"], 2)}, \
+Seconds: {round(time.time() - time_start, 2)}\
 {effect_specific}\
 """
-    extra_lines_up = (len(useful_info) // terminal_size) + 1
-    console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
-    console.print('', end='\033[F' * (4 + extra_lines_up))
+        extra_lines_up = (len(useful_info) // terminal_size) + 1
+        console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
+        console.print('', end='\033[F' * (4 + extra_lines_up))
 
 
 all_levels = [0] * LIGHT_COUNT

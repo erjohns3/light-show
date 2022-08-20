@@ -150,6 +150,7 @@ effects = {
         "skip_song": 0,
         "bpm": 128,
         "song_path": "songs/Notion - Hooked.ogg",
+        # "song_path": "songs/hooked.wav",
         "profiles": ["Shows"],
     },
 }

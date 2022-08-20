@@ -63,7 +63,7 @@ effects = {
             #  1: full green
 
             [1, "Sidechain top r", 1, 1, 1],
-            [1, "Sidechain top g", 1, 0, 0],
+            [1, "Sidechain top g", 1, .2, .2],
             [1, "Sidechain top b", 1, 1, 1],
 
             [2, "Sidechain top r", 1, .6, .6],
@@ -95,7 +95,7 @@ effects = {
             [7, "Sidechain top b", 1, .3, .3],
                         
             [8, "Sidechain top r", 1, 1, 1],
-            [8, "Sidechain top g", 1, .3, .3],
+            [8, "Sidechain top g", 1, .4, .4],
             [8, "Sidechain top b", 1, .7, .7],
         ],
     },
@@ -109,13 +109,13 @@ effects = {
             [121, "everything melody glow", 72, .25, .5],
             [121, "UV", 8],
             # [129, "rainbow good slow top", 60, .35, .35],
-            [129, "everything kick top RGB", 64, 1, 1],
+            [129, "everything kick top RGB", 64, .4, .4],
             [129, "everything kick line 2", 64],
             [189, "UV", 4],
             [193, "rainbow good slow top", 64, .35, 0],
             [193, "everything kick 2", 16],
             [193, "everything melody 2 glow", 48, .5, .5],
-            [209, "everything kick 2", 16, 1, 0],
+            [209, "everything kick 2", 160, 1, 0],
         ],
         "delay_lights": .02,
         "skip_song": 0,

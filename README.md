@@ -6,6 +6,11 @@ To start with 5% volume locally (terminal UI). Starts on the show hooked, and re
 
 To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
 
+# To get all songs from doorbell
+```
+scp -r doorbell:/home/pi/light-show/songs .
+```
+
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe
 * https://github.com/tyiannak/pyAudioAnalysis

@@ -40,10 +40,22 @@ effects = {
             [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000], 1],
         ],
     },
-    "Sidechain bottom g":{
+    "Sidechain top r":{
         "length": 1,
         "beats": [
-            [1, [0, 0, 0, 0, -100, 0, 0], 1],
+            [1, [-100, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Sidechain top g":{
+        "length": 1,
+        "beats": [
+            [1, [0, -100, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Sidechain top b":{
+        "length": 1,
+        "beats": [
+            [1, [0, 0, -100, 0, 0, 0, 0], 1],
         ],
     },
     "Sidechain top bg":{
@@ -52,16 +64,16 @@ effects = {
             [1, [0, -100, -100, 0, 0, 0, 0], 1],
         ],
     },
-    "Sidechain top r":{
-        "length": 1,
-        "beats": [
-            [1, [-100, 0, 0, 0, 0, 0, 0], 1],
-        ],
-    },
     "Sidechain top rbg":{
         "length": 1,
         "beats": [
             [1, [-100, -100, -100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Sidechain bottom g":{
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, 0, -100, 0, 0], 1],
         ],
     },
 

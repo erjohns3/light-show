@@ -453,11 +453,9 @@ async def render_to_terminal(all_levels):
 
     # Sub beat: {round(beat_index, 1)}, \
     useful_info = f"""\
-BPM: {curr_bpm}, \
-Sub: {beat_index}, \
-Beat: {round((beat_index / SUB_BEATS) + 1, 2)}, \
-Pygame pos: {round((pygame.mixer.music.get_pos() / 1000) + effects_config[effect_name]["skip_song"], 2)}, \
-Seconds: {round(time.time() - time_start, 2)}\
+BPM: {curr_bpm:.2f}, \
+Beat: {round((beat_index / SUB_BEATS) + 1, 2):.2f}, \
+Seconds: {round(time.time() - time_start, 2):.2f}\
 {effect_specific}\
 """
     extra_lines_up = (len(useful_info) // terminal_size) + 1

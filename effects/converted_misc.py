@@ -29,4 +29,35 @@ effects = {
         "song_path": "songs/Cheesecake.ogg",
         "profiles": ["Shows"]
     },
+    "Musician Lyrical Oo": {
+        "length": 2,
+        "beats": [
+            [1, [0, 100, 0, 0, 0, 0, 0], 0.5, 1, 0.2],
+            [2, [0, 80, 100, 0, 0, 0, 0], 0.5, 1, 0.2],
+        ],
+    },
+    "musician sidechain": {
+        "length": 1,
+        "beats": [
+            [1, "Sidechain top rbg", .3, .5, 0],
+        ],
+    },
+    "musician loop": {
+        "length": 16,
+        "beats": [
+            [1, "Rainbow bad", 12],
+            # [1, "musician sidechain", 12],
+            [13, "Musician Lyrical Oo", 4],
+        ],
+    },
+    "musician show": {
+        "beats": [
+            [1, "musician loop", 400],
+        ],
+        "delay_lights": 0.0,
+        "skip_song": 6.15,
+        "bpm": 120,
+        "song_path": "songs/Porter Robinson - Musician (Official Music Video).ogg",
+        "profiles": ["Shows"],
+    },
 }

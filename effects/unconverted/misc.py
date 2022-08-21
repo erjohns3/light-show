@@ -73,31 +73,12 @@ effects = {
             "5": [["Bassline", 28, 1, 1, 4]]
         }
     },
-    "Musician Lyrical Oo":{
-        "length": 2,
-        "beats":{
-            "1": [[0, 100, 0, 0, 0, 0, 0], 0.5, 1, 0.2],
-            "2": [[0, 80, 100, 0, 0, 0, 0], 0.5, 1, 0.2]
-        }
-    },
     "sidechain_test":{
         "length": 2,
         "beats":{
             "1.90": [[-30, -30, -30, 0, 0, 0, 100], 0.1, 0, 1],
             "2": [[-30, -30, -30, 0, 0, 0, 100], 0.7, 1, 0]
         }
-    },
-    "musician show":{
-        "length": 16,
-        "beats":{
-            "1": [["Rainbow bad", 12], ["sidechain_test", 12]],
-            "13": [["Musician Lyrical Oo", 4]]
-        },
-        "delay_lights": 0.0,
-        "skip_song": 0,
-        "bpm": 125,
-        "song_path": "songs/musician2.ogg",
-        "profiles": ["Shows"],
     },
     "Telepathic Love Show":{
         "beats":{

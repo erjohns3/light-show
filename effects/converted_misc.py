@@ -46,7 +46,6 @@ effects = {
         "length": 16,
         "beats": [
             [1, "Rainbow bad", 12],
-            # [1, "musician sidechain", 12],
             [13, "Musician Lyrical Oo", 4],
         ],
     },

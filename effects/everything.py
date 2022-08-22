@@ -140,11 +140,15 @@ effects = {
             [129, "everything kick line 2", 60],
             [189, "UV", 4],
             [193, "everything melody 2 glow top", 16, .4, .05],
-            [193, "everything kick 2", 16],
-            [193, "everything melody 2 glow bottom", 48, .5, .5],
+            [193, "everything kick 2", 16, 1, 0],
+            [193, "everything melody 2 glow bottom", 40, .5, .2],
             [193, "everything UV waver", 8, .1, 1],
             [201, "everything UV waver", 16],
             [217, "everything UV waver", 8, 1, .4],
+
+            # why is this wrong
+            # [233, "everything melody 2 glow bottom", 32, .2, .2],
+
             # [209, "everything kick 2", 16, 1, 0],
 
 

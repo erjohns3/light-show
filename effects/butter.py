@@ -8,6 +8,28 @@ effects = {
     # 193 break
 
 
+    "butter melody 1 intro": {
+        "length": 8,
+        "beats": [
+            [1, "Red top", .2],
+            [1.75, "Red top", .2],
+            [2.5, "Red top", .2],
+            [3.25, "Red top", .2],
+            [4, "Red top", .2],
+            [4.75, "Red top", .2], 
+            [4.75, "Green top", 5, 0, 1],
+            [4.95, "Sidechain top bg", .55], 
+            # [4.95, "Sidechain top r", 3, 0, 1],
+            [5.5, "Red top", .2],
+            [5.7, "Sidechain top bg", .55],
+            [6.25, "Red top", .2],
+            [6.45, "Sidechain top bg", .55],
+            [7, "Red top", .2],
+            [7.2, "Sidechain top bg", 1.8],
+            [7.75, "Red top", .2],
+            # [8.5, "Red top", .2],
+        ],
+    },
 
 
     "butter melody 1 down": {
@@ -164,8 +186,8 @@ effects = {
     },
     "butter show": {
         "beats": [
-            [1, "Nothing", 32],
-            [33, "wandering", 32],
+            [1, "everything UV waver", 32],
+            [33, "butter melody 1 intro", 32],
             [65, "RBBB 1 bar", 32],
             [97, "Ghosts bassline", 24],
             [121, "wandering", 4],

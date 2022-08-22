@@ -6,7 +6,7 @@
     <meta name="viewport"
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Light Show</title>
-    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="manifest" href="dj-manifest.webmanifest">
 </head>
 
 <body tabindex="-1">
@@ -24,6 +24,9 @@
         <div class="profile-playing"></div>
     </template>
 
+    <div id="background">
+    </div>
+
     <div id="profile-list"></div>
 
     <div id="button-table-wrapper">
@@ -38,7 +41,6 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <div id="fullscreen">Fullscreen</div>
     <div id="update" class="button">Update</div>
     <div id="clear" class="button">Clear</div>
 </body>
@@ -446,7 +448,6 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
-    var fullscreenElem = document.getElementById("fullscreen");
     var updateElem = document.getElementById("update");
     var clearElem = document.getElementById("clear");
 
@@ -514,17 +515,6 @@
         sendRate(rateNext);
     }
 
-    fullscreenElem.onclick = function () {
-        
-        if (!document.webkitFullscreenElement) {
-            document.documentElement.webkitRequestFullscreen();
-            console.log("enter fullscreen");
-        } else if (document.exitFullscreen) {
-            document.exitFullscreen();
-            console.log("exit fullscreen");
-        }
-    }
-
     updateElem.onclick = function () {
         sendUpdate();
     }
@@ -540,6 +530,26 @@
         event.stopPropagation();
         return false;
     };
+
+    var flareColors = [
+        'hsl(170, 100%, 20%)',
+        'hsl(220, 100%, 20%)',
+        'hsl(270, 100%, 20%)',
+        'hsl(320, 100%, 20%)'
+    ];
+
+    var background = document.getElementById("background");
+    var flareSize = window.innerWidth * 0.6;
+    for(let i=0; i<16; i++){
+        let flare = document.createElement("div");
+        flare.classList.add('flare');
+        flare.style.width = flareSize+"px";
+        flare.style.height = flareSize+"px";
+        flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+"px";
+        flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+"px";
+        flare.style.setProperty("box-shadow", "0 "+flareSize*2+"px "+flareSize*0.5+"px " + flareColors[Math.floor(Math.random()*flareColors.length)]);
+        background.appendChild(flare);
+    }
 
 </script>
 
@@ -558,7 +568,23 @@
         font-family: sans-serif;
         font-size: 0;
         color: hsl(0, 0%, 80%);
-        background-color: hsl(0, 0%, 4%);
+        
+    }
+
+    #background{
+        position: absolute;
+        z-index: -1;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background-color: black;
+    }
+
+    .flare{
+        position: absolute;
+        border-radius: 100%;
     }
 
     #profile-list{
@@ -567,7 +593,6 @@
         height: 60%;
         overflow-y: auto;
         overflow-x: hidden;
-        background-color: hsl(0, 0%, 8%);
     }
 
     profile-item{
@@ -576,7 +601,7 @@
         margin: 0.5vw;
         border-radius: 0.5vw;
         display: block;
-        background-color: hsl(0, 0%, 15%);
+        background-color: hsla(0, 0%, 0%, 0.5);
     }
 
     profile-item:active{
@@ -585,7 +610,7 @@
     }
 
     .profile-item-active{
-        background-color: hsl(204, 100%, 24%);
+        background-color: hsla(0, 0%, 50%, 0.5);
     }
 
     .profile-name {
@@ -606,7 +631,6 @@
         text-align: center;
         font-size: 3vh;
         font-weight: bold;
-        color: hsl(204, 100%, 32%);
     }
 
     #button-table-wrapper{
@@ -615,7 +639,6 @@
         right: 6vw;
         width: 74vw;
         height: 100%;
-        background-color: hsl(0, 0%, 6%);
         overflow: hidden;
     }
 
@@ -631,7 +654,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(120, 100%, 24%);
+        background-color: hsla(120, 100%, 40%, 0.5);
     }
 
     #page-label{
@@ -660,7 +683,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(120, 100%, 24%);
+        background-color: hsla(120, 100%, 40%, 0.5);
     }
 
     button-table{
@@ -690,11 +713,11 @@
         width: calc(20% - 0.5vw);
         height: calc(20% - 0.5vw);
         border-radius: 0.5vw;
-        background-color: hsl(0, 0%, 12%);
+        background-color: hsla(0, 0%, 0%, 0.5);
     }
 
     .button-item-active{
-        background-color: hsl(204, 100%, 24%);
+        background-color: hsla(0, 0%, 50%, 0.5);
     }
 
     .pressed{
@@ -747,21 +770,6 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    #fullscreen{
-        position: absolute;
-        left: 1vw;
-        bottom: 31vh;
-        width: 18vw;
-        height: 8vh;
-        border-radius: 0.5vw;
-        font-size: 3vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: hsl(20, 100%, 35%);
-    }
-
     #update{
         position: absolute;
         left: 1vw;
@@ -774,7 +782,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(40, 100%, 35%);
+        background-color: hsla(40, 100%, 40%, 0.5);
     }
 
     #clear{
@@ -789,7 +797,22 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(0, 100%, 24%);
+        background-color: hsla(0, 100%, 40%, 0.5);
+    }
+
+    #rate-tap{
+        position: absolute;
+        left: 1vw;
+        bottom: 15vh;
+        width: 11vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(204, 100%, 40%, 0.5);
     }
 
     #rate-curr {
@@ -804,7 +827,7 @@
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        color: hsl(204, 100%, 32%);
+        color: hsla(204, 100%, 40%, 0.5);
     }
 
     #rate-next {
@@ -819,7 +842,7 @@
         justify-content: center;
         align-items: center;
         font-weight: bold;
-        color: hsl(120, 100%, 32%);
+        color: hsla(120, 100%, 40%, 0.5);
     }
 
     #rate-apply{
@@ -834,7 +857,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(204, 100%, 24%);
+        background-color: hsla(204, 100%, 40%, 0.5);
     }
 
     #rate-dec{
@@ -849,7 +872,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(120, 100%, 24%);
+        background-color: hsla(120, 100%, 40%, 0.5);
     }
 
     #rate-inc{
@@ -864,7 +887,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsl(120, 100%, 24%);
+        background-color: hsla(120, 100%, 40%, 0.5);
     }
 
     .button:active{

@@ -1,0 +1,5 @@
+pygame
+websockets
+tinytag
+rich
+watchdog

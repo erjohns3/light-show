@@ -8,7 +8,7 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 # To get all songs from doorbell
 ```
-scp -r doorbell:/home/pi/light-show/songs .
+scp -r pi@doorbell:/home/pi/light-show/songs .
 ```
 
 ## ideas for python audio feature extraction:

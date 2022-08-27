@@ -6,3 +6,4 @@ watchdog
 yt-dlp
 paramiko
 scp
+# pip install git+https://github.com/aubio/aubio.git

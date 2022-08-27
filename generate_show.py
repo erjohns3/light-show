@@ -14,7 +14,7 @@ from helpers import *
 def generate_show(song_filepath):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-
+    # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
     
@@ -25,8 +25,6 @@ def generate_show(song_filepath):
 
     delay = 4. * hop_s
 
-    # list of beats, in samples
-    beats_samplerate = []
     beats = []
 
     # total number of frames read
@@ -38,11 +36,10 @@ def generate_show(song_filepath):
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
             # print("%f" % human_readable)
-            beats_samplerate.append(this_beat)
             beats.append(human_readable)
         total_frames += read
         if read < hop_s: break
-
+    # ...to here
     bpm_guess = -1
     offset_guess = -1
     best_seen = math.inf

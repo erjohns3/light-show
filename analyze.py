@@ -14,8 +14,6 @@ delay = int((60 / 120 * rate) / 4)
 x = int(first_beat * rate)
 end = len(samples)
 
-x += 
-
 print(f'samples ber scan: {delay}')
 
 while x + delay < end:

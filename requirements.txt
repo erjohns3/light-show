@@ -3,3 +3,4 @@ websockets
 tinytag
 rich
 watchdog
+# pip install git+https://github.com/aubio/aubio.git

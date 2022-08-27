@@ -3,3 +3,6 @@ websockets
 tinytag
 rich
 watchdog
+yt-dlp
+paramiko
+scp

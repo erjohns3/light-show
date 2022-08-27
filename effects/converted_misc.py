@@ -169,4 +169,15 @@ effects = {
         "song_path": "songs/luigi.ogg",
         "profiles": ["Shows"],
     },
+
+    "first love show": {
+        "beats": [
+            [1, "UV pulse", 32],
+        ],
+        "delay_lights": 5.75,
+        "skip_song": 0.0,
+        "bpm": 80,
+        "song_path": "songs/神はサイコロを振らない × アユニ・D(BiSH⧸PEDRO) × n-buna from ヨルシカ「初恋」Studio Session Movie(Full Ver.).ogg",
+        "profiles": ["Shows"],
+    },
 }

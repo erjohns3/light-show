@@ -59,4 +59,5 @@ if __name__ == '__main__':
         url = sys.argv[1]
     downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
     remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    print('Starting scp to doorbell')
     scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)

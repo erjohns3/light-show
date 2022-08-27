@@ -33,6 +33,11 @@ parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
+parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
+parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
+
+
+
 args = parser.parse_args()
 
 
@@ -978,6 +983,44 @@ if args.reload:
     observer.start()
 
 
+
+if args.keyboard:
+    from pynput.keyboard import Key, Listener, KeyCode
+
+    keyboard_dict = {
+        'd': 'Red top',
+        'f': 'Cyan top',
+        'j': 'Blue bottom',
+        'k': 'Green bottom',
+        'space': 'UV',
+    }
+    # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
+
+    def on_press(key):
+        if type(key) == KeyCode:
+            key_name = key.char
+        else:
+            key_name = key.name
+        if key_name in keyboard_dict:
+            add_effect(keyboard_dict[key_name])
+
+    def on_release(key):
+        if type(key) == KeyCode:
+            key_name = key.char
+        else:
+            key_name = key.name
+        if key_name in keyboard_dict:
+            remove_effect(curr_effect_index(keyboard_dict[key_name]))
+
+    def listen_for_keystrokes():
+        with Listener(on_press=on_press, on_release=on_release) as listener:
+            listener.join()
+
+    keyboard_thread = threading.Thread(target=listen_for_keystrokes, args=[], daemon=True)
+    keyboard_thread.start()
+
+
+
 http_thread = threading.Thread(target=http_server, args=[], daemon=True)
 http_thread.start()
 # allows prints from http_server to finish to not mess up terminal output
@@ -1017,6 +1060,7 @@ async def start_async():
                 effects_config[args.show]['bpm'] *= args.speed
                 effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
                 args.skip_show_seconds *= 1 / args.speed
+                args.delay_seconds *= 1 / args.speed
                 effects_config[args.show]['skip_song'] *= 1 / args.speed
                 effects_config[args.show]['delay_lights'] *= 1 / args.speed
             if args.skip_show_beats:
@@ -1024,6 +1068,8 @@ async def start_async():
             if args.skip_show_seconds:
                 effects_config[args.show]['skip_song'] += args.skip_show_seconds
                 effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
+            if args.delay_seconds:
+                effects_config[args.show]['delay_lights'] += args.delay_seconds
             song_queue.append([args.show, get_queue_salt()])
             add_effect(args.show)
             play_song(args.show)

@@ -6,4 +6,4 @@ watchdog
 yt-dlp
 paramiko
 scp
-git+https://github.com/aubio/aubio.git
+# git+https://github.com/aubio/aubio.git

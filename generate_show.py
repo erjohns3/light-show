@@ -4,10 +4,9 @@ import re
 import sys
 import math
 import statistics
-import numpy as np
 
 import aubio
-
+import numpy as np
 from helpers import *
 
 
@@ -19,6 +18,7 @@ def generate_show(song_filepath):
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
 
+    print(f'song_filepath: {song_filepath}')
     src = aubio.source(str(song_filepath), 0, hop_s)
 
     print(src.uri, src.samplerate, src.channels, src.duration)
@@ -43,7 +43,7 @@ def generate_show(song_filepath):
         if read < hop_s:
             break
 
-    bpm = int(statistics.median(bpms))
+    bpm = int(round(statistics.median(bpms)))
 
     distances = []
     beat_length = 60/bpm
@@ -76,5 +76,5 @@ def generate_show(song_filepath):
         mode = modes_to_cycle[beat % len(modes_to_cycle)]
         show['beats'].append([beat, mode, .25])
     return {
-        f'generated_{song_filepath.stem}_show': show
+        f'generated_{pathlib.Path(song_filepath).stem}_show': show
     }

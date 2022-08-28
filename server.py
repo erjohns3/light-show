@@ -65,6 +65,7 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
+# pygame.init()
 pygame.mixer.init(frequency=48000)
 
 

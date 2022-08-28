@@ -47,15 +47,16 @@ def generate_show(song_filepath):
     errors = {}
     for bpm in range(70, 180):
         distances = []
-        beats_possible = [x*60/bpm for x in range(len(beats)+50)]
+        # beats_possible = [x*60/bpm for x in range(len(beats)+50)]
+        beat_length = 60/bpm
         error = 0
         for value in beats:
-            match = find_nearest(beats_possible, value)
+            match = round(value/beat_length)*beat_length
             distances.append(match-value)
         med = np.median(distances)
 
         for distance in distances:
-            if abs(distance-med)/(60/bpm) > .1: # match to 1% of beat length (could be tuned)
+            if abs(distance-med)/(60/bpm) > .1: # match to 10% of beat length (could be tuned)
                 error+=1
 
         errors[bpm] = error
@@ -66,7 +67,7 @@ def generate_show(song_filepath):
     # print(errors)
 
     length_int = 60.0/bpm_guess
-    delay = length_int + offset_guess if offset_guess < 0 else offset_guess
+    delay = length_int - offset_guess if offset_guess > 0 else offset_guess
 
     print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
 
@@ -90,11 +91,3 @@ def generate_show(song_filepath):
         f'generated_{song_filepath.stem}_show': show
     }
 
-
-# fast binary search to nearest value
-def find_nearest(array,value):
-    idx = np.searchsorted(array, value, side="left")
-    if idx > 0 and (idx == len(array) or math.fabs(value - array[idx-1]) < math.fabs(value - array[idx])):
-        return array[idx-1]
-    else:
-        return array[idx]

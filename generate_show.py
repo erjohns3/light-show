@@ -14,7 +14,8 @@ from helpers import *
 def generate_show(song_filepath):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-    # internet copypasta from here ...
+
+    # -------------- tempo and offset -------------------
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
 
@@ -42,16 +43,16 @@ def generate_show(song_filepath):
         if read < hop_s:
             break
 
-    # ...to here
-    bpm = statistics.median(bpms)
+    bpm = int(statistics.median(bpms))
 
     distances = []
     beat_length = 60/bpm
-    for value in beats:
-        match = round(value/beat_length)*beat_length
-        distances.append(match-value)
+    for i, value in enumerate(beats):
+        if (bpms[i]-bpm)/bpm < .05:
+            match = round(value/beat_length)*beat_length
+            distances.append(beat_length-(match-value))
     med = np.median(distances)
-
+    print(distances)
     length_int = 60.0/bpm
     delay = length_int - med if med < 0 else med
 
@@ -67,7 +68,7 @@ def generate_show(song_filepath):
         'beats': []
     }
 
-    # apply lights
+    # -------------- output ---------------------
     modes_to_cycle = ['Red top', 'Green top']
     length_s = src.duration/src.samplerate
     total_beats = int(length_s/60*bpm)

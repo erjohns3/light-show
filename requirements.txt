@@ -1,0 +1,9 @@
+pygame
+websockets
+tinytag
+rich
+watchdog
+yt-dlp
+paramiko
+scp
+git+https://github.com/aubio/aubio.git

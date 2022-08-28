@@ -12,3 +12,5 @@ data/nonsense/
 *.webm
 temp/
 *.wav
+.DS_Store
+chris.py

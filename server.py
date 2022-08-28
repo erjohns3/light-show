@@ -1048,7 +1048,7 @@ if args.keyboard:
             else:
                 keyboard_dict[key_name]()
         else:
-            print(f'you pressed {key_name=}')
+            print(f'you pressed {key_name}')
 
     def on_release(key):
         if type(key) == KeyCode:

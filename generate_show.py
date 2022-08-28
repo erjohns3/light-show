@@ -4,7 +4,9 @@ import re
 import sys
 import math
 import statistics
-
+import numpy as np
+from scipy.signal import find_peaks
+import pandas as pd 
 import aubio
 import numpy as np
 from helpers import *
@@ -40,24 +42,35 @@ def generate_show(song_filepath):
             beats.append(human_readable)
             bpms.append(o.get_bpm())
         total_frames += read
-        if read < hop_s:
-            break
-
-    bpm = int(round(statistics.median(bpms)))
-
-    distances = []
-    beat_length = 60/bpm
-    for i, value in enumerate(beats):
-        if (bpms[i]-bpm)/bpm < .05:
+        if read < hop_s: break
+    # ...to here
+    bpm_guess = -1
+    offset_guess = -1
+    best_seen = math.inf
+    beats = np.array(beats)
+    errors = {}
+    for bpm in range(70, 180):
+        distances = []
+        beat_length = 60/bpm
+        error = 0
+        for value in beats:
             match = round(value/beat_length)*beat_length
-            distances.append(beat_length-(match-value))
-    med = np.median(distances)
-    print(distances)
-    length_int = 60.0/bpm
-    delay = length_int - med if med < 0 else med
+            distances.append(match-value)
+        bins = np.linspace(-beat_length, beat_length, 40) # group bins into 5% intervals of beat length (on either side)
+        df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
+        choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
+        for distance in distances:
+            if abs(distance-choice)/(beat_length) > .05: # match to 10% of beat length (could be tuned)
+                error+=1
 
-    print(
-        f'Guessing BPM as {bpm} delay as {delay} beat_length as {length_int}')
+        errors[bpm] = error
+        if error < best_seen:
+            bpm_guess = bpm
+            offset_guess = choice
+            best_seen = error
+
+    length_int = 60.0/bpm_guess
+    delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
 
     show = {
         'bpm': int(bpm),

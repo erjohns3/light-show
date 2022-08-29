@@ -115,23 +115,29 @@ if __name__ == '__main__':
     configs_with_bpm = {}
     for effect_name, effect in effects_config.items():
         if 'bpm' in effect and 'song_path' in effect:
-            configs_with_bpm[effect['song_path']] = effect['bpm']
+            configs_with_bpm[effect['song_path']] = {
+                'bpm': effect['bpm'],
+                'delay': effect['delay_lights'] + effect['skip_song'],
+            }
     
 
-    all_calculated_bpms = {}
+    guess_bpm_delay = {}
     for name, song_filepath in get_all_paths('songs', only_files=True):
-        src, bpm_guess, delay = get_src_bpm_offset(song_filepath)        
-        all_calculated_bpms[str(song_filepath)] = bpm_guess
+        src, guess_bpm, guess_delay = get_src_bpm_offset(song_filepath)        
+        guess_bpm_delay[str(song_filepath)] = (guess_bpm, guess_delay)
 
-    for song_filepath, guess_bpm in all_calculated_bpms.items():
+    for song_filepath, (guess_bpm, guess_delay) in guess_bpm_delay.items():
         if song_filepath in configs_with_bpm:
-            config_bpm = configs_with_bpm[song_filepath]            
+            config_bpm = configs_with_bpm[song_filepath]['bpm']
+            config_delay = configs_with_bpm[song_filepath]['delay']
+            
+            delay_string = f'config_delay: {config_delay}, guess_delay: {guess_delay}'
             if config_bpm == guess_bpm:
-                print(f'{bcolors.OKGREEN}guess_bpm: {guess_bpm} == config_bpm: {config_bpm}, {song_filepath}{bcolors.ENDC}')
+                print(f'{bcolors.OKGREEN}BPM match: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
             else:
-                print(f'{bcolors.FAIL}guess_bpm: {guess_bpm} == config_bpm: {config_bpm}, {song_filepath}{bcolors.ENDC}')
+                print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
         else:
-            print(f'{bcolors.OKCYAN}BPM: {bpm_guess}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
+            print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
 
 
 

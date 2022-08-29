@@ -11,6 +11,10 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 scp -r pi@doorbell:/home/pi/light-show/songs .
 ```
 
+# To autogenerate
+### Note that the --show parameter here fuzzy finds the filename
+python server.py --local --autogen --enter --show shelter
+
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe
 * https://github.com/tyiannak/pyAudioAnalysis

@@ -4,10 +4,14 @@ import re
 import sys
 import math
 import statistics
-import numpy as np
+import os
+import importlib
+import sys
+
 from scipy.signal import find_peaks
 import pandas as pd 
 import aubio
+import numpy as np
 
 from helpers import *
 
@@ -99,8 +103,57 @@ def generate_show(song_filepath):
 
 
 if __name__ == '__main__':
-    print('lol')
-    song_filepath = 'songs/shelter.ogg'
-    bpm_guess, delay = get_src_bpm_offset(song_filepath)
+    real_std_out = sys.stdout
+    all_globals = globals()
+
+    effects_config = {}
+    for name, path in get_all_paths('effects', only_files=True):
+        module = 'effects.' + path.stem
+        all_globals[module] = importlib.import_module(module)
+        effects_config.update(all_globals[module].effects)
+
+    configs_with_bpm = {}
+    for effect_name, effect in effects_config.items():
+        if 'bpm' in effect and 'song_path' in effect:
+            configs_with_bpm[effect['song_path']] = effect['bpm']
+    
+
+    all_calculated_bpms = {}
+    for name, song_filepath in get_all_paths('songs', only_files=True):
+        src, bpm_guess, delay = get_src_bpm_offset(song_filepath)        
+        all_calculated_bpms[str(song_filepath)] = bpm_guess
+
+    for song_filepath, guess_bpm in all_calculated_bpms.items():
+        if song_filepath in configs_with_bpm:
+            config_bpm = configs_with_bpm[song_filepath]            
+            if config_bpm == guess_bpm:
+                print(f'{bcolors.OKGREEN}guess_bpm: {guess_bpm} == config_bpm: {config_bpm}, {song_filepath}{bcolors.ENDC}')
+            else:
+                print(f'{bcolors.FAIL}guess_bpm: {guess_bpm} == config_bpm: {config_bpm}, {song_filepath}{bcolors.ENDC}')
+        else:
+            print(f'{bcolors.OKCYAN}BPM: {bpm_guess}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
 
 
+
+# BPM: 128, songs/deadmau5 feat. Rob Swire - Ghosts N Stuff.ogg
+# BPM: 90, songs/luigi.ogg
+# BPM: 128, songs/deadmau5 & Kaskade - I Remember (HQ).ogg
+# BPM: 130, songs/Brett Kavanaugh Hearing Automatic x Levels Remix.ogg
+# BPM: 120, songs/Porter Robinson - Musician (Official Music Video).ogg
+# BPM: 112, songs/Not Butter.ogg
+# BPM: 157, songs/Everything Goes On.ogg
+# BPM: 110, songs/KSLV - Pimp Slap.ogg
+# BPM: 120, songs/Radiohead - Everything in Its Right Place (Sam Goku Edit).ogg
+# BPM: 124, songs/cnam_slander_said_the_sky_cut.ogg
+# BPM: 122, songs/BoonDocks - A Pimp Named Slickback Funny Moment's.ogg
+# BPM: 144, songs/Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg
+# BPM: 100, songs/shelter.ogg
+# BPM: 146, songs/mo_bamba.ogg
+# BPM: 128, songs/Telepathic Love.ogg
+# BPM: 136, songs/Mad Zach - The Visitor.ogg
+# BPM: 118, songs/Joywave • Tongues (lyrics).ogg
+# BPM: 90, songs/slowed_deadmau.ogg
+# BPM: 176, songs/Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg
+# BPM: 138, songs/Superhumanoids - Too Young For Love.ogg
+# BPM: 96, songs/Cheesecake.ogg
+# BPM: 128, songs/Notion - Hooked.ogg

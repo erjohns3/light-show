@@ -49,6 +49,13 @@ class bcolors:
 # up a line and begining: '\033[F'
 
 
+# disabling std out
+# if is_windows():
+#     null_std_out = open('nul', 'w')
+# elif is_linux() or is_macos():
+#     null_std_out = open('/dev/null', 'w')
+
+
 def random_letters(num_chars: int) -> str:
     letters = [chr(ord('a') + a) for a in range(26)]
     return ''.join(random.sample(letters, num_chars))

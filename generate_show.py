@@ -40,7 +40,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
         if read < hop_s: break
     # ...to here
 
-    common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>50 and x<200]
+    common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
     if not common_bpms:
         common_bpms = [x for x, cnt in Counter(bpms).most_common(10)]
 
@@ -51,12 +51,12 @@ def get_src_bpm_offset(song_filepath, debug=True):
 
     bpm_guess = -1
     offset_guess = -1
-    best_seen = math.inf
-    errors = {}
+    best_seen = -math.inf
+    hits = {} 
     for bpm in bpm_candidates:
         distances = []
         beat_length = 60/bpm
-        error = 0
+        hit_count = 0
         for value in beats:
             match = round(value/beat_length)*beat_length
             distances.append(match-value)
@@ -64,19 +64,18 @@ def get_src_bpm_offset(song_filepath, debug=True):
         bins = np.linspace(-beat_length, beat_length, 40) # group bins into 5% intervals of beat length (on either side)
         df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
         choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
-        for distance in distances:
-            if abs(distance-choice)/(beat_length) > .05: # match to 5% of beat length
-                error+=1
-
-        errors[bpm] = error
-        if error < best_seen:
+        for distance in distances: 
+            if abs(distance-choice)/(beat_length) < .05: # match to 5% of beat length
+                hit_count+=1
+        # doubling the BPM should double the hits.  let's be generous and square-root it
+        hit_count = hit_count / bpm**.5
+        hits[bpm] = hit_count
+        if hit_count > best_seen:
             bpm_guess = bpm
             offset_guess = choice
-            best_seen = error
-
+            best_seen = hit_count
     length_int = 60.0/bpm_guess
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
-
     if debug:
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, bpm_guess, delay

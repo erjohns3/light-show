@@ -12,7 +12,8 @@ scp -r pi@doorbell:/home/pi/light-show/songs .
 ```
 
 # To autogenerate
-python .\server.py --local --autogen --enter --show shelter
+### Note that the --show parameter here fuzzy finds the filename
+python server.py --local --autogen --enter --show shelter
 
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe

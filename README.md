@@ -1,7 +1,7 @@
 # club time
 
 
-## example: goto for light show debugging on terminal
+## example: goto for light show debugging on terminal (shelter)
 python server.py --local --keyboard --reload --show shelter
 
 # To get all songs from doorbell

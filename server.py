@@ -1028,7 +1028,7 @@ def restart_show(reload=False, skip=0):
     if curr_effects:
         effect_name = curr_effects[0][0]
         remove_effect(0)
-        time_to_skip_to = (time.time() - time_start) + skip
+        time_to_skip_to = max(0, (time.time() - time_start) + skip)
         stop_song()
 
         if reload:
@@ -1094,13 +1094,13 @@ if args.keyboard:
     skip_time = 5
 
     keyboard_dict = {
-        'd': 'Red top',
-        'f': 'Cyan top',
-        'j': 'Blue bottom',
-        'k': 'Green bottom',
+        # 'd': 'Red top',
+        # 'f': 'Cyan top',
+        # 'j': 'Blue bottom',
+        # 'k': 'Green bottom',
         'left': lambda: restart_show(False, -skip_time),
         'right': lambda: restart_show(False, skip_time),
-        'space': 'UV',
+        # 'space': 'UV',
     }
     # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
@@ -1114,8 +1114,8 @@ if args.keyboard:
                 add_effect(keyboard_dict[key_name])
             else:
                 keyboard_dict[key_name]()
-        else:
-            print(f'you pressed {key_name}')
+        # else:
+        #     print(f'you pressed {key_name}')
 
     def on_release(key):
         if type(key) == KeyCode:

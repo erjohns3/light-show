@@ -44,6 +44,7 @@ effects = {
     },
     "Ghosts riser": {
         "length": 4,
+        "autogen": True,
         "beats": [
             [1, "Pink bottom", 2, .15, .3],
             [3, "Pink bottom", 2, .3, .15],
@@ -72,6 +73,7 @@ effects = {
     # },
     "Rainbow bad": {
         "length": 2,
+        "autogen": True,
         "beats": [
             [1, [40, 0, 0, 0, 0, 0, 0], 0.7],
             [1.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 1, 0], 

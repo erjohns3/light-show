@@ -151,6 +151,7 @@ effects = {
     },
     "rainbow good slow top": {
         "length": 16,
+        "autogen": True,
         "beats": [
             [1, "Green top", 7.3, 1, 0],
             [1, "Red top", 5.3, 0, 1],

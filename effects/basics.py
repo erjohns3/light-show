@@ -20,6 +20,7 @@ effects = {
     },
     "UV pulse": {
         "length": 1,
+        "autogen": True,
         "loop": False,
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
@@ -27,6 +28,7 @@ effects = {
     },
     "UV pulse slow": {
         "length": 2,
+        "autogen": True,
         "loop": False,
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
@@ -89,6 +91,7 @@ effects = {
     # timings
     "RBBB 1 bar": {
         "length": 4,
+        "autogen": True,
         "beats": [
             [1, [100, 0, 0, 0, 0, 0, 0], 0.25],
             [2, [0, 0, 100, 0, 0, 0, 0], 0.25],

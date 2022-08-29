@@ -8,6 +8,7 @@ effects = {
     },
     "hooked wandering bottom": {
         "length": 16,
+        "autogen": True,
         "beats": [
             [1, "Cyan bottom", 1, 1, 1],
             [2, "Pink bottom", 1, 1, 1],
@@ -22,6 +23,7 @@ effects = {
     },
     "hooked wandering top": {
         "length": 16,
+        "autogen": True,
         "beats": [
             [1, "Cyan top", 1, 1, 1],
             [2, "Pink top", 1, 1, 1],

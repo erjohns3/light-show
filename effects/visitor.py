@@ -1,6 +1,8 @@
 effects = {
     "visitor show": {
         "beats": [
+            [1, "White top", 64, 1, 0],
+            [1, "White bottom", 64, 1, 0],
             [1, "RGB Flash", 912],
         ],
         "delay_lights": 0,

@@ -103,19 +103,27 @@ def generate_show(song_filepath, effects_config):
                 effect_usages[beats[1]] += 1
 
     # filtering to only ones in between 4 and 16
-    effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
-    effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_4_16, effect_usages.items()))
+    # effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
+    # effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
 
-    print('frequency of potential effects used')
-    for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
-        print(f'times_used: {times_used}, {effect_name}')
-    
+
     # making probability distribution
-    effect_probabilities = {}
-    total = sum(effect_usages_4_16.values())
-    for effect_name, times_used in effect_usages_4_16.items():
-        effect_probabilities[effect_name] = times_used / total
+    # effect_probabilities = {}
+    # total = sum(effect_usages_4_16.values())
+    # for effect_name, times_used in effect_usages_4_16.items():
+    #     effect_probabilities[effect_name] = times_used / total
 
+    # print('frequency of potential effects used')
+    # for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
+    #     print(f'times_used: {times_used}, {effect_name}')
+
+
+
+    effects_config_labeled = dict(filter(lambda x: x[1].get('autogen', False), effects_config.items()))
+    effect_usages_labeled = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
+
+    print(effects_config_labeled)
+    print(effect_usages_labeled)
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -123,13 +131,25 @@ def generate_show(song_filepath, effects_config):
 
     beat = 1    
     while beat < total_beats:
-        chosen_effect_name = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=1)[0]
-        length = effect_files_json[chosen_effect_name]['length']
-        show['beats'].append([beat, chosen_effect_name, length])
-        beat += length
-    return {
+        # chosen_effect_names = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=2)
+        chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
+        
+        all_lengths = []
+        for effect_name in chosen_effect_names:
+            length = effect_files_json[effect_name]['length']
+            all_lengths.append(length)
+            show['beats'].append([beat, effect_name, length])
+        beat += max(all_lengths)
+    
+    the_show = {
         f'generated_{pathlib.Path(song_filepath).stem}_show': show
     }
+    
+    # dump show to temp output
+    # with 
+    # print()
+
+    return the_show
 
 
 def get_effect_files_jsons():

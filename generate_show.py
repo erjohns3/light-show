@@ -90,26 +90,49 @@ def generate_show(song_filepath, effects_config):
     }
 
 
-    effects_config = filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items())
-    for effect_name, effect in effects_config:
-        print(effect_name, effect['length'])
 
+    effect_files_json = get_effect_files_jsons()
+
+    # counting number of times effect is used
+    effect_usages = {}
+    for effect_name, effect in effect_files_json.items():
+        for beats in effect['beats']:
+            if type(beats[1]) == str:
+                if beats[1] not in effect_usages:
+                    effect_usages[beats[1]] = 0
+                effect_usages[beats[1]] += 1
+
+    # filtering to only ones in between 4 and 16
+    effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
+    effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_4_16, effect_usages.items()))
+
+    print('frequency of potential effects used')
+    for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
+        print(f'{times_used=}, {effect_name=}')
     
-    
+    # making probability distribution
+    effect_probabilities = {}
+    total = sum(effect_usages_4_16.values())
+    for effect_name, times_used in effect_usages_4_16.items():
+        effect_probabilities[effect_name] = times_used / total
+
+
     # apply lights
-    modes_to_cycle = ['Red top', 'Green top']
     length_s = src.duration / src.samplerate
     total_beats = int((length_s / 60) * bpm_guess)
-    
-    for beat in range(1, total_beats):
-        mode = modes_to_cycle[beat % len(modes_to_cycle)]
-        show['beats'].append([beat, mode, .25])
+
+    beat = 1    
+    while beat < total_beats:
+        chosen_effect_name = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=1)[0]
+        length = effect_files_json[chosen_effect_name]['length']
+        show['beats'].append([beat, chosen_effect_name, length])
+        beat += length
     return {
         f'generated_{pathlib.Path(song_filepath).stem}_show': show
     }
 
 
-def get_effect_file_jsons():
+def get_effect_files_jsons():
     all_globals = globals()
     effects_config = {}
     for name, path in get_all_paths('effects', only_files=True):
@@ -120,10 +143,10 @@ def get_effect_file_jsons():
 
 
 if __name__ == '__main__':
-    effects_config = get_effect_file_jsons()
+    effect_files_jsons = get_effect_files_jsons()
 
     configs_with_bpm = {}
-    for effect_name, effect in effects_config.items():
+    for effect_name, effect in effect_files_jsons.items():
         if 'bpm' in effect and 'song_path' in effect:
             configs_with_bpm[effect['song_path']] = {
                 'bpm': effect['bpm'],

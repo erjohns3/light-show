@@ -157,7 +157,7 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
         beat += max(all_lengths)
     
     the_show = {
-        f'generated_{pathlib.Path(song_filepath).stem}_show': show
+        f'g_{pathlib.Path(song_filepath).stem}': show
     }
     
     # dump show to temp output

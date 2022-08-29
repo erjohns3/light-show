@@ -59,6 +59,23 @@ def change_speed_audio_rubberband(input_filepath, speed):
     ], debug=True)
     return output_filepath
 
+def convert_to_wav(input_filepath):
+    if type(input_filepath) != pathlib.Path:
+        input_filepath = pathlib.Path(input_filepath)
+
+    output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}.wav')
+    if os.path.exists(output_filepath):
+        return output_filepath
+
+    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to wav{bcolors.ENDC}"')
+    run_command_blocking([
+        'ffmpeg',
+        '-i',
+        str(input_filepath),
+        str(output_filepath),
+    ], debug=True)
+    return output_filepath
+
 
 def change_speed_audio_asetrate(input_filepath, speed):
     if type(input_filepath) != pathlib.Path:

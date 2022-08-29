@@ -7,6 +7,7 @@ import statistics
 import os
 import importlib
 import sys
+import sound_helpers
 
 # from scipy.signal import find_peaks
 import pandas as pd 
@@ -78,7 +79,10 @@ def get_src_bpm_offset(song_filepath):
 def generate_show(song_filepath, effects_config):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-    src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
+    if is_windows():
+        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath))
+    else:
+        src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
 
     show = {
         'bpm': bpm_guess,

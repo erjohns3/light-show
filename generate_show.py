@@ -40,9 +40,9 @@ def get_src_bpm_offset(song_filepath, debug=True):
         if read < hop_s: break
     # ...to here
 
-    common_bpms = [x for x, cnt in Counter(bpms).most_common(3) if x>50 and x<200]
+    common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>50 and x<200]
     if not common_bpms:
-        common_bpms = [x for x, cnt in Counter(bpms).most_common(3)]
+        common_bpms = [x for x, cnt in Counter(bpms).most_common(10)]
 
     bpm_candidates = set()
     for bpm in common_bpms:

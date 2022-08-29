@@ -17,7 +17,7 @@ import numpy as np
 from helpers import *
 
 
-def get_src_bpm_offset(song_filepath):
+def get_src_bpm_offset(song_filepath, debug=True):
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
@@ -77,17 +77,18 @@ def get_src_bpm_offset(song_filepath):
     length_int = 60.0/bpm_guess
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
 
-    print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
+    if debug:
+        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, bpm_guess, delay
 
 
-def generate_show(song_filepath, effects_config):
+def generate_show(song_filepath, effects_config, simple=False, debug=True):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
     if is_windows():
-        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath))
+        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath), debug=debug)
     else:
-        src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
+        src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
     show = {
         'bpm': bpm_guess,
@@ -131,8 +132,9 @@ def generate_show(song_filepath, effects_config):
     effects_config_labeled = dict(filter(lambda x: x[1].get('autogen', False), effects_config.items()))
     effect_usages_labeled = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
 
-    print(effects_config_labeled)
-    print(effect_usages_labeled)
+    if debug:
+        print(effects_config_labeled)
+        print(effect_usages_labeled)
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -141,8 +143,13 @@ def generate_show(song_filepath, effects_config):
     beat = 1    
     while beat < total_beats:
         # chosen_effect_names = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=2)
-        chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
         
+        if simple:
+            chosen_effect_names = ['RBBB 1 bar']
+        else:
+            chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
+
+
         all_lengths = []
         for effect_name in chosen_effect_names:
             length = effect_files_json[effect_name]['length']

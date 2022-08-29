@@ -75,13 +75,13 @@ def get_src_bpm_offset(song_filepath):
     return src, bpm_guess, delay
 
 
-def generate_show(song_filepath):
+def generate_show(song_filepath, effects_config):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
     src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
 
     show = {
-        'bpm': int(bpm_guess),
+        'bpm': bpm_guess,
         'song_path': str(song_filepath),
         'delay_lights': delay,
         'skip_song': 0.0,
@@ -89,10 +89,18 @@ def generate_show(song_filepath):
         'beats': []
     }
 
+
+    effects_config = filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items())
+    for effect_name, effect in effects_config:
+        print(effect_name, effect['length'])
+
+    
+    
     # apply lights
     modes_to_cycle = ['Red top', 'Green top']
     length_s = src.duration / src.samplerate
-    total_beats = int(length_s/60*bpm_guess)
+    total_beats = int((length_s / 60) * bpm_guess)
+    
     for beat in range(1, total_beats):
         mode = modes_to_cycle[beat % len(modes_to_cycle)]
         show['beats'].append([beat, mode, .25])
@@ -101,16 +109,18 @@ def generate_show(song_filepath):
     }
 
 
-
-if __name__ == '__main__':
-    real_std_out = sys.stdout
+def get_effect_file_jsons():
     all_globals = globals()
-
     effects_config = {}
     for name, path in get_all_paths('effects', only_files=True):
         module = 'effects.' + path.stem
         all_globals[module] = importlib.import_module(module)
         effects_config.update(all_globals[module].effects)
+    return effects_config
+
+
+if __name__ == '__main__':
+    effects_config = get_effect_file_jsons()
 
     configs_with_bpm = {}
     for effect_name, effect in effects_config.items():

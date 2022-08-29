@@ -12,9 +12,7 @@ import aubio
 from helpers import *
 
 
-def generate_show(song_filepath):
-    print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-
+def get_src_bpm_offset(song_filepath):
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
@@ -70,6 +68,13 @@ def generate_show(song_filepath):
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
 
     print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
+    return src, bpm_guess, delay
+
+
+def generate_show(song_filepath):
+    print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
+
+    src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
 
     show = {
         'bpm': int(bpm_guess),
@@ -82,7 +87,7 @@ def generate_show(song_filepath):
 
     # apply lights
     modes_to_cycle = ['Red top', 'Green top']
-    length_s = src.duration/src.samplerate
+    length_s = src.duration / src.samplerate
     total_beats = int(length_s/60*bpm_guess)
     for beat in range(1, total_beats):
         mode = modes_to_cycle[beat % len(modes_to_cycle)]
@@ -90,4 +95,12 @@ def generate_show(song_filepath):
     return {
         f'generated_{pathlib.Path(song_filepath).stem}_show': show
     }
+
+
+
+if __name__ == '__main__':
+    print('lol')
+    song_filepath = 'songs/shelter.ogg'
+    bpm_guess, delay = get_src_bpm_offset(song_filepath)
+
 

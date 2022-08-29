@@ -138,28 +138,3 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
         else:
             print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
-
-
-
-# BPM: 128, songs/deadmau5 feat. Rob Swire - Ghosts N Stuff.ogg
-# BPM: 90, songs/luigi.ogg
-# BPM: 128, songs/deadmau5 & Kaskade - I Remember (HQ).ogg
-# BPM: 130, songs/Brett Kavanaugh Hearing Automatic x Levels Remix.ogg
-# BPM: 120, songs/Porter Robinson - Musician (Official Music Video).ogg
-# BPM: 112, songs/Not Butter.ogg
-# BPM: 157, songs/Everything Goes On.ogg
-# BPM: 110, songs/KSLV - Pimp Slap.ogg
-# BPM: 120, songs/Radiohead - Everything in Its Right Place (Sam Goku Edit).ogg
-# BPM: 124, songs/cnam_slander_said_the_sky_cut.ogg
-# BPM: 122, songs/BoonDocks - A Pimp Named Slickback Funny Moment's.ogg
-# BPM: 144, songs/Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg
-# BPM: 100, songs/shelter.ogg
-# BPM: 146, songs/mo_bamba.ogg
-# BPM: 128, songs/Telepathic Love.ogg
-# BPM: 136, songs/Mad Zach - The Visitor.ogg
-# BPM: 118, songs/Joywave • Tongues (lyrics).ogg
-# BPM: 90, songs/slowed_deadmau.ogg
-# BPM: 176, songs/Sakamoto Maaya - Okaerinasai (tomatomerde Remix).ogg
-# BPM: 138, songs/Superhumanoids - Too Young For Love.ogg
-# BPM: 96, songs/Cheesecake.ogg
-# BPM: 128, songs/Notion - Hooked.ogg

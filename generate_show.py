@@ -8,8 +8,8 @@ import os
 import importlib
 import sys
 import sound_helpers
+from collections import Counter
 
-# from scipy.signal import find_peaks
 import pandas as pd 
 import aubio
 import numpy as np
@@ -21,46 +21,51 @@ def get_src_bpm_offset(song_filepath):
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
-    
     src = aubio.source(str(song_filepath), 0, hop_s)
-
-    print(src.uri, src.samplerate, src.channels, src.duration)
+    # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo("default", win_s, hop_s, src.samplerate)
-
     delay = 4. * hop_s
-
     beats = []
-
-    # total number of frames read
     total_frames = 0
+    bpms = []
     while True:
         samples, read = src()
         is_beat = o(samples)
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
-            # print("%f" % human_readable)
             beats.append(human_readable)
+            bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
     # ...to here
+
+    common_bpms = [x for x, cnt in Counter(bpms).most_common(3) if x>50 and x<200]
+    if not common_bpms:
+        common_bpms = [x for x, cnt in Counter(bpms).most_common(3)]
+
+    bpm_candidates = set()
+    for bpm in common_bpms:
+        for plus in [-2,-1,0,1]:
+            bpm_candidates.add(bpm+plus)
+
     bpm_guess = -1
     offset_guess = -1
     best_seen = math.inf
-    beats = np.array(beats)
     errors = {}
-    for bpm in range(70, 180):
+    for bpm in bpm_candidates:
         distances = []
         beat_length = 60/bpm
         error = 0
         for value in beats:
             match = round(value/beat_length)*beat_length
             distances.append(match-value)
+        # todo.  the bins could be replaced with a sliding window to improve accuracy
         bins = np.linspace(-beat_length, beat_length, 40) # group bins into 5% intervals of beat length (on either side)
         df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
         choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
         for distance in distances:
-            if abs(distance-choice)/(beat_length) > .05: # match to 10% of beat length (could be tuned)
+            if abs(distance-choice)/(beat_length) > .05: # match to 5% of beat length
                 error+=1
 
         errors[bpm] = error

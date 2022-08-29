@@ -8,7 +8,7 @@ import os
 import importlib
 import sys
 
-from scipy.signal import find_peaks
+# from scipy.signal import find_peaks
 import pandas as pd 
 import aubio
 import numpy as np

@@ -32,16 +32,18 @@ parser.add_argument('--reload', dest='reload', default=False, action='store_true
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
-parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
-
+parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
+parser.add_argument('--autogen_simple', dest='autogen_simple', default=False, action='store_true')
 # bluetooth qc35 headphones are .189 latency
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
 
 
 
 args = parser.parse_args()
+if args.autogen_simple:
+    args.autogen = True
 
 
 pca = None
@@ -415,7 +417,65 @@ if args.local:
     terminal_size = os.get_terminal_size().columns
 
 
+def get_sub_effect_names(effect_name, beat):
+    sub_effect_names = []
+    effect_beats = effects_config[effect_name]['beats']
+    for effect in effect_beats:
+        if effect[0] <= beat <= effect[0] + effect[2]:
+            sub_effect_names.append(effect[1])
+        elif sub_effect_names:
+            break
+    return sub_effect_names
+
+
+last_extra_lines = None
 async def render_to_terminal(all_levels):
+    global last_extra_lines
+    curr_beat = (beat_index / SUB_BEATS) + 1
+    dead_space = terminal_size - 15
+
+    show_specific = ''
+    all_effect_names = []
+    for effect in curr_effects:
+        effect_name = effect[0]
+
+        # if has_song(effect[0]):
+        #     all_effect_names += get_sub_effect_names(effect[0], curr_beat)
+        if has_song(effect_name):
+            channel_lut_index = (beat_index + effect[1])
+            show_specific = f"""\
+, {round(100 * (channel_lut_index / channel_lut[effect_name]['length']))}% lights\
+"""
+            all_effect_names += get_sub_effect_names(effect_name, curr_beat)
+        else:
+            all_effect_names.append(effect[0])
+            # getting duration thru the song
+            # time_diff = time.time() - time_start
+            # song_path = effects_config[effect_name]['song_path']
+            # if 'song_path' in songs_config:
+            #     f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
+
+    useful_info = f"""\
+BPM: {curr_bpm:.2f}, \
+Beat: {curr_beat:.2f}, \
+Seconds: {round(time.time() - time_start, 2):.2f}\
+{show_specific}\
+"""
+    
+    # size_of_current_line = len(useful_info) - (terminal_size * (len(useful_info) // terminal_size))
+    size_of_current_line = len(useful_info) % (terminal_size + 1)
+    chars_until_end_of_line = terminal_size - size_of_current_line
+    # print(f'{size_of_current_line=}, {chars_until_end_of_line=}, {terminal_size=}')
+    useful_info += ' ' * chars_until_end_of_line
+    extra_lines_up = (len(useful_info) // (terminal_size + 1)) + 1
+    # if last_extra_lines is not None and last_extra_lines > extra_lines_up:
+    #     print(f'{" " * dead_space}\n' * (last_extra_lines - extra_lines_up))
+        # print(f'last_extra_lines: {last_extra_lines}, extra_lines_up: {extra_lines_up}')
+        # exit()
+
+    last_extra_lines = extra_lines_up
+
+
     # print('pre 255:', list(map(lambda x: x / max_num, all_levels)))
     levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
     # print('after 255:', levels_255)
@@ -428,48 +488,33 @@ async def render_to_terminal(all_levels):
     # print('after terminal lut', levels_255)
 
     # uv_level_scaling = min(1, levels_255[6] / 255.0)
-    purple_scaled = list(map(lambda x: int(x * (levels_255[6] / 255)), purple))
+    purple_scaled = list(map(lambda x: int(x * (levels_255[9] / 255)), purple))
 
     uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
-    top_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
-    bottom_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
+    top_front_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
+    top_back_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
+    bottom_rgb_style = f'rgb({levels_255[6]},{levels_255[7]},{levels_255[8]})'
+
+
+    # print(useful_info)
+    #  + (' ' * (terminal_size - len(useful_info)))
+
+    effect_string = f'Effects: {all_effect_names}'
+    remaining = terminal_size - len(effect_string) 
+    console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
+    console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
 
     character = '▆'
-    dead_space = terminal_size - 15
     console.print(' ' + character * 2, style=uv_style, end='')
-    console.print(character * 10, style=top_rgb_style, end='')
+    console.print(character * 5, style=top_front_rgb_style, end='')
+    console.print(character * 5, style=top_back_rgb_style, end='')
     console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
     console.print('\n', end='')
-    console.print(f'{" " * terminal_size}\n' * 3, end='')
+    console.print(f'{" " * (terminal_size - 1)}\n' * 3, end='')
 
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('\n', end='')
 
-    # effect_useful_info = list(map(lambda x: x[3], curr_effects))
-    
-    effect_specific = ''
-    if curr_effects:
-        effect_name = curr_effects[0][0]
-        if has_song(effect_name):
-            index = (beat_index + curr_effects[0][1])
-            time_diff = time.time() - time_start
-            song_path = effects_config[effect_name]['song_path']
-            effect_specific = f"""\
-, {round(100 * (index / channel_lut[effect_name]['length']))}% lights\
-"""
-            if 'song_path' in songs_config:
-                f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
-
-    # Sub beat: {round(beat_index, 1)}, \
-    useful_info = f"""\
-BPM: {curr_bpm:.2f}, \
-Beat: {round((beat_index / SUB_BEATS) + 1, 2):.2f}, \
-Seconds: {round(time.time() - time_start, 2):.2f}\
-{effect_specific}\
-"""
-    extra_lines_up = (len(useful_info) // terminal_size) + 1
-    console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
-    console.print('', end='\033[F' * (4 + extra_lines_up))
+    console.print('', end='\033[F' * 6)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -944,17 +989,21 @@ else:
 
 update_config()
 if args.autogen:
-    if not args.show:
-        print('must specify args.show')
-        exit()
     autogenerated_effects = {}
     import generate_show
 
-    song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.show, list(os.listdir('songs'))))
-    new_effect = generate_show.generate_show(song_path, effects_config)
-    autogenerated_effects.update(new_effect)
-    effect_name = list(new_effect.keys())[0]
-    args.show = effect_name
+    if args.show:
+        song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.show, list(os.listdir('songs'))))
+        new_effect = generate_show.generate_show(song_path, effects_config, args.autogen_simple)
+        autogenerated_effects.update(new_effect)
+        effect_name = list(new_effect.keys())[0]
+        args.show = effect_name
+    else:
+        print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
+        for name, path in get_all_paths('songs', only_files=True):
+            new_effect = generate_show.generate_show(path, effects_config, args.autogen_simple, debug=False)
+            autogenerated_effects.update(new_effect)
+    
     update_config(autogenerated_effects)
 
 
@@ -963,11 +1012,15 @@ def detailed_output_on_enter():
     while True:
         input()
         all_effect_names = []
+
+        curr_beat = (beat_index / SUB_BEATS) + 1
         for effect in curr_effects:
-            all_effect_names.append(effect[0])
+            if has_song(effect[0]):
+                all_effect_names += get_sub_effect_names(effect[0], curr_beat)
+            else:
+                all_effect_names.append(effect[0])
         
-        beat = round((beat_index / SUB_BEATS) + 1, 2)
-        print(f'beat: {beat}, current_effects playing: {all_effect_names}')
+        print(f'beat: {curr_beat:2f}, current_effects playing: {all_effect_names}')
 
 
 if args.enter:
@@ -981,7 +1034,7 @@ def restart_show(reload=False, skip=0):
     if curr_effects:
         effect_name = curr_effects[0][0]
         remove_effect(0)
-        time_to_skip_to = (time.time() - time_start) + skip
+        time_to_skip_to = max(0, (time.time() - time_start) + skip)
         stop_song()
 
         if reload:
@@ -1047,13 +1100,13 @@ if args.keyboard:
     skip_time = 5
 
     keyboard_dict = {
-        'd': 'Red top',
-        'f': 'Cyan top',
-        'j': 'Blue bottom',
-        'k': 'Green bottom',
+        # 'd': 'Red top',
+        # 'f': 'Cyan top',
+        # 'j': 'Blue bottom',
+        # 'k': 'Green bottom',
         'left': lambda: restart_show(False, -skip_time),
         'right': lambda: restart_show(False, skip_time),
-        'space': 'UV',
+        # 'space': 'UV',
     }
     # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
@@ -1067,8 +1120,8 @@ if args.keyboard:
                 add_effect(keyboard_dict[key_name])
             else:
                 keyboard_dict[key_name]()
-        else:
-            print(f'you pressed {key_name}')
+        # else:
+        #     print(f'you pressed {key_name}')
 
     def on_release(key):
         if type(key) == KeyCode:

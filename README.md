@@ -1,15 +1,23 @@
 # club time
 
-## example execution
-To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads 1 second behind when you save any of the files in the directory
-```python server.py --local --volume 7 --show butter --reload --skip 30```
 
-To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+## example: goto for light show debugging on terminal (shelter)
+python server.py --local --keyboard --reload --show shelter
 
 # To get all songs from doorbell
 ```
 scp -r pi@doorbell:/home/pi/light-show/songs .
 ```
+
+## other features
+To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads when you save in the directory
+```python server.py --local --volume 7 --show butter --reload --skip 30```
+
+To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+
+# To autogenerate
+### Note that the --show parameter here fuzzy finds the filename
+python server.py --local --autogen --enter --show shelter
 
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe

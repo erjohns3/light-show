@@ -7,8 +7,9 @@ import statistics
 import os
 import importlib
 import sys
+import sound_helpers
+from collections import Counter
 
-# from scipy.signal import find_peaks
 import pandas as pd 
 import aubio
 import numpy as np
@@ -16,69 +17,77 @@ import numpy as np
 from helpers import *
 
 
-def get_src_bpm_offset(song_filepath):
+def get_src_bpm_offset(song_filepath, debug=True):
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
-    
     src = aubio.source(str(song_filepath), 0, hop_s)
-
-    print(src.uri, src.samplerate, src.channels, src.duration)
+    # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo("default", win_s, hop_s, src.samplerate)
-
     delay = 4. * hop_s
-
     beats = []
-
-    # total number of frames read
     total_frames = 0
+    bpms = []
     while True:
         samples, read = src()
         is_beat = o(samples)
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
-            # print("%f" % human_readable)
             beats.append(human_readable)
+            bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
     # ...to here
+
+    common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
+    if not common_bpms:
+        common_bpms = [x for x, cnt in Counter(bpms).most_common(10)]
+
+    bpm_candidates = set()
+    for bpm in common_bpms:
+        for plus in [-2,-1,0,1]:
+            bpm_candidates.add(bpm+plus)
+
     bpm_guess = -1
     offset_guess = -1
-    best_seen = math.inf
-    beats = np.array(beats)
-    errors = {}
-    for bpm in range(70, 180):
+    best_seen = -math.inf
+    hits = {} 
+    for bpm in bpm_candidates:
         distances = []
         beat_length = 60/bpm
-        error = 0
+        hit_count = 0
         for value in beats:
             match = round(value/beat_length)*beat_length
             distances.append(match-value)
+        # todo.  the bins could be replaced with a sliding window to improve accuracy
         bins = np.linspace(-beat_length, beat_length, 40) # group bins into 5% intervals of beat length (on either side)
         df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
         choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
-        for distance in distances:
-            if abs(distance-choice)/(beat_length) > .05: # match to 10% of beat length (could be tuned)
-                error+=1
-
-        errors[bpm] = error
-        if error < best_seen:
+        for distance in distances: 
+            if abs(distance-choice)/(beat_length) < .05: # match to 5% of beat length
+                hit_count+=1
+        # doubling the BPM should double the hits.  let's be generous and square-root it
+        hit_count = hit_count / bpm**.5
+        hits[bpm] = hit_count
+        if hit_count > best_seen:
             bpm_guess = bpm
             offset_guess = choice
-            best_seen = error
-
+            best_seen = hit_count
     length_int = 60.0/bpm_guess
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
-
-    print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
+    if debug:
+        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, bpm_guess, delay
 
 
-def generate_show(song_filepath, effects_config):
+def generate_show(song_filepath, effects_config, simple=False, debug=True):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-    src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
+    if is_windows():
+        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath), debug=debug)
+    else:
+        src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
     show = {
         'bpm': bpm_guess,
@@ -122,8 +131,9 @@ def generate_show(song_filepath, effects_config):
     effects_config_labeled = dict(filter(lambda x: x[1].get('autogen', False), effects_config.items()))
     effect_usages_labeled = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
 
-    print(effects_config_labeled)
-    print(effect_usages_labeled)
+    if debug:
+        print(effects_config_labeled)
+        print(effect_usages_labeled)
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -132,8 +142,13 @@ def generate_show(song_filepath, effects_config):
     beat = 1    
     while beat < total_beats:
         # chosen_effect_names = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=2)
-        chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
         
+        if simple:
+            chosen_effect_names = ['RBBB 1 bar']
+        else:
+            chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
+
+
         all_lengths = []
         for effect_name in chosen_effect_names:
             length = effect_files_json[effect_name]['length']

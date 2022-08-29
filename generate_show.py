@@ -103,13 +103,13 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
     effect_files_json = get_effect_files_jsons()
 
     # counting number of times effect is used
-    effect_usages = {}
-    for effect_name, effect in effect_files_json.items():
-        for beats in effect['beats']:
-            if type(beats[1]) == str:
-                if beats[1] not in effect_usages:
-                    effect_usages[beats[1]] = 0
-                effect_usages[beats[1]] += 1
+    # effect_usages = {}
+    # for effect_name, effect in effect_files_json.items():
+    #     for beats in effect['beats']:
+    #         if type(beats[1]) == str:
+    #             if beats[1] not in effect_usages:
+    #                 effect_usages[beats[1]] = 0
+    #             effect_usages[beats[1]] += 1
 
     # filtering to only ones in between 4 and 16
     # effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
@@ -128,12 +128,8 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
 
 
 
-    effects_config_labeled = dict(filter(lambda x: x[1].get('autogen', False), effects_config.items()))
-    effect_usages_labeled = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
-
-    if debug:
-        print(effects_config_labeled)
-        print(effect_usages_labeled)
+    effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
+    effect_names = list(effects_config_filtered.keys())
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -141,12 +137,16 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
 
     beat = 1    
     while beat < total_beats:
-        # chosen_effect_names = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=2)
-        
+        # Only RBBB timing
         if simple:
             chosen_effect_names = ['RBBB 1 bar']
+        # Inteligent grouping
+        elif False:
+            chosen_effect_names = random.choices(list(effects_config_filtered.keys()), k=2)
+        # Just random from the tags
         else:
-            chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
+            chosen_effect_names = random.choices(effect_names, k=2)
+
 
 
         all_lengths = []

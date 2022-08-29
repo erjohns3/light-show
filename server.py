@@ -959,11 +959,11 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 #################################################
 
-def fuzzy_find(name, valid_names, filter_word=None):
+def fuzzy_find(name, valid_names, filter_words=None):
     name = name.lower()
     all_canidates = []
-    if filter_word:
-        valid_names = list(filter(lambda x: filter_word in x.lower(), valid_names))
+    if filter_words:
+        valid_names = list(filter(lambda x: any([y in x.lower() for y in filter_words]), valid_names))
     lower_to_real = {x.lower():x for x in valid_names}
     for show_name in lower_to_real:
         if name in show_name:
@@ -1157,7 +1157,7 @@ async def start_async():
     print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
     if args.show:
-        args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_word='show')
+        args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
         print('Starting show from CLI')
         if args.show in effects_config:
             if args.speed != 1 and 'song_path' in effects_config[args.show]:

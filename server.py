@@ -458,7 +458,6 @@ BPM: {curr_bpm:.2f}, \
 Beat: {curr_beat:.2f}, \
 Seconds: {round(time.time() - time_start, 2):.2f}\
 {show_specific}\
-, {all_effect_names}\
 """
     
     # size_of_current_line = len(useful_info) - (terminal_size * (len(useful_info) // terminal_size))
@@ -467,8 +466,8 @@ Seconds: {round(time.time() - time_start, 2):.2f}\
     # print(f'{size_of_current_line=}, {chars_until_end_of_line=}, {terminal_size=}')
     useful_info += ' ' * chars_until_end_of_line
     extra_lines_up = (len(useful_info) // (terminal_size + 1)) + 1
-    if last_extra_lines is not None and last_extra_lines > extra_lines_up:
-        print(f'{" " * dead_space}\n' * (last_extra_lines - extra_lines_up))
+    # if last_extra_lines is not None and last_extra_lines > extra_lines_up:
+    #     print(f'{" " * dead_space}\n' * (last_extra_lines - extra_lines_up))
         # print(f'last_extra_lines: {last_extra_lines}, extra_lines_up: {extra_lines_up}')
         # exit()
 
@@ -494,20 +493,26 @@ Seconds: {round(time.time() - time_start, 2):.2f}\
     top_back_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
     bottom_rgb_style = f'rgb({levels_255[6]},{levels_255[7]},{levels_255[8]})'
 
+
+    # print(useful_info)
+    #  + (' ' * (terminal_size - len(useful_info)))
+
+    effect_string = f'Effects: {all_effect_names}'
+    remaining = terminal_size - len(effect_string) 
+    console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
+    console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
+
     character = '▆'
     console.print(' ' + character * 2, style=uv_style, end='')
     console.print(character * 5, style=top_front_rgb_style, end='')
     console.print(character * 5, style=top_back_rgb_style, end='')
     console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
     console.print('\n', end='')
-    console.print(f'{" " * terminal_size}\n' * 3, end='')
+    console.print(f'{" " * (terminal_size - 1)}\n' * 3, end='')
 
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('\n', end='')
 
-
-    console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
-    console.print('', end='\033[F' * (4 + extra_lines_up))
+    console.print('', end='\033[F' * 6)
 
 
 all_levels = [0] * LIGHT_COUNT

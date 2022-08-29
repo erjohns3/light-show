@@ -108,7 +108,7 @@ def generate_show(song_filepath, effects_config):
 
     print('frequency of potential effects used')
     for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
-        print(f'{times_used=}, {effect_name=}')
+        print(f'times_used: {times_used}, {effect_name}')
     
     # making probability distribution
     effect_probabilities = {}

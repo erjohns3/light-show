@@ -65,10 +65,10 @@ def get_src_bpm_offset(song_filepath, debug=True):
         df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
         choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
         for distance in distances: 
-            if abs(distance-choice)/(beat_length) < .05: # match to 5% of beat length
+            if abs(distance-choice)/(60/max(bpm_candidates)) < .05: # match to 5% of beat length
                 hit_count+=1
-        # doubling the BPM should double the hits.  let's be generous and square-root it
-        hit_count = hit_count / bpm**.5
+        # doubling the BPM should double the hits.  Scale it down a bit though
+        hit_count = hit_count * bpm**.4
         hits[bpm] = hit_count
         if hit_count > best_seen:
             bpm_guess = bpm
@@ -84,7 +84,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
 def generate_show(song_filepath, effects_config, simple=False, debug=True):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-    if is_windows():
+    if True:
         src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath), debug=debug)
     else:
         src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)

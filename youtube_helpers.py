@@ -56,15 +56,13 @@ def download_youtube_url_to_ogg(url=None, dest_path=None):
             if len(download_infos) > 1:
                 raise Exception('Multiple youtube videos were downloaded, this shouldnt be possible')
             info = download_infos[0]
-            print('download_info: ', info)
             downloaded_filepath = pathlib.Path(info['filepath'])
-            print('filepath: ', downloaded_filepath)
     except Exception as e:
         print(f'Couldnt download url {url} due to {e}')
         return None
 
     # this sucks for some reason
-    no_special_name = ''.join(char for char in downloaded_filepath.name if char.isalnum() or char == ' ' or char == '.')
+    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char == ' ') + downloaded_filepath.suffix
     if downloaded_filepath.name != no_special_name:
         no_special_chars_filepath = downloaded_filepath.parent.joinpath('s_' + no_special_name)
         os.rename(downloaded_filepath, no_special_chars_filepath)

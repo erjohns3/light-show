@@ -17,6 +17,29 @@ import numpy as np
 from helpers import *
 
 
+def eliminate(string, matches):
+    found = set()
+    for match in matches:
+        if match in found:
+            continue
+        found.add(match)
+        string = string.replace(match, '')
+    return string
+
+def write_show_file_pretty(output_filepath, dict_to_dump):
+    with open(output_filepath, 'w') as file:
+        shows_json_str = json.dumps(dict_to_dump, indent=4, sort_keys=True)
+
+        before_string_matches = re.findall(r"\[(\s+)\"", shows_json_str)
+        shows_json_str = eliminate(shows_json_str, before_string_matches)
+
+        after_digit = re.findall(r"\d(\s+)\]", shows_json_str)
+        shows_json_str = eliminate(shows_json_str, after_digit)
+        shows_json_str = shows_json_str.replace('[[', '[\n            [')
+        shows_json_str = shows_json_str.replace('],[', '],\n            [')
+        
+        file.writelines(['effects = ' + shows_json_str])
+
 def get_src_bpm_offset(song_filepath, debug=True):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
@@ -83,8 +106,23 @@ def get_src_bpm_offset(song_filepath, debug=True):
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, bpm_guess, delay
 
+def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
+    show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
-def generate_show(song_filepath, effects_config, simple=False, debug=True):
+    output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+
+    show_name_without_spaces = show_name.replace(' ', '_')
+    output_filepath = output_directory.joinpath(show_name_without_spaces + '.py')
+    if os.path.exists(output_filepath):
+        if overwrite:
+            print(f'{bcolors.WARNING}overwrite is set to True, and {output_filepath} exists, generating and overwriting{bcolors.ENDC}')
+        else:
+            print(f'{bcolors.WARNING}overwrite is set to False, and {output_filepath} exists, so returning without generating show{bcolors.ENDC}')
+            return None
+    
+    
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
     src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
@@ -127,13 +165,14 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
         beat += max(all_lengths)
     
     the_show = {
-        f'g_{pathlib.Path(song_filepath).stem}': show
+        show_name: show
     }
     
-    # dump show to temp output
-    # with 
-    # print()
-
+    if '.' in show_name:
+        print_red(f'Cannot generate show for {show_name} because it has a dot before the file extension')
+        return None
+    print(f'writing "{show_name}" to {output_filepath}')
+    write_show_file_pretty(output_filepath, the_show)
     return the_show
 
 

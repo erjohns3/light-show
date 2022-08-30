@@ -90,6 +90,24 @@ def http_server():
 
 ########################################
 
+def add_effect_from_dj(msg):
+    global song_time, song_playing
+    effect_name = msg['effect']
+    song_time = 0
+    if has_song(effect_name):
+        song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
+        if not os.path.exists(song_path):
+            print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
+            return
+        if song_playing and len(song_queue) > 0:
+            song_queue.pop()
+        song_queue.insert(0, [effect_name, get_queue_salt()])
+        play_song(effect_name)
+        song_playing = True
+        broadcast_song = True
+    add_effect(effect_name)
+
+
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time
     print('dj made connection to new client')
@@ -130,16 +148,7 @@ async def init_dj_client(websocket, path):
             broadcast_song = False
 
             if msg['type'] == 'add_effect':
-                effect_name = msg['effect']
-                song_time = 0
-                if has_song(effect_name):
-                    if song_playing and len(song_queue) > 0:
-                        song_queue.pop()
-                    song_queue.insert(0, [effect_name, get_queue_salt()])
-                    play_song(effect_name)
-                    song_playing = True
-                    broadcast_song = True
-                add_effect(effect_name)
+                add_effect_from_dj(msg)
 
             elif msg['type'] == 'remove_effect':
                 effect_name = msg['effect']

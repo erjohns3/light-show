@@ -18,6 +18,9 @@ from helpers import *
 
 
 def get_src_bpm_offset(song_filepath, debug=True):
+    if is_windows():
+        song_filepath = sound_helpers.convert_to_wav(song_filepath)
+
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
@@ -83,11 +86,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
 
 def generate_show(song_filepath, effects_config, simple=False, debug=True):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-
-    if is_windows():
-        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath), debug=debug)
-    else:
-        src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
+    src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
     show = {
         'bpm': bpm_guess,
@@ -98,36 +97,7 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
         'beats': []
     }
 
-
-
     effect_files_json = get_effect_files_jsons()
-
-    # counting number of times effect is used
-    # effect_usages = {}
-    # for effect_name, effect in effect_files_json.items():
-    #     for beats in effect['beats']:
-    #         if type(beats[1]) == str:
-    #             if beats[1] not in effect_usages:
-    #                 effect_usages[beats[1]] = 0
-    #             effect_usages[beats[1]] += 1
-
-    # filtering to only ones in between 4 and 16
-    # effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
-    # effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
-
-
-    # making probability distribution
-    # effect_probabilities = {}
-    # total = sum(effect_usages_4_16.values())
-    # for effect_name, times_used in effect_usages_4_16.items():
-    #     effect_probabilities[effect_name] = times_used / total
-
-    # print('frequency of potential effects used')
-    # for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
-    #     print(f'times_used: {times_used}, {effect_name}')
-
-
-
     effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
     effect_names = list(effects_config_filtered.keys())
 
@@ -206,3 +176,32 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
         else:
             print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
+
+
+
+
+# old shit to look thru effects:
+
+# counting number of times effect is used
+# effect_usages = {}
+# for effect_name, effect in effect_files_json.items():
+#     for beats in effect['beats']:
+#         if type(beats[1]) == str:
+#             if beats[1] not in effect_usages:
+#                 effect_usages[beats[1]] = 0
+#             effect_usages[beats[1]] += 1
+
+# filtering to only ones in between 4 and 16
+# effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
+# effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
+
+
+# making probability distribution
+# effect_probabilities = {}
+# total = sum(effect_usages_4_16.values())
+# for effect_name, times_used in effect_usages_4_16.items():
+#     effect_probabilities[effect_name] = times_used / total
+
+# print('frequency of potential effects used')
+# for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
+#     print(f'times_used: {times_used}, {effect_name}')

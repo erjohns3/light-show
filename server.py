@@ -210,7 +210,6 @@ async def init_queue_client(websocket, path):
     print('queue made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
-    print(list(filter(lambda x: 'song_path' in effects_config[x], effects_config)))
     message = {
         'effects': effects_config,
         'songs': songs_config,

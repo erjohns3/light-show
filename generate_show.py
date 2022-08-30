@@ -68,7 +68,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
             if abs(distance-choice)/(60/max(bpm_candidates)) < .05: # match to 5% of beat length
                 hit_count+=1
         # doubling the BPM should double the hits.  Scale it down a bit though
-        hit_count = hit_count * bpm**.4
+        hit_count = hit_count / bpm**.5
         hits[bpm] = hit_count
         if hit_count > best_seen:
             bpm_guess = bpm

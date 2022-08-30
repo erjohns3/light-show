@@ -111,7 +111,7 @@ def generate_show(song_filepath, effects_config, simple=False, debug=True):
         if simple:
             chosen_effect_names = ['RBBB 1 bar']
         # Inteligent grouping
-        elif False:
+        elif True:
             chosen_effect_names = random.choices(list(effects_config_filtered.keys()), k=2)
         # Just random from the tags
         else:

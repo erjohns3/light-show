@@ -1,16 +1,17 @@
 import json
-import yt_dlp
 import os
 import sys
 
-# looks like most people use https://www.fabfile.org/ for the higher level library
-import paramiko
-from scp import SCPClient
+import yt_dlp
 
 from helpers import *
 
 
 def scp_to_doorbell(local_filepath, remote_folder):
+    # looks like most people use https://www.fabfile.org/ for the higher level library
+    import paramiko
+    from scp import SCPClient
+    
     remote_filepath = remote_folder.joinpath(local_filepath.name)
 
     # doorbell_ip = 'doorbell'
@@ -29,9 +30,6 @@ def scp_to_doorbell(local_filepath, remote_folder):
 
 
 def download_youtube_url_to_ogg(url=None, dest_path=None):
-    if dest_path:
-        os.chdir(dest_path)
-
     if url is None:
         url = input('Enter the URL you want to download:\n')
 
@@ -48,7 +46,17 @@ def download_youtube_url_to_ogg(url=None, dest_path=None):
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(url, download=True)
-        downloaded_filepath = inject_path_prefix.joinpath(info_dict['title'] + '.ogg')
+        downloaded_filename = info_dict['title'] + '.ogg'
+
+    downloaded_filepath = inject_path_prefix.joinpath(downloaded_filename)
+
+    # this sucks for some reason
+    no_special = ''.join(char for char in downloaded_filename if char.isalnum() or char == ' ' or char == '.')
+    if downloaded_filename != no_special:
+        print('we might be crashing rn')
+        no_special_chars_filepath = inject_path_prefix.joinpath(no_special)
+        os.rename(downloaded_filepath, no_special_chars_filepath)
+        return no_special_chars_filepath
 
     return downloaded_filepath
 

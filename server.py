@@ -10,6 +10,7 @@ import http.server
 import argparse
 import os
 from concurrent.futures import ThreadPoolExecutor
+import yt_dlp
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -20,6 +21,7 @@ import numpy
 
 from helpers import *
 import sound_helpers
+import youtube_helpers
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
@@ -183,6 +185,12 @@ async def init_dj_client(websocket, path):
             await send_light_status() # we might want to lock this
 
 
+def download_song(url):
+    print('started downloading {url}')
+    filepath = youtube_helpers.download_youtube_url_to_ogg(url)
+    print('finished downloading {url}')
+
+
 async def init_queue_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time
     print('queue made connection to new client')
@@ -298,6 +306,11 @@ async def init_queue_client(websocket, path):
                     song_playing = True
                     add_effect(effect_name)
                     broadcast_light = True
+
+            elif msg['type'] == 'download_song':
+                url = msg.get('url', None)
+                Thread(target=download_song, args=(url,)).start()
+
 
             song_lock.release()
 

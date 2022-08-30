@@ -84,7 +84,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
 def generate_show(song_filepath, effects_config, simple=False, debug=True):
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
 
-    if True:
+    if is_windows():
         src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath), debug=debug)
     else:
         src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)

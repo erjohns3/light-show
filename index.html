@@ -34,9 +34,9 @@
 
     <div id="page-view">
         <div id="available-page" class="page">
-            <div id="url-holder">
-                <input type="text" id="url-enterer" placeholder="Enter youtube URL for light show">
-                <button type="button" id="url-button">Download</button>
+            <div id="url-wrapper">
+                <input type="text" id="url-textbox" placeholder="Enter Youtube Song URL">
+                <button type="button" id="url-submit">Submit</button>
             </div>            
             <div id="available-list" class="list"></div>
         </div>
@@ -424,7 +424,17 @@
     var availablePage = document.getElementById("available-page");
     var queuePage = document.getElementById("queue-page");
 
-    var urlEnterer = document.getElementById("url-enterer");
+    var urlTextbox = document.getElementById("url-textbox");
+    var urlSubmit = document.getElementById("url-submit");
+
+    urlSubmit.onclick = function(){
+        let msg = {
+            type: "download_song",
+            url: urlTextbox.value
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+    }
 
     var availableList = document.getElementById("available-list");
     var queueList = document.getElementById("queue-list");
@@ -618,7 +628,7 @@
         scroll-snap-stop: always;
     }
 
-    #url-holder {
+    #url-wrapper {
         position: relative;
         width: 100%;
         height: 5%;
@@ -627,7 +637,7 @@
         margin-left: auto;
     }
 
-    #url-button {
+    #url-submit {
         position: relative;
         width: 25%;
         height: 80%;
@@ -636,7 +646,7 @@
         /* margin-left: auto; */
     }
 
-    #url-enterer {
+    #url-textbox {
         position: relative;
         width: 60%;
         height: 80%;

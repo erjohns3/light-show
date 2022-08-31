@@ -140,7 +140,31 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
 
     effect_files_json = get_effect_files_jsons()
     effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
+    
     effect_names = list(effects_config_filtered.keys())
+    effect_types_to_name = {}
+    for name, effect in effects_config_filtered.items():
+        if type(effect['autogen']) == str:
+            if effect['autogen'] not in effect_types_to_name:
+                effect_types_to_name[effect['autogen']] = []
+            effect_types_to_name[effect['autogen']].append(name)
+    
+    scenes = [
+        [16, ['downbeat top', 'downbeat bottom']],
+        [16, ['downbeat top']],
+        [16, ['downbeat bottom']],
+        [16, ['downbeat mixed']],
+        [16, ['downbeat mixed', 'UV']],
+        [16, ['downbeat top', 'downbeat bottom', 'UV']],
+        [16, ['downbeat top', 'UV']],
+        [16, ['downbeat bottom', 'UV']],
+        [16, ['rainbow top', 'downbeat bottom']],
+        [4, ['UV pulse']],
+        [2, ['UV pulse']],
+        [1, ['UV pulse']],
+        [1, ['flash']],
+        [1, ['strobe']],
+    ]
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -148,24 +172,23 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
 
     beat = 1    
     while beat < total_beats:
-        # Only RBBB timing
-        if simple:
-            chosen_effect_names = ['RBBB 1 bar']
-        # Inteligent grouping
-        elif True:
-            chosen_effect_names = random.choices(list(effects_config_filtered.keys()), k=2)
-        # Just random from the tags
-        else:
+        if simple: # Only RBBB timing
+            show['beats'].append([beat, 'RBBB 1 bar', 4])
+            beat += 4
+        elif True: # Based on scenes
+            length, effect_types = random.choices(scenes, k=1)[0]
+            for effect_type in effect_types:
+                effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
+                show['beats'].append([beat, effect_name, length])
+            beat += length
+        else: # Pick random effects with the autogen field
             chosen_effect_names = random.choices(effect_names, k=2)
-
-
-
-        all_lengths = []
-        for effect_name in chosen_effect_names:
-            length = effect_files_json[effect_name]['length']
-            all_lengths.append(length)
-            show['beats'].append([beat, effect_name, length])
-        beat += max(all_lengths)
+            all_lengths = []
+            for name in chosen_effect_names:
+                length = effect_files_json[name]['length']
+                all_lengths.append(length)
+                show['beats'].append([beat, name, length])
+            beat += max(all_lengths)
     
     the_show = {
         show_name: show

@@ -384,6 +384,7 @@ async def send_effects_and_songs():
         'songs': songs_config,
     }
     await broadcast(light_sockets, json.dumps(message))
+    await broadcast(song_sockets, json.dumps(message))
 
 async def send_light_status():
     message = {

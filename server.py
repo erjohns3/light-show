@@ -23,6 +23,10 @@ from helpers import *
 import sound_helpers
 import youtube_helpers
 
+from users import users
+
+print(users)
+
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
@@ -300,45 +304,54 @@ async def init_queue_client(websocket, path):
                     add_effect(effect_name)
                     broadcast_light = True
 
-            elif msg['type'] == 'remove_queue':
-                effect_name = msg['effect']
-                salt = msg['salt']
-                for i in range(len(song_queue)):
-                    if song_queue[i][0] == effect_name and song_queue[i][1] == salt:
-                        song_queue.pop(i)
-                        if i == 0:
-                            stop_song()
-                            song_time = 0
-                            index = curr_effect_index(effect_name)
-                            if index is not False:
-                                remove_effect(index)
-                            if song_playing and len(song_queue) > 0:
-                                new_effect_name = song_queue[0][0]
-                                add_effect(new_effect_name)
-                                play_song(new_effect_name)
-                            broadcast_light = True
-                        break
-                if len(song_queue) == 0:
-                    song_playing = False
+            elif msg['type'] == 'remove_queue' and 'uuid' in msg:
+                uuid = msg['uuid']
+                print(f'----UUID: {uuid}')
+                if uuid in users and users[uuid]['admin']:
+                    effect_name = msg['effect']
+                    salt = msg['salt']
+                    for i in range(len(song_queue)):
+                        if song_queue[i][0] == effect_name and song_queue[i][1] == salt:
+                            song_queue.pop(i)
+                            if i == 0:
+                                stop_song()
+                                song_time = 0
+                                index = curr_effect_index(effect_name)
+                                if index is not False:
+                                    remove_effect(index)
+                                if song_playing and len(song_queue) > 0:
+                                    new_effect_name = song_queue[0][0]
+                                    add_effect(new_effect_name)
+                                    play_song(new_effect_name)
+                                broadcast_light = True
+                            break
+                    if len(song_queue) == 0:
+                        song_playing = False
 
-            elif msg['type'] == 'play_queue':
-                if len(song_queue) > 0 and not song_playing:
-                    effect_name = song_queue[0][0]
-                    play_song(effect_name)
-                    song_playing = True
-                    add_effect(effect_name)
-                    broadcast_light = True
+            elif msg['type'] == 'play_queue' and 'uuid' in msg:
+                uuid = msg['uuid']
+                print(f'----UUID: {uuid}')
+                if uuid in users and users[uuid]['admin']:
+                    if len(song_queue) > 0 and not song_playing:
+                        effect_name = song_queue[0][0]
+                        play_song(effect_name)
+                        song_playing = True
+                        add_effect(effect_name)
+                        broadcast_light = True
 
-            elif msg['type'] == 'pause_queue':
-                if len(song_queue) > 0 and song_playing:
-                    effect_name = song_queue[0][0]
-                    song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
-                    stop_song()
-                    index = curr_effect_index(effect_name)
-                    if index is not False:
-                        remove_effect(index)
-                    song_playing = False
-                    broadcast_light = True
+            elif msg['type'] == 'pause_queue' and 'uuid' in msg:
+                uuid = msg['uuid']
+                print(f'----UUID: {uuid}')
+                if uuid in users and users[uuid]['admin']:
+                    if len(song_queue) > 0 and song_playing:
+                        effect_name = song_queue[0][0]
+                        song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
+                        stop_song()
+                        index = curr_effect_index(effect_name)
+                        if index is not False:
+                            remove_effect(index)
+                        song_playing = False
+                        broadcast_light = True
 
             elif msg['type'] == 'set_time':
                 song_time = msg['time']

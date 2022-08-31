@@ -320,6 +320,7 @@
 
     function addQueueBack(effect){
         let msg = {
+            uuid: uuid,
             type: "add_queue_back",
             effect: effect
         };
@@ -329,15 +330,7 @@
 
     function addQueueFront(effect){
         let msg = {
-            type: "add_queue_back",
-            effect: effect
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg);
-    }
-
-    function addQueueFront(effect){
-        let msg = {
+            uuid: uuid,
             type: "add_queue_front",
             effect: effect
         };
@@ -347,6 +340,7 @@
 
     function removeQueue(effect, salt){
         let msg = {
+            uuid: uuid,
             type: "remove_queue",
             effect: effect,
             salt: salt
@@ -357,6 +351,7 @@
 
     function playQueue(){
         let msg = {
+            uuid: uuid,
             type: "play_queue"
         };
         socket.send(JSON.stringify(msg));
@@ -365,6 +360,7 @@
 
     function pauseQueue(){
         let msg = {
+            uuid: uuid,
             type: "pause_queue"
         };
         socket.send(JSON.stringify(msg));
@@ -430,6 +426,7 @@
 
     urlSubmit.onclick = function(){
         let msg = {
+            uuid: uuid,
             type: "download_song",
             url: urlTextbox.value
         };

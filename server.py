@@ -353,6 +353,7 @@ async def init_queue_client(websocket, path):
                     print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
                     downloading_thread = None
                     await send_all()
+
             await send_song_status() # we might want to lock this
 
 
@@ -877,7 +878,6 @@ def compile_lut(local_effects_config):
         effects_config_sort([effect_name])
 
     set_effect_defaults(local_effects_config)
-    print(f'running compile_lut with {list(local_effects_config.keys())}')
 
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:

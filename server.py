@@ -189,11 +189,11 @@ async def init_dj_client(websocket, path):
 
             light_lock.release()
 
-            # if downloading_thread is not None:
-            #     if not downloading_thread.is_alive():
-            #         print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-            #         downloading_thread = None
-            #         await send_effects_and_songs()
+            if downloading_thread is not None:
+                if not downloading_thread.is_alive():
+                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+                    downloading_thread = None
+                    await send_effects_and_songs()
 
             if broadcast_song:
                 await send_song_status()
@@ -355,11 +355,11 @@ async def init_queue_client(websocket, path):
             if broadcast_light:
                 await send_light_status()
 
-            # if downloading_thread is not None:
-            #     if not downloading_thread.is_alive():
-            #         print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-            #         downloading_thread = None
-            #         await send_effects_and_songs()
+            if downloading_thread is not None:
+                if not downloading_thread.is_alive():
+                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+                    downloading_thread = None
+                    await send_effects_and_songs()
 
             await send_song_status() # we might want to lock this
 

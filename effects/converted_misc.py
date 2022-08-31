@@ -98,17 +98,17 @@ effects = {
     "Luigi Bass hits": {
         "length": 4,
         "beats": [
-            [1, "Green fade", 1],
-            [1.75, "Green fade", 1],
-            [2.5, "Green fade", 1],
-            [3.35, "Green fade", 1],
-            [4.25, "Green fade", 1],
+            [1, "Green bottom", .4, 1, 0],
+            [1.75, "Green bottom", .4, 1, 0],
+            [2.5, "Green bottom", .4, 1, 0],
+            [3.35, "Green bottom", .4, 1, 0],
+            [4.25, "Green bottom", .4, 1, 0],
         ],
     },
     "Luigi Bassline": {
         "length": 16,
         "beats": [
-            [1, "Luigi Bass hits", 12],
+            [2, "Luigi Bass hits", 12],
         ],
     },
     "Luigi Hats": {

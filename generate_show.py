@@ -8,8 +8,8 @@ import os
 import importlib
 import sys
 import sound_helpers
+from collections import Counter
 
-# from scipy.signal import find_peaks
 import pandas as pd 
 import aubio
 import numpy as np
@@ -17,72 +17,114 @@ import numpy as np
 from helpers import *
 
 
-def get_src_bpm_offset(song_filepath):
+def eliminate(string, matches):
+    found = set()
+    for match in matches:
+        if match in found:
+            continue
+        found.add(match)
+        string = string.replace(match, '')
+    return string
+
+def write_show_file_pretty(output_filepath, dict_to_dump):
+    with open(output_filepath, 'w') as file:
+        shows_json_str = json.dumps(dict_to_dump, indent=4, sort_keys=True)
+
+        before_string_matches = re.findall(r"\[(\s+)\"", shows_json_str)
+        shows_json_str = eliminate(shows_json_str, before_string_matches)
+
+        after_digit = re.findall(r"\d(\s+)\]", shows_json_str)
+        shows_json_str = eliminate(shows_json_str, after_digit)
+        shows_json_str = shows_json_str.replace('[[', '[\n            [')
+        shows_json_str = shows_json_str.replace('],[', '],\n            [')
+        
+        file.writelines(['effects = ' + shows_json_str])
+
+def get_src_bpm_offset(song_filepath, debug=True):
+    if is_windows():
+        song_filepath = sound_helpers.convert_to_wav(song_filepath)
+
     # internet copypasta from here ...
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
-    
     src = aubio.source(str(song_filepath), 0, hop_s)
-
-    print(src.uri, src.samplerate, src.channels, src.duration)
+    # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo("default", win_s, hop_s, src.samplerate)
-
     delay = 4. * hop_s
-
     beats = []
-
-    # total number of frames read
     total_frames = 0
+    bpms = []
     while True:
         samples, read = src()
         is_beat = o(samples)
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
-            # print("%f" % human_readable)
             beats.append(human_readable)
+            bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
     # ...to here
+
+    common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
+    if not common_bpms:
+        common_bpms = [x for x, cnt in Counter(bpms).most_common(10)]
+
+    bpm_candidates = set()
+    for bpm in common_bpms:
+        for plus in [-2,-1,0,1]:
+            bpm_candidates.add(bpm+plus)
+
     bpm_guess = -1
     offset_guess = -1
-    best_seen = math.inf
-    beats = np.array(beats)
-    errors = {}
-    for bpm in range(70, 180):
+    best_seen = -math.inf
+    hits = {} 
+    for bpm in bpm_candidates:
         distances = []
         beat_length = 60/bpm
-        error = 0
+        hit_count = 0
         for value in beats:
             match = round(value/beat_length)*beat_length
             distances.append(match-value)
+        # todo.  the bins could be replaced with a sliding window to improve accuracy
         bins = np.linspace(-beat_length, beat_length, 40) # group bins into 5% intervals of beat length (on either side)
         df = pd.DataFrame(distances, columns=['cnt']).groupby(pd.cut(np.array(distances), bins)).count().sort_values('cnt', ascending=False).reset_index()
         choice = (df.iloc[0][0].left+df.iloc[0][0].right)/2
-        for distance in distances:
-            if abs(distance-choice)/(beat_length) > .05: # match to 10% of beat length (could be tuned)
-                error+=1
-
-        errors[bpm] = error
-        if error < best_seen:
+        for distance in distances: 
+            if abs(distance-choice)/(60/max(bpm_candidates)) < .05: # match to 5% of beat length
+                hit_count+=1
+        # doubling the BPM should double the hits.  Scale it down a bit though
+        hit_count = hit_count / bpm**.5
+        hits[bpm] = hit_count
+        if hit_count > best_seen:
             bpm_guess = bpm
             offset_guess = choice
-            best_seen = error
-
+            best_seen = hit_count
     length_int = 60.0/bpm_guess
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
-
-    print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
+    if debug:
+        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, bpm_guess, delay
 
+def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
+    show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
-def generate_show(song_filepath, effects_config):
+    output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
+    if not os.path.exists(output_directory):
+        os.mkdir(output_directory)
+
+    show_name_without_spaces = show_name.replace(' ', '_')
+    output_filepath = output_directory.joinpath(show_name_without_spaces + '.py')
+    if os.path.exists(output_filepath):
+        if overwrite:
+            print(f'{bcolors.WARNING}overwrite is set to True, and {output_filepath} exists, generating and overwriting{bcolors.ENDC}')
+        else:
+            print(f'{bcolors.WARNING}overwrite is set to False, and {output_filepath} exists, so returning without generating show{bcolors.ENDC}')
+            return None
+    
+    
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-
-    if is_windows():
-        src, bpm_guess, delay = get_src_bpm_offset(sound_helpers.convert_to_wav(song_filepath))
-    else:
-        src, bpm_guess, delay = get_src_bpm_offset(song_filepath)
+    src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
     show = {
         'bpm': bpm_guess,
@@ -93,41 +135,9 @@ def generate_show(song_filepath, effects_config):
         'beats': []
     }
 
-
-
     effect_files_json = get_effect_files_jsons()
-
-    # counting number of times effect is used
-    effect_usages = {}
-    for effect_name, effect in effect_files_json.items():
-        for beats in effect['beats']:
-            if type(beats[1]) == str:
-                if beats[1] not in effect_usages:
-                    effect_usages[beats[1]] = 0
-                effect_usages[beats[1]] += 1
-
-    # filtering to only ones in between 4 and 16
-    # effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
-    # effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
-
-
-    # making probability distribution
-    # effect_probabilities = {}
-    # total = sum(effect_usages_4_16.values())
-    # for effect_name, times_used in effect_usages_4_16.items():
-    #     effect_probabilities[effect_name] = times_used / total
-
-    # print('frequency of potential effects used')
-    # for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
-    #     print(f'times_used: {times_used}, {effect_name}')
-
-
-
-    effects_config_labeled = dict(filter(lambda x: x[1].get('autogen', False), effects_config.items()))
-    effect_usages_labeled = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
-
-    print(effects_config_labeled)
-    print(effect_usages_labeled)
+    effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
+    effect_names = list(effects_config_filtered.keys())
 
     # apply lights
     length_s = src.duration / src.samplerate
@@ -135,9 +145,18 @@ def generate_show(song_filepath, effects_config):
 
     beat = 1    
     while beat < total_beats:
-        # chosen_effect_names = random.choices(list(effect_probabilities.keys()), weights=effect_probabilities.values(), k=2)
-        chosen_effect_names = random.choices(list(effect_usages_labeled.keys()), k=2)
-        
+        # Only RBBB timing
+        if simple:
+            chosen_effect_names = ['RBBB 1 bar']
+        # Inteligent grouping
+        elif True:
+            chosen_effect_names = random.choices(list(effects_config_filtered.keys()), k=2)
+        # Just random from the tags
+        else:
+            chosen_effect_names = random.choices(effect_names, k=2)
+
+
+
         all_lengths = []
         for effect_name in chosen_effect_names:
             length = effect_files_json[effect_name]['length']
@@ -146,13 +165,14 @@ def generate_show(song_filepath, effects_config):
         beat += max(all_lengths)
     
     the_show = {
-        f'generated_{pathlib.Path(song_filepath).stem}_show': show
+        show_name: show
     }
     
-    # dump show to temp output
-    # with 
-    # print()
-
+    if '.' in show_name:
+        print_red(f'Cannot generate show for {show_name} because it has a dot before the file extension')
+        return None
+    print(f'writing "{show_name}" to {output_filepath}')
+    write_show_file_pretty(output_filepath, the_show)
     return the_show
 
 
@@ -195,3 +215,32 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
         else:
             print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
+
+
+
+
+# old shit to look thru effects:
+
+# counting number of times effect is used
+# effect_usages = {}
+# for effect_name, effect in effect_files_json.items():
+#     for beats in effect['beats']:
+#         if type(beats[1]) == str:
+#             if beats[1] not in effect_usages:
+#                 effect_usages[beats[1]] = 0
+#             effect_usages[beats[1]] += 1
+
+# filtering to only ones in between 4 and 16
+# effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
+# effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
+
+
+# making probability distribution
+# effect_probabilities = {}
+# total = sum(effect_usages_4_16.values())
+# for effect_name, times_used in effect_usages_4_16.items():
+#     effect_probabilities[effect_name] = times_used / total
+
+# print('frequency of potential effects used')
+# for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
+#     print(f'times_used: {times_used}, {effect_name}')

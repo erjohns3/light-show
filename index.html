@@ -34,6 +34,10 @@
 
     <div id="page-view">
         <div id="available-page" class="page">
+            <div id="url-holder">
+                <input type="text" id="url-enterer" placeholder="Enter youtube URL for light show">
+                <button type="button" id="url-button">Download</button>
+            </div>            
             <div id="available-list" class="list"></div>
         </div>
         <div id="queue-page" class="page">
@@ -103,8 +107,10 @@
             if(msg.effects){
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
+                    console.log(effect_name)
                     if('song_path' in effectsConfig[effect_name]){
-                        if(!(effect_name in available)){
+                        console.log('has song')
+                        if(!(effect_name in available) && effectsConfig[effect_name].song_path in songsConfig){
                             available[effect_name] = new AvailableItem(effect_name);
                             availableList.append(available[effect_name]);
                         }
@@ -418,6 +424,8 @@
     var availablePage = document.getElementById("available-page");
     var queuePage = document.getElementById("queue-page");
 
+    var urlEnterer = document.getElementById("url-enterer");
+
     var availableList = document.getElementById("available-list");
     var queueList = document.getElementById("queue-list");
 
@@ -610,8 +618,36 @@
         scroll-snap-stop: always;
     }
 
+    #url-holder {
+        position: relative;
+        width: 100%;
+        height: 5%;
+        display: block;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    #url-button {
+        position: relative;
+        width: 25%;
+        height: 80%;
+        /* display: block; */
+        /* margin-right: auto; */
+        /* margin-left: auto; */
+    }
+
+    #url-enterer {
+        position: relative;
+        width: 60%;
+        height: 80%;
+        left: 5%;
+        /* display: block; */
+        /* margin-right: auto; */
+        /* margin-left: auto; */
+    }
+
     .list{
-        position: absolute;
+        position: relative;
         width: 100%;
         height: 100%;
         top: 0;

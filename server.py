@@ -10,6 +10,7 @@ import http.server
 import argparse
 import os
 from concurrent.futures import ThreadPoolExecutor
+import yt_dlp
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -20,6 +21,7 @@ import numpy
 
 from helpers import *
 import sound_helpers
+import youtube_helpers
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
@@ -32,16 +34,18 @@ parser.add_argument('--reload', dest='reload', default=False, action='store_true
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
-parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
-
+parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
+parser.add_argument('--autogen_simple', dest='autogen_simple', default=False, action='store_true')
 # bluetooth qc35 headphones are .189 latency
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
 
 
 
 args = parser.parse_args()
+if args.autogen_simple:
+    args.autogen = True
 
 
 pca = None
@@ -86,6 +90,24 @@ def http_server():
 
 ########################################
 
+def add_effect_from_dj(msg):
+    global song_time, song_playing
+    effect_name = msg['effect']
+    song_time = 0
+    if has_song(effect_name):
+        song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
+        if not os.path.exists(song_path):
+            print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
+            return
+        if song_playing and len(song_queue) > 0:
+            song_queue.pop()
+        song_queue.insert(0, [effect_name, get_queue_salt()])
+        play_song(effect_name)
+        song_playing = True
+        broadcast_song = True
+    add_effect(effect_name)
+
+
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time
     print('dj made connection to new client')
@@ -126,16 +148,7 @@ async def init_dj_client(websocket, path):
             broadcast_song = False
 
             if msg['type'] == 'add_effect':
-                effect_name = msg['effect']
-                song_time = 0
-                if has_song(effect_name):
-                    if song_playing and len(song_queue) > 0:
-                        song_queue.pop()
-                    song_queue.insert(0, [effect_name, get_queue_salt()])
-                    play_song(effect_name)
-                    song_playing = True
-                    broadcast_song = True
-                add_effect(effect_name)
+                add_effect_from_dj(msg)
 
             elif msg['type'] == 'remove_effect':
                 effect_name = msg['effect']
@@ -181,10 +194,31 @@ async def init_dj_client(websocket, path):
             await send_light_status() # we might want to lock this
 
 
+def download_song(url):
+    import generate_show
+
+    # time.sleep(20)
+
+    print(f'started downloading {url}')
+    filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
+    if filepath is None:
+        return
+    print(f'finished downloading {url}')
+
+    new_effect = generate_show.generate_show(filepath, effects_config, overwrite=True, simple=False, debug=True)
+    if new_effect is None:
+        print(f'No effect created for {url}')
+        return
+    
+    print(f'created show for: {list(new_effect.keys())}')
+    update_config(new_effect)
+
+
 async def init_queue_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time
     print('queue made connection to new client')
 
+    # this is a lot going over the wire, should we minimize?
     message = {
         'effects': effects_config,
         'songs': songs_config,
@@ -296,6 +330,11 @@ async def init_queue_client(websocket, path):
                     song_playing = True
                     add_effect(effect_name)
                     broadcast_light = True
+
+            elif msg['type'] == 'download_song':
+                url = msg.get('url', None)
+                Thread(target=download_song, args=(url,)).start()
+
 
             song_lock.release()
 
@@ -415,7 +454,65 @@ if args.local:
     terminal_size = os.get_terminal_size().columns
 
 
+def get_sub_effect_names(effect_name, beat):
+    sub_effect_names = []
+    effect_beats = effects_config[effect_name]['beats']
+    for effect in effect_beats:
+        if effect[0] <= beat <= effect[0] + effect[2]:
+            sub_effect_names.append(effect[1])
+        elif sub_effect_names:
+            break
+    return sub_effect_names
+
+
+last_extra_lines = None
 async def render_to_terminal(all_levels):
+    global last_extra_lines
+    curr_beat = (beat_index / SUB_BEATS) + 1
+    dead_space = terminal_size - 15
+
+    show_specific = ''
+    all_effect_names = []
+    for effect in curr_effects:
+        effect_name = effect[0]
+
+        # if has_song(effect[0]):
+        #     all_effect_names += get_sub_effect_names(effect[0], curr_beat)
+        if has_song(effect_name):
+            channel_lut_index = (beat_index + effect[1])
+            show_specific = f"""\
+, {round(100 * (channel_lut_index / channel_lut[effect_name]['length']))}% lights\
+"""
+            all_effect_names += get_sub_effect_names(effect_name, curr_beat)
+        else:
+            all_effect_names.append(effect[0])
+            # getting duration thru the song
+            # time_diff = time.time() - time_start
+            # song_path = effects_config[effect_name]['song_path']
+            # if 'song_path' in songs_config:
+            #     f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
+
+    useful_info = f"""\
+BPM: {curr_bpm:.2f}, \
+Beat: {curr_beat:.2f}, \
+Seconds: {round(time.time() - time_start, 2):.2f}\
+{show_specific}\
+"""
+    
+    # size_of_current_line = len(useful_info) - (terminal_size * (len(useful_info) // terminal_size))
+    size_of_current_line = len(useful_info) % (terminal_size + 1)
+    chars_until_end_of_line = terminal_size - size_of_current_line
+    # print(f'{size_of_current_line=}, {chars_until_end_of_line=}, {terminal_size=}')
+    useful_info += ' ' * chars_until_end_of_line
+    extra_lines_up = (len(useful_info) // (terminal_size + 1)) + 1
+    # if last_extra_lines is not None and last_extra_lines > extra_lines_up:
+    #     print(f'{" " * dead_space}\n' * (last_extra_lines - extra_lines_up))
+        # print(f'last_extra_lines: {last_extra_lines}, extra_lines_up: {extra_lines_up}')
+        # exit()
+
+    last_extra_lines = extra_lines_up
+
+
     # print('pre 255:', list(map(lambda x: x / max_num, all_levels)))
     levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
     # print('after 255:', levels_255)
@@ -428,48 +525,33 @@ async def render_to_terminal(all_levels):
     # print('after terminal lut', levels_255)
 
     # uv_level_scaling = min(1, levels_255[6] / 255.0)
-    purple_scaled = list(map(lambda x: int(x * (levels_255[6] / 255)), purple))
+    purple_scaled = list(map(lambda x: int(x * (levels_255[9] / 255)), purple))
 
     uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
-    top_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
-    bottom_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
+    top_front_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
+    top_back_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
+    bottom_rgb_style = f'rgb({levels_255[6]},{levels_255[7]},{levels_255[8]})'
+
+
+    # print(useful_info)
+    #  + (' ' * (terminal_size - len(useful_info)))
+
+    effect_string = f'Effects: {all_effect_names}'
+    remaining = terminal_size - len(effect_string) 
+    console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
+    console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
 
     character = '▆'
-    dead_space = terminal_size - 15
     console.print(' ' + character * 2, style=uv_style, end='')
-    console.print(character * 10, style=top_rgb_style, end='')
+    console.print(character * 5, style=top_front_rgb_style, end='')
+    console.print(character * 5, style=top_back_rgb_style, end='')
     console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
     console.print('\n', end='')
-    console.print(f'{" " * terminal_size}\n' * 3, end='')
+    console.print(f'{" " * (terminal_size - 1)}\n' * 3, end='')
 
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('\n', end='')
 
-    # effect_useful_info = list(map(lambda x: x[3], curr_effects))
-    
-    effect_specific = ''
-    if curr_effects:
-        effect_name = curr_effects[0][0]
-        if has_song(effect_name):
-            index = (beat_index + curr_effects[0][1])
-            time_diff = time.time() - time_start
-            song_path = effects_config[effect_name]['song_path']
-            effect_specific = f"""\
-, {round(100 * (index / channel_lut[effect_name]['length']))}% lights\
-"""
-            if 'song_path' in songs_config:
-                f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
-
-    # Sub beat: {round(beat_index, 1)}, \
-    useful_info = f"""\
-BPM: {curr_bpm:.2f}, \
-Beat: {round((beat_index / SUB_BEATS) + 1, 2):.2f}, \
-Seconds: {round(time.time() - time_start, 2):.2f}\
-{effect_specific}\
-"""
-    extra_lines_up = (len(useful_info) // terminal_size) + 1
-    console.print(useful_info + (' ' * (terminal_size - len(useful_info))), end='')
-    console.print('', end='\033[F' * (4 + extra_lines_up))
+    console.print('', end='\033[F' * 6)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -677,19 +759,22 @@ def update_config(autogenerated_effects=None):
     effects_config = {}
     if autogenerated_effects:
         effects_config.update(autogenerated_effects)
-    for name, path in get_all_paths('effects', only_files=True):
-        module = 'effects.' + path.stem
-        if module in all_globals:
-            importlib.reload(all_globals[module])
+
+    effects_dir = python_file_directory.joinpath('effects')
+    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+        relative_path = filepath.relative_to(python_file_directory)
+        without_suffix = relative_path.parent.joinpath(relative_path.stem)
+        module_name = str(without_suffix).replace(os.sep, '.')
+        if module_name in all_globals:
+            importlib.reload(all_globals[module_name])
         else:
-            all_globals[module] = importlib.import_module(module)
-        effects_config.update(all_globals[module].effects)
+            all_globals[module_name] = importlib.import_module(module_name)
+        effects_config.update(all_globals[module_name].effects)
     print(f'finishing up to imports took {time.time() - begin:.3f} seconds')
 
     songs_config = {}
-    song_dir = pathlib.Path('songs')
-    for filename in os.listdir(song_dir):
-        filepath = pathlib.Path(song_dir.joinpath(filename))
+    song_dir = python_file_directory.joinpath('songs')
+    for name, filepath in get_all_paths('songs', only_files=True):
         if filepath.suffix in ['.mp3', '.ogg', '.wav']:
             tags = TinyTag.get(filepath)
             name = tags.title
@@ -711,6 +796,8 @@ def update_config(autogenerated_effects=None):
                 'artist': artist,
                 'duration': duration
             }
+        else:
+            print(f'{bcolors.FAIL} CANNOT READ FILETYPE {filepath.suffix} in {filepath}{bcolors.ENDC}')
     print(f'finishing up to getting song detail lengths {time.time() - begin:.3f} seconds')
 
     for effect_name, effect in effects_config.items():
@@ -861,12 +948,6 @@ def update_config(autogenerated_effects=None):
                         mult = start_mult
                     else:
                         mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
-                        # if start_mult != end_mult:
-                            # print({f'{start_mult=}, {end_mult=}, {mult=}'})
-
-
-                    # print(f'{final_channel=}')
-                    # print(f'{reference_channels=}')
 
                     # this is 40% of the time
                     for x in range(LIGHT_COUNT):
@@ -914,11 +995,11 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 #################################################
 
-def fuzzy_find(name, valid_names, filter_word=None):
+def fuzzy_find(name, valid_names, filter_words=None):
     name = name.lower()
     all_canidates = []
-    if filter_word:
-        valid_names = list(filter(lambda x: filter_word in x.lower(), valid_names))
+    if filter_words:
+        valid_names = list(filter(lambda x: any([y in x.lower() for y in filter_words]), valid_names))
     lower_to_real = {x.lower():x for x in valid_names}
     for show_name in lower_to_real:
         if name in show_name:
@@ -943,18 +1024,30 @@ else:
 
 
 update_config()
+
+# testing the youtube downloading
+# the_thread = threading.Thread(target=download_song, args=('https://www.youtube.com/watch?v=uYWL7_NW5cY&list=LL&index=6',))
+# the_thread.start()
+
+
+
 if args.autogen:
-    if not args.show:
-        print('must specify args.show')
-        exit()
     autogenerated_effects = {}
     import generate_show
 
-    song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.show, list(os.listdir('songs'))))
-    new_effect = generate_show.generate_show(song_path, effects_config)
-    autogenerated_effects.update(new_effect)
-    effect_name = list(new_effect.keys())[0]
-    args.show = effect_name
+    if args.show:
+        song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.show, list(os.listdir('songs'))))
+        new_effect = generate_show.generate_show(song_path, effects_config, overwrite=True, simple=args.autogen_simple)
+        autogenerated_effects.update(new_effect)
+        effect_name = list(new_effect.keys())[0]
+        args.show = effect_name
+    else:
+        print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
+        for name, path in get_all_paths('songs', only_files=True):
+            new_effect = generate_show.generate_show(path, effects_config, overwrite=True, simple=args.autogen_simple, debug=False)
+            if new_effect is not None:
+                autogenerated_effects.update(new_effect)
+    
     update_config(autogenerated_effects)
 
 
@@ -963,11 +1056,15 @@ def detailed_output_on_enter():
     while True:
         input()
         all_effect_names = []
+
+        curr_beat = (beat_index / SUB_BEATS) + 1
         for effect in curr_effects:
-            all_effect_names.append(effect[0])
+            if has_song(effect[0]):
+                all_effect_names += get_sub_effect_names(effect[0], curr_beat)
+            else:
+                all_effect_names.append(effect[0])
         
-        beat = round((beat_index / SUB_BEATS) + 1, 2)
-        print(f'beat: {beat}, current_effects playing: {all_effect_names}')
+        print(f'beat: {curr_beat:2f}, current_effects playing: {all_effect_names}')
 
 
 if args.enter:
@@ -981,7 +1078,7 @@ def restart_show(reload=False, skip=0):
     if curr_effects:
         effect_name = curr_effects[0][0]
         remove_effect(0)
-        time_to_skip_to = (time.time() - time_start) + skip
+        time_to_skip_to = max(0, (time.time() - time_start) + skip)
         stop_song()
 
         if reload:
@@ -1047,13 +1144,13 @@ if args.keyboard:
     skip_time = 5
 
     keyboard_dict = {
-        'd': 'Red top',
-        'f': 'Cyan top',
-        'j': 'Blue bottom',
-        'k': 'Green bottom',
+        # 'd': 'Red top',
+        # 'f': 'Cyan top',
+        # 'j': 'Blue bottom',
+        # 'k': 'Green bottom',
         'left': lambda: restart_show(False, -skip_time),
         'right': lambda: restart_show(False, skip_time),
-        'space': 'UV',
+        # 'space': 'UV',
     }
     # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
@@ -1067,8 +1164,8 @@ if args.keyboard:
                 add_effect(keyboard_dict[key_name])
             else:
                 keyboard_dict[key_name]()
-        else:
-            print(f'you pressed {key_name}')
+        # else:
+        #     print(f'you pressed {key_name}')
 
     def on_release(key):
         if type(key) == KeyCode:
@@ -1104,7 +1201,7 @@ async def start_async():
     print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
     if args.show:
-        args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_word='show')
+        args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
         print('Starting show from CLI')
         if args.show in effects_config:
             if args.speed != 1 and 'song_path' in effects_config[args.show]:

@@ -45,6 +45,24 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def print_yellow(s):
+    print(f'{bcolors.WARNING}{s}{bcolors.ENDC}')
+
+def print_green(s):
+    print(f'{bcolors.OKGREEN}{s}{bcolors.ENDC}')
+
+def print_cyan(s):
+    print(f'{bcolors.OKCYAN}{s}{bcolors.ENDC}')
+
+def print_bold(s):
+    print(f'{bcolors.BOLD}{s}{bcolors.ENDC}')
+
+def print_blue(s):
+    print(f'{bcolors.OKBLUE}{s}{bcolors.ENDC}')
+
+def print_red(s):
+    print(f'{bcolors.FAIL}{s}{bcolors.ENDC}')
+
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'
 
@@ -62,6 +80,9 @@ def random_letters(num_chars: int) -> str:
 
 
 def get_all_paths(directory, only_files=False, exclude_names=None):
+    if not os.path.exists(directory):
+        print_yellow(f'{directory} does not exist, returning [] for paths')
+        return []
     paths = []
     directory = pathlib.Path(directory)
     for filename in os.listdir(directory):
@@ -79,7 +100,7 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
-            print(f'{bcolors.WARNING}WARNING: the parameter "cmd" was not a str, casting and continuing{bcolors.ENDC}')
+            print_yellow(f'WARNING: the parameter "cmd" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():

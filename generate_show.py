@@ -132,7 +132,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         relative_path = relative_path.relative_to(python_file_directory)
     show = {
         'bpm': bpm_guess,
-        'song_path': str(song_filepath),
+        'song_path': str(relative_path),
         'delay_lights': delay,
         'skip_song': 0.0,
         'profiles': ['Generated Shows'],

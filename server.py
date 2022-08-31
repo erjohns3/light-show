@@ -169,7 +169,7 @@ async def init_dj_client(websocket, path):
 
             elif msg['type'] == 'update_config':
                 clear_effects()
-                update_config()
+                update_config_and_lut_from_disk
                 #BROKEN
 
             elif msg['type'] == 'set_bpm':
@@ -203,19 +203,23 @@ def download_song(url):
     filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
     if filepath is None:
         return
-    print(f'finished downloading {url}')
+    print(f'finished downloading {url} to {filepath}')
 
     new_effect = generate_show.generate_show(filepath, effects_config, overwrite=True, simple=False, debug=True)
     if new_effect is None:
-        print(f'No effect created for {url}')
+        print_red(f'Autogenerator failed to create effect for {url}')
         return
-    
+
+    print(f'passing filepath: {filepath}')
+    add_song_to_config(filepath)
+    compile_lut(new_effect)
     print(f'created show for: {list(new_effect.keys())}')
-    update_config(new_effect)
 
 
+
+downloading_thread = None
 async def init_queue_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time
+    global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
     print('queue made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
@@ -332,14 +336,25 @@ async def init_queue_client(websocket, path):
                     broadcast_light = True
 
             elif msg['type'] == 'download_song':
-                url = msg.get('url', None)
-                Thread(target=download_song, args=(url,)).start()
-
+                if downloading_thread is None:
+                    url = msg.get('url', None)
+                    downloading_thread = Thread(target=download_song, args=(url,))
+                    downloading_thread.start()
+                else:
+                    print_warning('Someone tried to download a song while something was already downloading. Skipping')
 
             song_lock.release()
 
             if broadcast_light:
                 await send_light_status()
+
+            if downloading_thread is not None:
+                if not downloading_thread.is_alive():
+                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+                    downloading_thread = None
+                    await send_all()
+                else:
+                    print_warning('the downloading thread appears to still be alive...\n' * 8)
             await send_song_status() # we might want to lock this
 
 
@@ -356,6 +371,17 @@ async def broadcast(sockets, msg):
         except:
             print('socket send failed', flush=True)
 
+async def send_all():
+    message = {
+        'effects': effects_config,
+        'songs': songs_config,
+        'queue': song_queue,
+        'status': {
+            'playing': song_playing,
+            'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
+        }
+    }
+    await broadcast(light_sockets, json.dumps(message))
 
 async def send_light_status():
     message = {
@@ -364,8 +390,16 @@ async def send_light_status():
             'rate': curr_bpm
         }
     }
-    dump = json.dumps(message)
-    await broadcast(light_sockets, dump)
+    await broadcast(light_sockets, json.dumps(message))
+
+async def send_light_status():
+    message = {
+        'status': {
+            'effects': curr_effects,
+            'rate': curr_bpm
+        }
+    }
+    await broadcast(light_sockets, json.dumps(message))
 
 
 async def send_song_status():
@@ -376,8 +410,7 @@ async def send_song_status():
             'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
         }
     }
-    dump = json.dumps(message)
-    await broadcast(song_sockets, dump)
+    await broadcast(song_sockets, json.dumps(message))
     
 
 ####################################
@@ -743,23 +776,48 @@ def effects_config_sort(path):
     else:
         complex_effects.append(curr)
 
+def add_song_to_config(filepath):
+    if filepath.suffix in ['.mp3', '.ogg', '.wav']:
+        tags = TinyTag.get(filepath)
+        name = tags.title
+        artist = tags.artist
+        duration = tags.duration
+
+        if tags.samplerate != 48000:
+            print_red(f'this shit song aint 48000 fam, {filepath}')
+            return False
+
+        if name == None:
+            name = filepath.stem
+
+        if not duration:
+            print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow')
+            duration = sound_helpers.get_audio_clip_length(filepath)
+        relative_path = filepath
+        if relative_path.is_absolute():
+            relative_path = relative_path.relative_to(python_file_directory)
+        songs_config[str(filepath)] = {
+            'name': name,
+            'artist': artist,
+            'duration': duration
+        }
+    else:
+        print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
+        return False
+    return True
+
 all_globals = globals()
+def update_config_and_lut_from_disk():
+    global effects_config, songs_config, channel_lut, graph, found
 
-def update_config(autogenerated_effects=None):
-    global effects_config, songs_config, channel_lut, graph, found, simple_effects, complex_effects
-
-    begin = time.time()
     channel_lut = {}
+    effects_config = {}
+    songs_config = {}
 
     graph = {}
     found = {}
-    simple_effects = []
-    complex_effects = []
 
-    effects_config = {}
-    if autogenerated_effects:
-        effects_config.update(autogenerated_effects)
-
+    # begin_perf_timer = time.time()
     effects_dir = python_file_directory.joinpath('effects')
     for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         relative_path = filepath.relative_to(python_file_directory)
@@ -770,49 +828,14 @@ def update_config(autogenerated_effects=None):
         else:
             all_globals[module_name] = importlib.import_module(module_name)
         effects_config.update(all_globals[module_name].effects)
-    print(f'finishing up to imports took {time.time() - begin:.3f} seconds')
 
-    songs_config = {}
     song_dir = python_file_directory.joinpath('songs')
     for name, filepath in get_all_paths('songs', only_files=True):
-        if filepath.suffix in ['.mp3', '.ogg', '.wav']:
-            tags = TinyTag.get(filepath)
-            name = tags.title
-            artist = tags.artist
-            duration = tags.duration
+        add_song_to_config(filepath)
+    compile_lut(effects_config)
 
-            if tags.samplerate != 48000:
-                print(f'this shit song aint 48000 fam, {filepath}')
-                exit()
-
-            if name == None:
-                name = filepath.stem
-
-            if not duration:
-                print(f'{bcolors.WARNING}No tag found for file: "{filepath}", ffprobing, but this is slow {bcolors.ENDC}')
-                duration = sound_helpers.get_audio_clip_length(filepath)
-            songs_config[str(filepath)] = {
-                'name': name,
-                'artist': artist,
-                'duration': duration
-            }
-        else:
-            print(f'{bcolors.FAIL} CANNOT READ FILETYPE {filepath.suffix} in {filepath}{bcolors.ENDC}')
-    print(f'finishing up to getting song detail lengths {time.time() - begin:.3f} seconds')
-
-    for effect_name, effect in effects_config.items():
-        graph[effect_name] = {}
-        for component in effect['beats']:
-            if type(component[1]) is str:
-                graph[effect_name][component[1]] = True
-        graph[effect_name] = list(graph[effect_name].keys())
-    print(f'finishing up to beat reading took {time.time() - begin:.3f} seconds')
-
-    for effect_name in graph:
-        effects_config_sort([effect_name])
-    print(f'finishing up the graph sorting took {time.time() - begin:.3f} seconds')
-
-    for effect_name, effect in effects_config.items():
+def set_effect_defaults(local_effects_config):
+    for effect_name, effect in local_effects_config.items():
         if 'snap' not in effect:
             effect['snap'] = 1 / SUB_BEATS
         else:
@@ -823,7 +846,7 @@ def update_config(autogenerated_effects=None):
             effect['profiles'] = []
         if 'song_path' in effect and effect['song_path'] in songs_config:
             if 'bpm' not in effect:
-                print('song effects must have bpm')
+                print_red('song effects must have bpm\n' * 10)
                 exit()
             effect['delay_lights'] = effect.get('delay_lights', 0)
             if not args.local:
@@ -836,15 +859,31 @@ def update_config(autogenerated_effects=None):
             if 'loop' not in effect:
                 effect['loop'] = True
 
-    print(f'(done with update_config) finishing up to effect defaults took {time.time() - begin:.3f} seconds')
+    for effect_name in local_effects_config:
+        if 'song_path' not in local_effects_config[effect_name]:
+            local_effects_config[effect_name]['profiles'].append('All Effects')
+    
+def compile_lut(local_effects_config):
+    global channel_lut, simple_effects, complex_effects
 
-    for effect_name in effects_config:
-        if 'song_path' not in effects_config[effect_name]:
-            effects_config[effect_name]['profiles'].append('All Effects')
-    print(f'finishing up to setting all_effects defaults took {time.time() - begin:.3f} seconds')
+    simple_effects = []
+    complex_effects = []
+    for effect_name, effect in local_effects_config.items():
+        graph[effect_name] = {}
+        for component in effect['beats']:
+            if type(component[1]) is str:
+                graph[effect_name][component[1]] = True
+        graph[effect_name] = list(graph[effect_name].keys())
 
+    for effect_name in graph:
+        effects_config_sort([effect_name])
+
+    set_effect_defaults(local_effects_config)
+    print(f'running compile_lut with {list(local_effects_config.keys())}')
+
+    simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
-        effect = effects_config[effect_name]
+        effect = local_effects_config[effect_name]
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
@@ -886,22 +925,22 @@ def update_config(autogenerated_effects=None):
                     tmp[0], tmp[6] = tmp[6], tmp[0]
                     tmp[1], tmp[7] = tmp[7], tmp[1]
                     tmp[2], tmp[8] = tmp[8], tmp[2]
-    print(f'finishing up to simple effects took {time.time() - begin:.3f} seconds')
+    print_cyan(f'finishing simple effects took {time.time() - simple_effect_perf_timer:.3f} seconds')
 
+    complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
-        effect = effects_config[effect_name]
+        effect = local_effects_config[effect_name]
 
         # if length isn't specified, generate a length
         calced_effect_length = 0
-
         for component in effect['beats']:
             start_beat = component[0] - 1
             name = component[1]
             if len(component) == 2:
-                if effects_config[name]['loop']:
+                if local_effects_config[name]['loop']:
                     component.append(effect['length'] - start_beat)
                 else:
-                    component.append(effects_config[name]['length'])
+                    component.append(local_effects_config[name]['length'])
             if len(component) == 3:
                 component.append(1)
             if len(component) == 4:
@@ -934,35 +973,19 @@ def update_config(autogenerated_effects=None):
             end_mult = component[4]
             offset = round(component[5] * SUB_BEATS)
 
-            # 68% of time
             for i in range(length):
-                # 9% of the time
                 reference_channels = reference_beats[(i + offset) % reference_length]
-
-                # 59% of the time
                 if any(reference_channels):
                     final_channel = beats[start_beat + i]
 
-                    # 12% of the time
                     if length == 1:
                         mult = start_mult
                     else:
                         mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
 
-                    # this is 40% of the time
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-
-
-                    # numpy stuff
-                    # final_channel += channels
-                    # final_channel *= mult
-                    # trying to optimize
-                    # final_channel = list((x + y) * mult for x, y in zip(final_channel, channels))
-    # starter = time.time()
-    # block += time.time() - starter
-    # print(f'time spent in block: {block}')
-    print(f'finishing up to complex effects took {time.time() - begin:.3f} seconds')
+    print_cyan(f'finishing complex effects took {time.time() - complex_effect_perf_timer:.3f} seconds')
 
 
 ##################################################
@@ -1022,13 +1045,11 @@ if args.local:
 else:
     setup_gpio()
 
-
-update_config()
+update_config_and_lut_from_disk()
 
 # testing the youtube downloading
-# the_thread = threading.Thread(target=download_song, args=('https://www.youtube.com/watch?v=uYWL7_NW5cY&list=LL&index=6',))
-# the_thread.start()
-
+the_thread = threading.Thread(target=download_song, args=('https://www.youtube.com/watch?v=tAhT6kFWkAo',))
+the_thread.start()
 
 
 if args.autogen:
@@ -1048,7 +1069,7 @@ if args.autogen:
             if new_effect is not None:
                 autogenerated_effects.update(new_effect)
     
-    update_config(autogenerated_effects)
+    # update_config(autogenerated_effects)
 
 
 def detailed_output_on_enter():
@@ -1082,7 +1103,7 @@ def restart_show(reload=False, skip=0):
         stop_song()
 
         if reload:
-            update_config()
+            update_config_and_lut_from_disk()
 
         # kind of assumes that effect_name is equal to args.show
         if args.speed != 1 and 'song_path' in effects_config[effect_name]:
@@ -1107,7 +1128,7 @@ def restart_show(reload=False, skip=0):
         play_song(effect_name, print_out=False)
         add_effect(effect_name)
     elif reload:
-        update_config()
+        update_config_and_lut_from_disk()
 
 
 if args.reload:
@@ -1228,3 +1249,23 @@ async def start_async():
     await dj_socket_server.wait_closed() and queue_socket_server.wait_closed()
 
 asyncio.run(start_async())
+
+
+
+
+
+
+
+# old compile stuff
+
+# numpy stuff
+# final_channel += channels
+# final_channel *= mult
+# trying to optimize
+# final_channel = list((x + y) * mult for x, y in zip(final_channel, channels))
+
+
+
+# starter = time.time()
+# block += time.time() - starter
+# print(f'time spent in block: {block}')

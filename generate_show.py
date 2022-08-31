@@ -126,6 +126,9 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
     src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
+    relative_path = song_filepath
+    if relative_path.is_absolute():
+        relative_path = relative_path.relative_to(python_file_directory)
     show = {
         'bpm': bpm_guess,
         'song_path': str(song_filepath),

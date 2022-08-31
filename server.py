@@ -189,11 +189,11 @@ async def init_dj_client(websocket, path):
 
             light_lock.release()
 
-            if downloading_thread is not None:
-                if not downloading_thread.is_alive():
-                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-                    downloading_thread = None
-                    await send_all()
+            # if downloading_thread is not None:
+            #     if not downloading_thread.is_alive():
+            #         print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+            #         downloading_thread = None
+            #         await send_effects_and_songs()
 
             if broadcast_song:
                 await send_song_status()
@@ -219,6 +219,7 @@ def download_song(url):
     print(f'passing filepath: {filepath}')
     add_song_to_config(filepath)
     compile_lut(new_effect)
+    effects_config.update(new_effect)
     print(f'created show for: {list(new_effect.keys())}')
 
 
@@ -354,11 +355,11 @@ async def init_queue_client(websocket, path):
             if broadcast_light:
                 await send_light_status()
 
-            if downloading_thread is not None:
-                if not downloading_thread.is_alive():
-                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-                    downloading_thread = None
-                    await send_all()
+            # if downloading_thread is not None:
+            #     if not downloading_thread.is_alive():
+            #         print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+            #         downloading_thread = None
+            #         await send_effects_and_songs()
 
             await send_song_status() # we might want to lock this
 
@@ -376,15 +377,10 @@ async def broadcast(sockets, msg):
         except:
             print('socket send failed', flush=True)
 
-async def send_all():
+async def send_effects_and_songs():
     message = {
         'effects': effects_config,
         'songs': songs_config,
-        'queue': song_queue,
-        'status': {
-            'playing': song_playing,
-            'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
-        }
     }
     await broadcast(light_sockets, json.dumps(message))
 

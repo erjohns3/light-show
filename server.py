@@ -338,10 +338,10 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'download_song':
                 if downloading_thread is None:
                     url = msg.get('url', None)
-                    downloading_thread = Thread(target=download_song, args=(url,))
+                    downloading_thread = threading.Thread(target=download_song, args=(url,))
                     downloading_thread.start()
                 else:
-                    print_warning('Someone tried to download a song while something was already downloading. Skipping')
+                    print_yellow('Someone tried to download a song while something was already downloading. Skipping')
 
             song_lock.release()
 
@@ -353,8 +353,6 @@ async def init_queue_client(websocket, path):
                     print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
                     downloading_thread = None
                     await send_all()
-                else:
-                    print_warning('the downloading thread appears to still be alive...\n' * 8)
             await send_song_status() # we might want to lock this
 
 
@@ -1048,8 +1046,8 @@ else:
 update_config_and_lut_from_disk()
 
 # testing the youtube downloading
-the_thread = threading.Thread(target=download_song, args=('https://www.youtube.com/watch?v=tAhT6kFWkAo',))
-the_thread.start()
+# the_thread = threading.Thread(target=download_song, args=('https://www.youtube.com/watch?v=tAhT6kFWkAo',))
+# the_thread.start()
 
 
 if args.autogen:

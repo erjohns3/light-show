@@ -33,12 +33,12 @@
     </div>
 
     <div id="page-view">
-        <div id="available-page" class="page">
+        <div id="available-page" class="page">          
+            <div id="available-list" class="list"></div>
             <div id="url-wrapper">
                 <input type="text" id="url-textbox" placeholder="Enter Youtube Song URL">
-                <button type="button" id="url-submit">Submit</button>
-            </div>            
-            <div id="available-list" class="list"></div>
+                <div id="url-submit">Submit</div>
+            </div>
         </div>
         <div id="queue-page" class="page">
             <div id="queue-list" class="list"></div>
@@ -584,12 +584,12 @@
         height: 0.5vh;
         width: 50%;
         background-color: hsl(120, 100%, 50%);
-        box-shadow: 0 0 3vw;
+        box-shadow: 0 0 1vh;
         will-change: transform;
     }
 
     .tab-selected{
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
         opacity: 1;
     }
 
@@ -630,35 +630,59 @@
     }
 
     #url-wrapper {
-        position: relative;
-        width: 100%;
-        height: 5%;
-        display: block;
-        margin-right: auto;
-        margin-left: auto;
+        position: absolute;
+        bottom: 2%;
+        left: 2%;
+        width: 96%;
+        height: 8%;
+        border: solid 0.1vh hsl(200deg 100% 50%);
+        color: hsl(200deg 100% 50%);
+        box-shadow: 0 0 1vh, inset 0 0 1vh;
+        border-radius: 1vh;
+        box-sizing: border-box;
     }
 
     #url-submit {
-        position: relative;
-        width: 25%;
-        height: 80%;
-        /* display: block; */
-        /* margin-right: auto; */
-        /* margin-left: auto; */
+        position: absolute;
+        width: 9vh;
+        height: 100%;
+        top: 0%;
+        right: 3%;
+        font-size: 2.25vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-shadow: 0 0 1vh;
+        color: hsl(170deg 100% 50%);
     }
 
     #url-textbox {
-        position: relative;
-        width: 60%;
-        height: 80%;
-        left: 5%;
-        /* display: block; */
-        /* margin-right: auto; */
-        /* margin-left: auto; */
+        position: absolute;
+        width: 75%;
+        top: 25%;
+        left: 4%;
+        padding: 1vh;
+        font-size: 2.25vh;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-shadow: 0 0 1vh;
+        color: hsl(270deg 100% 50%);
+        padding: 0;
+        margin: 0;
+        background-color: black;
+        border: none;
+        outline: none;
+    }
+
+    #url-textbox::placeholder {
+        color: hsl(270deg 100% 50%);
+        opacity: 0.5;
     }
 
     .list{
         position: relative;
+        overflow: scroll;
         width: 100%;
         height: 100%;
         top: 0;
@@ -676,12 +700,12 @@
         width: 75%;
         top: 8%;
         left: 4%;
-        padding: 2vw;
-        font-size: 4vw;
+        padding: 1vh;
+        font-size: 2.25vh;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
     }
     
     .item-artist {
@@ -689,38 +713,38 @@
         width: 75%;
         bottom: 8%;
         left: 4%;
-        padding: 2vw;
-        font-size: 3vw;
+        padding: 1vh;
+        font-size: 1.75vh;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
     }
 
     .item-back{
         position: absolute;
-        width: 15vw;
+        width: 9vh;
         height: 100%;
         top: 0%;
         right: 0%;
-        font-size: 15vw;
+        font-size: 9vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
     }
 
     .item-remove{
         position: absolute;
-        width: 15vw;
+        width: 9vh;
         height: 100%;
         top: 0%;
         right: 0%;
-        font-size: 9vw;
+        font-size: 5vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
     }
 
     #available-page{
@@ -728,7 +752,7 @@
     }
 
     #available-list{
-        
+        height: 90%;
     }
 
     available-item{
@@ -818,7 +842,7 @@
         width: 100%;
         height: 0.5vh;
         background-color: hsl(120, 100%, 50%);
-        box-shadow: 0 0 3vw;
+        box-shadow: 0 0 1vh;
         position: absolute;
         transform-origin: 0% 0%;
         transform: scaleX(0);
@@ -827,7 +851,7 @@
     }
 
     #play-control{
-        text-shadow: 0 0 3vw;
+        text-shadow: 0 0 1vh;
         top: calc(50% + 0.5vh);
         left: 50%;
         position: absolute;

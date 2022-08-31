@@ -9,6 +9,12 @@ python server.py --local --keyboard --reload --show shelter
 scp -r pi@doorbell:/home/pi/light-show/songs .
 ```
 
+# To push your songs TO the doorbell
+```
+scp -r songs pi@doorbell:/home/pi/light-show/
+```
+
+
 ## other features
 To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads when you save in the directory
 ```python server.py --local --volume 7 --show butter --reload --skip 30```

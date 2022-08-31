@@ -108,6 +108,19 @@ def add_effect_from_dj(msg):
     add_effect(effect_name)
 
 
+async def check_downloading_thread():
+    global downloading_thread
+    while True:
+        print('Waiting 2 seconds then checking download_thread...')
+        await asyncio.sleep(2)
+        if downloading_thread is not None:
+            if not downloading_thread.is_alive():
+                print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+                downloading_thread = None
+                await send_effects_and_songs()
+                break
+    print('check_downloading_thread task ending\n' * 8)
+
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
     print('dj made connection to new client')
@@ -188,12 +201,6 @@ async def init_dj_client(websocket, path):
                 time_start += 0.1
 
             light_lock.release()
-
-            if downloading_thread is not None:
-                if not downloading_thread.is_alive():
-                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-                    downloading_thread = None
-                    await send_effects_and_songs()
 
             if broadcast_song:
                 await send_song_status()
@@ -347,6 +354,7 @@ async def init_queue_client(websocket, path):
                     url = msg.get('url', None)
                     downloading_thread = threading.Thread(target=download_song, args=(url,))
                     downloading_thread.start()
+                    asyncio.create_task(check_downloading_thread())
                 else:
                     print_yellow('Someone tried to download a song while something was already downloading. Skipping')
 
@@ -354,13 +362,6 @@ async def init_queue_client(websocket, path):
 
             if broadcast_light:
                 await send_light_status()
-
-            if downloading_thread is not None:
-                if not downloading_thread.is_alive():
-                    print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
-                    downloading_thread = None
-                    await send_effects_and_songs()
-
             await send_song_status() # we might want to lock this
 
 

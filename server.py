@@ -109,7 +109,7 @@ def add_effect_from_dj(msg):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time
+    global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
     print('dj made connection to new client')
 
     message = {

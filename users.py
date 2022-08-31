@@ -8,7 +8,11 @@ users = {
         "admin": True
     },
     "f9219d16-42e7-bf2f-9fa6-a2828d87bdc": {
-        "name": "Andrews Upstairs Computer Chrome",
+        "name": "Andrews Phone",
+        "admin": True
+    },
+    "af24e5b0-4bc8-fc43-1a6f-9f54a4d3a76a'": {
+        "name": "Andrews Phone 2",
         "admin": True
     },
     "65f9722b-2f4-fb71-e368-748a23def1a8": {

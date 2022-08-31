@@ -22,6 +22,7 @@ effects = {
         "length": 1,
         "autogen": True,
         "trigger": "add",
+        "loop": False,
         "profiles": ["Andrew"],
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
@@ -31,6 +32,7 @@ effects = {
         "length": 2,
         "autogen": True,
         "trigger": "add",
+        "loop": False,
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
         ]

@@ -37,7 +37,7 @@
             <div id="available-list" class="list"></div>
             <div id="url-wrapper">
                 <input type="text" id="url-textbox" placeholder="Enter Youtube Song URL">
-                <div id="url-submit">Submit</div>
+                <div id="url-submit" class="button">Submit</div>
             </div>
         </div>
         <div id="queue-page" class="page">
@@ -434,6 +434,7 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
+        urlTextbox.value = "";
     }
 
     var availableList = document.getElementById("available-list");

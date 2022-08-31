@@ -768,6 +768,7 @@ def setup_gpio():
 ################################################
 
 effects_config = {}
+effects_config_client = {}
 songs_config = {}
 
 channel_lut = {}
@@ -824,10 +825,11 @@ def add_song_to_config(filepath):
 
 all_globals = globals()
 def update_config_and_lut_from_disk():
-    global effects_config, songs_config, channel_lut, graph, found
+    global effects_config, effects_config_client, songs_config, channel_lut, graph, found
 
     channel_lut = {}
     effects_config = {}
+    effects_config_client = {}
     songs_config = {}
 
     graph = {}

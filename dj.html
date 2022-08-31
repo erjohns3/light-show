@@ -41,7 +41,7 @@
     <div id="rate-apply" class="button">Apply</div>
     <div id="rate-curr"></div>
 
-    <div id="update" class="button">Update</div>
+    <div id="refresh" class="button">Refresh</div>
     <div id="clear" class="button">Clear</div>
 </body>
 
@@ -448,7 +448,7 @@
     var rateIncElem = document.getElementById("rate-inc");
     var rateDecElem = document.getElementById("rate-dec");
 
-    var updateElem = document.getElementById("update");
+    var refreshElem = document.getElementById("refresh");
     var clearElem = document.getElementById("clear");
 
     // rateNextElem.focus();
@@ -515,8 +515,8 @@
         sendRate(rateNext);
     }
 
-    updateElem.onclick = function () {
-        sendUpdate();
+    refreshElem.onclick = function () {
+        location.reload();
     }
 
     clearElem.onclick = function () {
@@ -770,7 +770,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    #update{
+    #refresh{
         position: absolute;
         left: 1vw;
         bottom: 21vh;

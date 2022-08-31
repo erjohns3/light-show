@@ -21,7 +21,8 @@ effects = {
     "UV pulse": {
         "length": 1,
         "autogen": True,
-        "loop": False,
+        "trigger": "add",
+        "profiles": ["Andrew"],
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
         ]
@@ -29,7 +30,7 @@ effects = {
     "UV pulse slow": {
         "length": 2,
         "autogen": True,
-        "loop": False,
+        "trigger": "add",
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1, 1, 0, 0],
         ]
@@ -103,139 +104,161 @@ effects = {
     ##################################  colors
     "UV": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 0, 0, 0, 100], 1],
         ],
     },
     "White top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [100, 100, 100, 0, 0, 0, 0], 1],
         ],
     },
     "White bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 100, 100, 100, 0], 1],
         ],
     },
     "Red top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [100, 0, 0, 0, 0, 0, 0], 1],
         ],
-        "trigger": "hold"
     },
     "Red bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 100, 0, 0, 0], 1],
         ],
     },
     "Green top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 100, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Green bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 0, 100, 0, 0], 1],
         ],
     },
     "Blue top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 100, 0, 0, 0, 0], 1],
         ],
     },
     "Blue bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 0, 0, 100, 0], 1],
         ],
     },
     "Orange top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [100, 40, 10, 0, 0, 0, 0], 1],
         ],
     },
     "Orange bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 100, 40, 10, 0], 1],
         ],
     },
     "Firebrick top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [178, 34, 34, 0, 0, 0, 0], 1],
         ],
     },
     "Firebrick bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 178, 34, 34, 0], 1],
         ],
     },
     "Cyan top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [10, 50, 100, 0, 0, 0, 0], 1],
         ],
     },
     "Cyan bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 10, 50, 100, 0], 1],
         ],
     },
     "Yellow top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [80, 100, 10, 0, 0, 0, 0], 1],
         ],
     },
     "Yellow bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 80, 100, 10, 0], 1],
         ],
     },
     "Pink top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [100, 10, 30, 0, 0, 0, 0], 1],
         ],
     },
     "Pink bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 100, 10, 30, 0], 1],
         ],
     },
     "Indigo top": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [25, 0, 70, 0, 0, 0, 0], 1],
         ],
     },
     "Indigo bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 40, 0, 90, 0], 1],
         ],
     },
     "Purple bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 100, 0, 100, 0], 1],
         ],
     },
     "Rosy brown bottom": {
         "length": 1,
+        "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 70, 30, 30, 0], 1],
         ],

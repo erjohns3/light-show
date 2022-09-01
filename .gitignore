@@ -14,5 +14,5 @@ temp/
 *.wav
 .DS_Store
 chris.py
-effects/autogen_shows/**
+# effects/autogen_shows/**
 chris2.py

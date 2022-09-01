@@ -3,7 +3,7 @@ import json
 import re
 import sys
 import math
-import statistics
+import msaf
 import os
 import importlib
 import sys
@@ -101,11 +101,23 @@ def get_src_bpm_offset(song_filepath, debug=True):
             bpm_guess = bpm
             offset_guess = choice
             best_seen = hit_count
-    length_int = 60.0/bpm_guess
-    delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
+    beat_length = 60.0/bpm_guess
+    delay = beat_length - offset_guess if offset_guess > 0 else -offset_guess
+
+    boundary_beats = get_boundary_beats(song_filepath, beat_length, delay)
     if debug:
-        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
-    return src, total_frames, bpm_guess, delay
+        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
+
+    
+    return src, total_frames, bpm_guess, delay, boundary_beats
+
+
+def get_boundary_beats(song_filepath, beat_length, delay):
+    boundaries, _labels = msaf.process(str(song_filepath), boundaries_id="foote", labels_id="fmc2d")
+    matches = []
+    for boundary in boundaries:
+        matches.append(round((boundary-delay)/beat_length))
+    return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
@@ -125,7 +137,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    src, total_frames, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
+    src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, debug=debug)
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -171,24 +183,45 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     length_s = total_frames / src.samplerate
     total_beats = int((length_s / 60) * bpm_guess)
     beat = 1    
-    while beat < total_beats:
-        if simple: # Only RBBB timing
+    if simple: # Only RBBB timing
+        while beat < total_beats:
             show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
-        elif True: # Based on scenes
-            length, effect_types = random.choices(scenes, k=1)[0]
-            for effect_type in effect_types:
-                effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
-                show['beats'].append([beat, effect_name, length])
-            beat += length
-        else: # Pick random effects with the autogen field
-            chosen_effect_names = random.choices(effect_names, k=2)
-            all_lengths = []
-            for name in chosen_effect_names:
-                length = effect_files_json[name]['length']
-                all_lengths.append(length)
-                show['beats'].append([beat, name, length])
-            beat += max(all_lengths)
+    elif True: # Based on scenes
+        boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
+        prev_bound = 0
+        for bound in boundary_beats:
+            length_left = bound-prev_bound
+            while length_left>0:
+                if length_left >= 4:
+                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left]
+                else:
+                    candidates = [x for x in scenes if x[0] <= length_left]
+                length, effect_types = random.choice([x for x in candidates])
+                while length_left >= length:
+                    # scene stuff
+                    for effect_type in effect_types:
+                        effect_name = random.choice(effect_types_to_name[effect_type])
+                        show['beats'].append([beat, effect_name, length])
+                    beat += length
+                    length_left -= length
+
+# ------------- old --------------
+        # elif True: # Based on scenes
+        #     length, effect_types = random.choices(scenes, k=1)[0]
+        #     for effect_type in effect_types:
+        #         effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
+        #         show['beats'].append([beat, effect_name, length])
+        #     beat += length
+        # else: # Pick random effects with the autogen field
+        #     chosen_effect_names = random.choices(effect_names, k=2)
+        #     all_lengths = []
+        #     for name in chosen_effect_names:
+        #         length = effect_files_json[name]['length']
+        #         all_lengths.append(length)
+        #         show['beats'].append([beat, name, length])
+        #     beat += max(all_lengths)
+                
     
     the_show = {
         show_name: show

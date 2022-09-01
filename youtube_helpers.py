@@ -68,7 +68,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None):
             no_special_name = random_letters(5)
             print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {no_special_name} to assign')
         no_special_name += downloaded_filepath.suffix
-        no_special_chars_filepath = downloaded_filepath.parent.joinpath('s_' + no_special_name)
+        no_special_chars_filepath = downloaded_filepath.parent.joinpath(no_special_name)
         os.rename(downloaded_filepath, no_special_chars_filepath)
         return no_special_chars_filepath
 

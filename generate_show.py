@@ -171,6 +171,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         [16, ['downbeat top']],
         [16, ['downbeat bottom']],
         [16, ['downbeat mixed']],
+        [16, ['downbeat mixed']],
+        [16, ['downbeat mixed', 'UV pulse']],
         [16, ['downbeat mixed', 'UV']],
         [16, ['downbeat top', 'downbeat bottom', 'UV']],
         [16, ['downbeat top', 'UV']],

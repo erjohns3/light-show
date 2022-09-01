@@ -32,7 +32,7 @@ effects = {
 
     "g_filler 1": {
         "length": 1,
-        "autogen": 'UV pulse',
+        "autogen": 'filler',
         "beats": [
             [1, 'Cyan front', .25],
             [1.25, 'Cyan back', .25],
@@ -42,7 +42,7 @@ effects = {
 
     "g_filler 2": {
         "length": 2,
-        "autogen": 'UV pulse',
+        "autogen": 'filler',
         "beats": [
             [1, 'Red front', .25, 1, 0],
             [1.25, 'Blue back', .25, 1, 0],
@@ -174,10 +174,10 @@ effects = {
         "length": 4,
         "autogen": 'downbeat mixed',
         "beats": [
-            [1, "Green top", 1],
+            [1, "Green top", 1, .2],
             [2, "Pink bottom", .5],
             [2.5, "Firebrick bottom", .5],
-            [3, "Green top", 1],
+            [3, "Green top", 1, .2],
             [4, "Blue bottom", .5],
             [4.5, "Orange bottom", .5],
         ],

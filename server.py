@@ -858,9 +858,7 @@ def update_config_and_lut_from_disk():
 
     for name, effect in effects_config.items():
         effects_config_client[name] = {}
-        print(f'----{name}')
         for key, value in effect.items():
-            print(f'--------{key}: {value}')
             if key != 'beats':
                 effects_config_client[name][key] = value
 

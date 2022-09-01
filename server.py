@@ -119,7 +119,7 @@ async def check_downloading_thread():
             if not downloading_thread.is_alive():
                 print_green('Downloading thread has finished, broadcasting the update to clients\n')
                 downloading_thread = None
-                await send_effects_and_songs()
+                await send_effects_songs_queue()
                 break
     print('check_downloading_thread task ending\n')
 
@@ -236,7 +236,21 @@ def download_song(url):
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
+        if 'song_path' in effect:
+            add_queue_front(name)
 
+
+def add_queue_front(effect_name):
+    if len(song_queue) == 0:
+        song_queue.append([effect_name, get_queue_salt()])
+    else:
+        song_queue.insert(1, [effect_name, get_queue_salt()])
+    if len(song_queue) == 1:
+        song_time = 0
+        play_song(effect_name)
+        song_playing = True
+        add_effect(effect_name)
+        broadcast_light = True
 
 downloading_thread = None
 async def init_queue_client(websocket, path):
@@ -278,7 +292,6 @@ async def init_queue_client(websocket, path):
         msg = json.loads(msg_string)
 
         print(msg)
-
         if 'type' in msg:
             song_lock.acquire()
 
@@ -295,17 +308,7 @@ async def init_queue_client(websocket, path):
                     broadcast_light = True
             
             elif msg['type'] == 'add_queue_front':
-                effect_name = msg['effect']
-                if len(song_queue) == 0:
-                    song_queue.append([effect_name, get_queue_salt()])
-                else:
-                    song_queue.insert(1, [effect_name, get_queue_salt()])
-                if len(song_queue) == 1:
-                    song_time = 0
-                    play_song(effect_name)
-                    song_playing = True
-                    add_effect(effect_name)
-                    broadcast_light = True
+                add_queue_front(msg['effect'])
 
             elif msg['type'] == 'remove_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -394,10 +397,11 @@ async def broadcast(sockets, msg):
         except:
             print('socket send failed', flush=True)
 
-async def send_effects_and_songs():
+async def send_effects_songs_queue():
     message = {
         'effects': effects_config,
         'songs': songs_config,
+        'queue': song_queue,
     }
     await broadcast(light_sockets, json.dumps(message))
     await broadcast(song_sockets, json.dumps(message))

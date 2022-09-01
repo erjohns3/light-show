@@ -103,6 +103,15 @@
             if(msg.songs){
                 songsConfig = msg.songs;
             }
+
+            if(msg.users){
+                if(msg.users[uuid] && msg.users[uuid].admin){
+                    admin = true;
+                    console.log('ADMIN');
+                }else{
+                    console.log('not an admin');
+                }
+            }
             
             if(msg.effects){
                 effectsConfig = msg.effects;
@@ -140,14 +149,22 @@
                 for(let i=0; i<queueConfig.length; i++){
                     let effect_name = queueConfig[i][0];
                     let salt = queueConfig[i][1];
+                    let effect_uuid = queueConfig[i][2];
                     let key = queueConfig[i].join('-');
 
                     if(!(key in queue)){
                         while(queueArray[index].used){
                             index++;
+                            if(index >= queueArray.length){
+                                for(let i=0; i<100; i++){
+                                    let item = new QueueItem();
+                                    queueArray.push(item);
+                                    queueList.append(item);
+                                }
+                            }
                         }
                         queue[key] = queueArray[index];
-                        queue[key].setSong(effect_name, salt, key);
+                        queue[key].setSong(effect_name, salt, effect_uuid, key);
                         queue[key].setPosition(i);
                         available[effect_name].setQueue();
                     }
@@ -228,7 +245,7 @@
             this.queueBackButton = this.querySelector(".available-item-back");
             this.queueBackButton.onclick = (event)=>{
                 event.preventDefault();
-                addQueueBack(this.effect);
+                addQueueBalanced(this.effect);
             };
         }
 
@@ -294,9 +311,10 @@
             this.classList.remove('queue-playing');
         }
 
-        setSong(effect, salt, key){
+        setSong(effect, salt, effect_uuid, key){
             this.effect = effect;
             this.salt = salt;
+            this.uuid = effect_uuid;
             this.key = key;
             this.used = true;
             this.song = effectsConfig[this.effect].song_path;
@@ -304,6 +322,11 @@
             this.artist.textContent = songsConfig[this.song].artist;
             this.style.visibility = "visible";
             this.duration = effectsConfig[this.effect].length / effectsConfig[this.effect].bpm * 60;
+            if(this.uuid == uuid || admin){
+                this.removeButton.style.visibility = "visible";
+            }else{
+                this.removeButton.style.visibility = "hidden";
+            }
         }
 
         clearSong(){
@@ -311,6 +334,7 @@
             delete queue[this.key];
             this.style.visibility = "hidden";
             this.classList.remove('queue-playing');
+            this.removeButton.style.visibility = "hidden";
         }
     }
     customElements.define('queue-item', QueueItem);
@@ -332,6 +356,16 @@
         let msg = {
             uuid: uuid,
             type: "add_queue_front",
+            effect: effect
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+    }
+
+    function addQueueBalanced(effect){
+        let msg = {
+            uuid: uuid,
+            type: "add_queue_balanced",
             effect: effect
         };
         socket.send(JSON.stringify(msg));
@@ -391,6 +425,8 @@
     }
     console.log("----UUID----")
     console.log(uuid);
+
+    var admin = false;
 
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;

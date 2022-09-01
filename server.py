@@ -103,7 +103,7 @@ def add_effect_from_dj(msg):
             return
         if song_playing and len(song_queue) > 0:
             song_queue.pop()
-        song_queue.insert(0, [effect_name, get_queue_salt()])
+        song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
         play_song(effect_name)
         song_playing = True
         broadcast_song = True
@@ -210,7 +210,7 @@ async def init_dj_client(websocket, path):
 
 
 songs_downloaded_this_process = set()
-def download_song(url):
+def download_song(url, uuid):
     import generate_show
 
     # time.sleep(20)
@@ -239,7 +239,7 @@ def download_song(url):
                 effects_config_client[name][key] = value
         if 'song_path' in effect:
             if len(song_queue) < 2:
-                song_queue.append([name, get_queue_salt()])
+                song_queue.append([name, get_queue_salt(), uuid])
             else:
                 for index, (queue_effect_name, uuid) in enumerate(song_queue):                
                     if index == 0:
@@ -247,7 +247,7 @@ def download_song(url):
                     print(f'checking if {queue_effect_name} was downloaded\n' * 8)
                     if queue_effect_name not in songs_downloaded_this_process:
                         print(f'inserting into {index + 1}\n' * 8)
-                        song_queue.insert(index + 1, [name, get_queue_salt()])
+                        song_queue.insert(index + 1, [name, get_queue_salt(), uuid])
                         break
             songs_downloaded_this_process.add(name)
 
@@ -262,6 +262,7 @@ async def init_queue_client(websocket, path):
         'effects': effects_config_client,
         'songs': songs_config,
         'queue': song_queue,
+        'users': users,
         'status': {
             'playing': song_playing,
             'time': song_time + (max(pygame.mixer.music.get_pos(), 0) / 1000)
@@ -297,9 +298,10 @@ async def init_queue_client(websocket, path):
 
             broadcast_light = False
 
-            if msg['type'] == 'add_queue_back':
+            if msg['type'] == 'add_queue_back' and 'uuid' in msg:
+                uuid = msg['uuid']
                 effect_name = msg['effect']
-                song_queue.append([effect_name, get_queue_salt()])
+                song_queue.append([effect_name, get_queue_salt(), uuid])
                 if len(song_queue) == 1:
                     song_time = 0
                     play_song(effect_name)
@@ -307,12 +309,43 @@ async def init_queue_client(websocket, path):
                     add_effect(effect_name)
                     broadcast_light = True
             
-            elif msg['type'] == 'add_queue_front':
+            elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
+                uuid = msg['uuid']
                 effect_name = msg['effect']
                 if len(song_queue) == 0:
-                    song_queue.append([effect_name, get_queue_salt()])
+                    song_queue.append([effect_name, get_queue_salt(), uuid])
                 else:
-                    song_queue.insert(1, [effect_name, get_queue_salt()])
+                    song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
+                if len(song_queue) == 1:
+                    song_time = 0
+                    play_song(effect_name)
+                    song_playing = True
+                    add_effect(effect_name)
+                    broadcast_light = True
+
+            if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
+                uuid = msg['uuid']
+                effect_name = msg['effect']
+                i = 0
+                if is_admin(uuid):
+                    while i < len(song_queue):
+                        if song_queue[i][2] != uuid:
+                            break
+                        i += 1
+                else:
+                    count = 0
+                    user_counts = {}
+                    for entry in song_queue:
+                        user_counts[song_queue[i][2]] = 0
+                        if entry[2] == uuid:
+                            count += 1
+                    while i < len(song_queue):
+                        if user_counts[song_queue[i][2]] > count:
+                            break
+                        user_counts[song_queue[i][2]] += 1
+                        i += 1
+                song_queue.insert(i, [effect_name, get_queue_salt(), uuid])
+                
                 if len(song_queue) == 1:
                     song_time = 0
                     play_song(effect_name)
@@ -322,27 +355,25 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'remove_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
-                print(f'----UUID: {uuid}')
-                if uuid in users and users[uuid]['admin']:
-                    effect_name = msg['effect']
-                    salt = msg['salt']
-                    for i in range(len(song_queue)):
-                        if song_queue[i][0] == effect_name and song_queue[i][1] == salt:
-                            song_queue.pop(i)
-                            if i == 0:
-                                stop_song()
-                                song_time = 0
-                                index = curr_effect_index(effect_name)
-                                if index is not False:
-                                    remove_effect(index)
-                                if song_playing and len(song_queue) > 0:
-                                    new_effect_name = song_queue[0][0]
-                                    add_effect(new_effect_name)
-                                    play_song(new_effect_name)
-                                broadcast_light = True
-                            break
-                    if len(song_queue) == 0:
-                        song_playing = False
+                effect_name = msg['effect']
+                salt = msg['salt']
+                for i in range(len(song_queue)):
+                    if song_queue[i][0] == effect_name and song_queue[i][1] == salt and (song_queue[i][2] == uuid or is_admin(uuid)):
+                        song_queue.pop(i)
+                        if i == 0:
+                            stop_song()
+                            song_time = 0
+                            index = curr_effect_index(effect_name)
+                            if index is not False:
+                                remove_effect(index)
+                            if song_playing and len(song_queue) > 0:
+                                new_effect_name = song_queue[0][0]
+                                add_effect(new_effect_name)
+                                play_song(new_effect_name)
+                            broadcast_light = True
+                        break
+                if len(song_queue) == 0:
+                    song_playing = False
 
             elif msg['type'] == 'play_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -378,10 +409,11 @@ async def init_queue_client(websocket, path):
                     add_effect(effect_name)
                     broadcast_light = True
 
-            elif msg['type'] == 'download_song':
+            elif msg['type'] == 'download_song' and 'uuid' in msg:
+                uuid = msg['uuid']
                 if downloading_thread is None:
                     url = msg.get('url', None)
-                    downloading_thread = threading.Thread(target=download_song, args=(url,))
+                    downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
                     downloading_thread.start()
                     asyncio.create_task(check_downloading_thread())
                 else:
@@ -392,6 +424,10 @@ async def init_queue_client(websocket, path):
             if broadcast_light:
                 await send_light_status()
             await send_song_status() # we might want to lock this
+
+
+def is_admin(uuid):
+    return uuid in users and users[uuid]['admin']
 
 
 def get_queue_salt():
@@ -1279,7 +1315,7 @@ async def start_async():
                 effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
             if args.delay_seconds:
                 effects_config[args.show]['delay_lights'] += args.delay_seconds
-            song_queue.append([args.show, get_queue_salt()])
+            song_queue.append([args.show, get_queue_salt(), 'CLI'])
             add_effect(args.show)
             play_song(args.show)
         else:

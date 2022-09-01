@@ -180,7 +180,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     ]
 
     # apply lights
-    length_s = total_frames / src.samplerate
+    length_s = total_frames
     total_beats = int((length_s / 60) * bpm_guess)
     beat = 1    
     if simple: # Only RBBB timing

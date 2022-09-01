@@ -195,15 +195,15 @@
 
             //this.colorElem = this.querySelector(".button-color");
 
-            this.addEventListener('touchstart', this.press, false);
-            this.addEventListener('mousedown', this.press, false);
+            this.addEventListener('touchstart', this.press, {passive: true});
+            // this.addEventListener('mousedown', this.press, {passive: true});
 
-            this.addEventListener('touchend', this.release, false);
-            this.addEventListener('mouseup', this.release, false);
+            this.addEventListener('touchend', this.release, {passive: true});
+            // this.addEventListener('mouseup', this.release, {passive: true});
         }
 
         press(event){
-            event.preventDefault();
+            // event.preventDefault();
             if(this.toggle){
                 if(this.active){
                     removeEffect(this.effect);
@@ -217,7 +217,7 @@
         }
 
         release(event){
-            event.preventDefault();
+            // event.preventDefault();
             if(this.hold){
                 removeEffect(this.effect);
             }
@@ -483,37 +483,37 @@
     var timer = 250;
     var timeout = null;
 
-    rateIncElem.addEventListener('touchstart', startIncrease, false);
-    rateIncElem.addEventListener('mousedown', startIncrease, false);
-    rateIncElem.addEventListener('touchend', stopIncrease, false);
-    rateIncElem.addEventListener('mouseup', stopIncrease, false);
+    rateIncElem.addEventListener('touchstart', startIncrease, {passive: true});
+    // rateIncElem.addEventListener('mousedown', startIncrease, false);
+    rateIncElem.addEventListener('touchend', stopIncrease, {passive: true});
+    // rateIncElem.addEventListener('mouseup', stopIncrease, false);
 
-    rateDecElem.addEventListener('touchstart', startDecrease, false);
-    rateDecElem.addEventListener('mousedown', startDecrease, false);
-    rateDecElem.addEventListener('touchend', stopDecrease, false);
-    rateDecElem.addEventListener('mouseup', stopDecrease, false);
+    rateDecElem.addEventListener('touchstart', startDecrease, {passive: true});
+    // rateDecElem.addEventListener('mousedown', startDecrease, false);
+    rateDecElem.addEventListener('touchend', stopDecrease, {passive: true});
+    // rateDecElem.addEventListener('mouseup', stopDecrease, false);
 
 
     function startIncrease(event){
-        event.preventDefault();
+        // event.preventDefault();
         rateIncElem.classList.add('pressed');
         changeValue(0.1);
     }
 
     function stopIncrease(event){
-        event.preventDefault();
+        // event.preventDefault();
         rateIncElem.classList.remove('pressed');
         stopValue();
     }
 
     function startDecrease(event){
-        event.preventDefault();
+        // event.preventDefault();
         rateDecElem.classList.add('pressed');
         changeValue(-0.1);
     }
 
     function stopDecrease(event){
-        event.preventDefault();
+        // event.preventDefault();
         rateDecElem.classList.remove('pressed');
         stopValue();
     }

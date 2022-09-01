@@ -25,8 +25,6 @@ import youtube_helpers
 
 from users import users
 
-print(users)
-
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
@@ -129,8 +127,6 @@ async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
     print('dj made connection to new client')
 
-
-    print(songs_config)
     message = {
         'effects': effects_config_client,
         'songs': songs_config,

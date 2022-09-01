@@ -122,7 +122,7 @@ def get_boundary_beats(song_filepath, beat_length, delay):
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
-    use_boundaries = False
+    use_boundaries = True
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')

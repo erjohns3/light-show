@@ -152,20 +152,19 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
             effect_types_to_name[effect['autogen']].append(name)
     
     scenes = [
-        # [16, ['downbeat top', 'downbeat bottom']],
-        # [16, ['downbeat top']],
-        # [16, ['downbeat bottom']],
-        # [16, ['downbeat mixed']],
-        # [16, ['downbeat mixed', 'UV']],
-        # [16, ['downbeat top', 'downbeat bottom', 'UV']],
-        # [16, ['downbeat top', 'UV']],
-        # [16, ['downbeat bottom', 'UV']],
-        # [16, ['rainbow top', 'downbeat bottom']],
-        # [4, ['UV pulse']],
-        # [2, ['UV pulse']],
-        # [1, ['UV pulse']],
+        [16, ['downbeat top', 'downbeat bottom']],
+        [16, ['downbeat top']],
+        [16, ['downbeat bottom']],
+        [16, ['downbeat mixed']],
+        [16, ['downbeat mixed', 'UV']],
+        [16, ['downbeat top', 'downbeat bottom', 'UV']],
+        [16, ['downbeat top', 'UV']],
+        [16, ['downbeat bottom', 'UV']],
+        [16, ['rainbow top', 'downbeat bottom']],
+        [4, ['UV pulse']],
+        [2, ['UV pulse']],
+        [1, ['UV pulse']],
         [1, ['flash']],
-        # [4, ['chris']],
     ]
 
     # apply lights

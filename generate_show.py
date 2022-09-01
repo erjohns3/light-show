@@ -191,8 +191,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         while beat < total_beats:
             show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
-    elif use_boundaries==True: # Based on scenes
-        boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
+    elif use_boundaries==True:
+        boundary_beats.append(total_beats+1)
         prev_bound = 0
         for bound in boundary_beats:
             length_left = bound-prev_bound

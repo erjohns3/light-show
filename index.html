@@ -175,9 +175,6 @@
                 }else{
                     playButton.classList.remove("gray");
                 }
-
-                console.log("--QUEUE--");
-                console.log(queue);
             }
 
             if(msg.status){
@@ -255,9 +252,7 @@
 
         clearQueue(){
             let clear = true;
-            console.log(queueConfig);
             for(let entry of queueConfig){
-                console.log(entry);
                 if(entry[0] == this.effect){
                     clear = false;
                     break;

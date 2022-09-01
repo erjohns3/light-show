@@ -152,10 +152,10 @@ effects = {
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
-            [1, "Firebrick top", 1],
+            [1, "Firebrick top", 1, .6],
             [2, "Pink top", 1],
-            [3, "Red top", 1],
-            [4, "Green top", 1],
+            [3, "Red top", 1, .6],
+            [4, "Green top", 1, .4],
         ],
     },
 
@@ -163,7 +163,7 @@ effects = {
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
-            [1, "Firebrick top", .5],
+            [1, "Firebrick top", .5, 1, 0],
             [2, "Pink top", .3],
             [3, "Red top", .3],
             [4, "Green top", .3],

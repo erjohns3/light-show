@@ -9,7 +9,7 @@ effects = {
     # 1 - 64: 
     "remember show": {
         "beats": [
-            [1, "hooked bassline", 64],
+            [1, "g_filler 2", 64],
             # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],

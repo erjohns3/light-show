@@ -124,6 +124,20 @@ effects = {
             [1, [100, 100, 100, 0, 0, 0, 0], 1],
         ],
     },
+    "White front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 100, 100, 100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "White back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [100, 100, 100, 0, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
     "White bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -136,6 +150,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [100, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Red front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 100, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Red back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [100, 0, 0, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Red bottom": {
@@ -152,6 +180,20 @@ effects = {
             [1, [0, 100, 0, 0, 0, 0, 0], 1],
         ],
     },
+    "Green front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 0, 100, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Green back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 100, 0, 0, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
     "Green bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -164,6 +206,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Blue front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Blue back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 100, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Blue bottom": {
@@ -180,6 +236,20 @@ effects = {
             [1, [100, 40, 10, 0, 0, 0, 0], 1],
         ],
     },
+    "Orange front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 100, 40, 10, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Orange back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [100, 40, 10, 0, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
     "Orange bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -192,6 +262,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [178, 34, 34, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Firebrick front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 178, 34, 34, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Firebrick back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [178, 34, 34, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Firebrick bottom": {
@@ -208,6 +292,20 @@ effects = {
             [1, [10, 50, 100, 0, 0, 0, 0], 1],
         ],
     },
+    "Cyan front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 10, 50, 100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Cyan back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [10, 50, 100, 0, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
     "Cyan bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -220,6 +318,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [80, 100, 10, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Yellow front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 80, 100, 10, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Yellow back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [80, 100, 10, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Yellow bottom": {
@@ -236,6 +348,20 @@ effects = {
             [1, [100, 10, 30, 0, 0, 0, 0], 1],
         ],
     },
+    "Pink front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 100, 10, 30, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Pink back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [100, 10, 30, 0, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
     "Pink bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -248,6 +374,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [25, 0, 70, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Indigo front": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 25, 0, 70, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Indigo back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [25, 0, 70, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
     "Indigo bottom": {

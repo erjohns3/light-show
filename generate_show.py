@@ -105,7 +105,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
     delay = length_int - offset_guess if offset_guess > 0 else -offset_guess
     if debug:
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
-    return src, bpm_guess, delay
+    return src, total_frames, bpm_guess, delay
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
@@ -125,7 +125,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    src, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
+    src, total_frames, bpm_guess, delay = get_src_bpm_offset(song_filepath, debug=debug)
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -169,9 +169,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     ]
 
     # apply lights
-    length_s = src.duration / src.samplerate
+    length_s = total_frames*512 / src.samplerate
     total_beats = int((length_s / 60) * bpm_guess)
-
     beat = 1    
     while beat < total_beats:
         if simple: # Only RBBB timing

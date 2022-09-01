@@ -192,8 +192,8 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
                 curr_bpm = float(msg['bpm'])
-                clear_effects()
-                #BROKEN
+                for effect in curr_effects:
+                    effect[1] = 0
 
             elif msg['type'] == 'inc_time':
                 time_start += 0.1
@@ -615,78 +615,73 @@ async def terminal(level, i):
 async def light():
     global beat_index, song_playing, song_time
 
-    avg = 0
-    try:
-        while True:
-            light_lock.acquire()
+    while True:
+        light_lock.acquire()
 
-            rate = curr_bpm / 60 * SUB_BEATS
-            time_diff = time.time() - time_start
-            beat_index = int(time_diff * rate)
-            broadcast_light = False
-            broadcast_song = False        
-                
-            i = 0
-            while i < len(curr_effects):
-                index = beat_index + curr_effects[i][1]
-                effect_name = curr_effects[i][0]
-                if not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']:
-                    remove_effect(i)
-                    if has_song(effect_name):
-                        stop_song()
-                        song_queue.pop(0)
-                        song_time = 0
-                        if song_playing and len(song_queue) > 0:
-                            new_effect_name = song_queue[0][0]
-                            add_effect(new_effect_name)
-                            play_song(new_effect_name)
-                        elif len(song_queue) == 0:
-                            song_playing = False
-                        broadcast_song = True
-                    broadcast_light = True
-                else:
-                    i+=1
-            for i in range(LIGHT_COUNT):
-                level = 0
-                for j in range(len(curr_effects)):
-                    effect_name = curr_effects[j][0]
-                    index = beat_index + curr_effects[j][1]
-                    if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
-                        index = index % channel_lut[effect_name]['length']
-                        level += channel_lut[effect_name]['beats'][index][i]
+        rate = curr_bpm / 60 * SUB_BEATS
+        time_diff = time.time() - time_start
+        beat_index = int(time_diff * rate)
+        broadcast_light = False
+        broadcast_song = False        
+            
+        i = 0
+        while i < len(curr_effects):
+            index = beat_index + curr_effects[i][1]
+            effect_name = curr_effects[i][0]
+            if not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']:
+                remove_effect(i)
+                if has_song(effect_name):
+                    stop_song()
+                    song_queue.pop(0)
+                    song_time = 0
+                    if song_playing and len(song_queue) > 0:
+                        new_effect_name = song_queue[0][0]
+                        add_effect(new_effect_name)
+                        play_song(new_effect_name)
+                    elif len(song_queue) == 0:
+                        song_playing = False
+                    broadcast_song = True
+                broadcast_light = True
+            else:
+                i+=1
+        for i in range(LIGHT_COUNT):
+            level = 0
+            for j in range(len(curr_effects)):
+                effect_name = curr_effects[j][0]
+                index = beat_index + curr_effects[j][1]
+                if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
+                    index = index % channel_lut[effect_name]['length']
+                    level += channel_lut[effect_name]['beats'][index][i]
 
-                level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
-                level_between_0_and_1 = level_bounded / 0xFFFF
-                level_scaled = round(pow(level_between_0_and_1, 2.2) * 0xFFFF)
+            level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
+            level_between_0_and_1 = level_bounded / 0xFFFF
+            level_scaled = round(pow(level_between_0_and_1, 2.2) * 0xFFFF)
 
-                if args.local:
-                    await terminal(level_bounded, i)
-                else:
-                    pca.channels[i].duty_cycle = level_scaled
+            if args.local:
+                await terminal(level_bounded, i)
+            else:
+                pca.channels[i].duty_cycle = level_scaled
 
-            if broadcast_light:
-                await send_light_status()
-            if broadcast_song:
-                await send_song_status()
+        if broadcast_light:
+            await send_light_status()
+        if broadcast_song:
+            await send_song_status()
 
-            if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
-                print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
+        if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
+            print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
 
-            time_diff = time.time() - time_start
-            time_delay = ((beat_index + 1) / rate) - time_diff
+        time_diff = time.time() - time_start
+        time_delay = ((beat_index + 1) / rate) - time_diff
 
-            # if beat_index % SUB_BEATS == 0:
-            #     print(f'{beat_index=}, {time_diff=}')
-                # avg = 0
-            # else:
-            #     print(beat_index)
-            #     avg += time_diff
+        # if beat_index % SUB_BEATS == 0:
+        #     print(f'{beat_index=}, {time_diff=}')
+            # avg = 0
+        # else:
+        #     print(beat_index)
+        #     avg += time_diff
 
-            light_lock.release()
-            await asyncio.sleep(time_delay)
-    except Exception:
-        import traceback
-        print(traceback.format_exc())
+        light_lock.release()
+        await asyncio.sleep(time_delay)
 
 #################################################
 
@@ -703,8 +698,8 @@ def remove_effect(index):
     curr_effects.pop(index)
 
 def clear_effects():
-    for index, effect in enumerate(curr_effects):
-        remove_effect(index)
+    while len(curr_effects) > 0:
+        remove_effect(0)
 
 def add_effect(name):
     global beat_index, time_start, curr_bpm

@@ -107,7 +107,7 @@ def get_src_bpm_offset(song_filepath, debug=True):
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {length_int}')
     return src, total_frames, bpm_guess, delay
 
-def generate_show(song_filepath, effects_config, song_duration, overwrite=True, simple=False, debug=True):
+def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
@@ -152,24 +152,24 @@ def generate_show(song_filepath, effects_config, song_duration, overwrite=True, 
             effect_types_to_name[effect['autogen']].append(name)
     
     scenes = [
-        [16, ['downbeat top', 'downbeat bottom']],
-        [16, ['downbeat top']],
-        [16, ['downbeat bottom']],
-        [16, ['downbeat mixed']],
-        [16, ['downbeat mixed', 'UV']],
-        [16, ['downbeat top', 'downbeat bottom', 'UV']],
-        [16, ['downbeat top', 'UV']],
-        [16, ['downbeat bottom', 'UV']],
-        [16, ['rainbow top', 'downbeat bottom']],
-        [4, ['UV pulse']],
-        [2, ['UV pulse']],
-        [1, ['UV pulse']],
+        # [16, ['downbeat top', 'downbeat bottom']],
+        # [16, ['downbeat top']],
+        # [16, ['downbeat bottom']],
+        # [16, ['downbeat mixed']],
+        # [16, ['downbeat mixed', 'UV']],
+        # [16, ['downbeat top', 'downbeat bottom', 'UV']],
+        # [16, ['downbeat top', 'UV']],
+        # [16, ['downbeat bottom', 'UV']],
+        # [16, ['rainbow top', 'downbeat bottom']],
+        # [4, ['UV pulse']],
+        # [2, ['UV pulse']],
+        # [1, ['UV pulse']],
         [1, ['flash']],
-        [1, ['strobe']],
+        # [4, ['chris']],
     ]
 
     # apply lights
-    length_s = total_frames*512 / src.samplerate
+    length_s = total_frames / src.samplerate
     total_beats = int((length_s / 60) * bpm_guess)
     beat = 1    
     while beat < total_beats:

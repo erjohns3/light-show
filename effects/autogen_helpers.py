@@ -1,4 +1,5 @@
 effects = {
+    # fillers
     "g_Strobe": {
         "length": 1,
         "autogen": 'strobe',
@@ -26,6 +27,28 @@ effects = {
         "autogen": 'UV pulse',
         "beats": [
             [1, 'UV pulse', 1],
+        ],
+    },
+
+    "g_filler 1": {
+        "length": 1,
+        "autogen": 'UV pulse',
+        "beats": [
+            [1, 'Cyan front', .25],
+            [1.25, 'Cyan back', .25],
+            [1.5, 'Pink bottom', .5, 1, 0],
+        ],
+    },
+
+    "g_filler 2": {
+        "length": 2,
+        "autogen": 'UV pulse',
+        "beats": [
+            [1, 'Red front', .25, 1, 0],
+            [1.25, 'Blue back', .25, 1, 0],
+            [1.75, 'Green bottom', .25, 1, 0],
+            [2, 'Firebrick top', .75, 1, 0],
+            [2, 'Firebrick bottom', .75, 1, 0],
         ],
     },
 
@@ -78,6 +101,38 @@ effects = {
         ],
     },
 
+    "g_pulse top swap 1": {
+        "length": 4,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, 'Orange front', .3, 1, 0],
+            [2, 'Orange back', .3, 1, 0],
+            [3, 'Green back', .3, 1, 0],
+            [4, 'Green front', .3, 1, 0],
+        ],
+    },
+
+    "g_pulse top swap 2": {
+        "length": 4,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, 'Firebrick back', .3, 1, 0],
+            [2, 'Firebrick front', .3, 1, 0],
+            [3, 'Indigo front', .3, 1, 0],
+            [4, 'Indigo back', .3, 1, 0],
+        ],
+    },
+
+    "g_pulse top swap 3": {
+        "length": 2,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, 'Pink top', .3, 1, 0],
+            [2, 'Green front', .3, 1, 0],
+            [2.5, 'Green back', .3, 1, 0],
+        ],
+    },
+
     "g_pulse top brown": {
         "length": 1,
         "autogen": 'downbeat top',
@@ -93,7 +148,7 @@ effects = {
         ],
     },
 
-    "g_solid top cycle": {
+    "g_solid top cycle 1": {
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
@@ -101,6 +156,17 @@ effects = {
             [2, "Pink top", 1],
             [3, "Red top", 1],
             [4, "Green top", 1],
+        ],
+    },
+
+    "g_solid top cycle 2": {
+        "length": 4,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, "Firebrick top", .5],
+            [2, "Pink top", .3],
+            [3, "Red top", .3],
+            [4, "Green top", .3],
         ],
     },
 

@@ -165,6 +165,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     scenes = [
         [16, ['downbeat top', 'downbeat bottom']],
         [16, ['downbeat top']],
+        [16, ['downbeat top']],
         [16, ['downbeat bottom']],
         [16, ['downbeat mixed']],
         [16, ['downbeat mixed']],
@@ -174,6 +175,9 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         [16, ['downbeat top', 'UV']],
         [16, ['downbeat bottom', 'UV']],
         [16, ['rainbow top', 'downbeat bottom']],
+        [4, ['filler']],
+        [2, ['filler']],
+        [1, ['filler']],
         [4, ['UV pulse']],
         [2, ['UV pulse']],
         [1, ['UV pulse']],

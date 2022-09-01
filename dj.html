@@ -170,10 +170,7 @@
             this.length = effectsConfig[this.effect].length;
             this.bpm = effectsConfig[this.effect].bpm;
             
-            console.log(this.effect)
-            console.log(effectsConfig[this.effect])
             if('song_path' in effectsConfig[this.effect]) {
-                console.log(songsConfig)
                 this.querySelector(".button-name").textContent = songsConfig[effectsConfig[this.effect].song_path].name
                 // console.log('cmon')
                 // console.log(songsConfig[this.effect['song_path']].name)

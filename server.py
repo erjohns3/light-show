@@ -117,11 +117,11 @@ async def check_downloading_thread():
         await asyncio.sleep(2)
         if downloading_thread is not None:
             if not downloading_thread.is_alive():
-                print_green('Downloading thread has finished, broadcasting the update to clients\n' * 8)
+                print_green('Downloading thread has finished, broadcasting the update to clients\n')
                 downloading_thread = None
                 await send_effects_and_songs()
                 break
-    print('check_downloading_thread task ending\n' * 8)
+    print('check_downloading_thread task ending\n')
 
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread

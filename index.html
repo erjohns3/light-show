@@ -107,11 +107,8 @@
             if(msg.effects){
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
-                    console.log(effect_name)
                     if('song_path' in effectsConfig[effect_name]){
-                        console.log('has song')
                         if(!(effect_name in available)){
-                            console.log('adding')
                             available[effect_name] = new AvailableItem(effect_name);
                             availableList.append(available[effect_name]);
                         }

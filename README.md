@@ -57,6 +57,9 @@ python server.py --local --autogen --enter --show shelter
 sudo ss -lptn 'sport = :1337'
 
 
+## to convert an mp3 to ogg
+ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
+
 ## todo songs
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
 

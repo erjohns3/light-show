@@ -23,4 +23,8 @@ users = {
         "name": "Andrews Upstairs Computer Firefox",
         "admin": True
     },
+    "1222071-a256-95f4-9f8c-24d79da3c4b": {
+        "name": "Chrises phone",
+        "admin": True
+    },
 }

@@ -55,6 +55,16 @@ effects = {
         ],
     },
 
+    # misc
+    "Yellow Top to Bottom hang": {
+        "length": 3,
+        "beats": [
+            [1, [100, 30, 5, 0, 25, 0, 0], .2, 0, .5],
+            [1.2, [100, 30, 5, 0, 25, 0, 0], 1.1, .5, 0],
+            [1.3, [0, 0, 0, 100, 30, 5, 0], 1.3, 0, .6],
+            [2.6, [0, 0, 0, 100, 30, 5, 0], 38, .6, .6],
+        ],
+    },
 
     # downbeat tops and bottoms
     "g_solid bottom cycle": {
@@ -94,7 +104,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed double": {
+    "g_solid mixed 1": {
         "length": 4,
         "autogen": 'downbeat mixed',
         "beats": [
@@ -104,6 +114,49 @@ effects = {
             [3, "Green top", 1],
             [4, "Blue bottom", .5],
             [4.5, "Orange bottom", .5],
+        ],
+    },
+
+    "g_solid mixed 2": {
+        "length": 4,
+        "autogen": 'downbeat mixed',
+        "beats": [
+            [1, "Blue bottom", 1, 1, .2],
+            [2, "Blue bottom", 1, .2, .2],
+            [2, "Orange top", .4, .6, 0],
+            [2.5, "Yellow top", .4, .6, 0],
+            [3, "Blue bottom", 1, 1, .2],
+            [4, "Blue bottom", 1, .2, .2],
+            [4, "Firebrick top", .4, .6, .6],
+            [4.5, "Cyan top", .4, .6, .6],
+        ],
+    },
+
+    "g_solid mixed 3": {
+        "length": 4,
+        "autogen": 'downbeat mixed',
+        "beats": [
+            [1, "Blue top", 1, 1, .2],
+            [2, "Blue top", 1, .2, .2],
+            [2, "Orange bottom", .4, .6, 0],
+            [2.5, "Yellow bottom", .4, .6, 0],
+            [3, "Blue top", 1, 1, .2],
+            [4, "Blue top", 1, .2, .2],
+            [4, "Firebrick bottom", .4, .6, 0],
+            [4.5, "Cyan bottom", .4, .6, 0],
+        ],
+    },
+
+    "g_solid mixed 4": {
+        "length": 4,
+        "autogen": 'downbeat mixed',
+        "beats": [
+            [1, "Yellow Top to Bottom hang", 3],
+            [2, "Sidechain top b", .5, 1, 0],
+            [2, "Green bottom", .2, .2, 0],
+            [3, "Sidechain bottom b", .5, 1, 0],
+            [3, "Green bottom", .2, .2, 0],
+            [4, "Blue top", .8, 1, 0],
         ],
     },
 

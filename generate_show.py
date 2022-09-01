@@ -41,7 +41,7 @@ def write_show_file_pretty(output_filepath, dict_to_dump):
         
         file.writelines(['effects = ' + shows_json_str])
 
-def get_src_bpm_offset(song_filepath, debug=True):
+def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
@@ -103,8 +103,10 @@ def get_src_bpm_offset(song_filepath, debug=True):
             best_seen = hit_count
     beat_length = 60.0/bpm_guess
     delay = beat_length - offset_guess if offset_guess > 0 else -offset_guess
-
-    boundary_beats = get_boundary_beats(song_filepath, beat_length, delay)
+    if use_boundaries:
+        boundary_beats = get_boundary_beats(song_filepath, beat_length, delay)
+    else:
+        boundary_beats = 'DISABLED'
     if debug:
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
 
@@ -120,6 +122,7 @@ def get_boundary_beats(song_filepath, beat_length, delay):
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
+    use_boundaries = True
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
@@ -137,7 +140,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, debug=debug)
+    src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, use_boundaries, debug=debug)
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -168,6 +171,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         [16, ['downbeat top']],
         [16, ['downbeat bottom']],
         [16, ['downbeat mixed']],
+        [16, ['downbeat mixed']],
+        [16, ['downbeat mixed', 'UV pulse']],
         [16, ['downbeat mixed', 'UV']],
         [16, ['downbeat top', 'downbeat bottom', 'UV']],
         [16, ['downbeat top', 'UV']],
@@ -180,14 +185,15 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     ]
 
     # apply lights
-    length_s = total_frames
+    length_s = total_frames / src.samplerate
+    print(length_s)
     total_beats = int((length_s / 60) * bpm_guess)
     beat = 1    
     if simple: # Only RBBB timing
         while beat < total_beats:
             show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
-    elif True: # Based on scenes
+    elif use_boundaries==True: # Based on scenes
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
         prev_bound = 0
         for bound in boundary_beats:
@@ -205,22 +211,13 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                         show['beats'].append([beat, effect_name, length])
                     beat += length
                     length_left -= length
-
-# ------------- old --------------
-        # elif True: # Based on scenes
-        #     length, effect_types = random.choices(scenes, k=1)[0]
-        #     for effect_type in effect_types:
-        #         effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
-        #         show['beats'].append([beat, effect_name, length])
-        #     beat += length
-        # else: # Pick random effects with the autogen field
-        #     chosen_effect_names = random.choices(effect_names, k=2)
-        #     all_lengths = []
-        #     for name in chosen_effect_names:
-        #         length = effect_files_json[name]['length']
-        #         all_lengths.append(length)
-        #         show['beats'].append([beat, name, length])
-        #     beat += max(all_lengths)
+    else: # Based on scenes
+        while beat < total_beats:
+            length, effect_types = random.choices(scenes, k=1)[0]
+            for effect_type in effect_types:
+                effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
+                show['beats'].append([beat, effect_name, length])
+            beat += length
                 
     
     the_show = {

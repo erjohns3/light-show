@@ -119,7 +119,7 @@ async def check_downloading_thread():
             if not downloading_thread.is_alive():
                 print_green('Downloading thread has finished, broadcasting the update to clients\n')
                 downloading_thread = None
-                await send_effects_and_songs()
+                await send_effects_songs_queue()
                 break
     print('check_downloading_thread task ending\n')
 
@@ -209,6 +209,7 @@ async def init_dj_client(websocket, path):
             await send_light_status() # we might want to lock this
 
 
+songs_downloaded_this_process = set()
 def download_song(url):
     import generate_show
 
@@ -221,7 +222,7 @@ def download_song(url):
     print(f'finished downloading {url} to {filepath}')
 
     add_song_to_config(filepath)
-    new_effects = generate_show.generate_show(filepath, effects_config, songs_config[filepath]['duration'], overwrite=True, simple=False, debug=True)
+    new_effects = generate_show.generate_show(filepath, effects_config, overwrite=True, simple=False, debug=True)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return
@@ -236,6 +237,19 @@ def download_song(url):
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
+        if 'song_path' in effect:
+            if len(song_queue) < 2:
+                song_queue.append([name, get_queue_salt()])
+            else:
+                for index, (queue_effect_name, uuid) in enumerate(song_queue):                
+                    if index == 0:
+                        continue
+                    print(f'checking if {queue_effect_name} was downloaded\n' * 8)
+                    if queue_effect_name not in songs_downloaded_this_process:
+                        print(f'inserting into {index + 1}\n' * 8)
+                        song_queue.insert(index + 1, [name, get_queue_salt()])
+                        break
+            songs_downloaded_this_process.add(name)
 
 
 downloading_thread = None
@@ -278,7 +292,6 @@ async def init_queue_client(websocket, path):
         msg = json.loads(msg_string)
 
         print(msg)
-
         if 'type' in msg:
             song_lock.acquire()
 
@@ -287,19 +300,6 @@ async def init_queue_client(websocket, path):
             if msg['type'] == 'add_queue_back':
                 effect_name = msg['effect']
                 song_queue.append([effect_name, get_queue_salt()])
-                if len(song_queue) == 1:
-                    song_time = 0
-                    play_song(effect_name)
-                    song_playing = True
-                    add_effect(effect_name)
-                    broadcast_light = True
-            
-            elif msg['type'] == 'add_queue_front':
-                effect_name = msg['effect']
-                if len(song_queue) == 0:
-                    song_queue.append([effect_name, get_queue_salt()])
-                else:
-                    song_queue.insert(1, [effect_name, get_queue_salt()])
                 if len(song_queue) == 1:
                     song_time = 0
                     play_song(effect_name)
@@ -394,10 +394,11 @@ async def broadcast(sockets, msg):
         except:
             print('socket send failed', flush=True)
 
-async def send_effects_and_songs():
+async def send_effects_songs_queue():
     message = {
         'effects': effects_config,
         'songs': songs_config,
+        'queue': song_queue,
     }
     await broadcast(light_sockets, json.dumps(message))
     await broadcast(song_sockets, json.dumps(message))

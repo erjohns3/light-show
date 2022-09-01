@@ -880,6 +880,8 @@ def set_effect_defaults(local_effects_config):
             effect['delay_lights'] = effect.get('delay_lights', 0)
             if not args.local:
                 effect['delay_lights'] += 0.1
+            if args.delay_seconds:
+                effect['delay_lights'] += args.delay_seconds
             if 'length' not in effect:
                 effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
             if 'loop' not in effect:
@@ -1264,8 +1266,6 @@ async def start_async():
             if args.skip_show_seconds:
                 effects_config[args.show]['skip_song'] += args.skip_show_seconds
                 effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
-            if args.delay_seconds:
-                effects_config[args.show]['delay_lights'] += args.delay_seconds
             song_queue.append([args.show, get_queue_salt()])
             add_effect(args.show)
             play_song(args.show)

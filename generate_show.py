@@ -28,16 +28,11 @@ def eliminate(string, matches):
 
 def write_show_file_pretty(output_filepath, dict_to_dump):
     with open(output_filepath, 'w') as file:
-        shows_json_str = json.dumps(dict_to_dump, indent=4, sort_keys=True)
-
-        before_string_matches = re.findall(r"\[(\s+)\"", shows_json_str)
-        shows_json_str = eliminate(shows_json_str, before_string_matches)
-
-        after_digit = re.findall(r"\d(\s+)\]", shows_json_str)
+        shows_json_str = json.dumps(dict_to_dump, indent=4)
         shows_json_str = shows_json_str.replace(': true', ': True')
-        shows_json_str = eliminate(shows_json_str, after_digit)
-        shows_json_str = shows_json_str.replace('[[', '[\n            [')
-        shows_json_str = shows_json_str.replace('],[', '],\n            [')
+
+        shows_json_str = shows_json_str.replace('\n            ]', ']')
+        shows_json_str = shows_json_str.replace('\n                ', ' ')
         
         file.writelines(['effects = ' + shows_json_str])
 
@@ -122,7 +117,7 @@ def get_boundary_beats(song_filepath, beat_length, delay):
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
-    use_boundaries = True
+    use_boundaries = True and not simple
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
@@ -149,6 +144,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         'bpm': bpm_guess,
         'song_path': str(relative_path),
         'delay_lights': delay,
+        'generated_boundaries': boundary_beats,
         'skip_song': 0.0,
         'profiles': ['Generated Shows'],
         'beats': [],

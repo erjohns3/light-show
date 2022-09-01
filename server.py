@@ -129,6 +129,8 @@ async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
     print('dj made connection to new client')
 
+
+    print(songs_config)
     message = {
         'effects': effects_config,
         'songs': songs_config,
@@ -807,6 +809,7 @@ def add_song_to_config(filepath):
         relative_path = filepath
         if relative_path.is_absolute():
             relative_path = relative_path.relative_to(python_file_directory)
+        
         songs_config[str(relative_path)] = {
             'name': name,
             'artist': artist,
@@ -839,6 +842,7 @@ def update_config_and_lut_from_disk():
             importlib.reload(all_globals[module_name])
         else:
             all_globals[module_name] = importlib.import_module(module_name)
+
         effects_config.update(all_globals[module_name].effects)
 
     song_dir = python_file_directory.joinpath('songs')
@@ -856,6 +860,8 @@ def set_effect_defaults(local_effects_config):
             effect['trigger'] = 'toggle'
         if 'profiles' not in effect:
             effect['profiles'] = []
+        if 'song_path' in effect:
+            effect['song_path'] = str(pathlib.Path(effect['song_path']))
         if 'song_path' in effect and effect['song_path'] not in songs_config:
             del effect['song_path']
         if 'song_path' in effect and effect['song_path'] in songs_config:

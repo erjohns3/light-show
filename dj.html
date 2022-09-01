@@ -90,6 +90,10 @@
             let msg = JSON.parse(event.data);
             console.log(msg);
 
+            if(msg.songs){
+                songsConfig = msg.songs;
+            }
+
             if(msg.effects){
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
@@ -115,10 +119,6 @@
                         }
                     }
                 }
-            }
-
-            if(msg.songs){
-                songsConfig = msg.songs;
             }
 
             if(msg.status){
@@ -169,8 +169,18 @@
 
             this.length = effectsConfig[this.effect].length;
             this.bpm = effectsConfig[this.effect].bpm;
-
-            this.querySelector(".button-name").textContent = this.effect;
+            
+            console.log(this.effect)
+            console.log(effectsConfig[this.effect])
+            if('song_path' in effectsConfig[this.effect]) {
+                console.log(songsConfig)
+                this.querySelector(".button-name").textContent = songsConfig[effectsConfig[this.effect].song_path].name
+                // console.log('cmon')
+                // console.log(songsConfig[this.effect['song_path']].name)
+            }
+            else {
+                this.querySelector(".button-name").textContent = this.effect;
+            }
             this.querySelector(".button-length").textContent = decimal(this.length, 2);
             this.querySelector(".button-button").textContent = this.trigger;
             if(effectsConfig[this.effect].loop){

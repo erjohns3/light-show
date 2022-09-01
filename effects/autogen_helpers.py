@@ -68,6 +68,21 @@ effects = {
         ],
     },
 
+    "g_pulse top brown": {
+        "length": 1,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, 'Rosy brown top', .2, 1, 0],
+        ],
+    },
+    "g_pulse bottom brown": {
+        "length": 1,
+        "autogen": 'downbeat bottom',
+        "beats": [
+            [1, 'Rosy brown bottom', .2, 1, 0],
+        ],
+    },
+
     "g_solid top cycle": {
         "length": 4,
         "autogen": 'downbeat top',

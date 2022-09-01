@@ -9,10 +9,18 @@ effects = {
         ],
     },
 
+    "Thing": {
+        "length": 1,
+        "beats": [
+            [1, 'Rosy brown bottom', .2, 1, 0],
+        ],
+    },
+
     # 1 - 64: 
     "remember show": {
         "beats": [
-            [1, "Yellow Top to Bottom hang", 64],
+            [1, "hooked bassline", 64],
+            # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],
             # [193, "Ghosts bassline", 64],

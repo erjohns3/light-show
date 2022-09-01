@@ -258,6 +258,13 @@ effects = {
             [1, [0, 0, 0, 100, 0, 100, 0], 1],
         ],
     },
+    "Rosy brown top": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [70, 30, 30, 0, 0, 0, 0], 1],
+        ],
+    },
     "Rosy brown bottom": {
         "length": 1,
         "profiles": ["Colors"],

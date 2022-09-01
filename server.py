@@ -306,6 +306,19 @@ async def init_queue_client(websocket, path):
                     song_playing = True
                     add_effect(effect_name)
                     broadcast_light = True
+            
+            elif msg['type'] == 'add_queue_front':
+                effect_name = msg['effect']
+                if len(song_queue) == 0:
+                    song_queue.append([effect_name, get_queue_salt()])
+                else:
+                    song_queue.insert(1, [effect_name, get_queue_salt()])
+                if len(song_queue) == 1:
+                    song_time = 0
+                    play_song(effect_name)
+                    song_playing = True
+                    add_effect(effect_name)
+                    broadcast_light = True
 
             elif msg['type'] == 'remove_queue' and 'uuid' in msg:
                 uuid = msg['uuid']

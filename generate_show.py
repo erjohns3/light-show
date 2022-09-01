@@ -122,7 +122,7 @@ def get_boundary_beats(song_filepath, beat_length, delay):
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
-    use_boundaries = True
+    use_boundaries = False
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
@@ -176,6 +176,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         [16, ['downbeat top', 'UV']],
         [16, ['downbeat bottom', 'UV']],
         [16, ['rainbow top', 'downbeat bottom']],
+        [4, ['UV pulse']],
         [2, ['UV pulse']],
         [1, ['UV pulse']],
         [1, ['flash']],
@@ -190,8 +191,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         while beat < total_beats:
             show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
-    elif use_boundaries==True:
-        boundary_beats.append(total_beats+1)
+    elif use_boundaries==True: # Based on scenes
+        boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
         prev_bound = 0
         for bound in boundary_beats:
             length_left = bound-prev_bound
@@ -202,14 +203,12 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                     candidates = [x for x in scenes if x[0] <= length_left]
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
-                    print(length_left)
                     # scene stuff
                     for effect_type in effect_types:
                         effect_name = random.choice(effect_types_to_name[effect_type])
                         show['beats'].append([beat, effect_name, length])
                     beat += length
                     length_left -= length
-                prev_bound = bound
     else: # Based on scenes
         while beat < total_beats:
             length, effect_types = random.choices(scenes, k=1)[0]

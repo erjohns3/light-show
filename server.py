@@ -221,7 +221,7 @@ def download_song(url):
     print(f'finished downloading {url} to {filepath}')
 
     add_song_to_config(filepath)
-    new_effects = generate_show.generate_show(filepath, effects_config, songs_config[filepath]['duration'], overwrite=True, simple=False, debug=True)
+    new_effects = generate_show.generate_show(filepath, effects_config, songs_config[str(filepath)]['duration'], overwrite=True, simple=False, debug=True)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return

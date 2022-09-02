@@ -73,7 +73,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
             bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
-    print_green("Finished with aubio")
+    print_green("Finished aubio loop")
     energies = np.array(energies)
     # print(energies)
     common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
@@ -136,7 +136,6 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
         todo.append(simple)
 
     energies = np.array(todo)
-    print(energies)
     diffed = [0 for i in range(look_size)]
     for i in range(len(energies[0]))[look_size:-look_size*2]:
         # for each band: find difference in value between left_i and right_i
@@ -182,11 +181,11 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
         new_out.append(peak)
         out = new_out
 
-    print(sorted(out))
+    # print(sorted(out))
     matches = []
     for peak in out:
         matches.append(round((peak-delay)/beat_length))
-    print(matches)
+    # print(matches)
 
     return sorted(set(list(matches)))
 

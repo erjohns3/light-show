@@ -203,6 +203,11 @@ def download_song(url, uuid):
 
     # time.sleep(20)
 
+    if 'search_query' in url:
+        print_yellow(f'user {uuid} entered a url with search_query in it, exiting')
+        return None
+
+
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 10 * 60
@@ -250,11 +255,10 @@ async def check_downloading_thread():
                 print(f'{elapsed_time:.2f} seconds: Still downloading or generating show')
         elif downloading_youtube_queue:
             url, uuid = downloading_youtube_queue.pop(0)
-            if 'search_query' not in url:
-                print_blue(f'Starting download of {url} from client {uuid}')
-                processing_time_start = time.time()
-                downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
-                downloading_thread.start()
+            print_blue(f'Starting download of {url} from client {uuid}')
+            processing_time_start = time.time()
+            downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
+            downloading_thread.start()
         await asyncio.sleep(time_to_sleep)
 
 

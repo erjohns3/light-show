@@ -43,7 +43,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
-    hop_s = win_s // 1          # hop size
+    hop_s = win_s // 2          # hop size
     src = aubio.source(str(song_filepath), 0, hop_s)
     # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo("default", win_s, hop_s, src.samplerate)

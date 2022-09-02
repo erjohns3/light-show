@@ -51,7 +51,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     pv = pvoc(win_s, hop_s)
     f = filterbank(40, win_s)
     f.set_mel_coeffs_slaney(src.samplerate)
-    energies = zeros((40,))
+    energies = [[0.0]*40]
 
     delay = 4. * hop_s
     beats = []
@@ -63,9 +63,9 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
         # boundaries
         fftgrain = pv(samples)
         new_energies = f(fftgrain)
-        energies = vstack( [energies, new_energies] )
-
-
+        # print(new_energies)
+        energies.append(new_energies.copy())
+        # print(energies)
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
@@ -74,7 +74,8 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
         total_frames += read
         if read < hop_s: break
     print_green("Finished with aubio")
-
+    energies = np.array(energies)
+    # print(energies)
     common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
     if not common_bpms:
         common_bpms = [x for x, cnt in Counter(bpms).most_common(10)]
@@ -135,7 +136,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
         todo.append(simple)
 
     energies = np.array(todo)
-
+    print(energies)
     diffed = [0 for i in range(look_size)]
     for i in range(len(energies[0]))[look_size:-look_size*2]:
         # for each band: find difference in value between left_i and right_i
@@ -148,9 +149,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
         diffed.append(diff)
 
     diffed+= [0 for i in range(look_size*2)]
-    # print(diffed)
     peaks = find_peaks(diffed, height=1, width=1)
-
 
     sorted_peaks = [x*length_s/len(diffed) for _, x in sorted(zip(peaks[1]['peak_heights'], peaks[0]), reverse=True)]
 
@@ -279,7 +278,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                     candidates = [x for x in scenes if x[0] <= length_left and x != prev_scene]
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
-                    # scene stuff
+                     # note that this is essentially a bug. I accidentally told it to switch effects every 16 beats.
+                     # turns out this works well with autodetection anyways
                     for effect_type in effect_types:
                         effect_name = random.choice(effect_types_to_name[effect_type])
                         show['beats'].append([beat, effect_name, length])

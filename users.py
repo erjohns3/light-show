@@ -6,7 +6,7 @@ users = {
     "6710fac3-61fb-a35e-9bab-c058ec6ed25c": {
         "name": "Matts Phone Chrome",
         "admin": True
-    }
+    },
     "82c4e8e0-644d-cd3c-cac6-8875aace6356": {
         "name": "Andrews Upstairs Computer Chrome",
         "admin": True

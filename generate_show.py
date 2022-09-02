@@ -3,12 +3,14 @@ import json
 import re
 import sys
 import math
-import msaf
 import os
 import importlib
 import sys
 import sound_helpers
 from collections import Counter
+from scipy.signal import find_peaks
+from aubio import source, pvoc, filterbank
+from numpy import vstack, zeros, hstack
 
 import pandas as pd 
 import aubio
@@ -40,12 +42,17 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
-    # internet copypasta from here ...
     win_s = 512                 # fft size
-    hop_s = win_s // 2          # hop size
+    hop_s = win_s // 1          # hop size
     src = aubio.source(str(song_filepath), 0, hop_s)
     # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo("default", win_s, hop_s, src.samplerate)
+
+    pv = pvoc(win_s, hop_s)
+    f = filterbank(40, win_s)
+    f.set_mel_coeffs_slaney(src.samplerate)
+    energies = zeros((40,))
+
     delay = 4. * hop_s
     beats = []
     total_frames = 0
@@ -53,6 +60,12 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     while True:
         samples, read = src()
         is_beat = o(samples)
+        # boundaries
+        fftgrain = pv(samples)
+        new_energies = f(fftgrain)
+        energies = vstack( [energies, new_energies] )
+
+
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
             human_readable = (this_beat / float(src.samplerate))
@@ -60,7 +73,6 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
             bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
-    # ...to here
 
     common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
     if not common_bpms:
@@ -99,7 +111,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     beat_length = 60.0/bpm_guess
     delay = beat_length - offset_guess if offset_guess > 0 else -offset_guess
     if use_boundaries:
-        boundary_beats = get_boundary_beats(song_filepath, beat_length, delay)
+        boundary_beats = get_boundary_beats(energies, beat_length, delay, total_frames / src.samplerate)
     else:
         boundary_beats = 'DISABLED'
     if debug:
@@ -109,11 +121,73 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     return src, total_frames, bpm_guess, delay, boundary_beats
 
 
-def get_boundary_beats(song_filepath, beat_length, delay):
-    boundaries, _labels = msaf.process(str(song_filepath), boundaries_id="foote", labels_id="fmc2d")
+def get_boundary_beats(energies, beat_length, delay, length_s):
+    n = 24 # average over 1/2 beat ish
+    look_size = 8*2 # look at 8 beats
+    move_size = 1 # on every 1/2 beat
+    todo = []
+    for i in range(len(energies.T)): # window average
+        band = energies.T[i]
+        pad = np.array([0]*(n-len(band)%n))
+        band = np.concatenate((band, pad))
+        simple = np.sum(band.reshape(-1, n), axis=1)
+        todo.append(simple)
+
+    energies = np.array(todo)
+
+    diffed = [0 for i in range(look_size)]
+    for i in range(len(energies[0]))[look_size:-look_size*2]:
+        # for each band: find difference in value between left_i and right_i
+        diff = 0
+        for band_i, band in enumerate(np.concatenate((energies[:5], energies[-5:]))): # np.concatenate((energies[:5],energies[-5:]))
+            left = np.sum(band[i-look_size:i])
+            right = np.sum(band[i:i+look_size])
+            this = right-left
+            diff += abs(this)
+        diffed.append(diff)
+
+    diffed+= [0 for i in range(look_size*2)]
+    # print(diffed)
+    peaks = find_peaks(diffed, height=1, width=1)
+
+
+    sorted_peaks = [x*length_s/len(diffed) for _, x in sorted(zip(peaks[1]['peak_heights'], peaks[0]), reverse=True)]
+
+    num_peaks = int(2.5*length_s/60)
+
+    peaks_to_use = sorted_peaks[:num_peaks]
+    prev = 0    
+    iter = 0
+    #ensure 1 change per minute
+    while iter < len(peaks_to_use):
+        peak = sorted(peaks_to_use)[iter]
+        if peak-prev > 60:
+            add = next((x for x in sorted_peaks if x > prev+10 and x < prev+60))
+            peaks_to_use.append(add) # = peak, next iteration
+        else:
+            prev = peak
+            iter+=1
+        
+
+    out = []
+    # combine within 8 seconds
+    for peak in peaks_to_use:
+        new_out = []
+        todo = peak
+        for prev in out:
+            if abs(prev-peak) < 4:
+                peak = max(prev, peak)
+            else:
+                new_out.append(prev)
+        new_out.append(peak)
+        out = new_out
+
+    print(sorted(out))
     matches = []
-    for boundary in boundaries:
-        matches.append(round((boundary-delay)/beat_length))
+    for peak in out:
+        matches.append(round((peak-delay)/beat_length))
+    print(matches)
+
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
@@ -185,7 +259,6 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
 
     # apply lights
     length_s = total_frames / src.samplerate
-    print(length_s)
     total_beats = int((length_s / 60) * bpm_guess)
     beat = 1    
     if simple: # Only RBBB timing
@@ -195,13 +268,14 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     elif use_boundaries==True: # Based on scenes
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
         prev_bound = 0
+        prev_scene = None
         for bound in boundary_beats:
             length_left = bound-prev_bound
             while length_left>0:
-                if length_left >= 4:
-                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left]
+                if length_left > 4:
+                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left and x != prev_scene]
                 else:
-                    candidates = [x for x in scenes if x[0] <= length_left]
+                    candidates = [x for x in scenes if x[0] <= length_left and x != prev_scene]
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
                     # scene stuff
@@ -210,6 +284,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                         show['beats'].append([beat, effect_name, length])
                     beat += length
                     length_left -= length
+                prev_scene = (length, effect_types)
+            prev_bound = bound
     else: # Based on scenes
         while beat < total_beats:
             length, effect_types = random.choices(scenes, k=1)[0]

@@ -34,9 +34,10 @@ effects = {
         "length": 1,
         "autogen": 'filler',
         "beats": [
-            [1, 'Cyan front', .25],
-            [1.25, 'Cyan back', .25],
-            [1.5, 'Pink bottom', .5, 1, 0],
+            [1, 'Pink bottom', .25, 1, 0],
+            [1.25, 'Pink bottom', .25, 1, 0],
+            [1.5, 'Cyan front', .5, 1, .2],
+            [1.5, 'Cyan back', .5, 1, .2],
         ],
     },
 
@@ -51,6 +52,49 @@ effects = {
             [2, 'Firebrick bottom', .75, 1, 0],
         ],
     },
+
+    "Autogen helper white top pulse 1": {
+        "length": 4,
+        "beats": [
+            [1, "White top", .4, 1, 0]
+            [3, "White top", .4, 1, 0]
+        ],
+    },
+    "g_rainbow good top pulse 1": {
+        "length": 8,
+        "autogen": 'rainbow top',
+        "beats": [
+            [1, "Autogen helper white top pulse 1", 8]
+            [1, "Green top", 3.7, 1, 0],
+            [1, "Red top", 2.66, 0, 1],
+            [3.66, "Red top", 3.7, 1, 0],
+            [3.66, "Blue top", 2.66, 0, 1],
+            [6.32, "Blue top", 3.7, 1, 0],
+            [6.32, "Green top", 2.66, 0, 1],
+        ],
+    },
+    "Autogen helper white top pulse 2": {
+        "length": 4,
+        "beats": [
+            [2, "White top", .4, 1, 0]
+            [4, "White top", .4, 1, 0]
+        ],
+    },
+    "g_rainbow good top pulse 2": {
+        "length": 8,
+        "autogen": 'rainbow top',
+        "beats": [
+            [1, "Autogen helper white top pulse 2", 8]
+            [1, "Green top", 3.7, 1, 0],
+            [1, "Red top", 2.66, 0, 1],
+            [3.66, "Red top", 3.7, 1, 0],
+            [3.66, "Blue top", 2.66, 0, 1],
+            [6.32, "Blue top", 3.7, 1, 0],
+            [6.32, "Green top", 2.66, 0, 1],
+        ],
+    },
+
+
 
     # rainbows
     "g_rainbow good top": {

@@ -48,7 +48,6 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
     }
 
     try:
-
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             if max_length_seconds is not None:
                 info_dict_no_dl = ydl.extract_info(url, download=False)
@@ -58,6 +57,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
                     print_yellow(f'Video is too long, returning')
                     return None
 
+            print_green(f'started downloading {url}')
             info_dict = ydl.extract_info(url, download=True)
             download_infos = info_dict['requested_downloads']
             if not download_infos:

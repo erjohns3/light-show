@@ -203,8 +203,6 @@ def download_song(url, uuid):
 
     # time.sleep(20)
 
-    print(f'started downloading {url}')
-
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 10 * 60

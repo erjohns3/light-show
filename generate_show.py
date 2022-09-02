@@ -284,6 +284,9 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                     if bound == boundary_beats[-1]:
                         candidates = [x for x in candidates if x[1] == 'UV pulse']
                     candidates = [x for x in scenes if x[0] <= length_left and x[1] != prev_scene]
+                    if length_left > 2:
+                        candidates = [x for x in candidates if x[1] != ['flash']]
+
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
                     for effect_type in effect_types:

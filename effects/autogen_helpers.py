@@ -56,15 +56,15 @@ effects = {
     "Autogen helper white top pulse 1": {
         "length": 4,
         "beats": [
-            [1, "White top", .4, 1, 0]
-            [3, "White top", .4, 1, 0]
+            [1, 'White top', .4, 1, 0],
+            [3, 'White top', .4, 1, 0],
         ],
     },
     "g_rainbow good top pulse 1": {
         "length": 8,
         "autogen": 'rainbow top',
         "beats": [
-            [1, "Autogen helper white top pulse 1", 8]
+            [1, "Autogen helper white top pulse 1", 8],
             [1, "Green top", 3.7, 1, 0],
             [1, "Red top", 2.66, 0, 1],
             [3.66, "Red top", 3.7, 1, 0],
@@ -76,15 +76,15 @@ effects = {
     "Autogen helper white top pulse 2": {
         "length": 4,
         "beats": [
-            [2, "White top", .4, 1, 0]
-            [4, "White top", .4, 1, 0]
+            [2, "White top", .4, 1, 0],
+            [4, "White top", .4, 1, 0],
         ],
     },
     "g_rainbow good top pulse 2": {
         "length": 8,
         "autogen": 'rainbow top',
         "beats": [
-            [1, "Autogen helper white top pulse 2", 8]
+            [1, "Autogen helper white top pulse 2", 8],
             [1, "Green top", 3.7, 1, 0],
             [1, "Red top", 2.66, 0, 1],
             [3.66, "Red top", 3.7, 1, 0],

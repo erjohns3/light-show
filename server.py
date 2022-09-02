@@ -243,11 +243,10 @@ async def check_downloading_thread():
                 print_green(f'Downloading thread has finished in ~{elapsed_time:.2f} seconds, broadcasting the update to clients\n')
                 await send_effects_songs_queue()
                 downloading_thread = None
-                break
             else:
                 print(f'{elapsed_time:.2f} seconds: Still downloading or generating show')
         elif downloading_youtube_queue:
-            url, uuid = downloading_thread.pop(0)
+            url, uuid = downloading_youtube_queue.pop(0)
             print_blue(f'Starting download of {url} from client {uuid}')
             processing_time_start = time.time()
             downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
@@ -387,6 +386,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
                 url = msg.get('url', None)
+                print_blue(f'Adding "{url}" to youtube downloading queue')
                 downloading_youtube_queue.append([url, uuid])
 
             song_lock.release()

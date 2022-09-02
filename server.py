@@ -422,6 +422,9 @@ def add_queue_balanced(effect_name, uuid):
             if entry[2] == uuid:
                 count += 1
         while index < len(song_queue):
+            # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL
+            if song_queue[index][2] not in user_counts:
+                user_counts[song_queue[index][2]] = 0
             if user_counts[song_queue[index][2]] > count:
                 break
             user_counts[song_queue[index][2]] += 1

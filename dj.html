@@ -17,7 +17,7 @@
         <div class="button-bpm"></div>
         <div class="button-length"></div>
         <div class="button-loop"></div>
-        <div class="button-button"></div>
+        <div class="button-trigger"></div>
     </template>
 
     <template id="template-profile-item">
@@ -181,7 +181,7 @@
                 this.querySelector(".button-name").textContent = this.effect;
             }
             this.querySelector(".button-length").textContent = decimal(this.length, 2);
-            this.querySelector(".button-button").textContent = this.trigger;
+            this.querySelector(".button-trigger").textContent = this.trigger;
             if(effectsConfig[this.effect].loop){
                 this.querySelector(".button-loop").textContent = "∞";
             }
@@ -706,6 +706,7 @@
         width: calc(100% - 0.5vw);
         height: calc(100% - 0.5vw);
         transition: transform 250ms, opacity 250ms linear, visibility 250ms linear;
+        will-change: transform, opacity, visibilty;
     }
 
     .button-table-active{
@@ -725,6 +726,7 @@
         height: calc(20% - 0.5vw);
         border-radius: 0.5vw;
         background-color: hsla(0, 0%, 0%, 0.5);
+        will-change: transform;
     }
 
     .button-item-active{
@@ -782,7 +784,7 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
-    .button-button {
+    .button-trigger {
         position: absolute;
         bottom: 0.5vw;
         right: 0.5vw;
@@ -894,6 +896,7 @@
         justify-content: center;
         align-items: center;
         background-color: hsla(120, 100%, 40%, 0.5);
+        will-change: transform;
     }
 
     #rate-inc{
@@ -909,6 +912,7 @@
         justify-content: center;
         align-items: center;
         background-color: hsla(120, 100%, 40%, 0.5);
+        will-change: transform;
     }
 
     .button:active{

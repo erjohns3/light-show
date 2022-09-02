@@ -288,6 +288,27 @@ effects = {
             [1, "Cyan top", 1, 0.42, .2],
         ],
     },
+    "g_purple purple yellow top pulse": {
+        "length": 2,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, "Purple top", 1, 0.42, .2],
+            [2, "Yellow top", 1, 0.42, .2],
+        ],
+    },
+
+    "g_green sidechain top pulse": {
+        "length": 2,
+        "autogen": 'downbeat top',
+        "beats": [
+            [1, "Green top", 0.1, 0.6, 0.17],
+            [1.1, "Green top", 3, 0.17, 0.17],
+            [2, "Sidechain top g", 0.5, 1, 0], 
+            [2, "Some color top", 0.3, 1, .7],
+        ],
+    },
+
+
     "g_purple green bottom pulse": {
         "length": 2,
         "autogen": 'downbeat bottom',

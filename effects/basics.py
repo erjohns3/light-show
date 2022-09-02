@@ -397,6 +397,13 @@ effects = {
             [1, [0, 0, 0, 40, 0, 90, 0], 1],
         ],
     },
+    "Purple top": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [100, 0, 100, 0, 0, 0, 0], 1],
+        ],
+    },
     "Purple bottom": {
         "length": 1,
         "profiles": ["Colors"],

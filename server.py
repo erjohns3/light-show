@@ -204,8 +204,13 @@ def download_song(url, uuid):
     # time.sleep(20)
 
     print(f'started downloading {url}')
-    filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
+
+    max_length_seconds = None
+    if not is_admin(uuid):
+        max_length_seconds = 3 * 60
+    filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
+        print_yellow('Couldnt download video, returning')
         return
     print(f'finished downloading {url} to {filepath}')
 
@@ -247,10 +252,11 @@ async def check_downloading_thread():
                 print(f'{elapsed_time:.2f} seconds: Still downloading or generating show')
         elif downloading_youtube_queue:
             url, uuid = downloading_youtube_queue.pop(0)
-            print_blue(f'Starting download of {url} from client {uuid}')
-            processing_time_start = time.time()
-            downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
-            downloading_thread.start()
+            if 'search_query' not in url:
+                print_blue(f'Starting download of {url} from client {uuid}')
+                processing_time_start = time.time()
+                downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
+                downloading_thread.start()
         await asyncio.sleep(time_to_sleep)
 
 

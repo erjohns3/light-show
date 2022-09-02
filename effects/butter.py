@@ -147,6 +147,12 @@ effects = {
             [61, "butter melody 3", 2, 1, 0, 4],
         ],
     },
+    "Some color top": {
+        "length": 1,
+        "beats": [
+            [1, [20, 0, 40, 0, 0, 0, 0], 1],
+        ],
+    },
     "Some color bottom": {
         "length": 1,
         "beats": [

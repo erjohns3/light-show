@@ -29,7 +29,7 @@ def scp_to_doorbell(local_filepath, remote_folder):
     scp.close()
 
 
-def download_youtube_url_to_ogg(url=None, dest_path=None):
+def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=None):
     if url is None:
         url = input('Enter the URL you want to download:\n')
 
@@ -48,7 +48,16 @@ def download_youtube_url_to_ogg(url=None, dest_path=None):
     }
 
     try:
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            if max_length_seconds is not None:
+                info_dict_no_dl = ydl.extract_info(url, download=False)
+                vid_duration_seconds = info_dict_no_dl['duration']
+                print(f'Duration of video is {vid_duration_seconds} seconds, max is {max_length_seconds} seconds')
+                if vid_duration_seconds > max_length_seconds:
+                    print_yellow(f'Video is too long, returning')
+                    return None
+
             info_dict = ydl.extract_info(url, download=True)
             download_infos = info_dict['requested_downloads']
             if not download_infos:
@@ -79,12 +88,16 @@ if __name__ == '__main__':
     url = None
     if len(sys.argv) > 1:
         url = sys.argv[1]
-    downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'))
+    max_length_seconds = None
+    if len(sys.argv) > 2:
+        max_length_seconds = float(sys.argv[2])
+    downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if downloaded_filepath is None:
         exit()
-    remote_folder = pathlib.Path('/home/pi/light-show/songs')
-    print('Starting scp to doorbell')
-    scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
+
+    # remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    # print('Starting scp to doorbell')
+    # scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
 
 
 

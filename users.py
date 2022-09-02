@@ -31,4 +31,9 @@ users = {
         "name": "Ray phone",
         "admin": True
     },
+    "dbbf9427-3cdf-e939-c8ed-769c2bbde0b1": {
+        "name": "Ray firefox",
+        "admin": True
+    },
+    
 }

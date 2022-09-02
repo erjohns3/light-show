@@ -124,9 +124,12 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
 
 
 def get_boundary_beats(energies, beat_length, delay, length_s):
-    n = 24 # average over 1/2 beat ish
-    look_size = 8*2 # look at 8 beats
-    move_size = 1 # on every 1/2 beat
+    song_beats = length_s/beat_length
+    n_for_beat = round(len(energies)/song_beats)
+    print(f'n for beat: {n_for_beat}')
+    n = round(n_for_beat/4) # average over beat/4
+    look_size = 4*4 # look at 4 beats
+    move_size = 2 # on every beat/2
     todo = []
     for i in range(len(energies.T)): # window average
         band = energies.T[i]
@@ -140,10 +143,12 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     for i in range(len(energies[0]))[look_size:-look_size*2]:
         # for each band: find difference in value between left_i and right_i
         diff = 0
-        for band_i, band in enumerate(np.concatenate((energies[:5], energies[-5:]))): # np.concatenate((energies[:5],energies[-5:]))
+        for band_i, band in enumerate(energies): # np.concatenate((energies[:5],energies[-5:]))
             left = np.sum(band[i-look_size:i])
             right = np.sum(band[i:i+look_size])
             this = right-left
+            if band_i < 6:
+                diff += abs(this)*3
             diff += abs(this)
         diffed.append(diff)
 
@@ -152,16 +157,16 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 
     sorted_peaks = [x*length_s/len(diffed) for _, x in sorted(zip(peaks[1]['peak_heights'], peaks[0]), reverse=True)]
 
-    num_peaks = int(2.5*length_s/60)
+    num_peaks = int(2*length_s/60)
 
     peaks_to_use = sorted_peaks[:num_peaks]
     prev = 0    
     iter = 0
-    #ensure 1 change per minute
+    #ensure 1 change per 40s
     while iter < len(peaks_to_use):
         peak = sorted(peaks_to_use)[iter]
-        if peak-prev > 60:
-            add = next((x for x in sorted_peaks if x > prev+10 and x < prev+60))
+        if peak-prev > 40:
+            add = next((x for x in sorted_peaks if x > prev+6 and x < prev+40))
             peaks_to_use.append(add) # = peak, next iteration
         else:
             prev = peak
@@ -169,12 +174,12 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
         
 
     out = []
-    # combine within 8 seconds
+    # combine within 16 beats
     for peak in peaks_to_use:
         new_out = []
         todo = peak
         for prev in out:
-            if abs(prev-peak) < 4:
+            if abs(prev-peak) < beat_length*18:
                 peak = max(prev, peak)
             else:
                 new_out.append(prev)
@@ -184,7 +189,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     # print(sorted(out))
     matches = []
     for peak in out:
-        matches.append(round((peak-delay)/beat_length))
+        matches.append(round((peak-delay)/beat_length)) # beats are 1 indexed
     # print(matches)
 
     return sorted(set(list(matches)))
@@ -268,23 +273,35 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
         prev_bound = 0
         prev_scene = None
+        prev_effects = []
         for bound in boundary_beats:
             length_left = bound-prev_bound
             while length_left>0:
-                if length_left > 4:
-                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left and x != prev_scene]
+                new_prev_effects = []
+                if length_left > 16:
+                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left and x[1] != prev_scene]
                 else:
-                    candidates = [x for x in scenes if x[0] <= length_left and x != prev_scene]
+                    if bound == boundary_beats[-1]:
+                        candidates = [x for x in candidates if x[1] == 'UV pulse']
+                    candidates = [x for x in scenes if x[0] <= length_left and x[1] != prev_scene]
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
-                     # note that this is essentially a bug. I accidentally told it to switch effects every 16 beats.
-                     # turns out this works well with autodetection anyways
                     for effect_type in effect_types:
+                        candidates = effect_types_to_name[effect_type]
+                        if len(candidates) > 1:
+                            candidates = [x for x in candidates if x not in prev_effects]
                         effect_name = random.choice(effect_types_to_name[effect_type])
+                        new_prev_effects.append(effect_name)
                         show['beats'].append([beat, effect_name, length])
+                        if length_left > length*2 and length==16:
+                            show['beats'].append([beat+length, effect_name, length])
                     beat += length
+                    if length_left > length*2 and length==16:
+                        beat += length
+                        length_left -= length
                     length_left -= length
-                prev_scene = (length, effect_types)
+                prev_effects = new_prev_effects
+                prev_scene = effect_types
             prev_bound = bound
     else: # Based on scenes
         while beat < total_beats:

@@ -1104,20 +1104,21 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 def fuzzy_find(name, valid_names, filter_words=None):
     name = name.lower()
-    all_canidates = []
+    all_candidates = []
     if filter_words:
         valid_names = list(filter(lambda x: any([y in x.lower() for y in filter_words]), valid_names))
+    valid_names = [x for x in valid_names if x[-5:] != '.webm']
     lower_to_real = {x.lower():x for x in valid_names}
     for show_name in lower_to_real:
         if name in show_name:
-            all_canidates.append(lower_to_real[show_name])
-    if not all_canidates:
+            all_candidates.append(lower_to_real[show_name])
+    if not all_candidates:
         print(f'{bcolors.FAIL}No shows for "{name}" were found{bcolors.ENDC}')
         exit()
-    if len(all_canidates) > 1:
-        print(f'{bcolors.FAIL}Too many canidates for show "{name}" {all_canidates}{bcolors.ENDC}')
+    if len(all_candidates) > 1:
+        print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
         exit()
-    return all_canidates[0]
+    return all_candidates[0]
 
 #################################################
 

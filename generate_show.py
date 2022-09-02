@@ -122,12 +122,10 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
 
 
 def get_boundary_beats(energies, beat_length, delay, length_s):
-    n = 12 # average over 1/4 beat ish
-    look_size = 16*4 # look at 16 beats
+    n = 24 # average over 1/2 beat ish
+    look_size = 8*2 # look at 8 beats
     move_size = 1 # on every 1/2 beat
-
     todo = []
-    todo_vars = []
     for i in range(len(energies.T)): # window average
         band = energies.T[i]
         pad = np.array([0]*(n-len(band)%n))
@@ -141,7 +139,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     for i in range(len(energies[0]))[look_size:-look_size*2]:
         # for each band: find difference in value between left_i and right_i
         diff = 0
-        for band_i, band in enumerate(energies): # np.concatenate((energies[:5],energies[-5:]))
+        for band_i, band in enumerate(np.concatenate((energies[:5], energies[-5:]))): # np.concatenate((energies[:5],energies[-5:]))
             left = np.sum(band[i-look_size:i])
             right = np.sum(band[i:i+look_size])
             this = right-left
@@ -150,48 +148,46 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 
     diffed+= [0 for i in range(look_size*2)]
     # print(diffed)
-
     peaks = find_peaks(diffed, height=1, width=1)
-    sorted_peaks = [(x*length_s/len(diffed), x) for _, x in sorted(zip(peaks[1]['peak_heights'], peaks[0]), reverse=True)]
-    peaks_to_use = sorted_peaks[:30]
-    # filter candidates to the best n-bar offset
 
-    for peak in peaks_to_use: # combine some.
-        new_peaks = []
+
+    sorted_peaks = [x*length_s/len(diffed) for _, x in sorted(zip(peaks[1]['peak_heights'], peaks[0]), reverse=True)]
+
+    num_peaks = int(2.5*length_s/60)
+
+    peaks_to_use = sorted_peaks[:num_peaks]
+    prev = 0    
+    iter = 0
+    #ensure 1 change per minute
+    while iter < len(peaks_to_use):
+        peak = sorted(peaks_to_use)[iter]
+        if peak-prev > 60:
+            add = next((x for x in sorted_peaks if x > prev+10 and x < prev+60))
+            peaks_to_use.append(add) # = peak, next iteration
+        else:
+            prev = peak
+            iter+=1
+        
+
+    out = []
+    # combine within 8 seconds
+    for peak in peaks_to_use:
+        new_out = []
         todo = peak
-        for prev in peaks_to_use:
-            if abs(prev[0]-peak[0]) < 8:
+        for prev in out:
+            if abs(prev-peak) < 4:
                 peak = max(prev, peak)
             else:
-                new_peaks.append(prev)
-        new_peaks.append(peak)
-        peaks_to_use = new_peaks
-    print(peaks_to_use)
+                new_out.append(prev)
+        new_out.append(peak)
+        out = new_out
 
-    errors = []
-    best_offset = -1
-    best_error = -1
-    for offset in range(8):
-        sum = 0
-        for peak in peaks_to_use:
-            print(f'{round((peak[1]*length_s/len(diffed)+delay)/beat_length) + 1}, {peak[0]}')
-            if (round((peak[1]*length_s/len(diffed)+delay)/beat_length) + 1 + offset)%8==0:
-                sum += peak[0]
-            if sum > best_error:
-                best_error = sum
-                best_offset = offset
-        errors.append(sum)
-    print(f'OFFSET {best_offset},{errors}')
-
-    peaks_filtered = [peak[1] for peak in peaks_to_use if (round((peak[1]*length_s/len(diffed)+delay)/beat_length) + 1 + best_offset)%8==0]
-
-    out = peaks_filtered
-
+    print(sorted(out))
     matches = []
     for peak in out:
-        matches.append(round((peak*length_s/len(diffed)+delay)/beat_length))
+        matches.append(round((peak-delay)/beat_length))
     print(matches)
-    # assume all boundaries are spaced 16 apart, just snap them together
+
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):

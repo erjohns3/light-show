@@ -58,7 +58,7 @@ LIGHT_COUNT = 10
 curr_effects = []
 song_queue = []
 
-curr_bpm = 72
+curr_bpm = 121
 time_start = time.time()
 beat_index = 0
 

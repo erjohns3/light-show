@@ -63,14 +63,15 @@ effects = {
     "g_rainbow good top pulse 1": {
         "length": 8,
         "autogen": 'rainbow top',
+        "profiles": ['Andrew'],
         "beats": [
             [1, "Autogen helper white top pulse 1", 8],
-            [1, "Green top", 3.7, 1, 0],
-            [1, "Red top", 2.66, 0, 1],
-            [3.66, "Red top", 3.7, 1, 0],
-            [3.66, "Blue top", 2.66, 0, 1],
-            [6.32, "Blue top", 3.7, 1, 0],
-            [6.32, "Green top", 2.66, 0, 1],
+            [1, "Green top", 3.7, .4, 0],
+            [1, "Red top", 2.66, 0, .6],
+            [3.66, "Red top", 3.7, .6, 0],
+            [3.66, "Blue top", 2.66, 0, .6],
+            [6.32, "Blue top", 3.7, .6, 0],
+            [6.32, "Green top", 2.66, 0, .4],
         ],
     },
     "Autogen helper white top pulse 2": {
@@ -85,12 +86,12 @@ effects = {
         "autogen": 'rainbow top',
         "beats": [
             [1, "Autogen helper white top pulse 2", 8],
-            [1, "Green top", 3.7, 1, 0],
-            [1, "Red top", 2.66, 0, 1],
-            [3.66, "Red top", 3.7, 1, 0],
-            [3.66, "Blue top", 2.66, 0, 1],
-            [6.32, "Blue top", 3.7, 1, 0],
-            [6.32, "Green top", 2.66, 0, 1],
+            [1, "Green top", 3.7, .4, 0],
+            [1, "Red top", 2.66, 0, .6],
+            [3.66, "Red top", 3.7, .6, 0],
+            [3.66, "Blue top", 2.66, 0, .6],
+            [6.32, "Blue top", 3.7, .6, 0],
+            [6.32, "Green top", 2.66, 0, .4],
         ],
     },
 
@@ -100,6 +101,7 @@ effects = {
     "g_rainbow good top": {
         "length": 8,
         "autogen": 'rainbow top',
+        "profiles": ['Andrew'],
         "beats": [
             [1, "Green top", 3.7, 1, 0],
             [1, "Red top", 2.66, 0, 1],
@@ -230,6 +232,7 @@ effects = {
     "g_solid mixed 2": {
         "length": 4,
         "autogen": 'downbeat mixed',
+        "profiles": ['Andrew'],
         "beats": [
             [1, "Blue bottom", 1, 1, .2],
             [2, "Blue bottom", 1, .2, .2],
@@ -245,6 +248,7 @@ effects = {
     "g_solid mixed 3": {
         "length": 4,
         "autogen": 'downbeat mixed',
+        "profiles": ['Andrew'],
         "beats": [
             [1, "Blue top", 1, 1, .2],
             [2, "Blue top", 1, .2, .2],

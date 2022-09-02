@@ -73,6 +73,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
             bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
+    print_green("Finished with aubio")
 
     common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
     if not common_bpms:

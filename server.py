@@ -403,25 +403,26 @@ async def init_queue_client(websocket, path):
 def add_queue_balanced(effect_name, uuid):
     global song_playing, song_time
     
-    i = 0
     if is_admin(uuid):
-        while i < len(song_queue):
-            if song_queue[i][2] != uuid:
+        index = 1
+        while index < len(song_queue):
+            if song_queue[index][2] != uuid:
                 break
-            i += 1
+            index += 1
     else:
+        index = 0
         count = 0
         user_counts = {}
         for entry in song_queue:
-            user_counts[song_queue[i][2]] = 0
+            user_counts[song_queue[index][2]] = 0
             if entry[2] == uuid:
                 count += 1
-        while i < len(song_queue):
-            if user_counts[song_queue[i][2]] > count:
+        while index < len(song_queue):
+            if user_counts[song_queue[index][2]] > count:
                 break
-            user_counts[song_queue[i][2]] += 1
-            i += 1
-    song_queue.insert(i, [effect_name, get_queue_salt(), uuid])
+            user_counts[song_queue[index][2]] += 1
+            index += 1
+    song_queue.insert(index, [effect_name, get_queue_salt(), uuid])
     
     if len(song_queue) == 1:
         song_time = 0

@@ -424,6 +424,7 @@ def add_queue_balanced(effect_name, uuid):
         while index < len(song_queue):
             # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL
             if song_queue[index][2] not in user_counts:
+                print('saving a crash')
                 user_counts[song_queue[index][2]] = 0
             if user_counts[song_queue[index][2]] > count:
                 break

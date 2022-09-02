@@ -1,4 +1,12 @@
 users = {
+    "50b0dd6c-75e1-5729-c96f-3af0198ad12a": {
+        "name": "David or Chris",
+        "admin": True
+    },
+    "2155c34-6648-d4d8-12a0-d6d2429d5030": {
+        "name": "David or Chris 2",
+        "admin": True
+    },
     "2a61fedc-b7e8-7ab1-578e-9c4461818c41": {
         "name": "Eric Laptop",
         "admin": True

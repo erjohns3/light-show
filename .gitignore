@@ -14,7 +14,7 @@ temp/
 *.wav
 .DS_Store
 chris.py
-effects/autogen_shows/**luno**
+effects/autogen_shows/**
 chris2.py
 estimations/**
 .features_msaf_tmp.json

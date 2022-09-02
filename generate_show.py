@@ -113,32 +113,35 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     beat_length = 60.0/bpm_guess
     delay = beat_length - offset_guess if offset_guess > 0 else -offset_guess
     if use_boundaries:
-        boundary_beats = get_boundary_beats(energies, beat_length, delay, total_frames / src.samplerate)
+        boundary_beats, chunk_levels = get_boundary_beats(energies, beat_length, delay, total_frames / src.samplerate)
     else:
-        boundary_beats = 'DISABLED'
+        boundary_beats, chunk_levels = 'DISABLED', []
     if debug:
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
 
     
-    return src, total_frames, bpm_guess, delay, boundary_beats
+    return src, total_frames, bpm_guess, delay, boundary_beats, chunk_levels
 
 
-def get_boundary_beats(energies, beat_length, delay, length_s):
+def get_boundary_beats(energies_in, beat_length, delay, length_s):
     song_beats = length_s/beat_length
-    n_for_beat = round(len(energies)/song_beats)
+    n_for_beat = round(len(energies_in)/song_beats)
     print(f'n for beat: {n_for_beat}')
     n = round(n_for_beat/4) # average over beat/4
     look_size = 4*4 # look at 4 beats
-    move_size = 2 # on every beat/2
-    todo = []
-    for i in range(len(energies.T)): # window average
-        band = energies.T[i]
+    # move_size = 2 # on every beat/2
+    levels = []
+    variances = []
+    for i in range(len(energies_in.T)): # window average
+        band = energies_in.T[i]
         pad = np.array([0]*(n-len(band)%n))
         band = np.concatenate((band, pad))
         simple = np.sum(band.reshape(-1, n), axis=1)
-        todo.append(simple)
+        levels.append(simple)
+        variance = np.var(band.reshape(-1, n), axis=1)
+        variances.append(variance)
 
-    energies = np.array(todo)
+    energies = np.array(levels)
     diffed = [0 for i in range(look_size)]
     for i in range(len(energies[0]))[look_size:-look_size*2]:
         # for each band: find difference in value between left_i and right_i
@@ -159,19 +162,21 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 
     num_peaks = int(2*length_s/60)
 
-    peaks_to_use = sorted_peaks[:num_peaks]
+    peaks_to_use = sorted(sorted_peaks[:num_peaks])
     prev = 0    
     iter = 0
+
     #ensure 1 change per 40s
     while iter < len(peaks_to_use):
-        peak = sorted(peaks_to_use)[iter]
+        peak = peaks_to_use[iter]
         if peak-prev > 40:
             add = next((x for x in sorted_peaks if x > prev+6 and x < prev+40))
-            peaks_to_use.append(add) # = peak, next iteration
+            peaks_to_use.insert(iter, add) # = peak, next iteration
+            prev = add
+            iter+=1
         else:
             prev = peak
             iter+=1
-        
 
     out = []
     # combine within 16 beats
@@ -185,14 +190,54 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
                 new_out.append(prev)
         new_out.append(peak)
         out = new_out
+    peaks_to_use=out
 
-    # print(sorted(out))
+    # get levels
+    chunk_levels = []
+    prev = 0
+    for i, peak in enumerate(peaks_to_use+[length_s]):
+        peak_i = int(peak/(length_s/len(diffed)))
+        end = min(peak_i, prev+16*4*4)
+        chunk_level=0
+        for i, band in enumerate(levels):
+            summed = sum(band[prev: end])
+            if i < 6:
+                summed *= 3
+            chunk_level+=summed
+        chunk_levels.append(chunk_level/(end-prev))
+        prev = peak_i
+    print(chunk_levels)
+    chunk_levels_lo = np.percentile(chunk_levels, q=30)
+    chunk_levels_hi = np.percentile(chunk_levels, q=70)
+    chunk_levels_out = []
+    for level in chunk_levels:
+        if level > chunk_levels_hi:
+            chunk_levels_out.append('hi')
+        elif level < chunk_levels_lo:
+            chunk_levels_out.append('low')
+        else:
+            chunk_levels_out.append('mid')
+
+    # TODO get silent beats. fix off-by-one later?
+    # beats_song = int(length_s/beat_length)
+    # beat_levels = []
+    # for beat in range(beats_song)[1:]:
+    #     prev = beat-1
+    #     energy_in_i = int(beat/beats_song*len(energies_in))
+    #     energy_in_prev = int(prev/beats_song*len(energies_in))
+    #     print(f'{energy_in_i}, {energy_in_prev}')
+    #     value = sum([sum(x[energy_in_prev:energy_in_i]) for x in energies_in.T])
+    #     beat_levels.append(value)
+    # print(beat_levels)
+
+    # hot vs cold: just 50% split?
+    # check 1-4 beats prior/post each transition for silence?
+
     matches = []
-    for peak in out:
-        matches.append(round((peak-delay)/beat_length)) # beats are 1 indexed
-    # print(matches)
+    for peak in peaks_to_use:
+        matches.append(round((peak-delay)/beat_length)) # beats are 1 indexed, but off-by-one is intentional
 
-    return sorted(set(list(matches)))
+    return matches, chunk_levels_out
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
     use_boundaries = True and not simple
@@ -213,7 +258,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, use_boundaries, debug=debug)
+    src, total_frames, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries, debug=debug)
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -258,7 +303,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         [4, ['UV pulse']],
         [2, ['UV pulse']],
         [1, ['UV pulse']],
-        [1, ['flash']],
+        [1, ['flash']], # visitor
     ]
 
     # apply lights
@@ -274,7 +319,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         prev_bound = 0
         prev_scene = None
         prev_effects = []
-        for bound in boundary_beats:
+        for iter, bound in enumerate(boundary_beats):
+            chunk_level = chunk_levels[iter] #TODO use this for filtering
             length_left = bound-prev_bound
             while length_left>0:
                 new_prev_effects = []
@@ -286,7 +332,6 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                     candidates = [x for x in scenes if x[0] <= length_left and x[1] != prev_scene]
                     if length_left > 2:
                         candidates = [x for x in candidates if x[1] != ['flash']]
-
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
                     for effect_type in effect_types:

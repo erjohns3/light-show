@@ -85,8 +85,8 @@ local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(('', PORT), Handler)
-    print(f'{bcolors.OKGREEN}serving static page dj set at: http://{local_ip}:{PORT}/dj.html')
-    print(f'serving static page queue at: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
+    print(f'{bcolors.OKGREEN}Dj interface: http://{local_ip}:{PORT}/dj.html')
+    print(f'Queue: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
 
 
@@ -597,7 +597,7 @@ async def render_to_terminal(all_levels):
         if has_song(effect_name):
             channel_lut_index = (beat_index + effect[1])
             show_specific = f"""\
-, {round(100 * (channel_lut_index / channel_lut[effect_name]['length']))}% lights\
+, Show {round(100 * (channel_lut_index / channel_lut[effect_name]['length']))}%\
 """
             all_effect_names += get_sub_effect_names(effect_name, curr_beat)
         else:
@@ -608,10 +608,11 @@ async def render_to_terminal(all_levels):
             # if 'song_path' in songs_config:
             #     f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
 
+# Seconds: {round(time.time() - time_start, 2):.2f}\
+
     useful_info = f"""\
-BPM: {curr_bpm:.2f}, \
-Beat: {curr_beat:.2f}, \
-Seconds: {round(time.time() - time_start, 2):.2f}\
+BPM {curr_bpm:.1f}, \
+Beat {curr_beat:.1f}\
 {show_specific}\
 """
     
@@ -652,7 +653,7 @@ Seconds: {round(time.time() - time_start, 2):.2f}\
     # print(useful_info)
     #  + (' ' * (terminal_size - len(useful_info)))
 
-    effect_string = f'Effects: {all_effect_names}'
+    effect_string = f'Effects: {", ".join(all_effect_names)}'
     remaining = terminal_size - len(effect_string) 
     console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
     console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
@@ -1018,7 +1019,7 @@ def compile_lut(local_effects_config):
                     tmp[0], tmp[6] = tmp[6], tmp[0]
                     tmp[1], tmp[7] = tmp[7], tmp[1]
                     tmp[2], tmp[8] = tmp[8], tmp[2]
-    print_cyan(f'finishing simple effects took {time.time() - simple_effect_perf_timer:.3f} seconds')
+    print_cyan(f'Simple effects: {time.time() - simple_effect_perf_timer:.3f} seconds')
 
     complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
@@ -1078,7 +1079,7 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-    print_cyan(f'finishing complex effects took {time.time() - complex_effect_perf_timer:.3f} seconds')
+    print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds')
 
 
 ##################################################

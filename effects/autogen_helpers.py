@@ -1,6 +1,7 @@
 effects = {
     # fillers
     "g_Strobe": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'strobe',
         "beats": [
@@ -8,6 +9,7 @@ effects = {
         ],
     },
     "g_UV Strobe": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'strobe',
         "beats": [
@@ -16,6 +18,7 @@ effects = {
     },
 
     "g_UV": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'UV',
         "beats": [
@@ -23,6 +26,7 @@ effects = {
         ],
     },
     "g_UV pulse": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'UV pulse',
         "beats": [
@@ -31,6 +35,7 @@ effects = {
     },
 
     "g_filler 1": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'filler',
         "beats": [
@@ -42,6 +47,7 @@ effects = {
     },
 
     "g_filler 2": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'filler',
         "beats": [
@@ -54,6 +60,7 @@ effects = {
     },
 
     "Autogen helper white top pulse 1": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [1, 'White top', .4, 1, 0],
@@ -61,6 +68,7 @@ effects = {
         ],
     },
     "g_rainbow good top pulse 1": {
+        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": 'rainbow top',
         "profiles": ['Andrew'],
@@ -75,6 +83,7 @@ effects = {
         ],
     },
     "Autogen helper white top pulse 2": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [2, "White top", .4, 1, 0],
@@ -82,6 +91,7 @@ effects = {
         ],
     },
     "g_rainbow good top pulse 2": {
+        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": 'rainbow top',
         "beats": [
@@ -99,6 +109,7 @@ effects = {
 
     # rainbows
     "g_rainbow good top": {
+        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": 'rainbow top',
         "profiles": ['Andrew'],
@@ -112,6 +123,7 @@ effects = {
         ],
     },
     "g_rainbow good slow top": {
+        "profiles": ["autogen helpers"],
         "length": 16,
         "autogen": 'rainbow top',
         "beats": [
@@ -126,6 +138,7 @@ effects = {
 
     # misc
     "Yellow Top to Bottom hang": {
+        "profiles": ["autogen helpers"],
         "length": 3,
         "beats": [
             [1, [100, 30, 5, 0, 25, 0, 0], .2, 0, .5],
@@ -137,6 +150,7 @@ effects = {
 
     # downbeat tops and bottoms
     "g_solid bottom cycle": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat bottom',
         "beats": [
@@ -148,6 +162,7 @@ effects = {
     },
 
     "g_pulse top swap 1": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
@@ -159,6 +174,7 @@ effects = {
     },
 
     "g_pulse top swap 2": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
@@ -170,6 +186,7 @@ effects = {
     },
 
     "g_pulse top swap 3": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'downbeat top',
         "beats": [
@@ -180,6 +197,7 @@ effects = {
     },
 
     "g_pulse top brown": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'downbeat top',
         "beats": [
@@ -187,6 +205,7 @@ effects = {
         ],
     },
     "g_pulse bottom brown": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'downbeat bottom',
         "beats": [
@@ -195,6 +214,7 @@ effects = {
     },
 
     "g_solid top cycle 1": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
@@ -206,6 +226,7 @@ effects = {
     },
 
     "g_solid top cycle 2": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat top',
         "beats": [
@@ -217,6 +238,7 @@ effects = {
     },
 
     "g_solid mixed 1": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat mixed',
         "beats": [
@@ -230,6 +252,7 @@ effects = {
     },
 
     "g_solid mixed 2": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat mixed',
         "profiles": ['Andrew'],
@@ -246,6 +269,7 @@ effects = {
     },
 
     "g_solid mixed 3": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat mixed',
         "profiles": ['Andrew'],
@@ -262,6 +286,7 @@ effects = {
     },
 
     "g_solid mixed 4": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat mixed',
         "beats": [
@@ -275,6 +300,7 @@ effects = {
     },
 
     "g_solid mixed cycle": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": 'downbeat mixed',
         "beats": [
@@ -286,6 +312,7 @@ effects = {
     },
 
     "g_cyan top pulse": {
+        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": 'downbeat top',
         "beats": [
@@ -293,6 +320,7 @@ effects = {
         ],
     },
     "g_purple purple yellow top pulse": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'downbeat top',
         "beats": [
@@ -302,6 +330,7 @@ effects = {
     },
 
     "g_green sidechain top pulse": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'downbeat top',
         "beats": [
@@ -314,6 +343,7 @@ effects = {
 
 
     "g_purple green bottom pulse": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'downbeat bottom',
         "beats": [
@@ -322,6 +352,7 @@ effects = {
         ],
     },
     "g_green sidechain bottom pulse": {
+        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": 'downbeat bottom',
         "beats": [

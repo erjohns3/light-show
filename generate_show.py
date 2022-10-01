@@ -58,6 +58,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
     beats = []
     total_frames = 0
     bpms = []
+    print_green("Started aubio loop fft samples for energy")
     while True:
         samples, read = src()
         is_beat = o(samples)

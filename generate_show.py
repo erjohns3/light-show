@@ -13,6 +13,7 @@ from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
 from numpy import vstack, zeros, hstack
 
+from multiprocessing import Queue, Process
 import pandas as pd 
 import aubio
 import numpy as np
@@ -39,7 +40,7 @@ def write_show_file_pretty(output_filepath, dict_to_dump):
         
         file.writelines(['effects = ' + shows_json_str])
 
-def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
+def get_src_bpm_offset(song_filepath, use_boundaries, queue=None, debug=True):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
@@ -120,9 +121,10 @@ def get_src_bpm_offset(song_filepath, use_boundaries, debug=True):
         boundary_beats = 'DISABLED'
     if debug:
         print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
-
-    
-    return src, total_frames, bpm_guess, delay, boundary_beats
+    if queue:
+        queue.put([total_frames / src.samplerate, bpm_guess, delay, boundary_beats])
+    else:
+        return total_frames / src.samplerate, bpm_guess, delay, boundary_beats
 
 
 def get_boundary_beats(energies, beat_length, delay, length_s):
@@ -216,7 +218,11 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, use_boundaries, debug=debug)
+    queue = Queue()
+    proc = Process(target=get_src_bpm_offset, args=(song_filepath, use_boundaries, queue,))
+    proc.start()
+    song_length, bpm_guess, delay, boundary_beats = queue.get()    # prints "[42, None, 'hello']"
+
     print_blue(f'autogen: time taken up to get_src_bpm_offset: {time.time() - start_time} seconds')
 
     relative_path = song_filepath
@@ -266,8 +272,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     ]
 
     # apply lights
-    length_s = total_frames / src.samplerate
-    total_beats = int((length_s / 60) * bpm_guess)
+    total_beats = int((song_length / 60) * bpm_guess)
     beat = 1    
     if simple: # Only RBBB timing
         while beat < total_beats:
@@ -331,7 +336,6 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     return the_show
 
-
 def get_effect_files_jsons():
     all_globals = globals()
     effects_config = {}
@@ -356,7 +360,7 @@ if __name__ == '__main__':
 
     guess_bpm_delay = {}
     for name, song_filepath in get_all_paths('songs', only_files=True):
-        src, guess_bpm, guess_delay = get_src_bpm_offset(song_filepath)        
+        length, guess_bpm, guess_delay = get_src_bpm_offset(song_filepath)        
         guess_bpm_delay[str(song_filepath)] = (guess_bpm, guess_delay)
 
     for song_filepath, (guess_bpm, guess_delay) in guess_bpm_delay.items():

@@ -199,6 +199,7 @@ async def init_dj_client(websocket, path):
 
 songs_downloaded_this_process = set()
 def download_song(url, uuid):
+    download_start_time = time.time() 
     import generate_show
 
     # time.sleep(20)
@@ -215,7 +216,7 @@ def download_song(url, uuid):
     if filepath is None:
         print_yellow('Couldnt download video, returning')
         return
-    print(f'finished downloading {url} to {filepath}')
+    print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
     new_effects = generate_show.generate_show(filepath, effects_config, overwrite=True, simple=False, debug=True)

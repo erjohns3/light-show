@@ -7,6 +7,7 @@ import os
 import importlib
 import sys
 import sound_helpers
+import time
 from collections import Counter
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
@@ -195,6 +196,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     return sorted(set(list(matches)))
 
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
+    start_time = time.time()
     use_boundaries = True and not simple
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
@@ -214,6 +216,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
     src, total_frames, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, use_boundaries, debug=debug)
+    print_blue(f'autogen: time taken up to get_src_bpm_offset: {time.time() - start_time} seconds')
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -324,6 +327,7 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
         return None
     print(f'writing "{show_name}" to {output_filepath}')
     write_show_file_pretty(output_filepath, the_show)
+    print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     return the_show
 
 

@@ -1,5 +1,7 @@
 # club time
 
+## notes for feature development
+* cubic bezier for custom curves
 
 ## example: goto for light show debugging on terminal (shelter)
 python server.py --local --keyboard --reload --show shelter

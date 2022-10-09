@@ -9,8 +9,12 @@ import asyncio
 import http.server
 import argparse
 import os
+import subprocess
 from concurrent.futures import ThreadPoolExecutor
+from wsgiref.validate import validator
 import yt_dlp
+import validators
+from urllib.parse import quote
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -72,19 +76,31 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
+broadcast_light = False 
+broadcast_song = False
+
+download_queue = []
+search_queue = []
+
 # pygame.init()
 pygame.mixer.init(frequency=48000)
 
 
 ########################################
 
-
+class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+    def end_headers(self):
+        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+        self.send_header("Pragma", "no-cache")
+        self.send_header("Expires", "0")
+        self.send_header('Access-Control-Allow-Origin', '*')
+        http.server.SimpleHTTPRequestHandler.end_headers(self)
+        
 PORT = 9555
-Handler = http.server.SimpleHTTPRequestHandler
 local_ip = socket.gethostbyname(socket.gethostname())
 
 def http_server():
-    httpd = http.server.ThreadingHTTPServer(('', PORT), Handler)
+    httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
     print(f'{bcolors.OKGREEN}Dj interface: http://{local_ip}:{PORT}/dj.html')
     print(f'Queue: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
     httpd.serve_forever()
@@ -93,7 +109,7 @@ def http_server():
 ########################################
 
 def add_effect_from_dj(msg):
-    global song_time, song_playing
+    global song_time, song_playing, broadcast_song
     effect_name = msg['effect']
     song_time = 0
     if has_song(effect_name):
@@ -112,7 +128,7 @@ def add_effect_from_dj(msg):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
+    global curr_bpm, time_start, beat_index, song_playing, song_time, broadcast_light, broadcast_song
     print('dj made connection to new client')
 
     message = {
@@ -146,9 +162,6 @@ async def init_dj_client(websocket, path):
         msg = json.loads(msg_string)
 
         if 'type' in msg:
-            light_lock.acquire()
-
-            broadcast_song = False
 
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg)
@@ -190,11 +203,7 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'inc_time':
                 time_start += 0.1
 
-            light_lock.release()
-
-            if broadcast_song:
-                await send_song_status()
-            await send_light_status() # we might want to lock this
+            broadcast_light = True
 
 
 songs_downloaded_this_process = set()
@@ -208,10 +217,9 @@ def download_song(url, uuid):
         print_yellow(f'user {uuid} entered a url with search_query in it, exiting')
         return None
 
-
     max_length_seconds = None
     if not is_admin(uuid):
-        max_length_seconds = 12 * 60
+        max_length_seconds = 15 * 60
     filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
@@ -238,33 +246,8 @@ def download_song(url, uuid):
             add_queue_balanced(name, uuid)
 
 
-
-downloading_thread = None
-downloading_youtube_queue = []
-async def check_downloading_thread():
-    global downloading_thread
-    processing_time_start = 0
-    time_to_sleep = 3.5
-    while True:
-        if downloading_thread is not None:
-            elapsed_time = time.time() - processing_time_start
-            if not downloading_thread.is_alive():
-                print_green(f'Downloading thread has finished in ~{elapsed_time:.2f} seconds, broadcasting the update to clients\n')
-                await send_effects_songs_queue()
-                downloading_thread = None
-            else:
-                print(f'{elapsed_time:.2f} seconds: Still downloading or generating show')
-        elif downloading_youtube_queue:
-            url, uuid = downloading_youtube_queue.pop(0)
-            print_blue(f'Starting download of {url} from client {uuid}')
-            processing_time_start = time.time()
-            downloading_thread = threading.Thread(target=download_song, args=(url, uuid))
-            downloading_thread.start()
-        await asyncio.sleep(time_to_sleep)
-
-
 async def init_queue_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time, downloading_thread
+    global curr_bpm, time_start, beat_index, song_playing, song_time, broadcast_light, broadcast_song
     print('queue made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
@@ -304,9 +287,6 @@ async def init_queue_client(websocket, path):
 
         print(msg)
         if 'type' in msg:
-            song_lock.acquire()
-
-            broadcast_light = False
 
             if msg['type'] == 'add_queue_back' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -333,7 +313,7 @@ async def init_queue_client(websocket, path):
                     add_effect(effect_name)
                     broadcast_light = True
 
-            if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
+            elif msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
                 add_queue_balanced(msg['effect'], msg['uuid'])
 
             elif msg['type'] == 'remove_queue' and 'uuid' in msg:
@@ -361,7 +341,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'play_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
                 print(f'----UUID: {uuid}')
-                if uuid in users and users[uuid]['admin']:
+                if is_admin(uuid):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
                         play_song(effect_name)
@@ -372,7 +352,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
                 print(f'----UUID: {uuid}')
-                if uuid in users and users[uuid]['admin']:
+                if is_admin(uuid):
                     if len(song_queue) > 0 and song_playing:
                         effect_name = song_queue[0][0]
                         song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
@@ -396,19 +376,82 @@ async def init_queue_client(websocket, path):
                 uuid = msg['uuid']
                 url = msg.get('url', None)
                 print_blue(f'Adding "{url}" to youtube downloading queue')
-                downloading_youtube_queue.append([url, uuid])
+                download_queue.append([url, uuid])
+                message = {
+                    'notification': 'Download Started...'
+                }
+                dump = json.dumps(message)
+                try:
+                    await websocket.send(dump)
+                except:
+                    print('socket send failed', flush=True)
 
-            song_lock.release()
+            elif msg['type'] == 'search_song' and 'uuid' in msg:
+                uuid = msg['uuid']
+                search = msg.get('search', None)
+                search_queue.append([search, websocket, False])
+            
+            broadcast_song = True
 
-            if broadcast_light:
-                await send_light_status()
-            await send_song_status() # we might want to lock this
+
+def search_youtube():
+    search = quote(search_queue[0][0])
+    print(f'Query: {search}')
+    url = 'https://www.youtube.com/results?search_query=' + search
+    print(f'URL: {url}')
+    curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
+    out = curl.stdout.read().decode("utf-8") 
+    start = out.find("var ytInitialData = ") + 20
+    end = out.find(";</script>", start)
+    videos = []
+    print(f'start: {start}, end {end}')
+    if start >= 0 and end >= 0:
+        from os import path
+        loc = pathlib.Path(__file__).parent.absolute()
+        drink_io_folder = str(loc)
+        with open(path.join(drink_io_folder, 'parse.html'), 'w') as f:
+            f.write(out[start:end])
+        with open(path.join(drink_io_folder, 'full.html'), 'w') as f:
+            f.write(out)
+
+        list1 = []
+        try:
+            dict = json.loads(out[start:end])
+            list1 = dict["contents"]["twoColumnSearchResultsRenderer"]["primaryContents"]["sectionListRenderer"]["contents"]
+        except:
+            print(f'loading json failed', flush=True)
+        for item1 in list1:
+            try:
+                list2 = item1["itemSectionRenderer"]["contents"]
+                for item2 in list2:
+                    try:
+                        info = item2['videoRenderer']
+                        print(info['title']['runs'][0]['text'])
+                        videos.append({
+                            'title': info['title']['runs'][0]['text'],
+                            'channel': info["ownerText"]['runs'][0]['text'],
+                            'thumbnail': info['thumbnail']['thumbnails'][0]['url'],
+                            'length': info['lengthText']['simpleText'],
+                            'views': info['viewCountText']['simpleText'],
+                            'id': info['videoId']
+                        })
+                    except:
+                        print(f'parsing 4 failed', flush=True)
+            except:
+                    print(f'parsing 3 failed', flush=True)
+    else:
+        print('--- WARNING: JSON NOT FOUND ---')
+
+    message = {
+        'search': videos
+    }
+    search_queue[0][2] = json.dumps(message)
 
 
 def add_queue_balanced(effect_name, uuid):
-    global song_playing, song_time
+    global song_playing, song_time, broadcast_light, broadcast_song
     
-    if is_admin(uuid):
+    if False: # is_admin(uuid):
         index = 1
         while index < len(song_queue):
             if song_queue[index][2] != uuid:
@@ -419,14 +462,14 @@ def add_queue_balanced(effect_name, uuid):
         count = 0
         user_counts = {}
         for entry in song_queue:
-            user_counts[song_queue[index][2]] = 0
+            user_counts[entry[2]] = 0
             if entry[2] == uuid:
                 count += 1
         while index < len(song_queue):
-            # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL
-            if song_queue[index][2] not in user_counts:
-                print('saving a crash')
-                user_counts[song_queue[index][2]] = 0
+            # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL. Should be fixed now
+            # if song_queue[index][2] not in user_counts:
+            #     print('saving a crash')
+            #     user_counts[song_queue[index][2]] = 0
             if user_counts[song_queue[index][2]] > count:
                 break
             user_counts[song_queue[index][2]] += 1
@@ -439,6 +482,7 @@ def add_queue_balanced(effect_name, uuid):
         song_playing = True
         add_effect(effect_name)
         broadcast_light = True
+        broadcast_song = True
 
 
 def is_admin(uuid):
@@ -457,27 +501,19 @@ async def broadcast(sockets, msg):
         try:
             await socket.send(msg)
         except:
-            print('socket send failed', flush=True)
+            print(f'socket send failed. socket: {socket}', flush=True)
 
-async def send_effects_songs_queue():
+async def send_config():
     message = {
-        'effects': effects_config,
+        'effects': effects_config_client,
         'songs': songs_config,
-        'queue': song_queue,
     }
     await broadcast(light_sockets, json.dumps(message))
     await broadcast(song_sockets, json.dumps(message))
 
-async def send_light_status():
-    message = {
-        'status': {
-            'effects': curr_effects,
-            'rate': curr_bpm
-        }
-    }
-    await broadcast(light_sockets, json.dumps(message))
 
 async def send_light_status():
+    global broadcast_light
     message = {
         'status': {
             'effects': curr_effects,
@@ -485,9 +521,11 @@ async def send_light_status():
         }
     }
     await broadcast(light_sockets, json.dumps(message))
+    broadcast_light = False
 
 
 async def send_song_status():
+    global broadcast_song
     message = {
         'queue': song_queue,
         'status': {
@@ -496,7 +534,8 @@ async def send_song_status():
         }
     }
     await broadcast(song_sockets, json.dumps(message))
-    
+    broadcast_song = False
+
 
 ####################################
 
@@ -683,16 +722,16 @@ async def terminal(level, i):
 ####################################
 
 async def light():
-    global beat_index, song_playing, song_time
+    global beat_index, song_playing, song_time, broadcast_song, broadcast_light
+
+    download_thread = None
+    search_thread = None
 
     while True:
-        light_lock.acquire()
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
-        beat_index = int(time_diff * rate)
-        broadcast_light = False
-        broadcast_song = False        
+        beat_index = int(time_diff * rate)       
             
         i = 0
         while i < len(curr_effects):
@@ -732,6 +771,26 @@ async def light():
             else:
                 pca.channels[i].duty_cycle = level_scaled
 
+
+        if download_thread is not None:
+            if not download_thread.is_alive():
+                await send_config()
+                download_thread = None
+        elif download_queue:
+            url, uuid = download_queue.pop(0)
+            print_blue(f'Starting download of {url} from client {uuid}')
+            download_thread = threading.Thread(target=download_song, args=(url, uuid))
+            download_thread.start()
+
+        if search_thread is not None:
+            if not search_thread.is_alive():
+                await broadcast([search_queue[0][1]], search_queue[0][2])
+                search_queue.pop(0)
+                search_thread = None
+        elif len(search_queue) > 0:
+            search_thread = threading.Thread(target=search_youtube, args=())
+            search_thread.start()
+
         if broadcast_light:
             await send_light_status()
         if broadcast_song:
@@ -750,7 +809,6 @@ async def light():
         #     print(beat_index)
         #     avg += time_diff
 
-        light_lock.release()
         await asyncio.sleep(time_delay)
 
 #################################################
@@ -924,6 +982,7 @@ def update_config_and_lut_from_disk():
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
+
 
 def set_effect_defaults(local_effects_config):
     for effect_name, effect in local_effects_config.items():
@@ -1322,8 +1381,6 @@ if __name__ == '__main__':
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
         print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
-        # for downloading youtube videos and creating shows
-        asyncio.create_task(check_downloading_thread())
         if args.show:
             args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
             print('Starting show from CLI')

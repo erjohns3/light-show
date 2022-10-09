@@ -11,6 +11,14 @@
 
 <body tabindex="-1">
 
+    <template id="template-search-item">
+        <img class="search-thumbnail">
+        <div class="search-title"></div>
+        <div class="search-channel"></div>
+        <div class="search-length"></div>
+        <div class="search-views"></div>
+    </template>
+
     <template id="template-available-item">
         <div class="item-name available-item-name"></div>
         <div class="item-artist available-item-artist"></div>
@@ -35,9 +43,13 @@
     <div id="page-view">
         <div id="available-page" class="page">          
             <div id="available-list" class="list"></div>
-            <div id="url-wrapper">
-                <input type="text" id="url-textbox" placeholder="Enter Youtube Song URL">
-                <div id="url-submit" class="button">Submit</div>
+            <div id="search-wrapper">
+                <input type="text" id="search-textbox" placeholder="Search Youtube">
+                <div id="search-submit" class="button">Submit</div>
+                <div id="search-close" class="button">X</div>
+                <div id="search-list"></div>
+                <div id="search-loading"></div>
+                <div id="search-message">No Videos</div>
             </div>
         </div>
         <div id="queue-page" class="page">
@@ -45,11 +57,14 @@
         </div>
     </div>
 
+    <div id="notification"></div>
+
     <div id="status">
         <div id="curr-time"></div>
         <div id="end-time"></div>
-        <div id="seek-time"></div>
-        <div id="slide-time"></div>
+        <div id="seek-bar"></div>
+        <input id="seek-input" type="range" min="0" max="1" step="any" defaultValue="0.5">
+        <div id="seek-progress"></div>
         <div id="play-control"></div>
     </div>
 
@@ -188,7 +203,9 @@
                         playButton.classList.remove("pause");
                     }
                 }
+                barAnimate = true;
                 currTime = msg.status.time;
+                setTime();
                 let key = false;
                 if(queueConfig.length > 0){
                     key = queueConfig[0].join('-');
@@ -201,26 +218,86 @@
                     queueKey = key;
                     currTimeElem.textContent = '';
                     endTimeElem.textContent = '';
-                    slideTimeElem.style.transform = 'scaleX(0)';
-                    slideTimeElem.style.opacity = 0;
+                    setSeek(0, false);
                 }else if(queueKey != key){
                     if(queueKey && queue[queueKey]){
                         queue[queueKey].clearPlay();
                     }
                     queueKey = key;
                     queue[queueKey].setPlay();
-                    endTime = queue[queueKey].duration;
-                    currTimeElem.textContent = '0:00';
-                    endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');
-                    slideTimeElem.style.transform = 'scaleX(0)';
-                    slideTimeElem.style.opacity = 1;
+                    setTime();
+                }   
+            }
+            if(msg.search){
+                let videos = msg.search;
+                console.log(videos.length);
+                searchLoading.style.visibility = 'hidden';
+                if(videos.length == 0){
+                    searchMessage.style.visibility = "visible";
+                }else{
+                    for(let i=0; i<Math.min(videos.length, searchCount); i++){
+                        searches[i].set(videos[i]);
+                    }
                 }
-                
+            }
+            if(msg.notification){
+                console.log(msg.notification);
+                notification.textContent = msg.notification;
+                notification.style.transform = "translateY(-11vh)";
+                notificationTimeout = setTimeout(()=>{
+                    notification.style.transform = "translateY(0)";
+                }, 2000);
             }
         }
     }
 
     /////////////////////////////////////////////////////////////////////
+
+    class SearchItem extends HTMLElement {
+        constructor() {
+            super();
+            
+            this.appendChild(templateSearchItem.content.cloneNode(true));
+
+            this.videoId = "";
+
+            this.thumbnailElem = this.querySelector(".search-thumbnail");
+            this.titleElem = this.querySelector(".search-title");
+            this.channelElem = this.querySelector(".search-channel");
+            this.lengthElem = this.querySelector(".search-length");
+            this.viewsElem = this.querySelector(".search-views");
+
+            this.onclick = (event)=>{
+                event.preventDefault();
+            
+                let msg = {
+                    uuid: uuid,
+                    type: "download_song",
+                    url: "https://www.youtube.com/watch?v=" + this.videoId
+                };
+
+                socket.send(JSON.stringify(msg));
+                console.log(msg);
+
+                closeSearch()
+            };
+        }
+
+        set(video){
+            this.videoId = video.id;
+            this.thumbnailElem.src = video.thumbnail;
+            this.titleElem.textContent = video.title;
+            this.channelElem.textContent = video.channel;
+            this.lengthElem.textContent = video.length;
+            this.viewsElem.textContent = video.views;
+            this.style.display = 'block';
+        }
+
+        clear(){
+            this.style.display = 'none';
+        }
+    }
+    customElements.define('search-item', SearchItem);
 
     class AvailableItem extends HTMLElement {
         constructor(effect) {
@@ -266,6 +343,18 @@
     }
     customElements.define('available-item', AvailableItem);
 
+    function closeSearch(){
+        for(let i=0; i<searchCount; i++){
+            searches[i].clear()
+        }
+        
+        searchTextbox.value = "";
+        searchWrapper.style.height = '8%';
+        searchSubmit.style.transform = 'translateX(0)';
+        searchClose.style.transform = 'translateX(0) scaleX(1.25)';
+        searchLoading.style.visibility = 'hidden';
+        searchMessage.style.visibility = 'hidden';
+    }
 
     class QueueItem extends HTMLElement {
         constructor() {
@@ -312,6 +401,7 @@
             this.uuid = effect_uuid;
             this.key = key;
             this.used = true;
+            console.log(this.effect);
             this.song = effectsConfig[this.effect].song_path;
             this.name.textContent = songsConfig[this.song].name;
             this.artist.textContent = songsConfig[this.song].artist;
@@ -437,6 +527,8 @@
 
     var available = {};
     var queue = {};
+    var searches = [];
+    var searchCount = 18;
 
     var queueArray = [];
     var queueKey = false;
@@ -454,30 +546,88 @@
     var availablePage = document.getElementById("available-page");
     var queuePage = document.getElementById("queue-page");
 
-    var urlTextbox = document.getElementById("url-textbox");
-    var urlSubmit = document.getElementById("url-submit");
+    var searchWrapper = document.getElementById("search-wrapper");
+    var searchTextbox = document.getElementById("search-textbox");
+    var searchSubmit = document.getElementById("search-submit");
+    var searchClose = document.getElementById("search-close");
+    var searchLoading = document.getElementById("search-loading");
+    var searchMessage = document.getElementById("search-message");
 
-    urlSubmit.onclick = function(){
-        let msg = {
-            uuid: uuid,
-            type: "download_song",
-            url: urlTextbox.value
-        };
+    var notification = document.getElementById("notification");
+    var notificationTimeout = null;
+
+    var thumbAnimate = true;
+    var barAnimate = true;
+
+    searchSubmit.onclick = function(){
+        let msg;
+        if(isValidHttpUrl(searchTextbox.value)){
+            msg = {
+                uuid: uuid,
+                type: "download_song",
+                url: searchTextbox.value
+            };
+            searchTextbox.value = "";
+        }else{
+            msg = {
+                uuid: uuid,
+                type: "search_song",
+                search: searchTextbox.value
+            };
+            for(let i=0; i<searchCount; i++){
+                searches[i].clear()
+            }
+            searchWrapper.style.height = '80vh';
+            searchSubmit.style.transform = 'translateX(-15vw)';
+            searchClose.style.transform = 'translateX(-15vw) scaleX(1.25)';
+            searchLoading.style.visibility = 'visible';
+            searchMessage.style.visibility = 'hidden';
+        }
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        urlTextbox.value = "";
     }
 
+    searchClose.onclick = function(){
+        closeSearch()
+    }
+
+    var searchList = document.getElementById("search-list");
     var availableList = document.getElementById("available-list");
     var queueList = document.getElementById("queue-list");
 
+    var templateSearchItem = document.getElementById("template-search-item");
     var templateAvailableItem = document.getElementById("template-available-item");
     var templateQueueItem = document.getElementById("template-queue-item");
 
     var currTimeElem = document.getElementById("curr-time");
     var endTimeElem = document.getElementById("end-time");
-    var seekTimeElem = document.getElementById("seek-time");
-    var slideTimeElem = document.getElementById("slide-time");
+    var seekProgressElem = document.getElementById("seek-progress");
+    var seekInputElem = document.getElementById("seek-input");
+
+    seekInputElem.oninput = ()=>{
+        
+    };
+    seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
+    seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
+    seekInputElem.addEventListener('touchcancel', sliderStop, { passive: true });
+
+    function sliderStart(){
+        thumbAnimate = false;
+    }
+
+    function sliderStop(){
+        barAnimate = false;
+        thumbAnimate = true;
+        endTime = queue[queueKey].duration;
+        newTime = endTime * seekInputElem.value;
+        msg = {
+            uuid: uuid,
+            type: "set_time",
+            time: newTime
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+    }
 
     var playButton = document.getElementById("play-control");
     playButton.onclick = function(){
@@ -494,6 +644,12 @@
         let item = new QueueItem();
         queueArray.push(item);
         queueList.append(item);
+    }
+
+    for(let i=0; i<searchCount; i++){
+        let video = new SearchItem();
+        searches.push(video);
+        searchList.append(video);
     }
 
     /////////////////////////////////////////////////////////////
@@ -532,15 +688,37 @@
     //////////////////////////////////////////////////////////////
 
     setInterval(()=>{
-        if(queuePlaying){
+        if(queuePlaying && barAnimate){
             currTime += 1;
+            setTime();
+        }
+    }, 1000);
+
+    function setTime(){
+        if(queue[queueKey]){
             endTime = queue[queueKey].duration;
             currTimeElem.textContent = Math.floor(currTime/60)+":"+Math.floor(currTime%60).toString().padStart(2, '0');
             endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');
-            slideTimeElem.style.transform = 'scaleX(' + (currTime / endTime) + ')';
-            slideTimeElem.style.opacity = 1;
+            setSeek(currTime / endTime, true);
         }
-    }, 1000);
+    }
+
+    function setSeek(progress, visible){
+        seekProgressElem.style.transform = 'scaleX(' + progress + ')';
+        if(visible){
+            seekProgressElem.style.opacity = 1;
+        }else{
+            seekProgressElem.style.opacity = 0;
+        }
+        if(thumbAnimate){
+            seekInputElem.value = progress;
+            if(visible){
+                seekInputElem.style.visibility = "visible";
+            }else{
+                seekInputElem.style.visibility = "hidden";
+            }
+        }
+    }
 
     socketInit();
 
@@ -549,6 +727,17 @@
         event.stopPropagation();
         return false;
     };
+
+    function isValidHttpUrl(x) {
+        let url;
+        try {
+            url = new URL(x);
+        } catch (_) {
+            return false;  
+        }
+        return url.protocol === "http:" || url.protocol === "https:";
+    }
+    
 
 </script>
 
@@ -575,6 +764,7 @@
         height: calc(var(--vh) * 100);
         color-scheme: dark;
         user-select: none;
+        touch-action: manipulation;
         margin: 0;
         padding: 0;
         font-family: sans-serif;
@@ -584,7 +774,7 @@
     }
 
     #header{
-        height: 8%;
+        height: 8vh;
         width: 100%;
         position: fixed;
         top: 0;
@@ -620,7 +810,7 @@
     }
 
     .tab-selected{
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
         opacity: 1;
     }
 
@@ -660,55 +850,199 @@
         scroll-snap-stop: always;
     }
 
-    #url-wrapper {
+    #search-wrapper {
         position: absolute;
-        bottom: 2%;
-        left: 2%;
-        width: 96%;
-        height: 8%;
+        top: 1vh;
+        left: 1vh;
+        width: calc(100% - 2vh);
+        height: 6vh;
         border: solid 0.1vh hsl(200deg 100% 50%);
         color: hsl(200deg 100% 50%);
         box-shadow: 0 0 1vh, inset 0 0 1vh;
         border-radius: 1vh;
         box-sizing: border-box;
+        background-color: black;
+        transition: height 150ms;
+        overflow: hidden;
     }
 
-    #url-submit {
+    #search-submit {
         position: absolute;
         width: 9vh;
-        height: 100%;
-        top: 0%;
-        right: 3%;
+        height: 6vh;
+        top: 0;
+        right: 3vw;
         font-size: 2.25vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
         color: hsl(170deg 100% 50%);
+        transition: transform 150ms;
     }
 
-    #url-textbox {
+    #search-close {
         position: absolute;
-        width: 75%;
-        top: 25%;
+        width: 6vh;
+        height: 6vh;
+        top: 0.25vh;
+        right: -13vw;
+        font-size: 5vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-shadow: 0 0 0.5em;
+        color: hsl(340deg 100% 50%);
+        transition: transform 150ms;
+    }
+
+    #search-textbox {
+        position: absolute;
+        width: 60%;
+        top: 0;
+        height: 6vh;
         left: 4%;
         padding: 1vh;
         font-size: 2.25vh;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
         color: hsl(270deg 100% 50%);
         padding: 0;
         margin: 0;
-        background-color: black;
+        background-color: transparent;
         border: none;
         outline: none;
     }
 
-    #url-textbox::placeholder {
+    #search-textbox::placeholder {
         color: hsl(270deg 100% 50%);
         opacity: 0.8;
+    }
+
+    #search-message {
+        visibility: hidden;
+        position: absolute;
+        width: 50%;
+        height: 4vh;
+        top: 38vh;
+        left: 25%;
+        font-size: 3vh;
+        text-align: center;
+        text-shadow: 0 0 0.5em;
+        color: hsl(340deg 100% 50%);
+    }
+
+    #search-loading {
+        visibility: hidden;
+        position: absolute;
+        width: 16vh;
+        height: 16vh;
+        top: 32vh;
+        left: calc(50% - 8vh);
+        color: hsl(170deg 100% 50%);
+        transition: transform 150ms;
+        border-radius: 50%;
+        border-style: dotted;
+        border-width: 2vh;
+        box-sizing: border-box;
+        animation-name: spin;
+        animation-duration: 4s;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+
+    @keyframes spin {
+        from {transform: rotateZ(0deg)}
+        to {transform: rotateZ(360deg)}
+    }
+
+    #search-list{
+        position: absolute;
+        top: 7vh;
+        width: calc(100% - 4vh);
+        left: 2vh;
+        overflow-y: scroll;
+        overflow-x: hidden;
+        height: calc(100% - 7vh);
+    }
+
+    search-item{
+        display: none;
+        height: 14vh;
+        position: relative;
+    }
+
+    search-item:active{
+        transform: scale(0.97);
+        opacity: 0.5;
+    }
+
+    .search-thumbnail{
+        height: 12vh;
+        width: 12vh;
+        position: absolute;
+        top: 1vh;
+        left: 0vh;
+        object-fit: cover;
+        border-radius: 1vh;
+    }
+
+    .search-title{
+        color: white;
+        position: absolute;
+        top: 2vh;
+        left: 14vh;
+        font-size: 2vh;
+        overflow: hidden;
+        height: 3vh;
+        line-height: 3vh;
+        white-space: nowrap;
+        color: hsl(200deg 100% 50%);
+        text-shadow: 0 0 0.5em;
+    }
+
+    .search-channel{
+        color: white;
+        position: absolute;
+        top: 5vh;
+        left: 14vh;
+        font-size: 2vh;
+        overflow: hidden;
+        height: 3vh;
+        line-height: 3vh;
+        white-space: nowrap;
+        color: hsl(170deg 100% 50%);
+        text-shadow: 0 0 0.5em;
+    }
+
+    .search-length{
+        color: white;
+        position: absolute;
+        bottom: 2vh;
+        right: 0vh;
+        font-size: 2vh;
+        overflow: hidden;
+        height: 3vh;
+        line-height: 3vh;
+        white-space: nowrap;
+        color: hsl(270deg 100% 50%);
+        text-shadow: 0 0 0.5em;
+    }
+
+    .search-views{
+        color: white;
+        position: absolute;
+        bottom: 2vh;
+        left: 14vh;
+        font-size: 2vh;
+        overflow: hidden;
+        height: 3vh;
+        line-height: 3vh;
+        white-space: nowrap;
+        color: hsl(320deg 100% 50%);
+        text-shadow: 0 0 0.5em;
     }
 
     .list{
@@ -736,7 +1070,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
     }
     
     .item-artist {
@@ -749,7 +1083,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
     }
 
     .item-back{
@@ -762,20 +1096,21 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
     }
 
     .item-remove{
         position: absolute;
-        width: 9vh;
+        width: 5vh;
         height: 100%;
         top: 0%;
-        right: 0%;
+        right: 2vh;
         font-size: 5vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
+        transform: scaleX(1.25);
     }
 
     #available-page{
@@ -783,7 +1118,9 @@
     }
 
     #available-list{
+        position: absolute;
         height: 90%;
+        top: 10%;
     }
 
     available-item{
@@ -833,14 +1170,36 @@
         color: hsl(340deg 100% 50%);
     }
 
+    #notification {
+        transform: translateY(0);
+        bottom: 0;
+        left: 1vh;
+        width: calc(100% - 2vh);
+        height: 6vh;
+        border: solid 0.1vh hsl(320deg 100% 50%);
+        color: hsl(320deg 100% 50%);
+        box-shadow: 0 0 1vh, inset 0 0 1vh;
+        border-radius: 1vh;
+        font-size: 2.25vh;
+        line-height: 6vh;
+        text-align: center;
+        box-sizing: border-box;
+        background-color: black;
+        transition: transform 150ms;
+        overflow: hidden;
+        position: fixed;
+        z-index: 5;
+    }
+
     #status {
         background-color: hsl(0, 0%, 0%);
         text-align: center;
         font-size: 3vh;
-        height: 10%;
+        height: 10vh;
         width: 100%;
         position: fixed;
         bottom: 0;
+        z-index: 10;
     }
 
     #curr-time{
@@ -857,7 +1216,7 @@
         font-size: 2vh;
     }
 
-    #seek-time{
+    #seek-bar{
         top: 0;
         left: 0;
         width: 100%;
@@ -866,7 +1225,7 @@
         position: absolute;
     }
 
-    #slide-time{
+    #seek-progress{
         opacity: 0;
         top: 0;
         left: 0;
@@ -877,12 +1236,54 @@
         position: absolute;
         transform-origin: 0% 0%;
         transform: scaleX(0);
-        transition: transform 1000ms linear;
+        /* transition: transform 1000ms linear; */
         will-change: transform, opacity;
     }
 
+    #seek-input {
+        visibility: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        height: 0.5vh;
+        appearance: none;
+        background-color: transparent
+    }
+
+    #seek-input::-webkit-slider-thumb{
+        -webkit-appearance: none;
+        width: 2vh;
+        height: 2vh;
+        border-radius: 100%;
+        background-color: hsl(120, 100%, 50%);
+        box-shadow: 0 0 1vh hsl(120, 100%, 50%);
+    }
+
+    #seek-input::-moz-range-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 4vh;
+        height: 4vh;
+        background: red;
+        border-radius: 2vh;
+        cursor: pointer;
+        border: none;
+    }
+
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
     #play-control{
-        text-shadow: 0 0 1vh;
+        text-shadow: 0 0 0.5em;
         top: calc(50% + 0.5vh);
         left: 50%;
         position: absolute;
@@ -899,7 +1300,7 @@
         width: 2vh;
         height: 6vh;
         border-width: 0vh 2vh 0vh 2vh;
-        border-color: transparent hsl(340, 100%, 50%); transparent hsl(340, 100%, 50%);
+        border-color: transparent hsl(340, 100%, 50%) transparent hsl(340, 100%, 50%);
     }
 
     .button:active{

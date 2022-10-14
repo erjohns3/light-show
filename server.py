@@ -11,11 +11,11 @@ import argparse
 import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from wsgiref.validate import validator
-import yt_dlp
-import validators
 from urllib.parse import quote
 
+import yt_dlp
+from wsgiref.validate import validator
+import validators
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets
@@ -26,7 +26,6 @@ import numpy
 from helpers import *
 import sound_helpers
 import youtube_helpers
-
 from users import users
 
 parser = argparse.ArgumentParser(description = '')

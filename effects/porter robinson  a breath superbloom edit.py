@@ -61,7 +61,7 @@ effects = {
     'porter robinson  a breath superbloom edit show': {
         'bpm': 126,
         'song_path': 'songs/porter robinson  a breath superbloom edit.ogg',
-        'delay_lights': 0,
+        'delay_lights': 0.12,
         'skip_song': 0.0,
         'beats': [
             [1, 'porter flubs phrase', 128],

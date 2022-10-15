@@ -1299,8 +1299,6 @@ if __name__ == '__main__':
                 FilesystemHandler.last_updated = time.time()            
                 restart_show(True, -args.jump_back)
 
-
-
         observer = Observer()
         observer.schedule(FilesystemHandler(), python_file_directory, recursive = True)
         observer.start()
@@ -1310,11 +1308,12 @@ if __name__ == '__main__':
     if args.keyboard:
         from pynput.keyboard import Key, Listener, KeyCode
 
-        _return_code, stdout, _stderr = run_command_blocking([
-            'xdotool',
-            'getactivewindow',
-        ])
-        process_window_id = int(stdout.strip())
+        if is_linux():
+            _return_code, stdout, _stderr = run_command_blocking([
+                'xdotool',
+                'getactivewindow',
+            ])
+            process_window_id = int(stdout.strip())
 
         skip_time = 5
         keyboard_dict = {

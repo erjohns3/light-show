@@ -6,6 +6,5 @@ watchdog
 yt-dlp
 paramiko
 scp
-validators
 # git+https://github.com/aubio/aubio.git
 # git+https://github.com/urinieto/msaf.git

@@ -12,15 +12,13 @@ import os
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
+from operator import add
 
 import yt_dlp
-from wsgiref.validate import validator
-import validators
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets
 from tinytag import TinyTag
-from operator import add
 import numpy
 
 from helpers import *

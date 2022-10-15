@@ -24,6 +24,8 @@ import sound_helpers
 import youtube_helpers
 from users import users
 
+print_blue('Done importing')
+
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')

@@ -1038,6 +1038,7 @@ def get_effect_hash(effect_name, effect):
 
 lut_cache_dir = python_file_directory.joinpath('lut_cache')
 def cache_assign_dirty(local_effects_config):
+    lmao = 0
     if not os.path.exists(lut_cache_dir):
         print(f'making directory {lut_cache_dir}')
         os.mkdir(lut_cache_dir)
@@ -1048,7 +1049,9 @@ def cache_assign_dirty(local_effects_config):
         effect['cache_dirty'] = True
         if os.path.exists(effect_cache_filepath):
             with open(effect_cache_filepath, 'r') as f:
+                ok = time.time()
                 effect_cache = json.loads(f.read())
+                lmao += time.time() - ok
                 if get_effect_hash(effect_name, effect) == effect_cache['hash']:
                     effect['cache_dirty'] = False
                     effect['cache_lut'] = effect_cache['cache_lut']
@@ -1057,6 +1060,8 @@ def cache_assign_dirty(local_effects_config):
     
     for effect_name, effect in local_effects_config.items():
         dfs_dirty_cache(effect_name)
+
+    print('timing', lmao)
 
 cache_dfs_seen = {}
 def dfs_dirty_cache(effect_name):

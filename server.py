@@ -10,9 +10,7 @@ import http.server
 import argparse
 import os
 import subprocess
-from concurrent.futures import ThreadPoolExecutor
 from urllib.parse import quote
-from operator import add
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame

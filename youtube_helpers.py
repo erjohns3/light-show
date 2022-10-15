@@ -6,7 +6,6 @@ import argparse
 import yt_dlp
 
 from helpers import *
-import generate_show
 
 
 def scp_to_doorbell(local_filepath, remote_folder):
@@ -99,6 +98,7 @@ if __name__ == '__main__':
         exit()
 
     if args.gen_show:
+        import generate_show
         print_blue('Generating show file for the downloaded file')
         relative_downloaded_filepath = downloaded_filepath.relative_to(python_file_directory)
         output_filepath = python_file_directory.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')

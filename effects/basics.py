@@ -166,6 +166,27 @@ effects = {
             [1, [100, 0, 0, 0, 0, 0, 0, 0, 0, 0], 1],
         ],
     },
+    "Red back sat": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 50, 30, 30, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Red back": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 100, 0, 0, 0, 0], 1],
+        ],
+    },
+    "Red bottom sat": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 60, 20, 20, 0], 1],
+        ],
+    },
     "Red bottom": {
         "length": 1,
         "profiles": ["Colors"],
@@ -199,6 +220,20 @@ effects = {
         "profiles": ["Colors"],
         "beats": [
             [1, [0, 0, 0, 0, 100, 0, 0], 1],
+        ],
+    },
+    "Green red bottom": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 100, 65, 0, 0], 1],
+        ],
+    },
+    "Seafoam bottom": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 0, 0, 0, 100, 50, 0], 1],
         ],
     },
     "Blue top": {

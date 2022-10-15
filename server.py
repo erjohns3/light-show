@@ -756,7 +756,10 @@ async def light():
 
             level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
             level_between_0_and_1 = level_bounded / 0xFFFF
+            
+            # gamma curve
             level_scaled = round(pow(level_between_0_and_1, 2.2) * 0xFFFF)
+            # level_scaled = round(level_bounded)
 
             if args.local:
                 await terminal(level_bounded, i)

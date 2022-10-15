@@ -47,15 +47,15 @@ effects = {
     'porter piano melody': {
         'length': 32,
         'beats': [
-            [1, 'Red bottom', 7, 1, 0],
-            [9, 'Green bottom', 4, 1, 0],
-            [13, 'Green bottom', 4, 1, 0],
-            [15, 'Green bottom', 2, 1, 0],
-            [17, 'Blue bottom', 4, 1, 0],
-            [21, 'Green bottom', 4, 1, 0],
-            [25, 'Green bottom', 4, 1, 0],
-            [29, 'Green bottom', 2, 1, 0],
-            [31, 'Yellow bottom', 2, 1, 0],
+            [1, 'Seafoam bottom', 7, 1, 0],
+            [9, 'Green red bottom', 4, 1, 0],
+            [13, 'Green red bottom', 4, 1, 0],
+            [15, 'Green red bottom', 2, 1, 0],
+            [17, 'Green red bottom', 4, 1, 0],
+            [21, 'Seafoam bottom', 4, 1, 0],
+            [25, 'Green red bottom', 4, 1, 0],
+            [29, 'Green red bottom', 2, 1, 0],
+            [31, 'Green red bottom', 2, 1, 0],
         ],
     },
     'porter robinson  a breath superbloom edit show': {
@@ -65,7 +65,7 @@ effects = {
         'skip_song': 0.0,
         'beats': [
             [1, 'porter flubs phrase', 128],
-            [17, 'porter piano melody', 64],
+            [17, 'porter piano melody', 128],
             [81, 'Red top', 1],
             # [120, 'Red top', 1], bg melody
             [145, 'Red top', 1], # kicks

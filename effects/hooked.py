@@ -134,6 +134,7 @@ effects = {
     },
     "hooked show": {
         "beats": [
+            # Beat(8, "hooked scream fade", len=2, inten=(.4, .2), rot=90),
             [8, "hooked scream fade", 2, 0.4, 0.2],
             [9, "hooked bottom kick intro", 12, .1, .6],
             [10, "hooked scream fade", 6, 0.2, 0.1],

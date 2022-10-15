@@ -188,7 +188,6 @@ effects = {
 # BPM: 120, Beat: 448.9, Pygame pos: 223.9,
 # Seconds: 223.9, 100% lights
 
-
             [305, "everything kick line", 16, 0, 1],
             [321, "everything kick line 2", 128],
             [321, "everything melody glow bottom", 128, .7, .7],

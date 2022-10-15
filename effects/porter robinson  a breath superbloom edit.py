@@ -1,5 +1,4 @@
 effects = {
-
     'porter flubs complicated': {
         'length': 2,
         'beats': [

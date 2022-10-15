@@ -206,7 +206,20 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     return sorted(set(list(matches)))
 
 
-def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
+def compile_effect_color(channel_lut, effect_name, rotate=None):
+    import server
+    directory_for_compiled_colors = python_file_directory.joinpath('effects').joinpath('colored_effects')
+    if not os.path.exists(directory_for_compiled_colors):
+        print(f'Creating {directory_for_compiled_colors} directory')
+        os.mkdir(directory_for_compiled_colors)
+    
+    print(list(server.channel_lut.keys()))
+    server.channel_lut[effect_name]
+    # server.compile_lut(effect_name)
+
+
+
+def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True):
     start_time = time.time()
     use_boundaries = True and not simple
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
@@ -306,7 +319,11 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
                         candidates = effect_types_to_name[effect_type]
                         if len(candidates) > 1:
                             candidates = [x for x in candidates if x not in prev_effects]
+
                         effect_name = random.choice(effect_types_to_name[effect_type])
+
+                        new_effect_name = compile_effect_color(channel_lut, effect_name, rotate=90)
+
                         new_prev_effects.append(effect_name)
                         show['beats'].append([beat, effect_name, length])
                         if length_left > length*2 and length==16:

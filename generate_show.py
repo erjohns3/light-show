@@ -322,7 +322,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         effect_name = random.choice(effect_types_to_name[effect_type])
 
-                        new_effect_name = compile_effect_color(channel_lut, effect_name, rotate=90)
+                        # new_effect_name = compile_effect_color(channel_lut, effect_name, rotate=90)
 
                         new_prev_effects.append(effect_name)
                         show['beats'].append([beat, effect_name, length])

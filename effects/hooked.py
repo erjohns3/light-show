@@ -80,7 +80,7 @@ effects = {
         "length": 8,
         "autogen": "downbeat mixed",
         "beats": [
-            [1, "Firebrick bottom", 0.7, 0.40, 0.05], 
+            [1, "Seafoam bottom", 0.7, 0.40, 0.05], 
             [1, "hooked top sidechain non red", 8], 
             [1, "hooked claps", 8],
         ],

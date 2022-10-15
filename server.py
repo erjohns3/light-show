@@ -1051,7 +1051,7 @@ def cache_assign_dirty(local_effects_config):
                     effect['cache_dirty'] = False
                     effect['cache_lut'] = effect_cache['cache_lut']
                 else:
-                    print_yellow(f'{effect_name=} is dirty')
+                    print_yellow(f'{effect_name} is dirty')
     
     for effect_name, effect in local_effects_config.items():
         dfs_dirty_cache(effect_name)

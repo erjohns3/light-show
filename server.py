@@ -1268,12 +1268,9 @@ if __name__ == '__main__':
                 }
             if reload:
                 update_config_and_lut_from_disk()
-                if args.speed != 1 and 'song_path' in effects_config[effect_name]:
-                    effects_config[effect_name]['bpm'] = originals[effect_name]['bpm'] * args.speed
-                    effects_config[effect_name]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(originals[effect_name]['song_path'], args.speed))
-                    effects_config[effect_name]['skip_song'] = originals[effect_name]['skip_song'] * (1 / args.speed)
-                    effects_config[effect_name]['delay_lights'] = originals[effect_name]['delay_lights'] * (1 / args.speed)
-            
+
+            effects_config[effect_name]['bpm'] = originals[effect_name]['bpm']
+            effects_config[effect_name]['song_path'] = originals[effect_name]['song_path']
             effects_config[effect_name]['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
             effects_config[effect_name]['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
             # original_delays[effect_name] = effects_config[effect_name]['delay_lights']
@@ -1338,10 +1335,6 @@ if __name__ == '__main__':
                     'getwindowfocus',
                 ])
                 other = int(stdout.strip())
-                print(other, process_window_id, other == process_window_id)
-                print(other, process_window_id)
-                print(other, process_window_id)
-                print(other, process_window_id)
                 return process_window_id == other
             return True
 

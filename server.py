@@ -11,6 +11,8 @@ import argparse
 import os
 import subprocess
 from urllib.parse import quote
+import hashlib
+from copy import deepcopy
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -1021,11 +1023,57 @@ def set_effect_defaults(local_effects_config):
         if 'song_path' not in local_effects_config[effect_name]:
             local_effects_config[effect_name]['profiles'].append('All Effects')
     
+
+def get_effect_hash(effect_name, effect):
+    copied_effect = {}
+    for key, item in effect.items():
+        if 'cache' not in key:
+            copied_effect[key] = item
+    
+    the_str = json.dumps(copied_effect, sort_keys=True)    
+    return hashlib.md5(the_str.encode()).hexdigest()
+
+
+lut_cache_dir = python_file_directory.joinpath('lut_cache')
+def cache_assign_dirty(local_effects_config):
+    if not os.path.exists(lut_cache_dir):
+        print(f'making directory {lut_cache_dir}')
+        os.mkdir(lut_cache_dir)
+
+    for effect_name, effect in local_effects_config.items():
+        effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
+        
+        effect['cache_dirty'] = True
+        if os.path.exists(effect_cache_filepath):
+            with open(effect_cache_filepath, 'r') as f:
+                effect_cache = json.loads(f.read())
+                if get_effect_hash(effect_name, effect) == effect_cache['hash']:
+                    effect['cache_dirty'] = False
+                    effect['cache_lut'] = effect_cache['cache_lut']
+                else:
+                    print_yellow(f'{effect_name=} is dirty')
+    
+    for effect_name, effect in local_effects_config.items():
+        dfs_dirty_cache(effect_name)
+
+cache_dfs_seen = {}
+def dfs_dirty_cache(effect_name):
+    if effect_name in cache_dfs_seen:
+        return cache_dfs_seen[effect_name]
+    dirty = effects_config[effect_name]['cache_dirty']
+    for sub_effect in graph[effect_name]:
+        dirty = dirty or dfs_dirty_cache(sub_effect)
+    cache_dfs_seen[effect_name] = dirty
+    return dirty
+
+
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 
     simple_effects = []
     complex_effects = []
+
+    cache_and_graph_perf_timer = time.time()
     for effect_name, effect in local_effects_config.items():
         graph[effect_name] = {}
         for component in effect['beats']:
@@ -1037,10 +1085,13 @@ def compile_lut(local_effects_config):
         effects_config_sort([effect_name])
 
     set_effect_defaults(local_effects_config)
+    cache_assign_dirty(local_effects_config)
+    print_cyan(f'Cache and graph: {time.time() - cache_and_graph_perf_timer:.3f} seconds')
 
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
         effect = local_effects_config[effect_name]
+
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
@@ -1087,6 +1138,11 @@ def compile_lut(local_effects_config):
     complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
         effect = local_effects_config[effect_name]
+        if not effect['cache_dirty']:
+            channel_lut[effect_name] = effect['cache_lut']
+            continue
+
+        og_effect = deepcopy(effect)
 
         # if length isn't specified, generate a length
         calced_effect_length = 0
@@ -1142,6 +1198,14 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
+        effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
+        with open(effect_cache_filepath, 'w') as f:
+            effect_cache = {
+                'hash': get_effect_hash(effect_name, og_effect),
+                'cache_lut': channel_lut[effect_name],
+            }
+            print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
+            f.writelines([json.dumps(effect_cache)])
     print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds')
 
 

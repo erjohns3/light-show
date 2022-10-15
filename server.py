@@ -45,7 +45,6 @@ parser.add_argument('--autogen_simple', dest='autogen_simple', default=False, ac
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
 
 
-
 args = parser.parse_args()
 if args.autogen_simple:
     args.autogen = True
@@ -1314,11 +1313,13 @@ if __name__ == '__main__':
     if args.keyboard:
         from pynput.keyboard import Key, Listener, KeyCode
 
-        def rewind(time):
-            pass
-        
-        skip_time = 5
+        _return_code, stdout, _stderr = run_command_blocking([
+            'xdotool',
+            'getactivewindow',
+        ])
+        process_window_id = int(stdout.strip())
 
+        skip_time = 5
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
@@ -1330,7 +1331,24 @@ if __name__ == '__main__':
         }
         # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
+        def window_focus():
+            if is_linux():
+                _return_code, stdout, _stderr = run_command_blocking([
+                    'xdotool',
+                    'getwindowfocus',
+                ])
+                other = int(stdout.strip())
+                print(other, process_window_id, other == process_window_id)
+                print(other, process_window_id)
+                print(other, process_window_id)
+                print(other, process_window_id)
+                return process_window_id == other
+            return True
+
         def on_press(key):
+            if not window_focus():
+                return
+
             if type(key) == KeyCode:
                 key_name = key.char
             else:
@@ -1340,10 +1358,11 @@ if __name__ == '__main__':
                     add_effect(keyboard_dict[key_name])
                 else:
                     keyboard_dict[key_name]()
-            # else:
-            #     print(f'you pressed {key_name}')
 
         def on_release(key):
+            if not window_focus():
+                return
+
             if type(key) == KeyCode:
                 key_name = key.char
             else:

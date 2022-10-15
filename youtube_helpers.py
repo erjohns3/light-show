@@ -1,10 +1,12 @@
 import json
 import os
 import sys
+import argparse
 
 import yt_dlp
 
 from helpers import *
+import generate_show
 
 
 def scp_to_doorbell(local_filepath, remote_folder):
@@ -85,15 +87,35 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
 
 
 if __name__ == '__main__':
-    url = None
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
-    max_length_seconds = None
-    if len(sys.argv) > 2:
-        max_length_seconds = float(sys.argv[2])
-    downloaded_filepath = download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
+    parser = argparse.ArgumentParser(description = '')
+    # nargs=1
+    parser.add_argument('url', type=str)
+    parser.add_argument('--show', dest='gen_show', default=None, action='store_true')
+    parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
+    args = parser.parse_args()
+
+    downloaded_filepath = download_youtube_url_to_ogg(url=args.url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:
         exit()
+
+    if args.gen_show:
+        print_blue('Generating show file for the downloaded file')
+        relative_downloaded_filepath = downloaded_filepath.relative_to(python_file_directory)
+        output_filepath = python_file_directory.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
+        _song_length, bpm_guess, delay, _boundary_beats = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
+        generate_show.write_show_file_pretty(
+            output_filepath, 
+            {
+                downloaded_filepath.stem: {
+                    'bpm': bpm_guess,
+                    'song_path': str(relative_downloaded_filepath),
+                    'delay_lights': delay,
+                    'skip_song': 0.0,
+                    'beats': [],
+                }
+            }
+        )
+
 
     # remote_folder = pathlib.Path('/home/pi/light-show/songs')
     # print('Starting scp to doorbell')

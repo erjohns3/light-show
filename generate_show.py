@@ -31,6 +31,7 @@ def eliminate(string, matches):
     return string
 
 def write_show_file_pretty(output_filepath, dict_to_dump):
+    print(f'writing show to {output_filepath}')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
         shows_json_str = shows_json_str.replace(': true', ': True')
@@ -40,7 +41,14 @@ def write_show_file_pretty(output_filepath, dict_to_dump):
         
         file.writelines(['effects = ' + shows_json_str])
 
-def get_src_bpm_offset(song_filepath, use_boundaries, queue=None, debug=True):
+def get_src_bpm_offset(song_filepath, use_boundaries):
+    queue = Queue()
+    proc = Process(target=get_src_bpm_offset_multiprocess, args=(song_filepath, use_boundaries, queue,))
+    proc.start()     # prints "[42, None, 'hello']"
+    return queue.get()
+
+
+def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
@@ -119,8 +127,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries, queue=None, debug=True):
         boundary_beats = get_boundary_beats(energies, beat_length, delay, total_frames / src.samplerate)
     else:
         boundary_beats = 'DISABLED'
-    if debug:
-        print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
+    print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
     if queue:
         queue.put([total_frames / src.samplerate, bpm_guess, delay, boundary_beats])
     else:
@@ -198,6 +205,7 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 
     return sorted(set(list(matches)))
 
+
 def generate_show(song_filepath, effects_config, overwrite=True, simple=False, debug=True):
     start_time = time.time()
     use_boundaries = True and not simple
@@ -218,12 +226,8 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    queue = Queue()
-    proc = Process(target=get_src_bpm_offset, args=(song_filepath, use_boundaries, queue,))
-    proc.start()
-    song_length, bpm_guess, delay, boundary_beats = queue.get()    # prints "[42, None, 'hello']"
-
-    print_blue(f'autogen: time taken up to get_src_bpm_offset: {time.time() - start_time} seconds')
+    song_length, bpm_guess, delay, boundary_beats = get_src_bpm_offset(song_filepath, use_boundaries)
+    print_blue(f'autogen: time taken up to get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
 
     relative_path = song_filepath
     if relative_path.is_absolute():
@@ -331,7 +335,6 @@ def generate_show(song_filepath, effects_config, overwrite=True, simple=False, d
     if '.' in show_name:
         print_red(f'Cannot generate show for {show_name} because it has a dot before the file extension')
         return None
-    print(f'writing "{show_name}" to {output_filepath}')
     write_show_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     return the_show

@@ -1052,7 +1052,8 @@ def cache_assign_dirty(local_effects_config):
             with open(effect_cache_filepath, 'r') as f:
                 if get_effect_hash(effect_name, effect) == f.read().strip():
                     effect['cache_dirty'] = False
-                    with open(str(effect_cache_filepath) + '.pickle', 'r') as pf:
+                    with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:
+                        print(pf)
                         effect['cache_lut'] = pickle.load(pf)
                 else:
                     print_yellow(f'{effect_name} is dirty')
@@ -1210,8 +1211,8 @@ def compile_lut(local_effects_config):
         with open(effect_cache_filepath, 'w') as f:
             f.writelines([get_effect_hash(effect_name, og_effect)])
 
-        with open(str(effect_cache_filepath) + '.pickle', 'w') as f:
-            f.dump(get_effect_hash(effect_name, og_effect))
+        with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
+            pickle.dump(channel_lut[effect_name], f)
 
 
     print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds')

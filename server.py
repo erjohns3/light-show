@@ -367,15 +367,13 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'set_time':
                 restart_show(abs_time=msg['time'])
-
-
+                broadcast_light = True
                 # old code
                 # if len(song_queue) > 0 and song_playing:
                 #     effect_name = song_queue[0][0]
                 #     play_song(effect_name)
                 #     song_playing = True
                 #     add_effect(effect_name)
-                #     broadcast_light = True
 
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']

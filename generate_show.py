@@ -7,7 +7,9 @@ import time
 from collections import Counter
 from multiprocessing import Queue, Process
 from copy import deepcopy
+import colorsys
 
+from scipy.stats import circmean
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
 from numpy import vstack, zeros, hstack
@@ -258,8 +260,20 @@ def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, brigh
     return new_effect_name
 
 
-# def get_avg_hue(channel_lut, effect_name):
-#     return 
+avg_hue_cache = {}
+def get_avg_hue(channel_lut, effect_name):
+    if effect_name in avg_hue_cache:
+        return avg_hue_cache[effect_name]
+    all_hues = []
+    for compiled_channel in channel_lut[effect_name]['beats']:
+        for i in range(3):
+            rd, gr, bl = compiled_channel[i * 3:(i * 3) + 3]
+            hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
+            all_hues.append(hue)
+    avg_hue_cache[effect_name] = circmean(all_hues, low=0, high=1)
+    # print(all_hues, avg_hue_cache[effect_name])
+    # exit()
+    return avg_hue_cache[effect_name]
 
 
 def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True):
@@ -339,6 +353,8 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         while beat < total_beats:
             effect_name = 'RBBB 1 bar'
             effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
+            # avg_hue = get_avg_hue(channel_lut, effect_name)
+            # print(f'avg hue of {effect_name}: {avg_hue}')
             show['beats'].append([beat, effect_name, 4])
             beat += 4
     elif use_boundaries==True: # Based on scenes

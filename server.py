@@ -1432,10 +1432,12 @@ if __name__ == '__main__':
 
         def window_focus():
             if is_linux():
-                _return_code, stdout, _stderr = run_command_blocking([
+                return_code, stdout, _stderr = run_command_blocking([
                     'xdotool',
                     'getwindowfocus',
                 ])
+                if not return_code:
+                    return False
                 other = int(stdout.strip())
                 return process_window_id == other
             return True

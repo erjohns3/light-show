@@ -16,6 +16,7 @@ import hashlib
 from copy import deepcopy
 import pickle
 import colorsys
+import shutil
 print(f'Through stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -1317,9 +1318,12 @@ if __name__ == '__main__':
     try:
         update_config_and_lut_from_disk()
     except Exception as e:
-        print_red(f'got {e}, press enter to delete the autogen directory and retry')
+        print_red(f'got {e}')
+        print_yellow('Press ENTER to delete the autogen directory and retry')
+        input()
         autogen_shows_dir = python_file_directory.joinpath('effects').joinpath('autogen_shows')
-        os.rmdir(autogen_shows_dir)
+        shutil.rmtree(autogen_shows_dir)
+        # os.rmdir(autogen_shows_dir)
         update_config_and_lut_from_disk()
 
     if args.autogen:

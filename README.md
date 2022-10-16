@@ -35,7 +35,7 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
-python server.py --local --autogen --enter --show shelter
+python server.py --local --autogen --show shelter
 
 
 # Other

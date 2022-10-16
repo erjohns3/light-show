@@ -6,6 +6,7 @@ import importlib
 import time
 from collections import Counter
 from multiprocessing import Queue, Process
+from copy import deepcopy
 
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
@@ -13,7 +14,6 @@ from numpy import vstack, zeros, hstack
 import pandas as pd 
 import aubio
 import numpy as np
-
 
 import sound_helpers
 from helpers import *
@@ -28,8 +28,8 @@ def eliminate(string, matches):
         string = string.replace(match, '')
     return string
 
-def write_show_file_pretty(output_filepath, dict_to_dump):
-    print(f'writing show to {output_filepath}')
+def write_effect_to_file_pretty(output_filepath, dict_to_dump):
+    print(f'writing effect/show to {output_filepath}')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
         shows_json_str = shows_json_str.replace(': true', ': True')
@@ -204,16 +204,47 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
     return sorted(set(list(matches)))
 
 
-def compile_effect_color(channel_lut, effect_name, rotate=None):
-    directory_for_compiled_colors = python_file_directory.joinpath('effects').joinpath('colored_effects')
-    if not os.path.exists(directory_for_compiled_colors):
-        print(f'Creating {directory_for_compiled_colors} directory')
-        os.mkdir(directory_for_compiled_colors)
+# def compile_effect_color(channel_lut, effect_name, rotate=None):
+#     directory_for_compiled_colors = python_file_directory.joinpath('effects').joinpath('colored_effects')
+#     if not os.path.exists(directory_for_compiled_colors):
+#         print(f'Creating {directory_for_compiled_colors} directory')
+#         os.mkdir(directory_for_compiled_colors)
     
-    # print(list(server.channel_lut.keys()))
-    # server.channel_lut[effect_name]
-    # server.compile_lut(effect_name)
+#     # print(list(server.channel_lut.keys()))
+#     # server.channel_lut[effect_name]
+#     # server.compile_lut(effect_name)
 
+
+new_effects_made = set()
+def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, bright_shift=0):
+    new_effect_name = effect_name + f' hue {hue_shift} sat {sat_shift} bright {bright_shift}'.replace('.', '_dot_')
+    if new_effect_name in new_effects_made:
+        return new_effect_name
+    new_effects_made.add(new_effect_name)
+
+    output_directory = python_file_directory.joinpath('effects', 'generated_effects')
+    if not os.path.exists(output_directory):
+        print(f'making directory {output_directory}')
+        os.mkdir(output_directory)
+
+    output_filepath = output_directory.joinpath(new_effect_name + '.py')
+
+    effects_config[new_effect_name] = {
+        'beats': [
+            [1, effect_name, effects_config[effect_name]['length']],
+        ],
+        'hue_shift': hue_shift,
+        'sat_shift': sat_shift,
+        'bright_shift': bright_shift,
+    }
+
+
+    # effects_config[new_effect_name] = deepcopy(effects_config[effect_name])
+    # effects_config[new_effect_name]['hue_shift'] = 90
+    # del effects_config[new_effect_name]['autogen']
+    # del effects_config[new_effect_name]['cache_dirty']
+    write_effect_to_file_pretty(output_filepath, {new_effect_name: effects_config[new_effect_name]})
+    return new_effect_name
 
 
 def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True):
@@ -223,6 +254,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
     output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
     if not os.path.exists(output_directory):
+        print(f'making directory {output_directory}')
         os.mkdir(output_directory)
 
     show_name_without_spaces = show_name.replace(' ', '_')
@@ -319,12 +351,12 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         effect_name = random.choice(effect_types_to_name[effect_type])
 
-                        # new_effect_name = compile_effect_color(channel_lut, effect_name, rotate=90)
+                        new_effect_name = make_new_effect(effects_config, effect_name, hue_shift=.28, sat_shift=.20, bright_shift=-.4)
 
-                        new_prev_effects.append(effect_name)
-                        show['beats'].append([beat, effect_name, length])
+                        new_prev_effects.append(new_effect_name)
+                        show['beats'].append([beat, new_effect_name, length])
                         if length_left > length*2 and length==16:
-                            show['beats'].append([beat+length, effect_name, length])
+                            show['beats'].append([beat+length, new_effect_name, length])
                     beat += length
                     if length_left > length*2 and length==16:
                         beat += length
@@ -349,7 +381,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     if '.' in show_name:
         print_red(f'Cannot generate show for {show_name} because it has a dot before the file extension')
         return None
-    write_show_file_pretty(output_filepath, the_show)
+    write_effect_to_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     return the_show
 

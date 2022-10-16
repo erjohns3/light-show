@@ -15,6 +15,7 @@ from urllib.parse import quote
 import hashlib
 from copy import deepcopy
 import pickle
+import colorsys
 print(f'Through stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -966,7 +967,7 @@ def update_config_and_lut_from_disk():
     found = {}
 
     effects_dir = python_file_directory.joinpath('effects')
-    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True):
         relative_path = filepath.relative_to(python_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
@@ -990,6 +991,12 @@ def update_config_and_lut_from_disk():
 
 
 def set_effect_defaults(effect):
+    if 'hue_shift' not in effect:
+        effect['hue_shift'] = 0
+    if 'sat_shift' not in effect:
+        effect['sat_shift'] = 0
+    if 'bright_shift' not in effect:
+        effect['bright_shift'] = 0
     if 'snap' not in effect:
         effect['snap'] = 1 / SUB_BEATS
     else:
@@ -1020,7 +1027,6 @@ def set_effect_defaults(effect):
             effect['loop'] = True
     if 'song_path' not in effect:
         effect['profiles'].append('All Effects')
-
 
 def get_effect_hash(effect_name, effect):
     copied_effect = {}
@@ -1147,8 +1153,9 @@ def compile_lut(local_effects_config):
                 channel_lut[effect_name] = pickle.load(pf)
             num_cached_effects += 1
             continue
-
-        og_effect = deepcopy(effect)
+        
+        if args.cache:
+            effect_hash = get_effect_hash(effect_name, effect)
 
         # if length isn't specified, generate a length
         calced_effect_length = 0
@@ -1171,7 +1178,28 @@ def compile_lut(local_effects_config):
         if 'length' not in effect:
             effect['length'] = calced_effect_length
 
-        # this is 20% of time
+
+        # this ASSUMES a LOT
+        if effect['hue_shift'] or effect['sat_shift'] or effect['bright_shift']:
+            name_of_compiled_effect = effect['beats'][0][1]
+            channel_lut[effect_name] = deepcopy(channel_lut[name_of_compiled_effect])
+            for compiled_sub_beat in channel_lut[effect_name]['beats']:
+                # print('before', compiled_sub_beat)
+                for i in range(3):
+                    rd, gr, bl = compiled_sub_beat[i * 3:(i * 3) + 3]
+                    hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
+                    new_hue = (hue + effect['hue_shift']) % 1
+                    new_sat = min(1, max(0, sat + effect['sat_shift']))
+                    new_bright = min(1, max(0, bright + effect['bright_shift']))
+                    compiled_sub_beat[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+                    compiled_sub_beat[i * 3] *= 100
+                    compiled_sub_beat[i * 3 + 1] *= 100
+                    compiled_sub_beat[i * 3 + 2] *= 100
+                # print('after', compiled_sub_beat)
+            # exit()
+            continue
+
+
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
@@ -1210,7 +1238,7 @@ def compile_lut(local_effects_config):
         if args.cache:
             print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
             with open(effect_cache_filepath, 'w') as f:
-                f.writelines([get_effect_hash(effect_name, og_effect)])
+                f.writelines([effect_hash])
 
             with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
                 pickle.dump(channel_lut[effect_name], f)

@@ -39,7 +39,7 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 
 ## dont use this unless andrew
-`python server.py --local --autogen --delay .189 --volume 5 --show shelter`
+`python server.py --local --keyboard --delay .189 --autogen --volume 5 --show shelter`
 
 
 # Other

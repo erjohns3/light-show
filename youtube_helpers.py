@@ -100,7 +100,7 @@ if __name__ == '__main__':
         relative_downloaded_filepath = downloaded_filepath.relative_to(python_file_directory)
         output_filepath = python_file_directory.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
         _song_length, bpm_guess, delay, _boundary_beats = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
-        generate_show.write_show_file_pretty(
+        generate_show.write_effect_to_file_pretty(
             output_filepath, 
             {
                 downloaded_filepath.stem + ' show': {

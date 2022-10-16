@@ -1075,8 +1075,8 @@ def compile_lut(local_effects_config):
         graph[effect_name] = list(graph[effect_name].keys())
 
     if args.show and not args.autogen:
-        # if args.show not in local_effects_config:
-        #     args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+        if args.show not in local_effects_config:
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
         effects_config_sort([args.show])
     else:
         for effect_name in graph:

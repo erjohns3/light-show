@@ -26,9 +26,9 @@ print(f'Through pip import: {time.time() - first_start_time:.3f}')
 from helpers import *
 import sound_helpers
 import youtube_helpers
+print_cyan(f'Through custom import: {time.time() - first_start_time:.3f}')
 from users import users
 
-print_cyan(f'Through custom import: {time.time() - first_start_time:.3f}')
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')

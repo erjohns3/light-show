@@ -1,9 +1,5 @@
-import json
 import os
-import sys
 import argparse
-
-import yt_dlp
 
 from helpers import *
 
@@ -47,6 +43,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
         }],
         'noplaylist': True,
     }
+    import yt_dlp
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:

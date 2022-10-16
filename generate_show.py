@@ -215,8 +215,16 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 #     # server.compile_lut(effect_name)
 
 
+def round_to(x, base=0):
+    return round(base * round(x / base), 2)
+
+
 new_effects_made = set()
 def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, bright_shift=0):
+    hue_shift = round_to(hue_shift, 0.05)
+    sat_shift = round_to(sat_shift, 0.05)
+    bright_shift = round_to(bright_shift, 0.05)
+    
     new_effect_name = effect_name + f' hue {hue_shift} sat {sat_shift} bright {bright_shift}'.replace('.', '_dot_')
     if new_effect_name in new_effects_made:
         return new_effect_name
@@ -355,10 +363,9 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         effect_name = random.choice(effect_types_to_name[effect_type])
 
-                        # new_effect_name = make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=-.40, bright_shift=-.2)
-
-
                         new_effect_name = make_new_effect(effects_config, effect_name, hue_shift=round(random.random(), 2), sat_shift=0, bright_shift=0)
+
+
 
                         new_prev_effects.append(new_effect_name)
                         show['beats'].append([beat, new_effect_name, length])

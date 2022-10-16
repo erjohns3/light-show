@@ -1039,7 +1039,6 @@ def get_effect_hash(effect_name, effect):
 
 lut_cache_dir = python_file_directory.joinpath('lut_cache')
 def cache_assign_dirty(local_effects_config):
-    lmao = 0
     if not os.path.exists(lut_cache_dir):
         print(f'making directory {lut_cache_dir}')
         os.mkdir(lut_cache_dir)
@@ -1052,16 +1051,11 @@ def cache_assign_dirty(local_effects_config):
             with open(effect_cache_filepath, 'r') as f:
                 if get_effect_hash(effect_name, effect) == f.read().strip():
                     effect['cache_dirty'] = False
-                    with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:
-                        print(pf)
-                        effect['cache_lut'] = pickle.load(pf)
                 else:
                     print_yellow(f'{effect_name} is dirty')
     
     for effect_name, effect in local_effects_config.items():
         dfs_dirty_cache(effect_name)
-
-    print('timing', lmao)
 
 cache_dfs_seen = {}
 def dfs_dirty_cache(effect_name):
@@ -1142,11 +1136,15 @@ def compile_lut(local_effects_config):
                     tmp[2], tmp[8] = tmp[8], tmp[2]
     print_cyan(f'Simple effects: {time.time() - simple_effect_perf_timer:.3f} seconds')
 
+    num_cached_effects = 0
     complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
         effect = local_effects_config[effect_name]
         if not effect['cache_dirty']:
-            channel_lut[effect_name] = effect['cache_lut']
+            effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
+            with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:
+                channel_lut[effect_name] = pickle.load(pf)
+            num_cached_effects += 1
             continue
 
         og_effect = deepcopy(effect)
@@ -1215,7 +1213,7 @@ def compile_lut(local_effects_config):
             pickle.dump(channel_lut[effect_name], f)
 
 
-    print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds')
+    print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds : {num_cached_effects}/{len(complex_effects)} cached')
 
 
 ##################################################

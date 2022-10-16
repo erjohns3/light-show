@@ -1,32 +1,44 @@
 # club time
 
-## notes for feature development
+# TODO
 * cubic bezier for custom curves
+* label intensity of some lights and cleanup
+    * get rid of white flashes alone
+* add more variety
+    * color wheel rotation
+    * custom fades - linear, sine wave, exponential dropoff
+    * andrew's idea: apply a custom fade to all effects in a scene.  could end at a different point too
+    * chris's idea - changing some effects but not all - on non-high delta changes
+* halloween
+    * spooky lights for UI
+    * make it spooky button
+        * add "boo" sounds to drop
+        * lights are all orange
 
-## example: goto for light show debugging on terminal (shelter)
-python server.py --local --keyboard --reload --show shelter
+# Running locally
+## To get all songs from doorbell
+`scp -r pi@doorbell:/home/pi/light-show/songs .`
 
-# To get all songs from doorbell
-```
-scp -r pi@doorbell:/home/pi/light-show/songs .
-```
+## To push your songs TO the doorbell
+`scp -r songs pi@doorbell:/home/pi/light-show/`
 
-# To push your songs TO the doorbell
-```
-scp -r songs pi@doorbell:/home/pi/light-show/
-```
+## example 1
+`python server.py --local --keyboard --reload --show shelter`
 
-
-## other features
+## example 2
 To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads when you save in the directory
-```python server.py --local --volume 7 --show butter --reload --skip 30```
+`python server.py --local --keyboard --reload --volume 7 --show butter --skip 30`
 
+## Using the UI 
+`python server.py --local`
 To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
 
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
 python server.py --local --autogen --enter --show shelter
 
+
+# Other
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe
 * https://github.com/tyiannak/pyAudioAnalysis
@@ -48,23 +60,16 @@ python server.py --local --autogen --enter --show shelter
 
 
 
+## youtube download
+`youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
 
-* youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"
-
-
-* python server.py --local --volume 7 --show butter
---reload --speed 1 --skip 80
-
-* find port for python
+## find pid of the process using the port
 sudo ss -lptn 'sport = :1337'
 
-
-## to convert an mp3 to ogg
+## convert an mp3 to ogg
 ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 
-## todo songs
+## songs andrew might want to make shows to
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
-
-
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o

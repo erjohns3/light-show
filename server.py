@@ -1436,7 +1436,7 @@ if __name__ == '__main__':
                     'xdotool',
                     'getwindowfocus',
                 ])
-                if not return_code:
+                if return_code != 0:
                     return False
                 other = int(stdout.strip())
                 return process_window_id == other

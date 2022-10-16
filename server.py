@@ -366,13 +366,16 @@ async def init_queue_client(websocket, path):
                         broadcast_light = True
 
             elif msg['type'] == 'set_time':
-                song_time = msg['time']
-                if len(song_queue) > 0 and song_playing:
-                    effect_name = song_queue[0][0]
-                    play_song(effect_name)
-                    song_playing = True
-                    add_effect(effect_name)
-                    broadcast_light = True
+                restart_show(abs_time=msg['time'])
+
+
+                # old code
+                # if len(song_queue) > 0 and song_playing:
+                #     effect_name = song_queue[0][0]
+                #     play_song(effect_name)
+                #     song_playing = True
+                #     add_effect(effect_name)
+                #     broadcast_light = True
 
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -862,17 +865,17 @@ def add_effect(name):
 
 def play_song(effect_name, print_out=True):
     song_path = effects_config[effect_name]['song_path']
-    skip = effects_config[effect_name]['skip_song'] + song_time
-    pygame.mixer.music.set_volume(args.volume)
+    start_time = effects_config[effect_name]['skip_song'] + song_time
+    if print_out:
+        print(f'{bcolors.OKBLUE}Starting music "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume{bcolors.ENDC}')
 
+    pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path(song_path))
 
     # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
-    if print_out:
-        print(f'{bcolors.OKBLUE}Starting music "{song_path}" at {skip} seconds at {round(args.volume * 100)}% volume{bcolors.ENDC}')
-    channel = pygame.mixer.music.play(start=skip)
+    channel = pygame.mixer.music.play(start=start_time)
 
 
 def stop_song():
@@ -1345,6 +1348,15 @@ if __name__ == '__main__':
         update_config_and_lut_from_disk()
 
 
+    for effect_name, effect in effects_config.items():
+        if 'song_path' in effect:
+            originals[effect_name] = {
+                'skip_song': effects_config[effect_name]['skip_song'],
+                'delay_lights': effects_config[effect_name]['delay_lights'],
+                'bpm': effects_config[effect_name]['bpm'],
+                'song_path': effects_config[effect_name]['song_path'],
+            }
+
     def detailed_output_on_enter():
         global beat_index
         while True:
@@ -1367,22 +1379,30 @@ if __name__ == '__main__':
 
 
     def restart_show(skip=0, abs_time=None, reload=False):
+        global song_time
         if curr_effects:
             effect_name = curr_effects[0][0]
             remove_effect(0)
             
+            stop_song()
             time_to_skip_to = max(0, (time.time() - time_start) + skip)
             if abs_time is not None:
                 time_to_skip_to = abs_time
-            stop_song()
+            song_time = time_to_skip_to
+            print(f'skipping to {time_to_skip_to}')
 
             if reload:
                 update_config_and_lut_from_disk()
 
-            effects_config[effect_name]['bpm'] = originals[effect_name]['bpm']
-            effects_config[effect_name]['song_path'] = originals[effect_name]['song_path']
-            effects_config[effect_name]['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
-            effects_config[effect_name]['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
+            effect = effects_config[effect_name]
+
+            if args.reload:
+                effect['bpm'] = originals[effect_name]['bpm']
+                effect['song_path'] = originals[effect_name]['song_path']
+
+                # song time controls these now, maybe just for autogen?
+                # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
+                # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
             play_song(effect_name, print_out=False)
             add_effect(effect_name)
         elif reload:
@@ -1524,15 +1544,6 @@ if __name__ == '__main__':
             else:
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
-        if args.keyboard or args.reload:
-            if args.show not in originals:
-                originals[args.show] = {
-                    'skip_song': effects_config[args.show]['skip_song'],
-                    'delay_lights': effects_config[args.show]['delay_lights'],
-                    'bpm': effects_config[args.show]['bpm'],
-                    'song_path': effects_config[args.show]['song_path'],
-                }
-        
         asyncio.create_task(light())
 
         print_cyan(f'Total start time: {time.time() - first_start_time:.3f}')

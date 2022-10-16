@@ -205,14 +205,13 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 
 
 def compile_effect_color(channel_lut, effect_name, rotate=None):
-    import server
     directory_for_compiled_colors = python_file_directory.joinpath('effects').joinpath('colored_effects')
     if not os.path.exists(directory_for_compiled_colors):
         print(f'Creating {directory_for_compiled_colors} directory')
         os.mkdir(directory_for_compiled_colors)
     
-    print(list(server.channel_lut.keys()))
-    server.channel_lut[effect_name]
+    # print(list(server.channel_lut.keys()))
+    # server.channel_lut[effect_name]
     # server.compile_lut(effect_name)
 
 

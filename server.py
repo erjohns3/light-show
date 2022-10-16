@@ -85,10 +85,6 @@ download_queue = []
 search_queue = []
 
 
-pygame.mixer.init(frequency=48000)
-print_cyan(f'Through pygame init: {time.time() - first_start_time:.3f}')
-
-
 
 ########################################
 
@@ -1078,9 +1074,9 @@ def compile_lut(local_effects_config):
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
-    if args.show:
-        if args.show not in local_effects_config:
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+    if args.show and not args.autogen:
+        # if args.show not in local_effects_config:
+        #     args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
         effects_config_sort([args.show])
     else:
         for effect_name in graph:
@@ -1269,8 +1265,10 @@ def fuzzy_find(name, valid_names, filter_words=None):
 
 
 
-
+print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
+    pygame.mixer.init(frequency=48000)
+
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 

@@ -13,6 +13,7 @@ import subprocess
 from urllib.parse import quote
 import hashlib
 from copy import deepcopy
+import pickle
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
@@ -1032,7 +1033,7 @@ def get_effect_hash(effect_name, effect):
         if 'cache' not in key:
             copied_effect[key] = item
     
-    the_str = json.dumps(copied_effect, sort_keys=True)    
+    the_str = json.dumps(copied_effect, sort_keys=True)
     return hashlib.md5(the_str.encode()).hexdigest()
 
 
@@ -1049,12 +1050,10 @@ def cache_assign_dirty(local_effects_config):
         effect['cache_dirty'] = True
         if os.path.exists(effect_cache_filepath):
             with open(effect_cache_filepath, 'r') as f:
-                ok = time.time()
-                effect_cache = json.loads(f.read())
-                lmao += time.time() - ok
-                if get_effect_hash(effect_name, effect) == effect_cache['hash']:
+                if get_effect_hash(effect_name, effect) == f.read().strip():
                     effect['cache_dirty'] = False
-                    effect['cache_lut'] = effect_cache['cache_lut']
+                    with open(str(effect_cache_filepath) + '.pickle', 'r') as pf:
+                        effect['cache_lut'] = pickle.load(pf)
                 else:
                     print_yellow(f'{effect_name} is dirty')
     
@@ -1205,14 +1204,16 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
+
         effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
+        print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
         with open(effect_cache_filepath, 'w') as f:
-            effect_cache = {
-                'hash': get_effect_hash(effect_name, og_effect),
-                'cache_lut': channel_lut[effect_name],
-            }
-            print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
-            f.writelines([json.dumps(effect_cache)])
+            f.writelines([get_effect_hash(effect_name, og_effect)])
+
+        with open(str(effect_cache_filepath) + '.pickle', 'w') as f:
+            f.dump(get_effect_hash(effect_name, og_effect))
+
+
     print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds')
 
 

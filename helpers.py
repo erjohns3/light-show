@@ -4,8 +4,6 @@ import subprocess
 import pathlib
 import platform
 
-
-
 def is_windows():
     plt = platform.system()
     if plt == "Windows":

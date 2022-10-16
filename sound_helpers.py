@@ -2,9 +2,6 @@
 # python play_some_sound_ffmpeg.py data\f538d56c8aa48cea62c35aa01438ff92cde5708ec59c69e9e1be65ff.mp3 42 8
 
 import os
-import subprocess
-import threading
-import multiprocessing
 import pathlib
 
 from helpers import *

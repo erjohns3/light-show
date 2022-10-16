@@ -1,6 +1,7 @@
+import time
+first_start_time = time.time()
 import socket
 import threading
-import time
 import json
 import signal
 import importlib
@@ -14,18 +15,20 @@ from urllib.parse import quote
 import hashlib
 from copy import deepcopy
 import pickle
+print(f'Through stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets
 from tinytag import TinyTag
+print(f'Through pip import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
 import sound_helpers
 import youtube_helpers
 from users import users
 
-print_blue('Done importing')
+print_cyan(f'Through custom import: {time.time() - first_start_time:.3f}')
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
@@ -49,6 +52,7 @@ parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
 args = parser.parse_args()
 if args.autogen_simple:
     args.autogen = True
+
 
 
 pca = None
@@ -79,8 +83,10 @@ broadcast_song = False
 download_queue = []
 search_queue = []
 
-# pygame.init()
+
 pygame.mixer.init(frequency=48000)
+print_cyan(f'Through pygame init: {time.time() - first_start_time:.3f}')
+
 
 
 ########################################
@@ -178,12 +184,10 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'clear_effects':
                 clear_effects()
                 stop_song()
-                #BROKEN
 
             elif msg['type'] == 'update_config':
                 clear_effects()
                 update_config_and_lut_from_disk
-                #BROKEN
 
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
@@ -583,9 +587,7 @@ if args.local:
         if 255 <= value:
             return 255
 
-        # print(f'before scale: {value=}')
         value /= 255
-        # print(f'after scale: {value=}')
         pairs = sorted([(i, o) for i, o in interpolation_dict.items()])
         for index, (i1, o1) in enumerate(pairs):
             (i2, o2) = pairs[index + 1]
@@ -703,9 +705,7 @@ Beat {curr_beat:.1f}\
     console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
     console.print('\n', end='')
     console.print(f'{" " * (terminal_size - 1)}\n' * 3, end='')
-
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-
     console.print('', end='\033[F' * 6)
 
 
@@ -913,17 +913,24 @@ def effects_config_sort(path):
     if curr in found:
         return
     found[curr] = True
+    
     for next in graph[curr]:
         if next in path:
             print(f'Cycle Found: {curr} -> {next}')
             exit()
         effects_config_sort(path + [next])
-    if len(graph[curr]) == 0:
+    if len(graph[curr]) == 0 and curr:
         simple_effects.append(curr)
-    else:
+    elif curr:
         complex_effects.append(curr)
 
 def add_song_to_config(filepath):
+    relative_path = filepath
+    if relative_path.is_absolute():
+        relative_path = relative_path.relative_to(python_file_directory)
+    if str(relative_path) in songs_config:
+        return
+
     if filepath.suffix in ['.mp3', '.ogg', '.wav']:
         tags = TinyTag.get(filepath)
         name = tags.title
@@ -940,9 +947,6 @@ def add_song_to_config(filepath):
         if not duration:
             print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow')
             duration = sound_helpers.get_audio_clip_length(filepath)
-        relative_path = filepath
-        if relative_path.is_absolute():
-            relative_path = relative_path.relative_to(python_file_directory)
         
         songs_config[str(relative_path)] = {
             'name': name,
@@ -951,22 +955,19 @@ def add_song_to_config(filepath):
         }
     else:
         print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
-        return False
-    return True
 
 all_globals = globals()
 def update_config_and_lut_from_disk():
     global effects_config, effects_config_client, songs_config, channel_lut, graph, found
+    update_config_and_lut_time = time.time()
 
     channel_lut = {}
     effects_config = {}
     effects_config_client = {}
-    songs_config = {}
 
     graph = {}
     found = {}
 
-    # begin_perf_timer = time.time()
     effects_dir = python_file_directory.joinpath('effects')
     for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         relative_path = filepath.relative_to(python_file_directory)
@@ -979,7 +980,6 @@ def update_config_and_lut_from_disk():
 
         effects_config.update(all_globals[module_name].effects)
 
-    song_dir = python_file_directory.joinpath('songs')
     for name, filepath in get_all_paths('songs', only_files=True):
         add_song_to_config(filepath)
     compile_lut(effects_config)
@@ -989,7 +989,7 @@ def update_config_and_lut_from_disk():
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
-
+    print_cyan(f'update_config_and_lut_from_disk took {time.time() - update_config_and_lut_time:.3f}')
 
 def set_effect_defaults(local_effects_config):
     for effect_name, effect in local_effects_config.items():
@@ -1074,6 +1074,7 @@ def compile_lut(local_effects_config):
     simple_effects = []
     complex_effects = []
 
+
     cache_and_graph_perf_timer = time.time()
     for effect_name, effect in local_effects_config.items():
         graph[effect_name] = {}
@@ -1082,8 +1083,14 @@ def compile_lut(local_effects_config):
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
-    for effect_name in graph:
-        effects_config_sort([effect_name])
+    not_needed = set()
+    if args.show:
+        if args.show not in local_effects_config:
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+        effects_config_sort([args.show])
+    else:
+        for effect_name in graph:
+            effects_config_sort([effect_name])
 
     set_effect_defaults(local_effects_config)
     cache_assign_dirty(local_effects_config)
@@ -1267,7 +1274,6 @@ def fuzzy_find(name, valid_names, filter_words=None):
 
 
 if __name__ == '__main__':
-
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
@@ -1278,6 +1284,7 @@ if __name__ == '__main__':
         console = Console()
     else:
         setup_gpio()
+
 
     update_config_and_lut_from_disk()
 
@@ -1372,9 +1379,12 @@ if __name__ == '__main__':
                     return None
                 if FilesystemHandler.last_updated > (time.time() - .05):
                     print('not updating not enough time!!!')
+                    return
+                time_before_restart = time.time()
                 print(f'Reloading json because: "{event.src_path}" was modified')
                 FilesystemHandler.last_updated = time.time()            
                 restart_show(True, -args.jump_back)
+                print_cyan(f'Time to reload: {time.time() - time_before_restart:.3f}')
 
         observer = Observer()
         observer.schedule(FilesystemHandler(), python_file_directory, recursive = True)
@@ -1487,6 +1497,7 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
         asyncio.create_task(light())
 
+        print_cyan(f'Total start time: {time.time() - first_start_time:.3f}')
         await dj_socket_server.wait_closed() and queue_socket_server.wait_closed()
 
     asyncio.run(start_async())

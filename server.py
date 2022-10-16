@@ -1505,14 +1505,6 @@ if __name__ == '__main__':
             print('Starting show from CLI')
 
             args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
-            if args.show not in originals:
-                originals[args.show] = {
-                    'skip_song': effects_config[args.show]['skip_song'],
-                    'delay_lights': effects_config[args.show]['delay_lights'],
-                    'bpm': effects_config[args.show]['bpm'],
-                    'song_path': effects_config[args.show]['song_path'],
-                }
-
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:
                     effects_config[args.show]['bpm'] *= args.speed
@@ -1531,6 +1523,16 @@ if __name__ == '__main__':
                 play_song(args.show)
             else:
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
+
+        if args.keyboard or args.reload:
+            if args.show not in originals:
+                originals[args.show] = {
+                    'skip_song': effects_config[args.show]['skip_song'],
+                    'delay_lights': effects_config[args.show]['delay_lights'],
+                    'bpm': effects_config[args.show]['bpm'],
+                    'song_path': effects_config[args.show]['song_path'],
+                }
+        
         asyncio.create_task(light())
 
         print_cyan(f'Total start time: {time.time() - first_start_time:.3f}')

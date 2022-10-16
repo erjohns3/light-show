@@ -3,6 +3,7 @@ import os
 import subprocess
 import pathlib
 import platform
+import time
 
 def is_windows():
     plt = platform.system()

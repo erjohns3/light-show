@@ -928,8 +928,6 @@ def add_song_to_config(filepath):
     relative_path = filepath
     if relative_path.is_absolute():
         relative_path = relative_path.relative_to(python_file_directory)
-    if str(relative_path) in songs_config:
-        return
 
     if filepath.suffix in ['.mp3', '.ogg', '.wav']:
         tags = TinyTag.get(filepath)
@@ -977,11 +975,11 @@ def update_config_and_lut_from_disk():
             importlib.reload(all_globals[module_name])
         else:
             all_globals[module_name] = importlib.import_module(module_name)
-
         effects_config.update(all_globals[module_name].effects)
 
-    for name, filepath in get_all_paths('songs', only_files=True):
-        add_song_to_config(filepath)
+    if not songs_config:
+        for name, filepath in get_all_paths('songs', only_files=True):
+            add_song_to_config(filepath)
     compile_lut(effects_config)
 
     for name, effect in effects_config.items():
@@ -989,43 +987,41 @@ def update_config_and_lut_from_disk():
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
-    print_cyan(f'update_config_and_lut_from_disk took {time.time() - update_config_and_lut_time:.3f}')
+    print_cyan(f'update_config_and_lut_from_disk took {time.time() - update_config_and_lut_time:.3f}\n' * 8)
 
-def set_effect_defaults(local_effects_config):
-    for effect_name, effect in local_effects_config.items():
-        if 'snap' not in effect:
-            effect['snap'] = 1 / SUB_BEATS
-        else:
-            effect['snap'] = max(effect['snap'], 1 / SUB_BEATS)
-        if 'trigger' not in effect:
-            effect['trigger'] = 'toggle'
-        if 'profiles' not in effect:
-            effect['profiles'] = []
-        if 'song_path' in effect:
-            effect['song_path'] = str(pathlib.Path(effect['song_path']))
-        if 'song_path' in effect and effect['song_path'] not in songs_config:
-            del effect['song_path']
-        if 'song_path' in effect and effect['song_path'] in songs_config:
-            if 'bpm' not in effect:
-                print_red('song effects must have bpm\n' * 10)
-                exit()
-            effect['delay_lights'] = effect.get('delay_lights', 0)
-            if not args.local:
-                effect['delay_lights'] += 0.1
-            if args.delay_seconds:
-                effect['delay_lights'] += args.delay_seconds
-            if 'length' not in effect:
-                effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
-            if 'loop' not in effect:
-                effect['loop'] = False
-        else:
-            if 'loop' not in effect:
-                effect['loop'] = True
 
-    for effect_name in local_effects_config:
-        if 'song_path' not in local_effects_config[effect_name]:
-            local_effects_config[effect_name]['profiles'].append('All Effects')
-    
+def set_effect_defaults(effect):
+    if 'snap' not in effect:
+        effect['snap'] = 1 / SUB_BEATS
+    else:
+        effect['snap'] = max(effect['snap'], 1 / SUB_BEATS)
+    if 'trigger' not in effect:
+        effect['trigger'] = 'toggle'
+    if 'profiles' not in effect:
+        effect['profiles'] = []
+    if 'song_path' in effect:
+        effect['song_path'] = str(pathlib.Path(effect['song_path']))
+    if 'song_path' in effect and effect['song_path'] not in songs_config:
+        del effect['song_path']
+    if 'song_path' in effect and effect['song_path'] in songs_config:
+        if 'bpm' not in effect:
+            print_red('song effects must have bpm\n' * 10)
+            exit()
+        effect['delay_lights'] = effect.get('delay_lights', 0)
+        if not args.local:
+            effect['delay_lights'] += 0.1
+        if args.delay_seconds:
+            effect['delay_lights'] += args.delay_seconds
+        if 'length' not in effect:
+            effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
+        if 'loop' not in effect:
+            effect['loop'] = False
+    else:
+        if 'loop' not in effect:
+            effect['loop'] = True
+    if 'song_path' not in effect:
+        effect['profiles'].append('All Effects')
+
 
 def get_effect_hash(effect_name, effect):
     copied_effect = {}
@@ -1043,7 +1039,8 @@ def cache_assign_dirty(local_effects_config):
         print(f'making directory {lut_cache_dir}')
         os.mkdir(lut_cache_dir)
 
-    for effect_name, effect in local_effects_config.items():
+    for effect_name in found:
+        effect = local_effects_config[effect_name]
         effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
         
         effect['cache_dirty'] = True
@@ -1051,10 +1048,8 @@ def cache_assign_dirty(local_effects_config):
             with open(effect_cache_filepath, 'r') as f:
                 if get_effect_hash(effect_name, effect) == f.read().strip():
                     effect['cache_dirty'] = False
-                else:
-                    print_yellow(f'{effect_name} is dirty')
     
-    for effect_name, effect in local_effects_config.items():
+    for effect_name in found:
         dfs_dirty_cache(effect_name)
 
 cache_dfs_seen = {}
@@ -1074,7 +1069,6 @@ def compile_lut(local_effects_config):
     simple_effects = []
     complex_effects = []
 
-
     cache_and_graph_perf_timer = time.time()
     for effect_name, effect in local_effects_config.items():
         graph[effect_name] = {}
@@ -1083,7 +1077,6 @@ def compile_lut(local_effects_config):
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
-    not_needed = set()
     if args.show:
         if args.show not in local_effects_config:
             args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
@@ -1092,7 +1085,8 @@ def compile_lut(local_effects_config):
         for effect_name in graph:
             effects_config_sort([effect_name])
 
-    set_effect_defaults(local_effects_config)
+    for effect_name in found:
+        set_effect_defaults(local_effects_config[effect_name])
     cache_assign_dirty(local_effects_config)
     print_cyan(f'Cache and graph: {time.time() - cache_and_graph_perf_timer:.3f} seconds')
 
@@ -1147,6 +1141,7 @@ def compile_lut(local_effects_config):
     complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
         effect = local_effects_config[effect_name]
+
         if not effect['cache_dirty']:
             effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
             with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:

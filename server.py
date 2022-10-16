@@ -64,6 +64,8 @@ LIGHT_COUNT = 10
 curr_effects = []
 song_queue = []
 
+originals = {}
+
 curr_bpm = 121
 time_start = time.time()
 beat_index = 0
@@ -1280,7 +1282,6 @@ if __name__ == '__main__':
     else:
         setup_gpio()
 
-
     update_config_and_lut_from_disk()
 
     # testing the youtube downloading
@@ -1327,23 +1328,16 @@ if __name__ == '__main__':
         x.start()
 
 
-
-    originals = {}
-    def restart_show(reload=False, skip=0):
+    def restart_show(skip=0, abs_time=None, reload=False):
         if curr_effects:
             effect_name = curr_effects[0][0]
             remove_effect(0)
+            
             time_to_skip_to = max(0, (time.time() - time_start) + skip)
+            if abs_time is not None:
+                time_to_skip_to = abs_time
             stop_song()
 
-
-            if effect_name not in originals:
-                originals[effect_name] = {
-                    'skip_song': effects_config[effect_name]['skip_song'],
-                    'delay_lights': effects_config[effect_name]['delay_lights'],
-                    'bpm': effects_config[effect_name]['bpm'],
-                    'song_path': effects_config[effect_name]['song_path'],
-                }
             if reload:
                 update_config_and_lut_from_disk()
 
@@ -1359,8 +1353,9 @@ if __name__ == '__main__':
         elif reload:
             update_config_and_lut_from_disk()
 
-
     if args.reload:
+        if not args.show:
+            raise Exception('you need to define --show in order to use --reload')
         from watchdog.observers import Observer
         from watchdog.events import FileSystemEventHandler
 
@@ -1372,18 +1367,20 @@ if __name__ == '__main__':
                 if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path or not event.src_path.endswith('.py'):
                     return None
                 if FilesystemHandler.last_updated > (time.time() - .05):
-                    print('not updating not enough time!!!')
                     return
                 time_before_restart = time.time()
                 print(f'Reloading json because: "{event.src_path}" was modified')
                 FilesystemHandler.last_updated = time.time()            
-                restart_show(True, -args.jump_back)
+                
+                if args.skip_show_seconds and not args.jump_back:
+                    restart_show(reload=True, abs_time=args.skip_show_seconds)
+                else:
+                    restart_show(reload=True, skip=-args.jump_back)
                 print_cyan(f'Time to reload: {time.time() - time_before_restart:.3f}')
 
         observer = Observer()
         observer.schedule(FilesystemHandler(), python_file_directory, recursive = True)
         observer.start()
-
 
 
     if args.keyboard:
@@ -1402,8 +1399,8 @@ if __name__ == '__main__':
             # 'f': 'Cyan top',
             # 'j': 'Blue bottom',
             # 'k': 'Green bottom',
-            'left': lambda: restart_show(False, -skip_time),
-            'right': lambda: restart_show(False, skip_time),
+            'left': lambda: restart_show(skip=-skip_time),
+            'right': lambda: restart_show(skip=skip_time),
             # 'space': 'UV',
         }
         # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
@@ -1452,7 +1449,6 @@ if __name__ == '__main__':
         keyboard_thread.start()
 
 
-
     http_thread = threading.Thread(target=http_server, args=[], daemon=True)
     http_thread.start()
     # allows prints from http_server to finish to not mess up terminal output
@@ -1469,8 +1465,17 @@ if __name__ == '__main__':
         print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
         if args.show:
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
             print('Starting show from CLI')
+
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+            if args.show not in originals:
+                originals[args.show] = {
+                    'skip_song': effects_config[args.show]['skip_song'],
+                    'delay_lights': effects_config[args.show]['delay_lights'],
+                    'bpm': effects_config[args.show]['bpm'],
+                    'song_path': effects_config[args.show]['song_path'],
+                }
+
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:
                     effects_config[args.show]['bpm'] *= args.speed

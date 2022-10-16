@@ -173,13 +173,6 @@ effects = {
             [1, [0, 0, 0, 50, 30, 30, 0, 0, 0, 0], 1],
         ],
     },
-    "Red back": {
-        "length": 1,
-        "profiles": ["Colors"],
-        "beats": [
-            [1, [0, 0, 0, 0, 0, 100, 0, 0, 0, 0], 1],
-        ],
-    },
     "Red bottom sat": {
         "length": 1,
         "profiles": ["Colors"],

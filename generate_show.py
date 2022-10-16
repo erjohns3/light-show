@@ -215,8 +215,11 @@ def get_boundary_beats(energies, beat_length, delay, length_s):
 #     # server.compile_lut(effect_name)
 
 
-def round_to(x, base=0):
-    return round(base * round(x / base), 2)
+
+# only works to 10 decimal places
+def round_to(n, precision):
+    correction = 0.5 if n >= 0 else -0.5
+    return round(int( n/precision+correction ) * precision, 10)
 
 
 new_effects_made = set()
@@ -334,7 +337,9 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     beat = 1    
     if simple: # Only RBBB timing
         while beat < total_beats:
-            show['beats'].append([beat, 'RBBB 1 bar', 4])
+            effect_name = 'RBBB 1 bar'
+            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
+            show['beats'].append([beat, effect_name, 4])
             beat += 4
     elif use_boundaries==True: # Based on scenes
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
@@ -363,14 +368,13 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         effect_name = random.choice(effect_types_to_name[effect_type])
 
-                        new_effect_name = make_new_effect(effects_config, effect_name, hue_shift=round(random.random(), 2), sat_shift=0, bright_shift=0)
+                        # shift by a random color
+                        effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
 
-
-
-                        new_prev_effects.append(new_effect_name)
-                        show['beats'].append([beat, new_effect_name, length])
+                        new_prev_effects.append(effect_name)
+                        show['beats'].append([beat, effect_name, length])
                         if length_left > length*2 and length==16:
-                            show['beats'].append([beat+length, new_effect_name, length])
+                            show['beats'].append([beat+length, effect_name, length])
                     beat += length
                     if length_left > length*2 and length==16:
                         beat += length

@@ -26,8 +26,8 @@ print(f'Through pip import: {time.time() - first_start_time:.3f}')
 from helpers import *
 import sound_helpers
 import youtube_helpers
-print_cyan(f'Through custom import: {time.time() - first_start_time:.3f}')
 from users import users
+print_cyan(f'Through custom import: {time.time() - first_start_time:.3f}')
 
 
 parser = argparse.ArgumentParser(description = '')
@@ -1345,9 +1345,6 @@ if __name__ == '__main__':
             effects_config[effect_name]['song_path'] = originals[effect_name]['song_path']
             effects_config[effect_name]['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
             effects_config[effect_name]['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
-            # original_delays[effect_name] = effects_config[effect_name]['delay_lights']
-            # effects_config[effect_name]['skip_song'] = time_to_skip_to
-            # effects_config[effect_name]['delay_lights'] = time_to_skip_to - originals[effect_name]
             play_song(effect_name, print_out=False)
             add_effect(effect_name)
         elif reload:

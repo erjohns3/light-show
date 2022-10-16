@@ -45,6 +45,7 @@ parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', default=False, action='store_true')
 parser.add_argument('--autogen_simple', dest='autogen_simple', default=False, action='store_true')
+parser.add_argument('--cache', dest='cache', default=False, action='store_true')
 # bluetooth qc35 headphones are .189 latency
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
 
@@ -1044,7 +1045,7 @@ def cache_assign_dirty(local_effects_config):
         effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
         
         effect['cache_dirty'] = True
-        if os.path.exists(effect_cache_filepath):
+        if os.path.exists(effect_cache_filepath) and args.cache:
             with open(effect_cache_filepath, 'r') as f:
                 if get_effect_hash(effect_name, effect) == f.read().strip():
                     effect['cache_dirty'] = False
@@ -1207,12 +1208,14 @@ def compile_lut(local_effects_config):
                         final_channel[x] += reference_channels[x] * mult
 
         effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
-        print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
-        with open(effect_cache_filepath, 'w') as f:
-            f.writelines([get_effect_hash(effect_name, og_effect)])
 
-        with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
-            pickle.dump(channel_lut[effect_name], f)
+        if args.cache:
+            print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
+            with open(effect_cache_filepath, 'w') as f:
+                f.writelines([get_effect_hash(effect_name, og_effect)])
+
+            with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
+                pickle.dump(channel_lut[effect_name], f)
 
 
     print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds : {num_cached_effects}/{len(complex_effects)} cached')

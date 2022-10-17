@@ -147,7 +147,7 @@ effects = {
             [233, "wandering", 64, 1, 1, 0, .7],
             [297, "hooked bottom kick increase", 28],
             [325, "hooked buildup", 4],
-            [329, "hooked chorus", 96, 1, 1, 0, .3],
+            [329, "hooked chorus", 96, 1, 1, 0, .5],
             [425, "Nothing", 6],
         ],
         "delay_lights": 0,

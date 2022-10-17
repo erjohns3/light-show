@@ -63,8 +63,9 @@ effects = {
         'delay_lights': 0.12,
         'skip_song': 0.0,
         'beats': [
-            [1, 'porter flubs phrase', 128],
-            [17, 'porter piano melody', 128],
+            [1, 'porter flubs phrase', 128, 1, 1, 0, .2],
+            [17, 'porter piano melody', 32],
+            [49, 'porter piano melody', 32],
             [81, 'Red top', 1],
             # [120, 'Red top', 1], bg melody
             [145, 'Red top', 1], # kicks

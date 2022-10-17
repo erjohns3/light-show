@@ -38,8 +38,10 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 `python server.py --local --autogen --show shelter`
 
 
-## dont use this unless andrew
+# andrew specific commands
+
 `python server.py --local --keyboard --delay .189 --autogen --volume 5 --show shelter`
+`python server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
 
 
 # Other

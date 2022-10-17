@@ -1554,8 +1554,10 @@ if __name__ == '__main__':
                 if args.skip_show_beats:
                     args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / effects_config[args.show]['bpm'])
                 if args.skip_show_seconds:
-                    effects_config[args.show]['skip_song'] += args.skip_show_seconds
-                    effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
+                    global song_time
+                    song_time = args.skip_show_seconds
+                    # effects_config[args.show]['skip_song'] += args.skip_show_seconds
+                    # effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
                 song_queue.append([args.show, get_queue_salt(), 'CLI'])
                 add_effect(args.show)
                 play_song(args.show)

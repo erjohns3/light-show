@@ -89,7 +89,7 @@ def rekord_box_shit():
                         continue
                     title, rest = line.split('quytdhsdg')
                     stuff = list(map(lambda x: x.strip(), rest.split(',')))
-                    print(stuff)
+                    # print(stuff)
                     # %title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%               
                     data = {
                         'title': title,
@@ -102,12 +102,12 @@ def rekord_box_shit():
                     }
 
                     if len(data['title']) > 3:
-                        print(f'========TITLE ===== {last_sent} RECIEVED FROM REKORDBOX: "{data}"')                
+                        print(f'======== TITLE ===== {last_sent} RECIEVED FROM REKORDBOX: "{data}"')                
                         current_title = data['title'][2:].strip()
                         send_show_title(current_title)
                     
                     if time.time() > (last_sent + .5):
-                        print(f'{last_sent} sending ours: "{data}"')                
+                        # print(f'{last_sent} sending ours: "{data}"')                
                         send_time_and_bpm(data)
                         last_sent = time.time()
 

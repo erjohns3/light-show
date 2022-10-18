@@ -131,13 +131,14 @@ def add_effect_from_dj(msg):
 
 
 
-
+rekordbox_bpm = 0
+rekordbox_time = 0
 async def init_rekordbox_bridge_client(websocket, path):
+    global rekordbox_bpm, rekordbox_time
     print('rekordbox made connection to new client')
     while True:
         try:
             msg_string = await websocket.recv()
-            print_red(msg_string)
         except:
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
@@ -146,6 +147,16 @@ async def init_rekordbox_bridge_client(websocket, path):
         if 'type' in msg:
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg)
+
+            elif msg['type'] == 'title':
+                title = msg['title']
+                print(f'NEW TITLE IS {title}\n' * 8)
+
+            elif msg['type'] == 'time_and_bpm':
+                rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['bpm'])
+                
+
+
 
 
 async def init_dj_client(websocket, path):
@@ -642,7 +653,7 @@ def get_sub_effect_names(effect_name, beat):
 
 last_extra_lines = None
 async def render_to_terminal(all_levels):
-    global last_extra_lines
+    global last_extra_lines, rekordbox_time, rekordbox_bpm
     curr_beat = (beat_index / SUB_BEATS) + 1
     dead_space = terminal_size - 15
 
@@ -670,6 +681,8 @@ async def render_to_terminal(all_levels):
 # Seconds: {round(time.time() - time_start, 2):.2f}\
 
     useful_info = f"""\
+r_bpm {round(rekordbox_bpm, 1)}, \
+r_time {round(rekordbox_time / 1000, 1)}, \
 BPM {curr_bpm:.1f}, \
 Beat {curr_beat:.1f}\
 {show_specific}\

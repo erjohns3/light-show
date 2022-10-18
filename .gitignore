@@ -21,3 +21,6 @@ estimations/**
 .features_msaf_tmp.json
 lut_cache/
 old_songs/
+estimations/
+config.ini
+Output Files/

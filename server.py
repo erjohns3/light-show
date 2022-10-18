@@ -151,15 +151,24 @@ async def init_rekordbox_bridge_client(websocket, path):
                 add_effect_from_dj(msg)
 
             elif msg['type'] == 'track_changed':
-                rekordbox_title = msg['title']
+                rekordbox_title = 'rekord_' + msg['title']
                 rekordbox_original_bpm = float(msg['original_bpm'])
-                # need to play effect here once we generate all the shows?
+
+
+                if rekordbox_title not in effects_config:
+                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)                    
+                print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
+                clear_effects()
+                add_effect_from_dj(rekordbox_title)
 
             elif msg['type'] == 'time_and_current_bpm':
-                rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['current_bpm'])
-                # curr_bpm = rekordbox_bpm
-                # time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
-                
+                # maybe print here? itll be spammy
+                # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
+                if rekordbox_title in effects_config:
+                    rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['current_bpm'])
+                    curr_bpm = rekordbox_bpm
+                    time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
+            
 
 
 async def init_dj_client(websocket, path):

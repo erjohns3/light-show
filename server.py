@@ -131,10 +131,11 @@ def add_effect_from_dj(msg):
 
 
 
+rekordbox_title = ''
 rekordbox_bpm = 0
 rekordbox_time = 0
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_time
+    global rekordbox_bpm, rekordbox_time, rekordbox_title
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -149,8 +150,7 @@ async def init_rekordbox_bridge_client(websocket, path):
                 add_effect_from_dj(msg)
 
             elif msg['type'] == 'title':
-                title = msg['title']
-                print(f'NEW TITLE IS {title}\n' * 8)
+                rekordbox_title = msg['title']
 
             elif msg['type'] == 'time_and_bpm':
                 rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['bpm'])
@@ -653,7 +653,7 @@ def get_sub_effect_names(effect_name, beat):
 
 last_extra_lines = None
 async def render_to_terminal(all_levels):
-    global last_extra_lines, rekordbox_time, rekordbox_bpm
+    global last_extra_lines, rekordbox_time, rekordbox_bpm, rekordbox_title
     curr_beat = (beat_index / SUB_BEATS) + 1
     dead_space = terminal_size - 15
 
@@ -683,6 +683,7 @@ async def render_to_terminal(all_levels):
     useful_info = f"""\
 r_bpm {round(rekordbox_bpm, 1)}, \
 r_time {round(rekordbox_time / 1000, 1)}, \
+r: {rekordbox_title}, \
 BPM {curr_bpm:.1f}, \
 Beat {curr_beat:.1f}\
 {show_specific}\

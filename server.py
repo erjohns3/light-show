@@ -135,7 +135,7 @@ rekordbox_title = ''
 rekordbox_bpm = 0
 rekordbox_time = 0
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_time, rekordbox_title
+    global rekordbox_bpm, rekordbox_time, rekordbox_title, time_start
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -154,13 +154,15 @@ async def init_rekordbox_bridge_client(websocket, path):
 
             elif msg['type'] == 'time_and_bpm':
                 rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['bpm'])
+                # need at least original bpm
+                # original_bpm = float(msg['original_bpm'])
+                # curr_bpm = rekordbox_bpm
+                # time_start = time.time() - (rekordbox_time * (original_bpm / rekordbox_bpm))
                 
 
 
-
-
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song
     print('dj made connection to new client')
 
     message = {
@@ -230,9 +232,6 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'dec_time':
                 time_start -= 0.1
 
-            elif msg['type'] == 'inc_time':
-                time_start += 0.1
-
             broadcast_light = True
 
 
@@ -277,7 +276,7 @@ def download_song(url, uuid):
 
 
 async def init_queue_client(websocket, path):
-    global curr_bpm, time_start, beat_index, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, song_playing, song_time, broadcast_light, broadcast_song
     print('queue made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
@@ -1407,7 +1406,6 @@ if __name__ == '__main__':
             }
 
     def detailed_output_on_enter():
-        global beat_index
         while True:
             input()
             all_effect_names = []

@@ -131,9 +131,9 @@ def add_effect_from_dj(msg):
 
 
 
-rekordbox_title = ''
-rekordbox_bpm = 0
-rekordbox_time = 0
+rekordbox_title = None
+rekordbox_bpm = None
+rekordbox_time = None
 async def init_rekordbox_bridge_client(websocket, path):
     global rekordbox_bpm, rekordbox_time, rekordbox_title, time_start
     print('rekordbox made connection to new client')
@@ -680,14 +680,18 @@ async def render_to_terminal(all_levels):
 # Seconds: {round(time.time() - time_start, 2):.2f}\
 
     useful_info = f"""\
-r_bpm {round(rekordbox_bpm, 1)}, \
-r_time {round(rekordbox_time / 1000, 1)}, \
-r: {rekordbox_title}, \
 BPM {curr_bpm:.1f}, \
 Beat {curr_beat:.1f}\
-{show_specific}\
 """
-    
+    if rekordbox_bpm is not None:
+        useful_info += f', r_bpm {round(rekordbox_bpm, 1)}'
+    if rekordbox_time is not None:
+        useful_info += f', r_time {round(rekordbox_time / 1000, 1)}, '
+    if rekordbox_title is not None:
+        useful_info += f', r: {rekordbox_title}, '
+    useful_info += f'{show_specific}'
+
+
     # size_of_current_line = len(useful_info) - (terminal_size * (len(useful_info) // terminal_size))
     size_of_current_line = len(useful_info) % (terminal_size + 1)
     chars_until_end_of_line = terminal_size - size_of_current_line

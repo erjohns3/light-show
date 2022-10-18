@@ -131,6 +131,23 @@ def add_effect_from_dj(msg):
 
 
 
+
+async def init_rekordbox_bridge_client(websocket, path):
+    print('rekordbox made connection to new client')
+    while True:
+        try:
+            msg_string = await websocket.recv()
+            print_red(msg_string)
+        except:
+            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            break
+
+        msg = json.loads(msg_string)
+        if 'type' in msg:
+            if msg['type'] == 'add_effect':
+                add_effect_from_dj(msg)
+
+
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, beat_index, song_playing, song_time, broadcast_light, broadcast_song
     print('dj made connection to new client')
@@ -1535,6 +1552,7 @@ if __name__ == '__main__':
 
 
     async def start_async():
+        rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
         print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
@@ -1567,7 +1585,7 @@ if __name__ == '__main__':
         asyncio.create_task(light())
 
         print_cyan(f'Total start time: {time.time() - first_start_time:.3f}')
-        await dj_socket_server.wait_closed() and queue_socket_server.wait_closed()
+        await dj_socket_server.wait_closed() and queue_socket_server.wait_closed() and rekordbox_bridge_server.wait_closed()
 
     asyncio.run(start_async())
 

@@ -134,8 +134,9 @@ def add_effect_from_dj(msg):
 rekordbox_title = None
 rekordbox_bpm = None
 rekordbox_time = None
+rekordbox_original_bpm = None
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_time, rekordbox_title, time_start
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -149,15 +150,15 @@ async def init_rekordbox_bridge_client(websocket, path):
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg)
 
-            elif msg['type'] == 'title':
+            elif msg['type'] == 'track_changed':
                 rekordbox_title = msg['title']
+                rekordbox_original_bpm = float(msg['original_bpm'])
+                # need to play effect here once we generate all the shows?
 
-            elif msg['type'] == 'time_and_bpm':
-                rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['bpm'])
-                # need at least original bpm
-                # original_bpm = float(msg['original_bpm'])
+            elif msg['type'] == 'time_and_current_bpm':
+                rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['current_bpm'])
                 # curr_bpm = rekordbox_bpm
-                # time_start = time.time() - (rekordbox_time * (original_bpm / rekordbox_bpm))
+                # time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
                 
 
 

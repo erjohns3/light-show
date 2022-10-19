@@ -163,14 +163,12 @@ async def init_rekordbox_bridge_client(websocket, path):
             add_effect_from_dj(rekordbox_title)
 
         if 'master_time' in msg and 'master_bpm' in msg:
-            # maybe print here? itll be spammy
-            # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
                 # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')
                 rekordbox_bpm = max(3, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
-                time_start = time.time() + effects_config[rekordbox_title]['delay_lights'] - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
+                time_start = time.time() - ((rekordbox_time - effects_config[rekordbox_title]['delay_lights']) * (rekordbox_original_bpm / rekordbox_bpm))
             else:
                 print_yellow(f'Cant update rekordbox time and bpm! Missing effect {rekordbox_title}\n' * 8)                    
 
@@ -450,12 +448,9 @@ def search_youtube():
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        from os import path
-        loc = pathlib.Path(__file__).parent.absolute()
-        drink_io_folder = str(loc)
-        with open(path.join(drink_io_folder, 'parse.html'), 'w') as f:
+        with open(python_file_directory.joinpath('parse.html'), 'w') as f:
             f.write(out[start:end])
-        with open(path.join(drink_io_folder, 'full.html'), 'w') as f:
+        with open(python_file_directory.joinpath('full.html'), 'w') as f:
             f.write(out)
 
         list1 = []

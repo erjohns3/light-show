@@ -14,6 +14,8 @@ if __name__ == '__main__':
     for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True, recursive=True):
         if filepath.suffix in ['.py', '.exe']:
             continue
+        if filename.startswith('.'):
+            continue
         new_show, local_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True, include_song_path=False, output_directory=effect_output_directory, random_color=False)
         remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
         print_blue(f'Show created, scping from "{local_filepath}" to folder "{remote_folder}"')

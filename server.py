@@ -167,8 +167,10 @@ async def init_rekordbox_bridge_client(websocket, path):
             # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
+                # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')
+                rekordbox_bpm = max(3, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
-                time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
+                time_start = time.time() + effects_config[rekordbox_title]['delay_lights'] - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
             else:
                 print_yellow(f'Cant update rekordbox time and bpm! Missing effect {rekordbox_title}\n' * 8)                    
 
@@ -806,15 +808,9 @@ async def light():
                 effect_name = curr_effects[j][0]
                 index = beat_index + curr_effects[j][1]
                 
-                # print(effect_name)
-                if 'rotate_color' in effects_config[effect_name]:
-                    print('rotating!!')
-                
                 if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
-                    level += channel_lut[effect_name]['beats'][index][i]
-
-                
+                    level += channel_lut[effect_name]['beats'][index][i]                
 
             level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
             level_between_0_and_1 = level_bounded / 0xFFFF

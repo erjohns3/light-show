@@ -1,3 +1,4 @@
+from genericpath import isdir
 import random
 import os
 import subprocess
@@ -78,7 +79,7 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None):
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False):
     if not os.path.exists(directory):
         print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
@@ -88,8 +89,11 @@ def get_all_paths(directory, only_files=False, exclude_names=None):
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
-        if not only_files or os.path.isfile(filepath):
+        
+        if os.path.isfile(filepath) or not only_files:
             paths.append((filename, filepath))
+        if os.path.isdir(filepath) and recursive:
+            paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive)
     return paths
 
 def is_linux_root():

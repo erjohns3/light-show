@@ -11,9 +11,8 @@ if __name__ == '__main__':
     channel_lut = server.get_channel_lut()
     effects_config = server.get_effects_config()
 
-    # TODO make recursive
-    for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True):
-        if filename == 'download_videos.py':
+    for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True, recursive=True):
+        if filepath.suffix in ['.py', '.exe']:
             continue
         new_show, local_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True, include_song_path=False, output_directory=effect_output_directory, random_color=False)
         remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')

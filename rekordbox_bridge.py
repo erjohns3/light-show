@@ -55,23 +55,41 @@ def send_track_change(data):
     send_to_light_show_server(json.dumps(data))
 
 
+last_sent = float('-inf')
 def rekord_box_server():
+    global last_sent
     wait_for_light_show_connection()
 
     REKORDBOX_HOST = "127.0.0.1"
     REKORDBOX_PORT = 22345
 
-    last_sent = float('-inf')
     current_title = ''
+    data = None
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((REKORDBOX_HOST, REKORDBOX_PORT))
+        # s.settimeout(.01)
         s.listen()
         print_green('Waiting for connection from rekordbox reading client')
+        # while True:
+        #     try:
         conn, addr = s.accept()
+        conn.settimeout(.01)
+            #     break
+            # except:
+            #     pass
+    
         with conn:
             print_green(f'Connected to rekordbox reading client: {addr}')
             while True:
-                string_recieved = conn.recv(1024).decode()
+                try:
+                    data_recieved = conn.recv(1024)
+                except socket.timeout as e:
+                    if data is not None:
+                        print_yellow('Recieved no data from rekordbox, sending prev data')
+                        send_time_and_bpm(data, string_recieved)
+                        continue
+
+                string_recieved = data_recieved.decode()
                 if 'rt_master_time' in string_recieved:
                     print_green(f'==== INIT CONFIG ====: "{string_recieved}"')                
                     continue
@@ -121,6 +139,13 @@ def rekord_box_server():
                         print_red('DATA FROM REKORDBOX WAS EMPTY, EXITING')
                         break
 threading.Thread(target=rekord_box_server).start()
+
+
+# def send_pause_if_no_update():
+#     global last_sent
+#     if global last
+
+# threading.Thread(target=send_pause_if_no_update).start()
 
 
 

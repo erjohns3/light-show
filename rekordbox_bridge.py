@@ -23,10 +23,9 @@ def wait_for_light_show_connection():
         time.sleep(1)
 
 def send_to_light_show_server(string):
+    global dj_client
     wait_for_light_show_connection()
-    dj_client.send(msg_to_send)
-
-
+    dj_client.send(string)
 
 
 
@@ -53,11 +52,11 @@ def send_time_and_bpm(data, string_recieved):
     }
     send_to_light_show_server(json.dumps(dict_to_send))
 
-def send_show_title_original_bpm(title):
+def send_show_title_original_bpm(title, original_bpm):
     dict_to_send = {
         'type': 'track_changed',
         'title': title,
-        'original_bpm': title,
+        'original_bpm': original_bpm,
     }
     send_to_light_show_server(json.dumps(dict_to_send))
 
@@ -115,7 +114,7 @@ def rekord_box_server():
                         print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
                         print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
                         current_title = data['title'][2:].strip()
-                        send_show_title(current_title)
+                        send_show_title_original_bpm(current_title, data['original_bpm'])
                     
                     if time.time() > (last_sent + .5):
                         send_time_and_bpm(data, string_recieved)
@@ -148,7 +147,9 @@ def light_show_on_message(wsapp, message):
     print_blue('Got from light show server:', message)
 
 
+dj_client = None
 def try_make_light_show_connection():
+    global dj_client
     dj_client = websocket.WebSocketApp("ws://localhost:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
     try:
         dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 

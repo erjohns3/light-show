@@ -112,9 +112,8 @@ def http_server():
 
 ########################################
 
-def add_effect_from_dj(msg):
+def add_effect_from_dj(effect_name):
     global song_time, song_playing, broadcast_song
-    effect_name = msg['effect']
     song_time = 0
     if has_song(effect_name):
         song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
@@ -148,15 +147,15 @@ async def init_rekordbox_bridge_client(websocket, path):
         msg = json.loads(msg_string)
         if 'type' in msg:
             if msg['type'] == 'add_effect':
-                add_effect_from_dj(msg)
+                add_effect_from_dj(msg['effect'])
 
             elif msg['type'] == 'track_changed':
                 rekordbox_title = 'rekord_' + msg['title']
                 rekordbox_original_bpm = float(msg['original_bpm'])
 
-
                 if rekordbox_title not in effects_config:
-                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)                    
+                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
+                    continue
                 print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
                 clear_effects()
                 add_effect_from_dj(rekordbox_title)
@@ -208,7 +207,7 @@ async def init_dj_client(websocket, path):
         if 'type' in msg:
 
             if msg['type'] == 'add_effect':
-                add_effect_from_dj(msg)
+                add_effect_from_dj(msg['effect'])
 
             elif msg['type'] == 'remove_effect':
                 effect_name = msg['effect']
@@ -689,16 +688,18 @@ async def render_to_terminal(all_levels):
 
 # Seconds: {round(time.time() - time_start, 2):.2f}\
 
-    useful_info = f"""\
-BPM {curr_bpm:.1f}, \
-Beat {curr_beat:.1f}\
-"""
+    useful_info = ''
     if rekordbox_bpm is not None:
         useful_info += f', r_bpm {round(rekordbox_bpm, 1)}'
     if rekordbox_time is not None:
         useful_info += f', r_time {round(rekordbox_time / 1000, 1)}, '
     if rekordbox_title is not None:
         useful_info += f', r: {rekordbox_title}, '
+
+    useful_info += f"""\
+BPM {curr_bpm:.1f}, \
+Beat {curr_beat:.1f}\
+"""
     useful_info += f'{show_specific}'
 
 
@@ -1363,7 +1364,11 @@ def fuzzy_find(name, valid_names, filter_words=None):
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
-    pygame.mixer.init(frequency=48000)
+
+    try:
+        pygame.mixer.init(frequency=48000)
+    except:
+        print_red('PYGAME COULDNT INITIALIZE, NO SOUND WILL WORK')
 
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)

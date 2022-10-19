@@ -46,6 +46,7 @@ def send_time_and_bpm(data, string_recieved):
         return
         
     dict_to_send = {
+        'timestamp': time.time(),
         'master_time': data['master_time'],
         'master_bpm': data['master_bpm'],
     }

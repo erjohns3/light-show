@@ -7,6 +7,30 @@ effects = {
             [1, [-10000, -10000, -10000, -10000, -10000, -10000, -10000], 1],
         ],
     },
+    "A - laser green": {
+        "length": 1,
+        "trigger": "hold",
+        "profiles": ['Andrew'],
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], 1],
+        ],
+    },
+    "A - laser red": {
+        "length": 1,
+        "trigger": "hold",
+        "profiles": ['Andrew'],
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], 1],
+        ],
+    },
+    "A - laser motor": {
+        "length": 1,
+        "trigger": "hold",
+        "profiles": ['Andrew'],
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100], 1],
+        ],
+    },
     "A - only Flash Top": {
         "length": 0.2,
         "trigger": "hold",

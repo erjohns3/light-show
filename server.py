@@ -150,7 +150,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
         # 'key': stuff[0],
         # 'master_total_time': stuff[3],
-        # print(f'{list(msg.keys())}\n' * 90)
+        # print(f'{list(msg.keys())}\n' * 10)
         if 'title' in msg and 'original_bpm' in msg:
             rekordbox_title = 'g_' + msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
@@ -162,7 +162,8 @@ async def init_rekordbox_bridge_client(websocket, path):
             clear_effects()
             add_effect_from_dj(rekordbox_title)
 
-        if 'master_time' in msg and 'master_bpm' in msg:
+        if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
+            print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
                 # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')

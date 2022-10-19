@@ -150,6 +150,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
         # 'key': stuff[0],
         # 'master_total_time': stuff[3],
+        # print(f'{list(msg.keys())}\n' * 90)
         if 'title' in msg and 'original_bpm' in msg:
             rekordbox_title = 'g_' + msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
@@ -165,11 +166,11 @@ async def init_rekordbox_bridge_client(websocket, path):
             # maybe print here? itll be spammy
             # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
             if rekordbox_title in effects_config:
-                rekordbox_time, rekordbox_bpm = float(msg['master_time']), float(msg['master_bpm'])
+                rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
                 curr_bpm = rekordbox_bpm
                 time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
             else:
-                print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
+                print_yellow(f'Cant update rekordbox time and bpm! Missing effect {rekordbox_title}\n' * 8)                    
 
 
 async def init_dj_client(websocket, path):
@@ -694,7 +695,7 @@ async def render_to_terminal(all_levels):
     if rekordbox_bpm is not None:
         useful_info += f', r_bpm {round(rekordbox_bpm, 1)}'
     if rekordbox_time is not None:
-        useful_info += f', r_time {round(rekordbox_time / 1000, 1)}, '
+        useful_info += f', r_time {round(rekordbox_time, 1)}, '
     if rekordbox_title is not None:
         useful_info += f', r: {rekordbox_title}, '
 

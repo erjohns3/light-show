@@ -46,9 +46,8 @@ def send_time_and_bpm(data, string_recieved):
         return
         
     dict_to_send = {
-        'type': 'time_and_current_bpm',
-        'time': data['master_time'],
-        'current_bpm': data['master_bpm'],
+        'master_time': data['master_time'],
+        'master_bpm': data['master_bpm'],
     }
     send_to_light_show_server(json.dumps(dict_to_send))
 

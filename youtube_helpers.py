@@ -22,7 +22,10 @@ def scp_to_doorbell(local_filepath, remote_folder):
 
     print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
     scp = SCPClient(ssh.get_transport())
-    scp.put(local_filepath, remote_filepath)
+
+    if is_windows():
+        remote_filepath = str(remote_filepath).replace('\\\\', '/').replace('\\', '/')
+    scp.put(str(local_filepath), remote_filepath)
     scp.close()
 
 

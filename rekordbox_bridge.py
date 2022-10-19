@@ -114,6 +114,7 @@ def rekord_box_server():
                         print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
                         print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
                         current_title = data['title'][2:].strip()
+                        current_title = current_title.replace('.', '_')
                         send_show_title_original_bpm(current_title, data['original_bpm'])
                     
                     if time.time() > (last_sent + .5):

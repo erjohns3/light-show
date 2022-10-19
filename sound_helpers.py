@@ -60,7 +60,8 @@ def convert_to_wav(input_filepath):
     if type(input_filepath) != pathlib.Path:
         input_filepath = pathlib.Path(input_filepath)
 
-    output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}.wav')
+    filename = ''.join(filter(lambda x: x.isascii(), input_filepath.stem))
+    output_filepath = get_temp_dir().joinpath(f'{filename}.wav')
     if os.path.exists(output_filepath):
         return output_filepath
 

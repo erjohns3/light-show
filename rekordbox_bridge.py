@@ -29,12 +29,12 @@ def send_to_light_show_server(string):
 
 
 
-def send_effect(show):
-    dict_to_send = {
-        'type': 'add_effect',
-        'effect': show,
-    }
-    send_to_light_show_server(json.dumps(dict_to_send))
+# def send_effect(show):
+#     dict_to_send = {
+#         'type': 'add_effect',
+#         'effect': show,
+#     }
+#     send_to_light_show_server(json.dumps(dict_to_send))
 
 
 def send_time_and_bpm(data, string_recieved):
@@ -52,14 +52,8 @@ def send_time_and_bpm(data, string_recieved):
     }
     send_to_light_show_server(json.dumps(dict_to_send))
 
-def send_show_title_original_bpm(title, original_bpm):
-    dict_to_send = {
-        'type': 'track_changed',
-        'title': title,
-        'original_bpm': original_bpm,
-    }
-    send_to_light_show_server(json.dumps(dict_to_send))
-
+def send_track_change(data):
+    send_to_light_show_server(json.dumps(data))
 
 
 def rekord_box_server():
@@ -99,6 +93,9 @@ def rekord_box_server():
                     # format coming in: %title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%, %bpm%             
                     title, rest = line.split('quytdhsdg')
                     stuff = list(map(lambda x: x.strip(), rest.split(',')))
+                    if len(stuff) < 5:
+                        print_green(f'the above data shouldnt have less than 5 elements after quytdhsdg')
+                        continue
                     data = {
                         'title': title,
                         'key': stuff[0],
@@ -113,11 +110,11 @@ def rekord_box_server():
                     if len(data['title']) > 3:
                         print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
                         print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
-                        current_title = data['title'][2:].strip()
-                        current_title = current_title.replace('.', '_')
-                        send_show_title_original_bpm(current_title, data['original_bpm'])
+                        data['title'] = data['title'][2:].strip()
+                        data['title'] = data['title'].replace('.', '_')
+                        send_track_change(data)
                     
-                    if time.time() > (last_sent + .5):
+                    elif time.time() > (last_sent + .01):
                         send_time_and_bpm(data, string_recieved)
                         last_sent = time.time()
 
@@ -139,6 +136,8 @@ def light_show_on_close(wsapp):
     connected_to_light_show_server = False
 
 def light_show_on_error(wsapp, error):
+    global connected_to_light_show_server
+    connected_to_light_show_server = False
     print_red('light_show_on_error, retrying in 1 second...')
     time.sleep(1)
     try_make_light_show_connection()

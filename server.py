@@ -135,7 +135,7 @@ rekordbox_bpm = None
 rekordbox_time = None
 rekordbox_original_bpm = None
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -145,29 +145,31 @@ async def init_rekordbox_bridge_client(websocket, path):
             break
 
         msg = json.loads(msg_string)
-        if 'type' in msg:
-            if msg['type'] == 'add_effect':
-                add_effect_from_dj(msg['effect'])
+        # if msg['type'] == 'add_effect':
+        #     add_effect_from_dj(msg['effect'])
 
-            elif msg['type'] == 'track_changed':
-                rekordbox_title = 'g_' + msg['title']
-                rekordbox_original_bpm = float(msg['original_bpm'])
+        # 'key': stuff[0],
+        # 'master_total_time': stuff[3],
+        if 'title' in msg and 'original_bpm' in msg:
+            rekordbox_title = 'g_' + msg['title']
+            rekordbox_original_bpm = float(msg['original_bpm'])
 
-                if rekordbox_title not in effects_config:
-                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
-                    continue
-                print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
-                clear_effects()
-                add_effect_from_dj(rekordbox_title)
+            if rekordbox_title not in effects_config:
+                print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
+                continue
+            print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
+            clear_effects()
+            add_effect_from_dj(rekordbox_title)
 
-            elif msg['type'] == 'time_and_current_bpm':
-                # maybe print here? itll be spammy
-                # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
-                if rekordbox_title in effects_config:
-                    rekordbox_time, rekordbox_bpm = float(msg['time']), float(msg['current_bpm'])
-                    curr_bpm = rekordbox_bpm
-                    time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
-            
+        if 'master_time' in msg and 'master_bpm' in msg:
+            # maybe print here? itll be spammy
+            # print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
+            if rekordbox_title in effects_config:
+                rekordbox_time, rekordbox_bpm = float(msg['master_time']), float(msg['master_bpm'])
+                curr_bpm = rekordbox_bpm
+                time_start = time.time() - (rekordbox_time * (rekordbox_original_bpm / rekordbox_bpm))
+            else:
+                print_yellow(f'Cant update rekordbox info! Missing effect {rekordbox_title}\n' * 8)                    
 
 
 async def init_dj_client(websocket, path):

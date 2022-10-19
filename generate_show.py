@@ -49,8 +49,8 @@ def get_src_bpm_offset(song_filepath, use_boundaries):
 
 
 def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
-    # if is_windows():
-    #     song_filepath = sound_helpers.convert_to_wav(song_filepath)
+    if is_windows():
+        song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
@@ -96,8 +96,8 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
         for plus in [-2,-1,0,1]:
             bpm_candidates.add(bpm+plus)
 
-    bpm_guess = -1
-    offset_guess = -1
+    bpm_guess = 60
+    offset_guess = 0
     best_seen = -math.inf
     hits = {} 
     for bpm in bpm_candidates:

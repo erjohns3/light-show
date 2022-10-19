@@ -115,6 +115,7 @@ def http_server():
 def add_effect_from_dj(effect_name):
     global song_time, song_playing, broadcast_song
     song_time = 0
+    add_effect(effect_name)
     if has_song(effect_name):
         song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
         if not os.path.exists(song_path):
@@ -126,7 +127,6 @@ def add_effect_from_dj(effect_name):
         play_song(effect_name)
         song_playing = True
         broadcast_song = True
-    add_effect(effect_name)
 
 
 
@@ -335,10 +335,10 @@ async def init_queue_client(websocket, path):
                 song_queue.append([effect_name, get_queue_salt(), uuid])
                 if len(song_queue) == 1:
                     song_time = 0
-                    play_song(effect_name)
-                    song_playing = True
                     add_effect(effect_name)
                     broadcast_light = True
+                    play_song(effect_name)
+                    song_playing = True
             
             elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -349,10 +349,10 @@ async def init_queue_client(websocket, path):
                     song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
                 if len(song_queue) == 1:
                     song_time = 0
-                    play_song(effect_name)
-                    song_playing = True
                     add_effect(effect_name)
                     broadcast_light = True
+                    play_song(effect_name)
+                    song_playing = True
 
             elif msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
                 add_queue_balanced(msg['effect'], msg['uuid'])
@@ -385,10 +385,10 @@ async def init_queue_client(websocket, path):
                 if is_admin(uuid):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
-                        play_song(effect_name)
-                        song_playing = True
                         add_effect(effect_name)
                         broadcast_light = True
+                        play_song(effect_name)
+                        song_playing = True
 
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -517,10 +517,10 @@ def add_queue_balanced(effect_name, uuid):
     
     if len(song_queue) == 1:
         song_time = 0
-        play_song(effect_name)
-        song_playing = True
         add_effect(effect_name)
         broadcast_light = True
+        play_song(effect_name)
+        song_playing = True
         broadcast_song = True
 
 
@@ -912,7 +912,7 @@ def play_song(effect_name, print_out=True):
     # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
-    channel = pygame.mixer.music.play(start=start_time)
+    pygame.mixer.music.play(start=start_time)
 
 
 def stop_song():

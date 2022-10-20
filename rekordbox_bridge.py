@@ -62,8 +62,9 @@ def rekord_box_server():
                     if not line:
                         continue
                     if index > 0:
-                        print_red(f'RAW DATA HAS MULTIPLE LINES, HAVING TROUBLE KEEPING UP SKIPPING ALL BUT FIRST... raw string: {string_recieved}')
-                        continue
+                        if random.randint(1, 101) == 100:
+                            print_red(f'RAW DATA HAS MULTIPLE LINES, HAVING TROUBLE KEEPING UP SKIPPING ALL BUT FIRST... raw string: {string_recieved}')
+                        break
                     if 'quytdhsdg' not in line:
                         print_green(f'In this raw data there wasnt quytdhsdg... raw string: {string_recieved}')
                         continue

@@ -14,58 +14,14 @@ from helpers import *
 
 
 
-
-connected_to_light_show_server = False
-def wait_for_light_show_connection():
-    global connected_to_light_show_server
-    while not connected_to_light_show_server:
-        print_blue('Sleeping because not connected to light show server')
-        time.sleep(1)
-
-def send_to_light_show_server(string):
-    global dj_client
-    wait_for_light_show_connection()
-    dj_client.send(string)
-
-
-
-# def send_effect(show):
-#     dict_to_send = {
-#         'type': 'add_effect',
-#         'effect': show,
-#     }
-#     send_to_light_show_server(json.dumps(dict_to_send))
-
-
-def send_time_and_bpm(data, string_recieved):
-    try:
-        float(data['master_time'])
-        float(data['master_bpm'])
-    except:
-        print(f'idk, data wasnt floats {data}, raw string was {string_recieved}')
-        return
-        
-    dict_to_send = {
-        'timestamp': time.time(),
-        'master_time': data['master_time'],
-        'master_bpm': data['master_bpm'],
-    }
-    send_to_light_show_server(json.dumps(dict_to_send))
-
-def send_track_change(data):
-    send_to_light_show_server(json.dumps(data))
-
-
-last_sent = float('-inf')
+rt_data_ready_to_send = None
+track_data_ready_to_send = None
 def rekord_box_server():
-    global last_sent
-    wait_for_light_show_connection()
-
+    global rt_data_ready_to_send, track_data_ready_to_send
     REKORDBOX_HOST = "127.0.0.1"
     REKORDBOX_PORT = 22345
 
     current_title = ''
-    data = None
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((REKORDBOX_HOST, REKORDBOX_PORT))
         # s.settimeout(.01)
@@ -82,13 +38,13 @@ def rekord_box_server():
         with conn:
             print_green(f'Connected to rekordbox reading client: {addr}')
             while True:
-                try:
-                    data_recieved = conn.recv(1024)
-                except socket.timeout as e:
-                    if data is not None:
-                        print_yellow('Recieved no data from rekordbox, sending prev data')
-                        send_time_and_bpm(data, string_recieved)
-                        continue
+                # try:
+                data_recieved = conn.recv(1024)
+                # except socket.timeout as e:
+                #     if data is not None:
+                #         print_yellow('Recieved no data from rekordbox, sending prev data')
+                #         send_time_and_bpm(data)
+                #         continue
 
                 string_recieved = data_recieved.decode()
                 if 'rt_master_time' in string_recieved:
@@ -103,7 +59,8 @@ def rekord_box_server():
                     if not line:
                         continue
                     if index > 0:
-                        print_green(f'In this raw data there were multiple lines for some reason... raw string: {string_recieved}')
+                        print_red(f'RAW DATA HAS MULTIPLE LINES, HAVING TROUBLE KEEPING UP SKIPPING ALL BUT FIRST... raw string: {string_recieved}')
+                        continue
                     if 'quytdhsdg' not in line:
                         print_green(f'In this raw data there wasnt quytdhsdg... raw string: {string_recieved}')
                         continue
@@ -112,7 +69,7 @@ def rekord_box_server():
                     title, rest = line.split('quytdhsdg')
                     stuff = list(map(lambda x: x.strip(), rest.split(',')))
                     if len(stuff) < 5:
-                        print_green(f'the above data shouldnt have less than 5 elements after quytdhsdg')
+                        print_red(f'the above data shouldnt have less than 5 elements after quytdhsdg')
                         continue
                     data = {
                         'title': title,
@@ -126,20 +83,78 @@ def rekord_box_server():
                     }
 
                     if len(data['title']) > 3:
-                        print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
-                        print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
                         data['title'] = data['title'][2:].strip()
                         data['title'] = data['title'].replace('.', '_')
-                        send_track_change(data)
+
+                        with lock_track_copy:
+                            track_data_ready_to_send = data
+                    else:
+                        with lock_rt_copy:
+                            rt_data_ready_to_send = {
+                                'master_time': data['master_time'],
+                                'master_bpm': data['master_bpm'],
+                            }
+
+                    #     print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
+                    #     print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
+                    #     send_to_light_show_server(data)
                     
-                    elif time.time() > (last_sent + .01):
-                        send_time_and_bpm(data, string_recieved)
-                        last_sent = time.time()
+                    # elif time.time() > (last_sent + .01):
+                    #     send_time_and_bpm(data, string_recieved)
+                    #     last_sent = time.time()
 
                     if not data:
                         print_red('DATA FROM REKORDBOX WAS EMPTY, EXITING')
                         break
 threading.Thread(target=rekord_box_server).start()
+
+
+
+
+last_sent = float('-inf')
+connected_to_light_show_server = False
+def wait_for_light_show_connection():
+    global connected_to_light_show_server
+    while not connected_to_light_show_server:
+        print_blue('Sleeping because not connected to light show server')
+        time.sleep(1)
+
+
+def send_to_light_show_server(dictionary):
+    global dj_client
+    wait_for_light_show_connection()
+    dictionary['timestamp'] = time.time()
+    dj_client.send(json.dumps(dictionary))
+
+def send_time_and_bpm(dict_to_send):
+    try:
+        float(dict_to_send['master_time'])
+        float(dict_to_send['master_bpm'])
+    except:
+        print(f'idk, data wasnt floats {dict_to_send}')
+        return
+    send_to_light_show_server(dict_to_send)
+
+
+from copy import deepcopy
+lock_track_copy, lock_rt_copy = threading.Lock(), threading.Lock()
+def light_show_client_sender():
+    global last_sent, rt_data_ready_to_send, track_data_ready_to_send
+    while True:
+        if track_data_ready_to_send:
+            print_green(f'======= TRACK CHANGE ===== {last_sent}')
+            print_green(f'======= {last_sent} PROCESSED DATA: "{track_data_ready_to_send}"')
+            with lock_track_copy:
+                track_data_ready_to_send_copied = deepcopy(track_data_ready_to_send)
+                track_data_ready_to_send =  None
+            send_to_light_show_server(track_data_ready_to_send_copied)
+        elif rt_data_ready_to_send and time.time() > (last_sent + .01):
+            with lock_rt_copy:
+                rt_data_copied = deepcopy(rt_data_ready_to_send)
+            send_time_and_bpm(rt_data_copied)
+            last_sent = time.time()
+        time.sleep(.08)
+threading.Thread(target=light_show_client_sender).start()
 
 
 # def send_pause_if_no_update():

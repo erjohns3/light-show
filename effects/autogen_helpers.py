@@ -62,6 +62,7 @@ effects = {
     },
 
     "Autogen helper white top pulse 1": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [1, 'White top', .4, 1, 0],
@@ -85,6 +86,7 @@ effects = {
         ],
     },
     "Autogen helper white top pulse 2": {
+        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [2, "White top", .4, 1, 0],

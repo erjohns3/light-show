@@ -100,6 +100,7 @@
                 for(let effect_name in effectsConfig){
                     if(!(effect_name in buttons)){
                         buttons[effect_name] = {};
+                        console.log(effect_name)
                         for(let profile_name of effectsConfig[effect_name].profiles){
                             if(!(profile_name in profiles)){
                                 profiles[profile_name] = new ProfileItem(profile_name);

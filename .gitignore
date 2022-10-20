@@ -1,8 +1,6 @@
 full.html
 parse.html
-rekordbox_effects/
 __pycache__/
-generated_effects/
 generated_effects_jsons/
 .pytest_cache/
 cnam_slander_said_the_sky.mp3
@@ -18,7 +16,10 @@ temp/
 *.wav
 .DS_Store
 chris.py
+effects/autogen_shows/
 effects/autogen_shows/**
+effects/rekordbox_effects/
+effects/generated_effects/
 chris2.py
 estimations/**
 .features_msaf_tmp.json

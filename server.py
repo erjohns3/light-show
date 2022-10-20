@@ -163,7 +163,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
         # print(f'{list(msg.keys())}\n' * 10)
         if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
-            print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
+            # print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
                 # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')
@@ -881,6 +881,10 @@ def clear_effects():
 def add_effect(name):
     global beat_index, time_start, curr_bpm
 
+    if name not in channel_lut:
+        print_green(f'late lut compiling {name}')
+        compile_lut({name: effects_config[name]})
+
     effect = effects_config[name]
     if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(name) is not False:
         return
@@ -1019,16 +1023,35 @@ def update_config_and_lut_from_disk():
             all_globals[module_name] = importlib.import_module(module_name)
         effects_config.update(all_globals[module_name].effects)
 
+    print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
     if not songs_config:
         for name, filepath in get_all_paths('songs', only_files=True):
             add_song_to_config(filepath)
-    compile_lut(effects_config)
+
+    print_cyan(f'all songs done {time.time() - update_config_and_lut_time:.3f}')
+
+    for effect in effects_config.values():
+        set_effect_defaults(effect)
+
+
+    effects_config_to_compile = {}
+    for effect_name, effect in effects_config.items():
+        if 'bpm' not in effect:
+            effects_config_to_compile[effect_name] = effect
 
     for name, effect in effects_config.items():
         effects_config_client[name] = {}
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
+
+    if args.show and not args.autogen:
+        if args.show not in effects_config:
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+        effects_config_to_compile[args.show] = effects_config[args.show]
+
+
+    compile_lut(effects_config_to_compile)
     print_cyan(f'update_config_and_lut_from_disk took {time.time() - update_config_and_lut_time:.3f}')
 
 
@@ -1124,17 +1147,18 @@ def compile_lut(local_effects_config):
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
-    if args.show and not args.autogen:
-        if args.show not in local_effects_config:
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
-        effects_config_sort([args.show])
-    else:
-        for effect_name in graph:
-            effects_config_sort([effect_name])
+    # if args.show and not args.autogen:
+    #     if args.show not in local_effects_config:
+    #         args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+    #     effects_config_sort([args.show])
+    # else:
+    for effect_name in graph:
+        effects_config_sort([effect_name])
 
     for effect_name in found:
-        set_effect_defaults(local_effects_config[effect_name])
-    cache_assign_dirty(local_effects_config)
+        if effect_name in local_effects_config:
+            set_effect_defaults(local_effects_config[effect_name])
+    # cache_assign_dirty(local_effects_config)
     print_cyan(f'Cache and graph: {time.time() - cache_and_graph_perf_timer:.3f} seconds')
 
     simple_effect_perf_timer = time.time()
@@ -1191,15 +1215,15 @@ def compile_lut(local_effects_config):
     for effect_name in complex_effects:
         effect = local_effects_config[effect_name]
 
-        if not effect['cache_dirty']:
-            effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
-            with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:
-                channel_lut[effect_name] = pickle.load(pf)
-            num_cached_effects += 1
-            continue
+        # if not effect['cache_dirty']:
+        #     effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
+        #     with open(str(effect_cache_filepath) + '.pickle', 'rb') as pf:
+        #         channel_lut[effect_name] = pickle.load(pf)
+        #     num_cached_effects += 1
+        #     continue
         
-        if args.cache:
-            effect_hash = get_effect_hash(effect_name, effect)
+        # if args.cache:
+        #     effect_hash = get_effect_hash(effect_name, effect)
 
         # if length isn't specified, generate a length
         calced_effect_length = 0
@@ -1230,7 +1254,6 @@ def compile_lut(local_effects_config):
 
 
         # this ASSUMES a LOT
-
         # !TODO ditch this code in favor of the other below in the component probably?
         if effect['hue_shift'] or effect['sat_shift'] or effect['bright_shift']:
             name_of_compiled_effect = effect['beats'][0][1]
@@ -1299,13 +1322,13 @@ def compile_lut(local_effects_config):
 
         effect_cache_filepath = lut_cache_dir.joinpath(effect_name)
 
-        if args.cache:
-            print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
-            with open(effect_cache_filepath, 'w') as f:
-                f.writelines([effect_hash])
+        # if args.cache:
+        #     print(f'{effect_name} was dirty, dumping to {effect_cache_filepath.relative_to(python_file_directory)}')
+        #     with open(effect_cache_filepath, 'w') as f:
+        #         f.writelines([effect_hash])
 
-            with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
-                pickle.dump(channel_lut[effect_name], f)
+        #     with open(str(effect_cache_filepath) + '.pickle', 'wb') as f:
+        #         pickle.dump(channel_lut[effect_name], f)
 
 
     print_cyan(f'Complex effects: {time.time() - complex_effect_perf_timer:.3f} seconds : {num_cached_effects}/{len(complex_effects)} cached')
@@ -1389,7 +1412,9 @@ if __name__ == '__main__':
     try:
         update_config_and_lut_from_disk()
     except Exception as e:
-        print_red(f'got {e}')
+        import traceback
+        traceback.print_exc()
+        print_red(f'Got traceback from update_config_and_lut_from_disk ^^^')
         print_yellow('Press ENTER to delete the autogen directory and retry')
         input()
         autogen_shows_dir = python_file_directory.joinpath('effects').joinpath('autogen_shows')
@@ -1439,16 +1464,16 @@ if __name__ == '__main__':
             
             print(f'beat: {curr_beat:2f}, current_effects playing: {all_effect_names}')
 
-
     if args.enter:
         x = threading.Thread(target=detailed_output_on_enter)
         x.start()
-
 
     def restart_show(skip=0, abs_time=None, reload=False):
         global song_time
         if curr_effects:
             effect_name = curr_effects[0][0]
+            if not has_song(effect_name):
+                return
             remove_effect(0)
             
             stop_song()
@@ -1470,8 +1495,8 @@ if __name__ == '__main__':
                 # song time controls these now, maybe just for autogen?
                 # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
                 # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
-            play_song(effect_name, print_out=False)
             add_effect(effect_name)
+            play_song(effect_name, print_out=False)
         elif reload:
             update_config_and_lut_from_disk()
 

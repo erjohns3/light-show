@@ -13,6 +13,9 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
+light_show_server = 'localhost'
+# light_show_server = '192.168.86.55'
+
 
 rt_data_ready_to_send = None
 track_data_ready_to_send = None
@@ -30,7 +33,7 @@ def rekord_box_server():
         # while True:
         #     try:
         conn, addr = s.accept()
-        conn.settimeout(.01)
+        # conn.settimeout(.01)
             #     break
             # except:
             #     pass
@@ -190,7 +193,7 @@ def light_show_on_message(wsapp, message):
 dj_client = None
 def try_make_light_show_connection():
     global dj_client
-    dj_client = websocket.WebSocketApp("ws://localhost:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
+    dj_client = websocket.WebSocketApp(f"ws://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
     try:
         dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
     except Exception as e:

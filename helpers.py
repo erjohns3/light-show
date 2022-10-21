@@ -45,23 +45,44 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
+
+def yellow(s):
+    return f'{bcolors.WARNING}{s}{bcolors.ENDC}'
+
+def green(s):
+    return f'{bcolors.OKGREEN}{s}{bcolors.ENDC}'
+
+def cyan(s):
+    return f'{bcolors.OKCYAN}{s}{bcolors.ENDC}'
+
+def bold(s):
+    return f'{bcolors.BOLD}{s}{bcolors.ENDC}'
+
+def blue(s):
+    return f'{bcolors.OKBLUE}{s}{bcolors.ENDC}'
+
+def red(s):
+    return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
+
+
 def print_yellow(s):
-    print(f'{bcolors.WARNING}{s}{bcolors.ENDC}')
+    print(yellow(s))
 
 def print_green(s):
-    print(f'{bcolors.OKGREEN}{s}{bcolors.ENDC}')
+    print(green(s))
 
 def print_cyan(s):
-    print(f'{bcolors.OKCYAN}{s}{bcolors.ENDC}')
+    print(cyan(s))
 
 def print_bold(s):
-    print(f'{bcolors.BOLD}{s}{bcolors.ENDC}')
+    print(bold(s))
 
 def print_blue(s):
-    print(f'{bcolors.OKBLUE}{s}{bcolors.ENDC}')
+    print(blue(s))
 
 def print_red(s):
-    print(f'{bcolors.FAIL}{s}{bcolors.ENDC}')
+    print(red(s))
 
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'

@@ -262,7 +262,7 @@ def download_song(url, uuid):
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 15 * 60
-    filepath = youtube_helpers.download_youtube_url_to_ogg(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
+    filepath = youtube_helpers.download_youtube_url(url=url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
         return

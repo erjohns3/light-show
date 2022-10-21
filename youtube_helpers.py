@@ -31,7 +31,7 @@ def scp_to_doorbell(local_filepath, remote_folder):
     scp.close()
 
 
-def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=None):
+def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, codec='vorbis'):
     if url is None:
         url = input('Enter the URL you want to download:\n')
 
@@ -44,7 +44,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'vorbis',
+            'preferredcodec': codec,
         }],
         'noplaylist': True,
     }
@@ -87,7 +87,7 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
     return downloaded_filepath
 
 
-def get_all_titles_from_youtube_playlist(url):
+def get_info_from_youtube_playlist(url):
     print(f'URL: {url}')
     curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
     out = curl.stdout.read().decode("utf-8") 
@@ -96,9 +96,9 @@ def get_all_titles_from_youtube_playlist(url):
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('temp', 'playlist_parse.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('playlist_parse.html'), 'w') as f:
             f.write(out[start:end])
-        with open(get_temp_dir().joinpath('temp', 'playlist_full.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('playlist_full.html'), 'w') as f:
             f.write(out)
         
         print('printed out parse.html and full.html, exiting')
@@ -128,34 +128,34 @@ def get_all_titles_from_youtube_playlist(url):
                             navigation_obj = item3['playlistVideoRenderer']['navigationEndpoint']
                             watch_endpoint_obj = navigation_obj['watchEndpoint']
                             video_id = watch_endpoint_obj['videoId']
-                            video_url = video_id
-                            videos.append((title, video_url))
-                    except:
-                        print(f'parsing 4 failed', flush=True)
-            except:
-                    print(f'parsing 3 failed', flush=True)
+                            video_url = f'https://www.youtube.com/watch?v={video_id}'
+
+                            contributor_list = item3['playlistVideoRenderer']['contributorName']['runs']
+                            
+                            contributor_name = ''
+                            for contributor_obj in contributor_list:
+                                if 'Added by ' == contributor_obj['text']:
+                                    continue
+                                contributor_name = contributor_obj['text']
+
+                            videos.append((title, video_url, contributor_name))
+                    except Exception as e:
+                        print_red(f'parsing 4 failed: {traceback.format_exc()}')
+            except Exception as e:
+                print_red(f'parsing 3 failed: {traceback.format_exc()}')
     else:
         print('--- WARNING: JSON NOT FOUND ---')
     return videos
 
 
 if __name__ == '__main__':
-    funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'    
-    for title, url in get_all_titles_from_youtube_playlist(funhouse_playlist_youtube_url):
-        print_green(f'title: {title}, video url: {url}')
-    exit()
-
-
-
-
     parser = argparse.ArgumentParser(description = '')
-    # nargs=1
     parser.add_argument('url', type=str)
     parser.add_argument('--show', dest='gen_show', default=None, action='store_true')
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
     args = parser.parse_args()
 
-    downloaded_filepath = download_youtube_url_to_ogg(url=args.url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=args.max_seconds)
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:
         exit()
 

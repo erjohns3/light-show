@@ -145,7 +145,6 @@ def light_show_client_sender():
                     real_time_elapsed = time.time() - rt_data_copied['timestamp_at_socket']
                     rekordbox_time_elapsed = (rt_data_ready_to_send['master_time'] - rt_data_copied['master_time']) * (track_original_bpm / rt_data_ready_to_send['master_bpm'])
                     guessed_bpm = (rekordbox_time_elapsed / real_time_elapsed) * rt_data_ready_to_send['master_bpm']
-                    print(guessed_bpm)
                     rt_data_copied = deepcopy(rt_data_ready_to_send)
 
                     if abs(rt_data_ready_to_send['master_bpm'] - guessed_bpm) > .2 * rt_data_ready_to_send['master_bpm']:

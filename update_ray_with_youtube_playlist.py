@@ -48,6 +48,9 @@ if __name__ == '__main__':
             with open(urls_downloaded_filepath, 'w') as f:
                 file_str = json.dumps(urls_downloaded, indent=4, sort_keys=True)
                 f.writelines([file_str])
-    
+
+        if not already_downloaded:
+            print('nothing downloaded')
+
         print('Sleeping for 3 minutes...')
         time.sleep(180)

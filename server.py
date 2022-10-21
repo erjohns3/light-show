@@ -151,12 +151,15 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'key': stuff[0],
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
-            rekordbox_title = 'g_' + msg['title']
+            rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
 
             if rekordbox_title not in effects_config:
-                print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
-                continue
+                rekordbox_title = 'g_' + rekordbox_title
+                if rekordbox_title not in effects_config:
+                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
+                    continue
+
             print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
             clear_effects()
             add_effect_from_dj(rekordbox_title)

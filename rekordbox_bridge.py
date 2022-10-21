@@ -144,6 +144,7 @@ from copy import deepcopy
 lock_track_copy, lock_rt_copy = threading.Lock(), threading.Lock()
 def light_show_client_sender():
     global last_sent, rt_data_ready_to_send, track_data_ready_to_send
+    rt_data_copied = {}
     while True:
         if track_data_ready_to_send:
             print_green(f'======= TRACK CHANGE ===== {last_sent}')
@@ -154,6 +155,9 @@ def light_show_client_sender():
             send_to_light_show_server(track_data_ready_to_send_copied)
         elif rt_data_ready_to_send and time.time() > (last_sent + .01):
             with lock_rt_copy:
+                # if rt_data_copied == rt_data_ready_to_send
+                #     send_pause()
+                #     continue
                 rt_data_copied = deepcopy(rt_data_ready_to_send)
             send_time_and_bpm(rt_data_copied)
             last_sent = time.time()

@@ -2,6 +2,7 @@ import os
 import argparse
 import traceback
 import json
+import shutil
 
 from helpers import *
 
@@ -18,7 +19,7 @@ def scp_to_doorbell(local_filepath, remote_folder):
 
     ssh = paramiko.client.SSHClient()
     ssh.load_system_host_keys()
-    ssh.connect(hostname=doorbell_ip, # doorbell IP
+    ssh.connect(hostname=doorbell_ip,
                 port = 22,
                 username='pi')
 
@@ -81,7 +82,8 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
             print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {no_special_name} to assign')
         no_special_name += downloaded_filepath.suffix
         no_special_chars_filepath = downloaded_filepath.parent.joinpath(no_special_name)
-        os.rename(downloaded_filepath, no_special_chars_filepath)
+        
+        shutil.move(downloaded_filepath, no_special_chars_filepath)
         return no_special_chars_filepath
 
     return downloaded_filepath
@@ -90,19 +92,18 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
 def get_info_from_youtube_playlist(url):
     print(f'URL: {url}')
     curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
-    out = curl.stdout.read().decode("utf-8") 
+    out = curl.stdout.read().decode("utf-8")
     start = out.find("var ytInitialData = ") + 20
     end = out.find(";</script>", start)
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('playlist_parse.html'), 'w') as f:
-            f.write(out[start:end])
-        with open(get_temp_dir().joinpath('playlist_full.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('playlist_full.html'), 'w', encoding="utf-8") as f:
             f.write(out)
+        with open(get_temp_dir().joinpath('playlist_parse.html'), 'w', encoding="utf-8") as f:
+            f.write(out[start:end])
         
-        print('printed out parse.html and full.html, exiting')
-        
+        print('printed out parse.html and full.html, exiting')        
 
         list1 = []
         try:

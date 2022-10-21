@@ -167,7 +167,10 @@ async def init_rekordbox_bridge_client(websocket, path):
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
                 # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')
-                rekordbox_bpm = max(3, rekordbox_bpm)
+                if rekordbox_bpm >= 0:
+                    rekordbox_bpm = max(.1, rekordbox_bpm)
+                else:
+                    rekordbox_bpm = min(-.1, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
                 time_start = time.time() - ((rekordbox_time - effects_config[rekordbox_title]['delay_lights']) * (rekordbox_original_bpm / rekordbox_bpm))
             else:
@@ -452,9 +455,9 @@ def search_youtube():
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('temp', 'search_parse.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_parse.html', encoding="utf-8"), 'w') as f:
             f.write(out[start:end])
-        with open(get_temp_dir().joinpath('temp', 'search_full.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_full.html', encoding="utf-8"), 'w') as f:
             f.write(out)
 
         list1 = []
@@ -861,7 +864,7 @@ async def light():
         #     print(beat_index)
         #     avg += time_diff
 
-        await asyncio.sleep(time_delay)
+        await asyncio.sleep(min(0.05, time_delay))
 
 #################################################
 

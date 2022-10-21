@@ -855,7 +855,11 @@ async def light():
             print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
 
         time_diff = time.time() - time_start
-        time_delay = ((beat_index + 1) / rate) - time_diff
+
+        direction = 1 
+        if rate < 0:
+            direction = -1
+        time_delay = ((beat_index + direction) / rate) - time_diff
 
         # if beat_index % SUB_BEATS == 0:
         #     print(f'{beat_index=}, {time_diff=}')

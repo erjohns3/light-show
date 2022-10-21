@@ -10,7 +10,6 @@ import generate_rekordbox_effects
 
 if __name__ == '__main__':
     downloaded_songs_directory = ray_directory.joinpath('music_creation').joinpath('downloaded_songs')
-    print(downloaded_songs_directory)
     urls_downloaded_filepath = get_temp_dir().joinpath('url_cache.dat')
 
     try:

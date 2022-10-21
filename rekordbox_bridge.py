@@ -82,6 +82,7 @@ def rekord_box_server():
                         'master_bpm': stuff[2],
                         'master_total_time': stuff[3],
                         'original_bpm': stuff[4],
+                        'timestamp_at_socket': time.time(),
                         # 'deck_1_bpm': stuff[5],
                         # 'deck_2_bpm': stuff[6],
                     }
@@ -97,6 +98,7 @@ def rekord_box_server():
                             rt_data_ready_to_send = {
                                 'master_time': data['master_time'],
                                 'master_bpm': data['master_bpm'],
+                                'timestamp_at_socket': data['timestamp_at_socket'],
                             }
 
                     #     print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
@@ -158,7 +160,17 @@ def light_show_client_sender():
                 # if rt_data_copied == rt_data_ready_to_send
                 #     send_pause()
                 #     continue
-                rt_data_copied = deepcopy(rt_data_ready_to_send)
+                
+                if rt_data_copied:
+                    real_time_elapsed = time.time() - rt_data_copied['timestamp_at_socket']
+                    rekordbox_time_elapsed = rt_data_ready_to_send['master_time'] - rt_data_copied['master_time']
+                    guessed_bpm = (rekordbox_time_elapsed / real_time_elapsed) * rt_data_ready_to_send['master_bpm']
+                    rt_data_copied = deepcopy(rt_data_ready_to_send)
+
+                    if abs(rt_data_ready_to_send['master_bpm'] - guessed_bpm) > .1 * rt_data_ready_to_send['master_bpm']:
+                        rt_data_copied['master_bpm'] = guessed_bpm
+                else:
+                    rt_data_copied = deepcopy(rt_data_ready_to_send)
             send_time_and_bpm(rt_data_copied)
             last_sent = time.time()
         time.sleep(.08)

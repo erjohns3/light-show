@@ -222,6 +222,13 @@ effects = {
             [1, [0, 0, 0, 100, 65, 0, 0], 1],
         ],
     },
+    "Seafoam top": {
+        "length": 1,
+        "profiles": ["Colors"],
+        "beats": [
+            [1, [0, 100, 50, 0, 0, 0, 0], 1],
+        ],
+    },
     "Seafoam bottom": {
         "length": 1,
         "profiles": ["Colors"],

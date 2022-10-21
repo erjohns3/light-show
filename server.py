@@ -1048,7 +1048,14 @@ def update_config_and_lut_from_disk():
 
 
     effects_config_to_compile = {}
+    if args.show and not args.autogen:
+        if args.show not in effects_config:
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+        effects_config_to_compile[args.show] = effects_config[args.show]
+
     for effect_name, effect in effects_config.items():
+        if args.show and not args.show.startswith('g_') and effect_name.startswith('g_'):
+            continue
         if 'bpm' not in effect:
             effects_config_to_compile[effect_name] = effect
 
@@ -1057,12 +1064,6 @@ def update_config_and_lut_from_disk():
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
-
-    if args.show and not args.autogen:
-        if args.show not in effects_config:
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
-        effects_config_to_compile[args.show] = effects_config[args.show]
-
 
     compile_lut(effects_config_to_compile)
     print_cyan(f'update_config_and_lut_from_disk took {time.time() - update_config_and_lut_time:.3f}')
@@ -1324,7 +1325,7 @@ def compile_lut(local_effects_config):
                     if hue_shift or sat_shift or bright_shift:
                         for i in range(3):
                             rd, gr, bl = final_channel[i * 3:(i * 3) + 3]
-                            hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
+                            hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             new_bright = min(1, max(0, bright + bright_shift))

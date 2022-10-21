@@ -1,5 +1,7 @@
 import os
 import argparse
+import traceback
+import json
 
 from helpers import *
 
@@ -85,7 +87,67 @@ def download_youtube_url_to_ogg(url=None, dest_path=None, max_length_seconds=Non
     return downloaded_filepath
 
 
+def get_all_titles_from_youtube_playlist(url):
+    print(f'URL: {url}')
+    curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
+    out = curl.stdout.read().decode("utf-8") 
+    start = out.find("var ytInitialData = ") + 20
+    end = out.find(";</script>", start)
+    videos = []
+    print(f'start: {start}, end {end}')
+    if start >= 0 and end >= 0:
+        with open(get_temp_dir().joinpath('temp', 'playlist_parse.html'), 'w') as f:
+            f.write(out[start:end])
+        with open(get_temp_dir().joinpath('temp', 'playlist_full.html'), 'w') as f:
+            f.write(out)
+        
+        print('printed out parse.html and full.html, exiting')
+        
+
+        list1 = []
+        try:
+            dict = json.loads(out[start:end])
+            list1 = dict['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents']
+        except Exception as e:
+            print_red(traceback.format_exc())
+            print(f'loading json failed', flush=True)
+        
+        # old
+        for item1 in list1:
+            try:
+                list2 = item1['itemSectionRenderer']['contents']
+                for item2 in list2:
+                    try:
+                        list3 = item2['playlistVideoListRenderer']['contents']
+                        for item3 in list3:
+                            title_obj = item3['playlistVideoRenderer']['title']
+                            title = title_obj['runs'][0]['text']
+                            if len(title_obj['runs']) > 1:
+                                print_blue(f'Why is runs greater than 1 for {title}?')
+
+                            navigation_obj = item3['playlistVideoRenderer']['navigationEndpoint']
+                            watch_endpoint_obj = navigation_obj['watchEndpoint']
+                            video_id = watch_endpoint_obj['videoId']
+                            video_url = video_id
+                            videos.append((title, video_url))
+                    except:
+                        print(f'parsing 4 failed', flush=True)
+            except:
+                    print(f'parsing 3 failed', flush=True)
+    else:
+        print('--- WARNING: JSON NOT FOUND ---')
+    return videos
+
+
 if __name__ == '__main__':
+    funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'    
+    for title, url in get_all_titles_from_youtube_playlist(funhouse_playlist_youtube_url):
+        print_green(f'title: {title}, video url: {url}')
+    exit()
+
+
+
+
     parser = argparse.ArgumentParser(description = '')
     # nargs=1
     parser.add_argument('url', type=str)

@@ -256,7 +256,7 @@ def download_song(url, uuid):
     # time.sleep(20)
 
     if 'search_query' in url:
-        print_yellow(f'user {uuid} entered a url with search_query in it, exiting')
+        print_yellow(f'user {uuid} entered a url with search_query in it, returning')
         return None
 
     max_length_seconds = None
@@ -437,6 +437,9 @@ async def init_queue_client(websocket, path):
             broadcast_song = True
 
 
+
+
+
 def search_youtube():
     search = quote(search_queue[0][0])
     print(f'Query: {search}')
@@ -449,9 +452,9 @@ def search_youtube():
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(python_file_directory.joinpath('parse.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_parse.html'), 'w') as f:
             f.write(out[start:end])
-        with open(python_file_directory.joinpath('full.html'), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_full.html'), 'w') as f:
             f.write(out)
 
         list1 = []

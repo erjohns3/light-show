@@ -13,8 +13,8 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
-# light_show_server = 'localhost'
-light_show_server = '192.168.86.55'
+light_show_server = 'localhost'
+# light_show_server = '192.168.86.55'
 
 
 rt_data_ready_to_send = None
@@ -27,28 +27,13 @@ def rekord_box_server():
     current_title = ''
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind((REKORDBOX_HOST, REKORDBOX_PORT))
-        # s.settimeout(.01)
         s.listen()
         print_green('Waiting for connection from rekordbox reading client')
-        # while True:
-        #     try:
-        conn, addr = s.accept()
-        # conn.settimeout(.01)
-            #     break
-            # except:
-            #     pass
-    
+        conn, addr = s.accept()    
         with conn:
             print_green(f'Connected to rekordbox reading client: {addr}')
             while True:
-                # try:
                 data_recieved = conn.recv(1024)
-                # except socket.timeout as e:
-                #     if data is not None:
-                #         print_yellow('Recieved no data from rekordbox, sending prev data')
-                #         send_time_and_bpm(data)
-                #         continue
-
                 string_recieved = data_recieved.decode()
                 if 'rt_master_time' in string_recieved:
                     print_green(f'==== INIT CONFIG ====: "{string_recieved}"')                
@@ -78,14 +63,16 @@ def rekord_box_server():
                     data = {
                         'title': title,
                         'key': stuff[0],
-                        'master_time': stuff[1],
-                        'master_bpm': stuff[2],
-                        'master_total_time': stuff[3],
+                        'master_time': float(stuff[1]) / 1000,
+                        'master_bpm': float(stuff[2]),
+                        'master_total_time': float(stuff[3]),
                         'original_bpm': stuff[4],
                         'timestamp_at_socket': time.time(),
                         # 'deck_1_bpm': stuff[5],
                         # 'deck_2_bpm': stuff[6],
                     }
+                    if data['original_bpm']:
+                        data['original_bpm'] = float(data['original_bpm'])
 
                     if len(data['title']) > 3:
                         data['title'] = data['title'][2:].strip()
@@ -100,15 +87,6 @@ def rekord_box_server():
                                 'master_bpm': data['master_bpm'],
                                 'timestamp_at_socket': data['timestamp_at_socket'],
                             }
-
-                    #     print_green(f'======= TRACK CHANGE ===== {last_sent} RAW DATA: "{string_recieved}"')
-                    #     print_green(f'======= {last_sent} PROCESSED DATA: "{data}"')
-                    #     send_to_light_show_server(data)
-                    
-                    # elif time.time() > (last_sent + .01):
-                    #     send_time_and_bpm(data, string_recieved)
-                    #     last_sent = time.time()
-
                     if not data:
                         print_red('DATA FROM REKORDBOX WAS EMPTY, EXITING')
                         break
@@ -133,12 +111,12 @@ def send_to_light_show_server(dictionary):
     dj_client.send(json.dumps(dictionary))
 
 def send_time_and_bpm(dict_to_send):
-    try:
-        float(dict_to_send['master_time'])
-        float(dict_to_send['master_bpm'])
-    except:
-        print(f'idk, data wasnt floats {dict_to_send}')
-        return
+    # try:
+    #     float(dict_to_send['master_time'])
+    #     float(dict_to_send['master_bpm'])
+    # except:
+    #     print(f'idk, data wasnt floats {dict_to_send}')
+    #     return
     send_to_light_show_server(dict_to_send)
 
 
@@ -147,11 +125,13 @@ lock_track_copy, lock_rt_copy = threading.Lock(), threading.Lock()
 def light_show_client_sender():
     global last_sent, rt_data_ready_to_send, track_data_ready_to_send
     rt_data_copied = {}
+    track_original_bpm = 120
     while True:
         if track_data_ready_to_send:
             print_green(f'======= TRACK CHANGE ===== {last_sent}')
             print_green(f'======= {last_sent} PROCESSED DATA: "{track_data_ready_to_send}"')
             with lock_track_copy:
+                track_original_bpm = track_data_ready_to_send['original_bpm']
                 track_data_ready_to_send_copied = deepcopy(track_data_ready_to_send)
                 track_data_ready_to_send =  None
             send_to_light_show_server(track_data_ready_to_send_copied)
@@ -163,11 +143,12 @@ def light_show_client_sender():
                 
                 if rt_data_copied:
                     real_time_elapsed = time.time() - rt_data_copied['timestamp_at_socket']
-                    rekordbox_time_elapsed = rt_data_ready_to_send['master_time'] - rt_data_copied['master_time']
+                    rekordbox_time_elapsed = (rt_data_ready_to_send['master_time'] - rt_data_copied['master_time']) * (track_original_bpm / rt_data_ready_to_send['master_bpm'])
                     guessed_bpm = (rekordbox_time_elapsed / real_time_elapsed) * rt_data_ready_to_send['master_bpm']
+                    print(guessed_bpm)
                     rt_data_copied = deepcopy(rt_data_ready_to_send)
 
-                    if abs(rt_data_ready_to_send['master_bpm'] - guessed_bpm) > .1 * rt_data_ready_to_send['master_bpm']:
+                    if abs(rt_data_ready_to_send['master_bpm'] - guessed_bpm) > .2 * rt_data_ready_to_send['master_bpm']:
                         rt_data_copied['master_bpm'] = guessed_bpm
                 else:
                     rt_data_copied = deepcopy(rt_data_ready_to_send)

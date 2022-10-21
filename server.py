@@ -165,7 +165,7 @@ async def init_rekordbox_bridge_client(websocket, path):
         if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
             # print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
             if rekordbox_title in effects_config:
-                rekordbox_time, rekordbox_bpm = float(msg['master_time']) / 1000, float(msg['master_bpm'])
+                rekordbox_time, rekordbox_bpm = float(msg['master_time']), float(msg['master_bpm'])
                 # print(f'master_bpm recieved: {rekordbox_bpm}, master_time recieved: {rekordbox_time}')
                 if rekordbox_bpm >= 0:
                     rekordbox_bpm = max(.1, rekordbox_bpm)

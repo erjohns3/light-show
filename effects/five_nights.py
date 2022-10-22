@@ -130,7 +130,7 @@ effects = {
         ],
     },
 
-    "five_nights_show": {
+    "five_nights show": {
         "bpm": 103,
         "song_path": "songs\\The Living Tombstone  Five Nights at Freddys Song LYRICS.ogg",
         "delay_lights": 0.14900000000000002,

@@ -13,8 +13,8 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
-light_show_server = 'localhost'
-# light_show_server = '192.168.86.55'
+# light_show_server = 'localhost'
+light_show_server = '192.168.86.55'
 
 
 rt_data_ready_to_send = None

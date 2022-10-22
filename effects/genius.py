@@ -12,7 +12,7 @@ effects = {
 
     "LSD  Genius Lyrics ft Sia Diplo Labrinth show": {
         "bpm": 159,
-        "song_path": "songs\\LSD  Genius Lyrics ft Sia Diplo Labrinth.ogg",
+        "song_path": "songs/LSD  Genius Lyrics ft Sia Diplo Labrinth.ogg",
         "delay_lights": 0.01934,
         "skip_song": 0.0,
         "beats": [

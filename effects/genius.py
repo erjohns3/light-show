@@ -1,0 +1,23 @@
+effects = {
+
+ "genius melody 1 intro": {
+        "length": 8,
+        "beats": [
+            [1, "Red top", .2, 1, 0],
+            [2, "Red top", .2, .5, 0],
+            [3, "Red top", .2],
+            [4, "Red top", .2, .5, 0],
+        ],
+    },
+
+    "LSD  Genius Lyrics ft Sia Diplo Labrinth show": {
+        "bpm": 159,
+        "song_path": "songs\\LSD  Genius Lyrics ft Sia Diplo Labrinth.ogg",
+        "delay_lights": 0.01934,
+        "skip_song": 0.0,
+        "beats": [
+            [8, "genius melody 1 intro", 32],
+            
+            ]
+    }
+}

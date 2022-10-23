@@ -12,15 +12,15 @@
 
 def beat(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None):
     if length is None:
-        print_red('length must be defined')
+        print('length must be defined')
         raise Exception()
     
     if (name or intensity or beat_skip or hue_shift or sat_shift or bright_shift) and (top_rgb or front_rgb or back_rgb or bottom_rgb or uv or green_laser or red_laser or laser_motor):
-        print(f'Anything between the sets {blue("name intensity beat_skip hue_shift sat_shift bright_shift")} and {cyan("top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor")} cannot be used together, dont use them in the same call')
+        print(f'Anything between the sets "name intensity beat_skip hue_shift sat_shift bright_shift" and top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')
         raise Exception()
     
     if (back_rgb or front_rgb) and top_rgb:
-        print_red('Cannot define back_rgb or front_rgb if top_rgb is defined')
+        print('Cannot define back_rgb or front_rgb if top_rgb is defined')
         raise Exception()
 
 

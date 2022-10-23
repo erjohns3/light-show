@@ -95,6 +95,12 @@ effects = {
             [1, [0, 0, 0, 0, -1000, 0, 0], 1],
         ],
     },
+    "Sidechain bottom r": {
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, -1000, 0, 0, 0], 1],
+        ],
+    },
 
     # flashes
     "White flash": {

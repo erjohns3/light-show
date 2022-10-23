@@ -140,7 +140,9 @@ effects = {
         "length": 11,
         "beats": [
             [1, "White bottom", 11, 1, 1],
-            [2.9, "Sidechain bottom rbg", .1 ],
+            [1.5, "Sidechain bottom rbg", .1 ],
+            [2.1, "Sidechain bottom rbg", .1 ],
+            [2.9, "Sidechain bottom rbg", .2 ],
             [3.2, "Sidechain bottom rbg", .1 ],
             [3.6, "Sidechain bottom rbg", .1 ],
             [4.1, "Sidechain bottom rbg", .1 ],
@@ -159,6 +161,7 @@ effects = {
             [10.3, "Sidechain bottom rbg", .1],
             [10.7, "Sidechain bottom rbg", .1],
             [11.2, "Sidechain bottom rbg", .2],
+            [11.8, "Sidechain bottom rbg", .1 ],
         ],
     },
 
@@ -166,7 +169,9 @@ effects = {
         "length": 11,
         "beats": [
             [1, "White top", 11, 1, 1],
-            [2.9, "Sidechain top rbg", .1 ],
+            [1.5, "Sidechain top rbg", .1 ],
+            [2.1, "Sidechain top rbg", .1 ],
+            [2.9, "Sidechain top rbg", .2 ],
             [3.2, "Sidechain top rbg", .1 ],
             [3.6, "Sidechain top rbg", .1 ],
             [4.1, "Sidechain top rbg", .1 ],
@@ -185,6 +190,7 @@ effects = {
             [10.3, "Sidechain top rbg", .1],
             [10.7, "Sidechain top rbg", .1],
             [11.2, "Sidechain top rbg", .2],
+            [11.8, "Sidechain top rbg", .1 ],
         ],
     },
 

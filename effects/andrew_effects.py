@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "A - Nothing": {
         "length": 1,
@@ -7,12 +9,20 @@ effects = {
             [1, [-10000, -10000, -10000, -10000, -10000, -10000, -10000], 1],
         ],
     },
-    "A - laser green": {
+    "A - laser only rotate green": {
         "length": 1,
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], 1],
+            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, -1000, 100], 1],
+        ],
+    },
+    "A - laser only green": {
+        "length": 1,
+        "trigger": "hold",
+        "profiles": ['Andrew'],
+        "beats": [
+            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, -1000, -1000], 1],
         ],
     },
     "A - laser red": {

@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     # pulses and strobes
     "Strobe": {

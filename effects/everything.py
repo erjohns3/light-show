@@ -1,3 +1,6 @@
+from effects.compiler import beat
+
+
 effects = {
     "everything bottom glow": {
         "length": 1,

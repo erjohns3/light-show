@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     # 1 - 64: build up
     # 64 - 128: first drop (wubs)

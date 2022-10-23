@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "cnam top colors": {
         "length": 2,

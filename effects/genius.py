@@ -1,5 +1,6 @@
-effects = {
+from effects.compiler import beat
 
+effects = {
  "genius melody 1 intro": {
         "length": 8,
         "beats": [

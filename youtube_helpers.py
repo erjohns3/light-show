@@ -176,7 +176,8 @@ if __name__ == '__main__':
                     'skip_song': 0.0,
                     'beats': [],
                 }
-            }
+            },
+            write_compiler=True,
         )
 
 

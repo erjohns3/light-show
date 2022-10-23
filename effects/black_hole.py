@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "Muse  Supermassive Black Hole Official Music Video show": {
         "bpm": 120,

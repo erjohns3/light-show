@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "hooked scream fade": {
         "length": 1,

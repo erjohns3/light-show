@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "five nights pulse white": {
         "length": 1,

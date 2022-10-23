@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "Triplets bottom": {
         "length": 1,

@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     # 1 string and weird metal 
     # 33 synth adds in

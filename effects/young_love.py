@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "love kicks": {
         "length": 1,

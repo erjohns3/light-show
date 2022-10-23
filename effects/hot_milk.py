@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "Snails House  Hot Milk show": {
         "bpm": 150,

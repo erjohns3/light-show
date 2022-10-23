@@ -31,7 +31,7 @@ def eliminate(string, matches):
         string = string.replace(match, '')
     return string
 
-def write_effect_to_file_pretty(output_filepath, dict_to_dump):
+def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False):
     print(f'writing effect/show to {output_filepath}')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
@@ -40,7 +40,10 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump):
         shows_json_str = shows_json_str.replace('\n            ]', ']')
         shows_json_str = shows_json_str.replace('\n                ', ' ')
         
-        file.writelines(['effects = ' + shows_json_str])
+        final_str = 'effects = ' + shows_json_str
+        if write_compiler:
+            final_str = 'from effects.compiler import beat\n\n' + final_str
+        file.writelines([final_str])
 
 def get_src_bpm_offset(song_filepath, use_boundaries):
     queue = Queue()

@@ -1,3 +1,5 @@
+from effects.compiler import beat
+
 effects = {
     "Ghosts melody": {
         "length": 32,

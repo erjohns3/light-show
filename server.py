@@ -1027,6 +1027,8 @@ def update_config_and_lut_from_disk():
 
     effects_dir = python_file_directory.joinpath('effects')
     for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True):
+        if name == 'compiler.py':
+            continue
         relative_path = filepath.relative_to(python_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')

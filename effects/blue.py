@@ -113,7 +113,7 @@ effects = {
     "im blue bass pulses bottom": {
         "length": 16,
         "beats": [
-            [1, "Blue bottom", 16, .3, .3],
+            #[1, "Blue bottom", 16, .3, .3],
             [1, "Blue bottom", 1, 1, 0],
             [3, "Blue bottom", 1, 1, 0],
             [4.5, "Blue bottom", 4.5, 1, 0],
@@ -167,7 +167,7 @@ effects = {
     "im blue drop": {
         "length": 16,
         "beats": [
-            [1, "Blue bottom", 16, 1, 1],
+            [1, "im blue bass pulses bottom 2", 16, 1, 1],
             [1, "im blue strobe top", 12, 1, .2],
             [13, "Blue top", 4, .6, 0],
         ],

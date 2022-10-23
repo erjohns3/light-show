@@ -1,4 +1,4 @@
-from effects.compiler import beat
+from effects.compiler import b
 # [beat, effect, length, start intensity, end intensity, beat skip, hue[-1, 1], sat, brightness]
 
 effects = {

@@ -180,10 +180,9 @@ if __name__ == '__main__':
             write_compiler=True,
         )
 
-
-    # remote_folder = pathlib.Path('/home/pi/light-show/songs')
-    # print('Starting scp to doorbell')
-    # scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
+    remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    print('Starting scp to doorbell')
+    scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
 
 
 

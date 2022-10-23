@@ -7,7 +7,7 @@ effects = {
         "delay_lights": 0.02055,
         "skip_song": 0.0,
         "beats": [
-            beat(1, name='porter flubs phrase', length=64, hue_shift=.7, intensity=(1, 0)),
+            b(1, name='porter flubs phrase', length=64, hue_shift=.7, intensity=(1, 0)),
         ]
     }
 }

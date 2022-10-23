@@ -42,7 +42,7 @@ effects = {
             b(1, name='porter flubs 1', length=6),
             b(7, name='porter flubs 1', length=2),
             b(9, name='porter flubs 1', length=6),
-            b(15, name='porter flubs 1', length=2),
+            b(15, name='porter flubs 3', length=2),
         ],
     },
     'porter flubs phrase rotating': {

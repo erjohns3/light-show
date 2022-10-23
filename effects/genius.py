@@ -1,4 +1,4 @@
-from effects.compiler import beat
+from effects.compiler import b
 
 effects = {
  "genius melody 1 intro": {

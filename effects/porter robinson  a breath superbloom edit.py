@@ -1,4 +1,4 @@
-from effects.compiler import beat
+from effects.compiler import b
 
 effects = {
     # 'porter flubs complicated': {
@@ -47,7 +47,7 @@ effects = {
     },
     'porter flubs phrase rotating': {
         'beats': [
-            beat(1, name='porter flubs phrase', length=16, hue_shift=.7),
+            b(1, name='porter flubs phrase', length=16, hue_shift=.7),
             [17, 'porter flubs phrase', 16, 1, 1, 0, .4],
             [33, 'porter flubs phrase', 16, 1, 1, 0, .6],
             [49, 'porter flubs phrase', 16, 1, 1, 0, .8],

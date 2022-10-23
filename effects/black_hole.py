@@ -1,4 +1,4 @@
-from effects.compiler import beat
+from effects.compiler import b
 
 effects = {
     "Muse  Supermassive Black Hole Official Music Video show": {

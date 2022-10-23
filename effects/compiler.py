@@ -10,7 +10,7 @@
 # red laser: 0 - 100
 # laser motor: 0 - 100
 
-def beat(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None):
+def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None):
     if length is None:
         print('length must be defined')
         raise Exception()

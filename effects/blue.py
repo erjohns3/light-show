@@ -34,8 +34,8 @@ effects = {
     "im blue chop end top": {
         "length": .5,
         "beats": [
-            [1.4, "Sidechain top b", .4], 
-            [1.4, "Sidechain top g", .4], 
+            [1.3, "Sidechain top b", .4], 
+            [1.3, "Sidechain top g", .4], 
         ],
     },
 

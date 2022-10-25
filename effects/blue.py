@@ -23,6 +23,14 @@ effects = {
         ],
     },
 
+    "im blue pulse bottom": {
+        "length": 1,
+        "beats": [
+            [1, "Blue bottom", .5, 1], 
+            [1.5, "Blue bottom", .5, 0, 0], 
+        ],
+    },
+
     "im blue chop end top": {
         "length": .5,
         "beats": [
@@ -366,16 +374,35 @@ effects = {
     "im blue slowed": {
         "length": 12,
         "beats": [
-            [1, "White top", 2, 0, 1],
-            [1, "White bottom", 2, 0, 1],
-            [3, "Blue top", 12],
-            [3, "Blue bottom", 12],
-            [3, "Red top", 4, 1, 0],
-            [3, "Red bottom", 4, 1, 0],
-            [3, "Green top", 4],
-            [3, "Green bottom", 4],
-            [7, "Green top", 4, 1, 0],
-            [7, "Green bottom", 4, 1, 0],
+            
+            # [1, "White top", 2, 0, 1],
+            # [1, "White bottom", 2, 0, 1],
+            # [3, "Blue top", 12],
+            # [3, "Blue bottom", 12],
+            # [3, "Red top", 4, 1, 0],
+            # [3, "Red bottom", 4, 1, 0],
+            # [3, "Green top", 4],
+            # [3, "Green bottom", 4],
+            # [7, "Green top", 4, 1, 0],
+            # [7, "Green bottom", 4, 1, 0],
+            
+
+            [1, "Red top", 3, 0, 1],
+            [1, "Red bottom", 3, 0, 1],
+            [4, "Red top", 3, 1, 0],
+            [4, "Red bottom", 3, 1, 0],
+            [4, "Green top", 3, 0, 1],
+            [4, "Green bottom", 3, 0, 1],
+            [7, "Green top", 3, 1, 0],
+            [7, "Green bottom", 3, 1, 0],
+            [7, "Blue top", 4, 0, 1],
+            [7, "Blue bottom", 4, 0, 1],
+            [10.2, "Sidechain top b", .3],
+            [10.5, "Sidechain bottom b", .1],
+            [10.7, "Sidechain bottom b", .4],
+            [11, "Sidechain top b", .4],
+            [11.6, "Sidechain top b", .1],
+            [11.8, "Sidechain top b", .1],
         ],
     },
 
@@ -470,7 +497,8 @@ effects = {
             [1, "im blue smooth fast back", 31, .2],
             [29, "im blue white accel bottom", 4],
             # im blue
-            [33, "im blue change on beat front back", 32, .5],
+            [33, "im blue pulse bottom", 32],
+            #[33, "im blue change on beat front back", 32, .5],
             
             # im blue with bass
             [65, "im blue change on beat flash front back", 32, .5],
@@ -481,7 +509,7 @@ effects = {
             [193, "im blue drop", 32],
             [225, "im blue drop 2", 32],
             [225, "im blue drop extras", 32],
-            [265, "im blue slowed", 11, 0, 1],
+            [265, "im blue slowed", 11, .5, 1],
             [276, "im blue drop", 32],
             [308, "im blue strobe chaos", 24],
             [332, "im blue strobe fast", 4],

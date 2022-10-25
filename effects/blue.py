@@ -26,8 +26,8 @@ effects = {
     "im blue chop end top": {
         "length": .5,
         "beats": [
-            [1.4, "Sidechain top b", .2], 
-            [1.4, "Sidechain top g", .2], 
+            [1.4, "Sidechain top b", .4], 
+            [1.4, "Sidechain top g", .4], 
         ],
     },
 
@@ -447,11 +447,11 @@ effects = {
         "beats": [
             # blue tinkling
             #[1, "im blue smooth top", 31],
-            [1, "im blue smooth fast front", 31],
-            [1, "im blue smooth fast back", 31],
+            [1, "im blue smooth fast front", 31, .2],
+            [1, "im blue smooth fast back", 31, .2],
             [29, "im blue white accel bottom", 4],
             # im blue
-            [33, "im blue change on beat front back", 32],
+            [33, "im blue change on beat front back", 32, .5],
             
             # im blue with bass
             [65, "im blue change on beat flash front back", 32],
@@ -471,8 +471,8 @@ effects = {
 
             [340, "im blue UV clap", 28],
             [340, "im blue bass pulses bottom 3", 28],
-            [340, "im blue smooth fast front", 28],
-            [340, "im blue smooth fast back", 28],
+            #[340, "im blue smooth fast front", 28],
+            #[340, "im blue smooth fast back", 28],
             [368, "Blue top", 8, 1, 0],
             [368, "Blue bottom", 8, 1, 0],
         ]

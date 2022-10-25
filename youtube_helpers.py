@@ -89,6 +89,35 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
     return downloaded_filepath
 
 
+def process_playlist_video_renderers(playlist_video_renderers, videos):
+    continuation_token = None
+    for item3 in playlist_video_renderers:
+        if 'playlistVideoListRenderer' not in item3 and 'continuationItemRenderer' in item3:
+            continuation_token = item3['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            print_blue(f'continuation token: {continuation_token}')
+            continue
+        title_obj = item3['playlistVideoRenderer']['title']
+        title = title_obj['runs'][0]['text']
+        if len(title_obj['runs']) > 1:
+            print_blue(f'Why is runs greater than 1 for {title}?')
+
+        navigation_obj = item3['playlistVideoRenderer']['navigationEndpoint']
+        watch_endpoint_obj = navigation_obj['watchEndpoint']
+        video_id = watch_endpoint_obj['videoId']
+        video_url = f'https://www.youtube.com/watch?v={video_id}'
+
+        contributor_list = item3['playlistVideoRenderer']['contributorName']['runs']
+        
+        contributor_name = ''
+        for contributor_obj in contributor_list:
+            if 'Added by ' == contributor_obj['text']:
+                continue
+            contributor_name = contributor_obj['text']
+
+        videos.append((title, video_url, contributor_name))
+    return continuation_token
+
+
 def get_info_from_youtube_playlist(url, write_files=True):
     print(f'URL: {url}')
     curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
@@ -96,7 +125,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
     start = out.find("var ytInitialData = ") + 20
     end = out.find(";</script>", start)
     videos = []
-    print(f'start: {start}, end {end}')
+    continuation_token = None
     if start >= 0 and end >= 0:
         if write_files:
             with open(get_temp_dir().joinpath('playlist_full.html'), 'w', encoding="utf-8") as f:
@@ -118,74 +147,52 @@ def get_info_from_youtube_playlist(url, write_files=True):
                 list2 = item1['itemSectionRenderer']['contents']
                 for item2 in list2:
                     try:
-                        if 'playlistVideoListRenderer' not in item2 and 'continuationItemRenderer' in item2:
-                            print('continuation item --- item3: ', item3)
-                            continue
-
-                        
                         list3 = item2['playlistVideoListRenderer']['contents']
-                        for item3 in list3:
-                            title_obj = item3['playlistVideoRenderer']['title']
-                            title = title_obj['runs'][0]['text']
-                            if len(title_obj['runs']) > 1:
-                                print_blue(f'Why is runs greater than 1 for {title}?')
-
-                            navigation_obj = item3['playlistVideoRenderer']['navigationEndpoint']
-                            watch_endpoint_obj = navigation_obj['watchEndpoint']
-                            video_id = watch_endpoint_obj['videoId']
-                            video_url = f'https://www.youtube.com/watch?v={video_id}'
-
-                            contributor_list = item3['playlistVideoRenderer']['contributorName']['runs']
-                            
-                            contributor_name = ''
-                            for contributor_obj in contributor_list:
-                                if 'Added by ' == contributor_obj['text']:
-                                    continue
-                                contributor_name = contributor_obj['text']
-
-                            videos.append((title, video_url, contributor_name))
+                        continuation_token = process_playlist_video_renderers(list3, videos)
                     except Exception as e:
-                        print_red(f'parsing 4 failed last time it was item3, printing below: {traceback.format_exc()}')
-                        print(item3)
+                        print_red(f'parsing 4 failed last time it was list3, printing below: {traceback.format_exc()}')
+                        # print(list3)
             except Exception as e:
                 print_red(f'parsing 3 failed: {traceback.format_exc()}')
     else:
         print('--- WARNING: JSON NOT FOUND ---')
 
-    print(f'There were {len(videos)} vidoes on the initial curl')
-    if len(videos) >= 100:
+    print(f'{len(videos)} videos so far, there was a continuation_token, making another request for the next page')
+    continuation_index = 0
+    while continuation_token:
         import requests
-        print_blue('Querying continuation URL because there are over 100 videos...')
-        time.sleep(3)
+        time.sleep(10)
+        print_blue(f'Querying continuation_token: {continuation_token}')
 
-        # currently this is the INNER_TUBE_API_KEY and its hardcoded i think https://github.com/0xced/XCDYouTubeKit/pull/545
-        url = 'https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false'
-        # params = {
-        #     'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-        #     'prettyPrint': False,
-        # }
-
-        body = {
-            "client": {
-                "clientName": "WEB",
-                "clientVersion": "2.20221024.01.00"
-            },
-            "continuation": "4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"
+        url = 'https://www.youtube.com/youtubei/v1/browse'
+        params = {
+            # currently this is the INNER_TUBE_API_KEY and its hardcoded i think https://github.com/0xced/XCDYouTubeKit/pull/545
+            'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+            'prettyPrint': False,
         }
-
-        response = requests.post(url, json=json.dumps(body))
-        # response = requests.post(url, params=params, json=body)
-        print(f'response status code: {response.status_code}')
-        print(f'default headers: {response.request.headers}')
-
-
+        body = {
+            'context': {
+                'client': {
+                    'clientName': 'WEB',
+                    'clientVersion': '2.20221024.01.00'
+                }
+            },
+            'continuation': continuation_token
+        }
+        continuation_token = None
+        response = requests.post(url, params=params, json=body)
+        print(f'continuation request {continuation_index} status code: {response.status_code}')
         if write_files:
-            with open(get_temp_dir().joinpath('playlist_full_cont_1.html'), 'w', encoding="utf-8") as f:
+            with open(get_temp_dir().joinpath(f'playlist_full_cont_{continuation_index}.json'), 'w', encoding="utf-8") as f:
                 f.write(response.text)
-            # with open(get_temp_dir().joinpath('playlist_parse_cont_1.html'), 'w', encoding="utf-8") as f:
-            #     f.write(out[start:end])
-
-    exit()
+        
+        response_json = json.loads(response.text)
+        recieved_action = response_json['onResponseReceivedActions'][0]
+        continuation_items = recieved_action['appendContinuationItemsAction']
+        playlist_video_renders = continuation_items['continuationItems']
+        continuation_token = process_playlist_video_renderers(playlist_video_renders, videos)
+        continuation_index += 1
+    # print(f'{len(videos)} titles: ', ', '.join(map(lambda x: x[0], videos)))
     return videos
 
 
@@ -266,6 +273,7 @@ if __name__ == '__main__':
 
     downloaded_filepath = download_youtube_url(url=args.url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:
+        print('Couldnt download video')
         exit()
 
     if args.gen_show:

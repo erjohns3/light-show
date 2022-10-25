@@ -248,8 +248,8 @@ effects = {
     "im blue everything": {
         "length": .5,
         "beats": [
-            [1, "Blue top", .5],
-            [1, "Blue bottom", .5],
+            [1, "Blue top", .5, 1, 0],
+            [1, "Blue bottom", .5, 1, 0],
             [1, "Sidechain top r", .5, 1, 1],
             [1, "Sidechain top g", .5, 1, 1],
             [1, "Sidechain bottom r", .5, 1, 1],
@@ -265,6 +265,13 @@ effects = {
         ],
     },
 
+    "im blue strobe pulse top": {
+        "length": 1,
+        "beats": [
+            [1, "im blue strobe top", .5],
+        ],
+    },
+
     "im blue UV clap": {
         "length": 4,
         "beats": [
@@ -276,7 +283,7 @@ effects = {
         "length": 16,
         "beats": [
             [1, "im blue bass pulses bottom 2", 16, 1, 1],
-            [1, "im blue strobe top", 12],
+            [1, "im blue strobe pulse top", 12, .6],
             [13, "Blue top", 4, .6, 0],
         ],
     },
@@ -425,17 +432,29 @@ effects = {
             #[1, "im blue smooth front", 100],
             #[1, "im blue smooth back", 100, 1, 1, 4],
 
-            [1, "im blue white accel bottom", 100, 1, 1, 2],
-            [1, "im blue white accel back", 100, 1, 1, 0],
-            [1, "im blue white accel front", 100, 1, 1, 3],
+            #[1, "im blue white accel bottom", 100, 1, 1, 2],
+            #[1, "im blue white accel back", 100, 1, 1, 0],
+            #[1, "im blue white accel front", 100, 1, 1, 3],
 
             # Flash blue whenever he says blue
             [13, "im blue everything", 1],
             [24.5, "im blue everything", 1],
-            [33, "im blue everything", 1],
-            [37, "im blue everything", 1],
-            [41, "im blue everything", 1],
-            [46.5, "im blue everything", 1],
+            [33, "Blue top", 1, 1, 0],
+            [37, "Blue top", 1, 1, 0],
+            [41, "Blue top", 1, 1, 0],
+            [46.5, "Blue top", 1, 1, 0],
+
+            [33, "Blue bottom", 2, 1, 0],
+            [35, "Blue bottom", 1.5, 1, 0],
+            [36.5, "Blue bottom", 2, 1, 0],
+            [43, "Blue bottom", 1.5, 1, 0],
+            [44.5, "Blue bottom", 2, 1, 0],
+            [49, "Blue bottom", 2, 1, 0],
+            [51, "Blue bottom", 1.5, 1, 0],
+            [52.5, "Blue bottom", 2, 1, 0],
+            [57, "Blue bottom", 2, 1, 0],
+            [59, "Blue bottom", 1.5, 1, 0],
+            [60.5, "Blue bottom", 2, 1, 0],
         ],
     },
 
@@ -454,18 +473,18 @@ effects = {
             [33, "im blue change on beat front back", 32, .5],
             
             # im blue with bass
-            [65, "im blue change on beat flash front back", 32],
+            [65, "im blue change on beat flash front back", 32, .5],
             [65, "im blue bass pulses bottom", 32],
-            [97, "im blue drop 2", 32],
+            [97, "im blue drop 2", 32, .7],
             [97, "im blue bass pulses bottom 2", 32],
             [129, "im blue verse", 64],
             [193, "im blue drop", 32],
             [225, "im blue drop 2", 32],
             [225, "im blue drop extras", 32],
-            [265, "im blue slowed", 11],
+            [265, "im blue slowed", 11, 0, 1],
             [276, "im blue drop", 32],
-            [308, "im blue strobe chaos", 26],
-            [334, "im blue strobe fast", 2],
+            [308, "im blue strobe chaos", 24],
+            [332, "im blue strobe fast", 4],
             [336, "im blue strobe slow", 4],
 
 
@@ -473,7 +492,7 @@ effects = {
             [340, "im blue bass pulses bottom 3", 28],
             #[340, "im blue smooth fast front", 28],
             #[340, "im blue smooth fast back", 28],
-            [368, "Blue top", 8, 1, 0],
+            #[368, "Blue top", 8, 1, 0],
             [368, "Blue bottom", 8, 1, 0],
         ]
     }

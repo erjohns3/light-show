@@ -157,7 +157,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
     else:
         print('--- WARNING: JSON NOT FOUND ---')
 
-    print(f'{len(videos)} videos so far, there was a continuation_token, making another request for the next page')
+    print(f'{len(videos)} videos so far, there was a continuation_token, making another request for the next page in 90 seconds')
     continuation_index = 0
     while continuation_token:
         import requests

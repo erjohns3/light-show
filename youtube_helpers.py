@@ -89,7 +89,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
     return downloaded_filepath
 
 
-def get_info_from_youtube_playlist(url):
+def get_info_from_youtube_playlist(url, write_files=True):
     print(f'URL: {url}')
     curl = subprocess.Popen(['curl', url], stdout=subprocess.PIPE)
     out = curl.stdout.read().decode("utf-8")
@@ -98,13 +98,12 @@ def get_info_from_youtube_playlist(url):
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('playlist_full.html'), 'w', encoding="utf-8") as f:
-            f.write(out)
-        with open(get_temp_dir().joinpath('playlist_parse.html'), 'w', encoding="utf-8") as f:
-            f.write(out[start:end])
+        if write_files:
+            with open(get_temp_dir().joinpath('playlist_full.html'), 'w', encoding="utf-8") as f:
+                f.write(out)
+            with open(get_temp_dir().joinpath('playlist_parse.html'), 'w', encoding="utf-8") as f:
+                f.write(out[start:end])
         
-        print('printed out parse.html and full.html, exiting')        
-
         list1 = []
         try:
             dict = json.loads(out[start:end])
@@ -119,6 +118,11 @@ def get_info_from_youtube_playlist(url):
                 list2 = item1['itemSectionRenderer']['contents']
                 for item2 in list2:
                     try:
+                        if 'playlistVideoListRenderer' not in item2 and 'continuationItemRenderer' in item2:
+                            print('continuation item --- item3: ', item3)
+                            continue
+
+                        
                         list3 = item2['playlistVideoListRenderer']['contents']
                         for item3 in list3:
                             title_obj = item3['playlistVideoRenderer']['title']
@@ -141,12 +145,116 @@ def get_info_from_youtube_playlist(url):
 
                             videos.append((title, video_url, contributor_name))
                     except Exception as e:
-                        print_red(f'parsing 4 failed: {traceback.format_exc()}')
+                        print_red(f'parsing 4 failed last time it was item3, printing below: {traceback.format_exc()}')
+                        print(item3)
             except Exception as e:
                 print_red(f'parsing 3 failed: {traceback.format_exc()}')
     else:
         print('--- WARNING: JSON NOT FOUND ---')
+
+    print(f'There were {len(videos)} vidoes on the initial curl')
+    if len(videos) >= 100:
+        import requests
+        print_blue('Querying continuation URL because there are over 100 videos...')
+        time.sleep(3)
+
+        # currently this is the INNER_TUBE_API_KEY and its hardcoded i think https://github.com/0xced/XCDYouTubeKit/pull/545
+        url = 'https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false'
+        # params = {
+        #     'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+        #     'prettyPrint': False,
+        # }
+
+        body = {
+            "client": {
+                "clientName": "WEB",
+                "clientVersion": "2.20221024.01.00"
+            },
+            "continuation": "4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"
+        }
+
+        response = requests.post(url, json=json.dumps(body))
+        # response = requests.post(url, params=params, json=body)
+        print(f'response status code: {response.status_code}')
+        print(f'default headers: {response.request.headers}')
+
+
+        if write_files:
+            with open(get_temp_dir().joinpath('playlist_full_cont_1.html'), 'w', encoding="utf-8") as f:
+                f.write(response.text)
+            # with open(get_temp_dir().joinpath('playlist_parse_cont_1.html'), 'w', encoding="utf-8") as f:
+            #     f.write(out[start:end])
+
+    exit()
     return videos
+
+
+# working postman
+
+# full URL: https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false
+
+
+# url: https://www.youtube.com/youtubei/v1/browse
+
+# key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8
+# prettyPrint=false
+
+
+# body
+# {
+#     "context": {
+#         "client": {
+#             "clientName": "WEB",
+#             "clientVersion": "2.20221024.01.00"
+#         }
+#     },
+#     "continuation": "4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"
+# }
+
+
+
+# python requests default headers
+# {
+#     'User-Agent': 'python-requests/2.26.0', 
+#     'Accept-Encoding': 'gzip, deflate, br', 
+#     'Accept': '*/*', 
+#     'Connection': 'keep-alive', 
+#     'Content-Length': '234', 
+#     'Content-Type': 'application/json'
+# }
+
+
+
+# full dump
+
+# {
+#     "context":{
+#     "client":{
+#     "hl":"en","gl":"US","remoteHost":"73.143.173.76","deviceMake":"","deviceModel":"","visitorData":"CgtRVGpVSGpxelBPSSjY3dyaBg%3D%3D","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0,gzip(gfe)","clientName":"WEB","clientVersion":"2.20221024.01.00","osName":"X11","osVersion":"","originalUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","screenPixelDensity":2,"platform":"DESKTOP","clientFormFactor":"UNKNOWN_FORM_FACTOR","configInfo":{
+#     "appInstallData":"CNjd3JoGENSDrgUQmcauBRDpjf4SELKI_hIQvrauBRDiua4FEOrKrgUQgon-EhCo1K4FELiLrgUQ6dWuBRDbyq4FENmP_hIQmM2uBRDYvq0FEJH4_BI%3D"},"screenDensityFloat":1.5,"userInterfaceTheme":"USER_INTERFACE_THEME_DARK","timeZone":"America/New_York","browserName":"Firefox","browserVersion":"106.0","acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8","deviceExperimentId":"CgtqRDB1UGRBaEtxMBDY3dyaBg%3D%3D","screenWidthPoints":847,"screenHeightPoints":503,"utcOffsetMinutes":-240,"mainAppWebInfo":{
+#     "graftUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","webDisplayMode":"WEB_DISPLAY_MODE_BROWSER","isWebNativeShareAvailable":false}},"user":{
+#     "lockedSafetyMode":false},"request":{
+#     "useSsl":true,"internalExperimentFlags":[],"consistencyTokenJars":[]},"clickTracking":{
+#     "clickTrackingParams":"CDgQ7zsYACITCPOC1PSQ-voCFQPHPwQdV_AA6A=="},"adSignalsInfo":{
+#     "params":[{
+#     "key":"dt","value":"1666658009145"},{
+#     "key":"flash","value":"0"},{
+#     "key":"frm","value":"0"},{
+#     "key":"u_tz","value":"-240"},{
+#     "key":"u_his","value":"1"},{
+#     "key":"u_h","value":"960"},{
+#     "key":"u_w","value":"1707"},{
+#     "key":"u_ah","value":"960"},{
+#     "key":"u_aw","value":"1707"},{
+#     "key":"u_cd","value":"24"},{
+#     "key":"bc","value":"31"},{
+#     "key":"bih","value":"503"},{
+#     "key":"biw","value":"847"},{
+#     "key":"brdim","value":"0,16,0,16,1707,0,847,937,847,503"},{
+#     "key":"vis","value":"1"},{
+#     "key":"wgl","value":"true"},{
+#     "key":"ca_type","value":"image"}]}},"continuation":"4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"}
+
 
 
 if __name__ == '__main__':

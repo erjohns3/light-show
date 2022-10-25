@@ -437,6 +437,8 @@ def get_effect_files_jsons():
     all_globals = globals()
     effects_config = {}
     for name, path in get_all_paths('effects', only_files=True):
+        if name == 'compiler.py':
+            continue
         module = 'effects.' + path.stem
         all_globals[module] = importlib.import_module(module)
         effects_config.update(all_globals[module].effects)

@@ -161,7 +161,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
     continuation_index = 0
     while continuation_token:
         import requests
-        time.sleep(10)
+        time.sleep(90)
         print_blue(f'Querying continuation_token: {continuation_token}')
 
         url = 'https://www.youtube.com/youtubei/v1/browse'

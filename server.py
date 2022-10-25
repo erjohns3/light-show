@@ -670,8 +670,10 @@ def get_sub_effect_names(effect_name, beat):
 
 
 last_extra_lines = None
+stage = random.randint(0, 110)
+stage_chars = '.,-~:;=!*#$@'
 async def render_to_terminal(all_levels):
-    global last_extra_lines, rekordbox_time, rekordbox_bpm, rekordbox_title
+    global last_extra_lines, rekordbox_time, rekordbox_bpm, rekordbox_title, stage
     curr_beat = (beat_index / SUB_BEATS) + 1
     dead_space = terminal_size - 15
 
@@ -730,25 +732,49 @@ Beat {curr_beat:.1f}\
     # print('pre 255:', list(map(lambda x: x / max_num, all_levels)))
     levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
     # print('after 255:', levels_255)
-    levels_255[0] = terminal_lut['red'][levels_255[0]]
-    levels_255[1] = terminal_lut['green'][levels_255[1]]
-    levels_255[2] = terminal_lut['blue'][levels_255[2]]
-    levels_255[3] = terminal_lut['red'][levels_255[3]]
-    levels_255[4] = terminal_lut['green'][levels_255[4]]
-    levels_255[5] = terminal_lut['blue'][levels_255[5]]
+    # levels_255[0] = terminal_lut['red'][levels_255[0]]
+    # levels_255[1] = terminal_lut['green'][levels_255[1]]
+    # levels_255[2] = terminal_lut['blue'][levels_255[2]]
+    # levels_255[3] = terminal_lut['red'][levels_255[3]]
+    # levels_255[4] = terminal_lut['green'][levels_255[4]]
+    # levels_255[5] = terminal_lut['blue'][levels_255[5]]
+
     # print('after terminal lut', levels_255)
 
     # uv_level_scaling = min(1, levels_255[6] / 255.0)
-    purple_scaled = list(map(lambda x: int(x * (levels_255[9] / 255)), purple))
+
+    top_front_values = levels_255[0:3]
+    top_back_values = levels_255[3:6]
+    bottom_values = levels_255[6:9]
+    uv_value = levels_255[9]
+    laser_color_values = levels_255[10:12]
+    laser_motor_value = levels_255[12] / 2.55
+
+    purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
 
     uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
-    top_front_rgb_style = f'rgb({levels_255[0]},{levels_255[1]},{levels_255[2]})'
-    top_back_rgb_style = f'rgb({levels_255[3]},{levels_255[4]},{levels_255[5]})'
-    bottom_rgb_style = f'rgb({levels_255[6]},{levels_255[7]},{levels_255[8]})'
+    top_front_rgb_style = f'rgb({top_front_values[0]},{top_front_values[1]},{top_front_values[2]})'
+    top_back_rgb_style = f'rgb({top_back_values[0]},{top_back_values[1]},{top_back_values[2]})'
+    bottom_rgb_style = f'rgb({bottom_values[0]},{bottom_values[1]},{bottom_values[2]})'
 
+    # print(f'{top_front_values=}, {top_back_values=}, {bottom_values=}, {uv_value=}, {laser_color_values=}, {laser_motor_value=}')
+    if any((x != 0 for x in laser_color_values)):
+        line_length = terminal_size - 1
+        laser_arr = list(f'{" " * line_length}\n' * 3)
+        for i in range(3):
+            for j in range(terminal_size - 1):
+                if j > 1 and j < 15 and random.randint(0, 4) == 2:
+                    laser_arr[j + (line_length * i)] = stage_chars[stage // 10]
+        laser_string = ''.join(laser_arr)
+        # print(f'{len(laser_string)}\n' * 3)
+        laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
+    else:
+        laser_string = f'{" " * (terminal_size - 1)}\n' * 3
+        laser_style = 'default'
 
-    # print(useful_info)
-    #  + (' ' * (terminal_size - len(useful_info)))
+    if all_levels[12] != 0:
+        stage += int(max(1, laser_motor_value // 10))
+        stage %= 110
 
     effect_string = f'Effects: {", ".join(all_effect_names)}'
     remaining = terminal_size - len(effect_string) 
@@ -760,8 +786,8 @@ Beat {curr_beat:.1f}\
     console.print(character * 5, style=top_front_rgb_style, end='')
     console.print(character * 5, style=top_back_rgb_style, end='')
     console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
-    console.print('\n', end='')
-    console.print(f'{" " * (terminal_size - 1)}\n' * 3, end='')
+    console.print('\n', style=top_back_rgb_style, end='')
+    console.print(laser_string, style=laser_style, end='')
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
     console.print('', end='\033[F' * 6)
 

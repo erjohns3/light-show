@@ -23,6 +23,14 @@ effects = {
         'length': 2,
         'beats': [
             [1, 'Cyan front', 0.2, .3, .3],
+            [1.7, 'Red back', 0.2, .3, .3],
+            [2.5, 'Yellow top', 0.2],
+        ],
+    },
+    'porter flubs 3': {
+        'length': 2,
+        'beats': [
+            [1, 'Cyan front', 0.2, .3, .3],
             [2, 'Green front', 0.1, .2, .2],
             [2.2, 'Green back', 0.1, .2, .2],
             [2.4, 'Green front', 0.1, .2, .2],
@@ -32,9 +40,9 @@ effects = {
         'length': 16,
         'beats': [
             b(1, name='porter flubs 1', length=6),
-            b(7, name='porter flubs 1', length=2),
+            b(7, name='porter flubs 2', length=2),
             b(9, name='porter flubs 1', length=6),
-            b(15, name='porter flubs 2', length=2),
+            b(15, name='porter flubs 3', length=2),
         ],
     },
     'porter flubs phrase rotating': {

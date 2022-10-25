@@ -1389,6 +1389,11 @@ def fuzzy_find(name, valid_names, filter_words=None):
         print(f'{bcolors.FAIL}No shows for "{name}" were found{bcolors.ENDC}')
         exit()
     if len(all_candidates) > 1:
+        # autogen = filter(lambda x: x.startswith('g_'), all_candidates)
+        non_autogen = list(filter(lambda x: not x.startswith('g_'), all_candidates))
+        if len(non_autogen) == 1:
+            return non_autogen[0]
+
         print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
         exit()
     return all_candidates[0]

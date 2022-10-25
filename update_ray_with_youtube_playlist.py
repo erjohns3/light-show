@@ -26,8 +26,8 @@ if __name__ == '__main__':
                 continue
             
             if already_downloaded:
-                print(f'Sleeping for {30} seconds before downloading again to prevent throttling...')
-                time.sleep(30)
+                print(f'Sleeping for {90} seconds before downloading again to prevent throttling...')
+                time.sleep(90)
             already_downloaded = True
 
             cleaned_contributor_name = ''.join(filter(lambda x: x.isascii(), contributor_name)).replace(' ', '_')
@@ -52,5 +52,6 @@ if __name__ == '__main__':
         if not already_downloaded:
             print('nothing downloaded')
 
-        print('Sleeping for 3 minutes...')
-        time.sleep(180)
+        seconds_to_sleep = random.randint(180, 600)
+        print(f'Sleeping for 3-10 minutes ({seconds_to_sleep} seconds)...')
+        time.sleep(seconds_to_sleep)

@@ -332,6 +332,37 @@ effects = {
         ],
     },
 
+    "im blue drop 3": {
+        "length": 16,
+        "beats": [
+            
+            [1, "Blue top", 4, 1],
+            [9, "Blue top", 4, 1],
+            [1, "im blue chop end top", 4],
+            [9, "im blue chop end top", 4],
+
+            [1, "Green top", 1, .57],
+            [1.5, "Green top", 1, 0],
+            [2, "Green top", 1, .29],
+            [2.5, "Green top", 1, .57],
+            [3, "Green top", 1, .71],
+            [3.5, "Green top", 1, .14],
+            [4, "Green top", 1, .43],
+            [4.5, "Green top", 1, .57],
+            [5, "Blue top", 4, .6, 0],
+            [9, "Green top", 1, .57],
+            [9.5, "Green top", 1, 0],
+            [10, "Green top", 1, .29],
+            [10.5, "Green top", 1, .57],
+            [11, "Green top", 1, .71],
+            [11.5, "Green top", 1, .14],
+            [12, "Green top", 1, .43],
+            [12.5, "Green top", 1, .57],
+
+            [13, "Blue top", 4, .6, 0],
+        ],
+    },
+
     "im blue drop extras": {
         "length": 32,
         "beats": [
@@ -507,7 +538,7 @@ effects = {
             [97, "im blue bass pulses bottom 2", 32],
             [129, "im blue verse", 64],
             [193, "im blue drop", 32],
-            [225, "im blue drop 2", 32],
+            [225, "im blue drop 3", 32],
             [225, "im blue drop extras", 32],
             [265, "im blue slowed", 11, .5, 1],
             [276, "im blue drop", 32],

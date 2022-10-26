@@ -63,16 +63,16 @@ effects = {
         "beats": [
             [1, "Blue bottom", .7, 1, 0],
             [1.1, "Red bottom", .7, 0, 1],
-            b(1.8, name='Red bottom', length=8, intensity=(1, 0)),
+            b(1.8, name='Red bottom', length=7.2, intensity=(1, 0)),
         ],
     },
     "dom windy melody": {
         "length": 16,
         "beats": [
             b(1, name='dom fade blue red bottom', length=5, hue_shift=.1),
-            b(6, name='Red bottom', length=8, hue_shift=.35, sat_shift=-.2),
-            b(7, name='Red bottom', length=8, hue_shift=.60, sat_shift=-.5),
-            b(8, name='Red bottom', length=8, hue_shift=.45, sat_shift=-.2),
+            b(6, name='Red bottom', length=1, hue_shift=.35, sat_shift=-.2),
+            b(7, name='Red bottom', length=1, hue_shift=.60, sat_shift=-.5),
+            b(8, name='Red bottom', length=1, hue_shift=.45, sat_shift=-.2),
             b(9, name='dom fade blue red bottom', length=8, hue_shift=.45),
         ],
     },
@@ -132,7 +132,6 @@ effects = {
             b(368, name='dom chorus', length=64),
             b(432, name='dom windy melody', length=64),
             b(432, name='dom intro bassline', length=64),
-
         ]
     }
 }

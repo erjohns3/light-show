@@ -186,6 +186,7 @@ effects = {
     },
     "butter chorus": {
         "autogen": "downbeat mixed",
+        "intensity": "high",
         "length": 64,
         "beats": [
             [1, "butter melody", 64], 

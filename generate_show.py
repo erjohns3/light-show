@@ -364,23 +364,23 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
             effect_types_to_name[effect['autogen']].append(name)
     
     scenes = [
-        [16, ['downbeat top', 'downbeat bottom']],
-        [16, ['downbeat top', 'downbeat bottom']],
-        [16, ['downbeat top']],
-        [16, ['downbeat top']],
-        [16, ['downbeat bottom']],
-        [16, ['downbeat mixed']],
-        [16, ['downbeat mixed']],
-        [16, ['downbeat mixed', 'UV pulse']],
-        [16, ['downbeat mixed', 'UV']],
-        [16, ['downbeat top', 'downbeat bottom', 'UV']],
-        [16, ['downbeat top', 'UV']],
-        [16, ['downbeat bottom', 'UV']],
-        [16, ['rainbow top', 'downbeat bottom']],
+        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top']],
+        [8, ['downbeat bottom']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed', 'UV pulse']],
+        [8, ['downbeat mixed', 'UV']],
+        [8, ['downbeat top', 'downbeat bottom', 'UV']],
+        [8, ['downbeat top', 'UV']],
+        [8, ['downbeat bottom', 'UV']],
+        [8, ['rainbow top', 'downbeat bottom']],
         [2, ['filler']],
         [1, ['filler']],
         [2, ['UV pulse']],
-        [1, ['UV pulse']],
+        [1, ['UV pulse single']],
         [1, ['flash']],
     ]
     # if chunk is high intensity: at least one effect must be mid or high
@@ -435,7 +435,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
-                        if not effect_candidates: # needs refactor :(
+                        if not effect_candidates: # it's low intensity but all candidates are high
                             effect_candidates = ['g_UV pulse']
                         effect_name = random.choice(effect_candidates)
 
@@ -445,17 +445,17 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                             effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 
                         new_prev_effects.append(effect_name)
-                        # if length_left > length*4 and length==16:
-                        #     show['beats'].append([beat, effect_name, length*4])
-                        if length_left > length*2 and length==16:
+                        if length_left >= length*4 and length==8:
+                            show['beats'].append([beat, effect_name, length*4])
+                        elif length_left >= length*2 and length==8:
                             show['beats'].append([beat, effect_name, length*2])
                         else:
                             show['beats'].append([beat, effect_name, length])
                     
-                    # if length_left > length*4 and length==16:
-                    #     beat += length*4
-                    #     length_left -= length*4
-                    if length_left > length*2 and length==16:
+                    if length_left >= length*4 and length==8:
+                        beat += length*4
+                        length_left -= length*4
+                    elif length_left >= length*2 and length==8:
                         beat += length*2
                         length_left -= length*2
                     else:

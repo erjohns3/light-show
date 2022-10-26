@@ -30,11 +30,38 @@ effects = {
     "g_UV pulse": {
         "profiles": ["autogen helpers"],
         "length": 1,
+        "autogen": "UV pulse single",
+        "beats": [
+            [1, "UV pulse", 1],
+        ],
+    },
+
+    "g_UV pulse copy": {
+        "profiles": ["autogen helpers"],
+        "length": 1,
         "autogen": "UV pulse",
         "beats": [
             [1, "UV pulse", 1],
         ],
     },
+
+    "1_2 UV Pulse": {
+        "profiles": ["autogen helpers"],
+        "length": 2,
+        "autogen": "UV pulse",
+        "beats": [
+            [1, "UV pulse", 2],
+        ],
+    },
+
+    "g_white bottom": {
+        "autogen": "filler",
+        "length": 1,
+        "beats": [
+            [1, "White bottom", .9, .7, .1],
+        ],
+    },
+
 
     "g_filler 1": {
         "profiles": ["autogen helpers"],

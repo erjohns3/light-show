@@ -9,7 +9,6 @@ effects = {
         ],
     },
     "everything melody glow top": {
-        "autogen": "downbeat top",
         "length": 8,
         "beats": [
             [1, "Pink top", 3.5],

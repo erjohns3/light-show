@@ -365,6 +365,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     
     scenes = [
         [16, ['downbeat top', 'downbeat bottom']],
+        [16, ['downbeat top', 'downbeat bottom']],
         [16, ['downbeat top']],
         [16, ['downbeat top']],
         [16, ['downbeat bottom']],

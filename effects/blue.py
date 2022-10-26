@@ -288,6 +288,8 @@ effects = {
     },
 
     "im blue drop": {
+        "autogen": "downbeat mixed",
+        "intensity": "high",
         "length": 16,
         "beats": [
             [1, "im blue bass pulses bottom 2", 16, 1, 1],

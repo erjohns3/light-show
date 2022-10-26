@@ -405,7 +405,6 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         prev_effects = []
         for iter, bound in enumerate(boundary_beats):
             chunk_level = chunk_levels[iter] #TODO use this for filtering
-            print(chunk_level)
             length_left = bound-prev_bound
             while length_left>0:
                 new_prev_effects = []
@@ -435,7 +434,8 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
-                        
+                        if not effect_candidates: # needs refactor :(
+                            effect_name = 'g_UV pulse'
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color

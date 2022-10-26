@@ -528,7 +528,7 @@ effects = {
             [1, "im blue smooth fast back", 31, .2],
             [29, "im blue white accel bottom", 4],
             # im blue
-            [33, "im blue pulse bottom", 32],
+            [33, "im blue pulse bottom", 32, .7],
             #[33, "im blue change on beat front back", 32, .5],
             
             # im blue with bass

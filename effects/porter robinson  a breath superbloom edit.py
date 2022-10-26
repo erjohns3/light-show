@@ -47,10 +47,8 @@ effects = {
     },
     'porter flubs phrase rotating': {
         'beats': [
-            b(1, name='green laser motor', length=32),
             b(1, name='porter flubs phrase', length=16, hue_shift=.2),
             b(17, name='porter flubs phrase', length=16, hue_shift=.4),
-            b(33, name='green laser', length=32),
             b(33, name='porter flubs phrase', length=16, hue_shift=.6),
             b(49, name='porter flubs phrase', length=16, hue_shift=.8),
         ],

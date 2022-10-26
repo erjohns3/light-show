@@ -1017,10 +1017,11 @@ def set_effect_defaults(effect):
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
     if 'song_path' in effect and effect['song_path'] not in songs_config:
-        if args.show:
-            effect['song_not_avaliable'] = True
-        else:
-            del effect['song_path']
+        if effect.get('song_not_avaliable', True):
+            if args.show:
+                effect['song_not_avaliable'] = True
+            else:
+                del effect['song_path']
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red('song effects must have bpm\n' * 10)
@@ -1348,12 +1349,10 @@ def fuzzy_find(name, valid_names, filter_words=None, filter_song=None):
             exit()
 
         url = youtube_search_result['webpage_url']
-        print(youtube_helpers.download_youtube_url(url))
-        for filename, filepath in get_all_paths('songs', only_files=True):
-            if filepath.is_absolute():
-                filepath = filepath.relative_to(python_file_directory)
-            print(filepath)
-        exit()
+        if youtube_helpers.download_youtube_url(url, dest_path='songs'):
+            print('downloaded video, continuing to try to recover')
+            effects_config[selected_song]['song_not_avaliable'] = False
+
     return selected_song
 
 #################################################
@@ -1463,6 +1462,7 @@ if __name__ == '__main__':
             print(f'skipping to {time_to_skip_to}')
 
             if reload:
+                print('RELOAD REFRESHING')
                 update_config_and_lut_from_disk()
 
             effect = effects_config[effect_name]
@@ -1477,6 +1477,7 @@ if __name__ == '__main__':
             add_effect(effect_name)
             play_song(effect_name, print_out=False)
         elif reload:
+            print('RELOAD REFRESHING NO EFFECT')
             update_config_and_lut_from_disk()
 
     if args.reload:
@@ -1490,6 +1491,7 @@ if __name__ == '__main__':
 
             @staticmethod
             def on_any_event(event):
+                global downloaded
                 if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path or not event.src_path.endswith('.py'):
                     return None
                 if FilesystemHandler.last_updated > (time.time() - .05):

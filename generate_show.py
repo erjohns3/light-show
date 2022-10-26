@@ -431,18 +431,15 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 )]
                             # effect_candidates = effect_types_to_name['flash'] #DEBUG
                         elif chunk_level == "low":
-                            print(effect_candidates)
                             effect_candidates = [x for x in effect_candidates if not (
                                 "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
                                 )]
-                            print("then")
-                            print(effect_candidates)
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
-                        # hardcode sat_shift -0.2 to turn down lights a bit
+                        # hardcode sat_shift -0.2 to turn down lights a bit TODO
                         if random_color:
                             effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0.0)
 

@@ -65,7 +65,7 @@ effects = {
 
     "g_filler 3": {
         "profiles": ["autogen helpers"],
-        "length": 1,
+        "length": 2,
         "autogen": 'filler',
         "intensity": 'low',
         "beats": [
@@ -74,6 +74,7 @@ effects = {
             [2, 'Cyan back', .5, 1, .2],
         ],
     },
+    
 
     "Autogen helper white top pulse 1": {
         "profiles": ["autogen helpers"],

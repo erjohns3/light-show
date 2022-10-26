@@ -61,7 +61,7 @@ if args.autogen_simple:
 pca = None
 
 SUB_BEATS = 24
-LIGHT_COUNT = 13
+LIGHT_COUNT = 16
 
 curr_effects = []
 song_queue = []
@@ -1222,6 +1222,8 @@ def compile_lut(local_effects_config):
             if len(channels) == 7:
                 channels[3:3] = channels[0:3]
             if len(channels) == 10:
+                channels += [0,0,0]
+            if len(channels) == 13:
                 channels += [0,0,0]
 
             if len(component) == 2:

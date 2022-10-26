@@ -65,6 +65,8 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
     pv = pvoc(win_s, hop_s)
     f = filterbank(40, win_s)
     f.set_mel_coeffs_slaney(src.samplerate)
+    f_one = filterbank(40, win_s)
+    f_one.set_mel_coeffs_slaney(src.samplerate)
     energies = [[0.0]*40]
 
     delay = 4. * hop_s
@@ -80,6 +82,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
         new_energies = f(fftgrain)
         # print(new_energies)
         energies.append(new_energies.copy())
+
         # print(energies)
         if is_beat:
             this_beat = total_frames - delay + is_beat[0] * hop_s
@@ -118,7 +121,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
         for distance in distances: 
             if abs(distance-choice)/(60/max(bpm_candidates)) < .05: # match to 5% of beat length
                 hit_count+=1
-        # doubling the BPM should double the hits.  Scale it down a bit though
+        # doubling the BPM should double the hits.  Let's consider it a square root factor to be safe
         hit_count = hit_count / bpm**.5
         hits[bpm] = hit_count
         if hit_count > best_seen:
@@ -212,18 +215,23 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
     prev = 0
     for i, peak in enumerate(peaks_to_use+[length_s]):
         peak_i = int(peak/(length_s/len(diffed)))
-        end = min(peak_i, prev+16*4*4)
+        end = peak_i
         chunk_level=0
         for i, band in enumerate(levels):
             summed = sum(band[prev: end])
             if i < 6:
-                summed *= 3
+                summed *= 5
             chunk_level+=summed
         chunk_levels.append(chunk_level/(end-prev))
-        prev = peak_i
+        prev = end
     print(chunk_levels)
-    chunk_levels_lo = np.percentile(chunk_levels, q=30)
-    chunk_levels_hi = np.percentile(chunk_levels, q=70)
+    min_chunk = min(chunk_levels)
+    max_chunk = max(chunk_levels)
+    chunk_levels_lo =  min(np.percentile(chunk_levels, q=20), (max_chunk - min_chunk)*.1 + min_chunk)
+    chunk_levels_hi = max(np.percentile(chunk_levels, q=70), (max_chunk - (max_chunk - min_chunk)*.2))
+    # chunk_levels_lo = np.percentile(chunk_levels, q=10)
+    # chunk_levels_hi = np.percentile(chunk_levels, q=70)
+
     chunk_levels_out = []
     for level in chunk_levels:
         if level > chunk_levels_hi:
@@ -324,7 +332,7 @@ def get_avg_hue(channel_lut, effect_name):
     return avg_hue_cache[effect_name]
 
 
-def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True, include_song_path=True, output_directory=None, random_color=True):
+def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, include_song_path=True, output_directory=None, random_color=True):
     start_time = time.time()
     use_boundaries = True and not simple
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
@@ -422,43 +430,61 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         prev_effects = []
         for iter, bound in enumerate(boundary_beats):
             chunk_level = chunk_levels[iter] #TODO use this for filtering
+            print(chunk_level)
             length_left = bound-prev_bound
             while length_left>0:
                 new_prev_effects = []
                 candidates = []
                 if length_left > 16:
-                    candidates = [x for x in scenes if x [0] >= 4 and  x[0] <= length_left and x[1] != prev_scene]
+                    candidates = [x for x in scenes if x[0] >= 4 and  x[0] <= length_left and x[1] != prev_scene]
                 else:
-                    # if bound == boundary_beats[-1]:
-                    #     candidates = [x for x in candidates if x[1] == 'UV pulse']
                     candidates = [x for x in scenes if x[0] <= length_left and x[1] != prev_scene]
                     if length_left > 2:
                         candidates = [x for x in candidates if x[1] != ['flash']]
+                    # if bound == boundary_beats[-1]: # to make ending pure UV
+                    #     candidates = [x for x in candidates if x[1] == 'UV pulse']
 
                 if not candidates:
-                    candidates = [1, ['UV pulse']]
+                    candidates = [1, ['UV pulse']] # bugfix for case that seems impossible
+
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
                     for effect_type in effect_types:
-                        candidates = effect_types_to_name[effect_type]
-                        if len(candidates) > 1:
-                            candidates = [x for x in candidates if x not in prev_effects]
+                        effect_candidates = effect_types_to_name[effect_type]
+                        if len(effect_candidates) > 1:
+                            effect_candidates = [x for x in effect_candidates if x not in prev_effects]
 
-                        effect_name = random.choice(effect_types_to_name[effect_type])
+                        if chunk_level == "hi":
+                            effect_candidates = effect_types_to_name['flash'] #TODO
+                        elif chunk_level == "mid":
+                            effect_candidates = effect_types_to_name['downbeat bottom'] #TODO
+                        else:
+                            effect_candidates = effect_types_to_name['UV pulse']
+                        
+                        effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
+                        # hardcode sat_shift -0.2 to turn down lights a bit
                         if random_color:
-                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
+                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-0.2)
 
                         new_prev_effects.append(effect_name)
-                        show['beats'].append([beat, effect_name, length])
-                        if length_left > length*2 and length==16:
-                            show['beats'].append([beat+length, effect_name, length])
-                    beat += length
-                    if length_left > length*2 and length==16:
+                        if length_left > length*4 and length==16:
+                            show['beats'].append([beat, effect_name, length*4])
+                        elif length_left > length*2 and length==16:
+                            show['beats'].append([beat+length, effect_name, length*2])
+                        else:
+                            show['beats'].append([beat, effect_name, length])
+                    
+                    if length_left > length*4 and length==16:
+                        beat += length*4
+                        length_left -= length*4
+                    elif length_left > length*2 and length==16:
+                        beat += length*2
+                        length_left -= length*2
+                    else:
                         beat += length
                         length_left -= length
-                    length_left -= length
                 prev_effects = new_prev_effects
                 prev_scene = effect_types
             prev_bound = bound

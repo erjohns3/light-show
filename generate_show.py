@@ -7,7 +7,7 @@ import importlib
 import time
 from collections import Counter
 from multiprocessing import Queue, Process
-from copy import deepcopy
+from copy import deepcopy, copy
 import colorsys
 
 from scipy.stats import circmean
@@ -227,8 +227,9 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
     print(chunk_levels)
     min_chunk = min(chunk_levels)
     max_chunk = max(chunk_levels)
-    chunk_levels_lo =  min(np.percentile(chunk_levels, q=20), (max_chunk - min_chunk)*.1 + min_chunk)
-    chunk_levels_hi = max(np.percentile(chunk_levels, q=70), (max_chunk - (max_chunk - min_chunk)*.2))
+    # essentially using percentile to cap the quantity in each bucket
+    chunk_levels_lo =  min(np.percentile(chunk_levels, q=10), (max_chunk - min_chunk)*.1 + min_chunk)
+    chunk_levels_hi = max(np.percentile(chunk_levels, q=80), (max_chunk - (max_chunk - min_chunk)*.2))
     # chunk_levels_lo = np.percentile(chunk_levels, q=10)
     # chunk_levels_hi = np.percentile(chunk_levels, q=70)
 
@@ -402,7 +403,6 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         [16, ['rainbow top', 'downbeat bottom']],
         [2, ['filler']],
         [1, ['filler']],
-        [4, ['UV pulse']],
         [2, ['UV pulse']],
         [1, ['UV pulse']],
         [1, ['flash']],
@@ -436,9 +436,9 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                 new_prev_effects = []
                 candidates = []
                 if length_left > 16:
-                    candidates = [x for x in scenes if x[0] >= 4 and  x[0] <= length_left and x[1] != prev_scene]
+                    candidates = [x for x in scenes if x[0] >= 4 and  x[0] <= length_left]# and x[1] != prev_scene]
                 else:
-                    candidates = [x for x in scenes if x[0] <= length_left and x[1] != prev_scene]
+                    candidates = [x for x in scenes if x[0] <= length_left]# and x[1] != prev_scene]
                     if length_left > 2:
                         candidates = [x for x in candidates if x[1] != ['flash']]
                     # if bound == boundary_beats[-1]: # to make ending pure UV
@@ -450,36 +450,43 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
                     for effect_type in effect_types:
-                        effect_candidates = effect_types_to_name[effect_type]
-                        if len(effect_candidates) > 1:
-                            effect_candidates = [x for x in effect_candidates if x not in prev_effects]
+                        effect_candidates = deepcopy(effect_types_to_name[effect_type])
+                        # if len(effect_candidates) > 1:
+                        #     effect_candidates = [x for x in effect_candidates if x not in prev_effects]
 
                         if chunk_level == "hi":
-                            effect_candidates = effect_types_to_name['flash'] #TODO
-                        elif chunk_level == "mid":
-                            effect_candidates = effect_types_to_name['downbeat bottom'] #TODO
-                        else:
-                            effect_candidates = effect_types_to_name['UV pulse']
+                            effect_candidates = [x for x in effect_candidates if not (
+                                "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "low"
+                                )]
+                            # effect_candidates = effect_types_to_name['flash'] #DEBUG
+                        elif chunk_level == "low":
+                            print(effect_candidates)
+                            effect_candidates = [x for x in effect_candidates if not (
+                                "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
+                                )]
+                            print("then")
+                            print(effect_candidates)
+                            # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
                         # hardcode sat_shift -0.2 to turn down lights a bit
                         if random_color:
-                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-0.2)
+                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0.0)
 
                         new_prev_effects.append(effect_name)
-                        if length_left > length*4 and length==16:
-                            show['beats'].append([beat, effect_name, length*4])
-                        elif length_left > length*2 and length==16:
-                            show['beats'].append([beat+length, effect_name, length*2])
+                        # if length_left > length*4 and length==16:
+                        #     show['beats'].append([beat, effect_name, length*4])
+                        if length_left > length*2 and length==16:
+                            show['beats'].append([beat, effect_name, length*2])
                         else:
                             show['beats'].append([beat, effect_name, length])
                     
-                    if length_left > length*4 and length==16:
-                        beat += length*4
-                        length_left -= length*4
-                    elif length_left > length*2 and length==16:
+                    # if length_left > length*4 and length==16:
+                    #     beat += length*4
+                    #     length_left -= length*4
+                    if length_left > length*2 and length==16:
                         beat += length*2
                         length_left -= length*2
                     else:

@@ -63,6 +63,18 @@ effects = {
         ],
     },
 
+    "g_filler 3": {
+        "profiles": ["autogen helpers"],
+        "length": 1,
+        "autogen": 'filler',
+        "intensity": 'low',
+        "beats": [
+            [1, 'Pink bottom', .25, 1, 0],
+            [2, 'Cyan front', .5, 1, .2],
+            [2, 'Cyan back', .5, 1, .2],
+        ],
+    },
+
     "Autogen helper white top pulse 1": {
         "profiles": ["autogen helpers"],
         "length": 4,

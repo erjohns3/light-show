@@ -260,7 +260,7 @@ new_effects_made = set()
 def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, bright_shift=0):
     hue_shift = round_to(hue_shift, 0.05)
     sat_shift = round_to(sat_shift, 0.05)
-    bright_shift = round_to(bright_shift, 0.05)
+    bright_shift = round_to(bright_shift, 0.01)
     
     new_effect_name = effect_name + f' hue {hue_shift} sat {sat_shift} bright {bright_shift}'.replace('.', '_dot_')
     if new_effect_name in new_effects_made:
@@ -435,13 +435,13 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         if not effect_candidates: # needs refactor :(
-                            effect_name = 'g_UV pulse'
+                            effect_candidates = ['g_UV pulse']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
                         # hardcode sat_shift -0.2 to turn down lights a bit TODO
                         if random_color:
-                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0.0)
+                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 
                         new_prev_effects.append(effect_name)
                         # if length_left > length*4 and length==16:

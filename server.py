@@ -1214,7 +1214,7 @@ def compile_lut(local_effects_config):
                     hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
                     new_hue = (hue + effect['hue_shift']) % 1
                     new_sat = min(1, max(0, sat + effect['sat_shift']))
-                    new_bright = min(1, max(0, bright + effect['bright_shift']))
+                    new_bright = min(1, max(0, bright + bright*effect['bright_shift']))
                     compiled_sub_beat[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
                     compiled_sub_beat[i * 3] *= 100
                     compiled_sub_beat[i * 3 + 1] *= 100
@@ -1257,14 +1257,14 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-
                     if hue_shift or sat_shift or bright_shift:
                         for i in range(3):
                             rd, gr, bl = final_channel[i * 3:(i * 3) + 3]
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
-                            new_bright = min(1, max(0, bright + bright_shift))
+                            # bright shift is relative to initial brightness
+                            new_bright = min(1, max(0, bright + bright*bright_shift))
                             final_channel[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
                             final_channel[i * 3] *= 100
                             final_channel[i * 3 + 1] *= 100

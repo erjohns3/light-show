@@ -435,7 +435,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         if not effect_candidates: # needs refactor :(
-                            effect_name = 'g_UV pulse'
+                            effect_candidates = ['g_UV pulse']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color

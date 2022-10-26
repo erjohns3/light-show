@@ -82,7 +82,7 @@ effects = {
             [25, 'Seafoam top', 4, 1, 0],
         ],
     },
-    'porter robinson  a breath superbloom edit show': {
+    'porter robinson  a breath superbloom edit': {
         'bpm': 126,
         'song_path': 'songs/porter robinson  a breath superbloom edit.ogg',
         'delay_lights': 0.12,

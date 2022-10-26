@@ -1017,7 +1017,10 @@ def set_effect_defaults(effect):
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
     if 'song_path' in effect and effect['song_path'] not in songs_config:
-        del effect['song_path']
+        if args.show:
+            effect['song_not_avaliable'] = True
+        else:
+            del effect['song_path']
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red('song effects must have bpm\n' * 10)
@@ -1323,15 +1326,35 @@ def fuzzy_find(name, valid_names, filter_words=None, filter_song=None):
     if not all_candidates:
         print(f'{bcolors.FAIL}No shows for "{name}" were found{bcolors.ENDC}')
         exit()
+
+    selected_song = all_candidates[0]
     if len(all_candidates) > 1:
         # autogen = filter(lambda x: x.startswith('g_'), all_candidates)
         non_autogen = list(filter(lambda x: not x.startswith('g_'), all_candidates))
-        if len(non_autogen) == 1:
-            return non_autogen[0]
+        if len(non_autogen) != 1:
+            print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
+            exit()
 
-        print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
+        selected_song = non_autogen[0]
+
+    if effects_config[selected_song].get('song_not_avaliable', None):
+        print_yellow(f'Song isnt availiable for effect "{selected_song}", press enter to try downloading?')
+        input()
+        just_filename = pathlib.Path(effects_config[selected_song]['song_path']).stem
+        print(f'Searching with phrase "{just_filename}"')
+        youtube_search_result = youtube_helpers.youtube_search(just_filename)
+        if not youtube_search_result:
+            print('Couldnt find relevant video on youtube, exiting...')
+            exit()
+
+        url = youtube_search_result['webpage_url']
+        print(youtube_helpers.download_youtube_url(url))
+        for filename, filepath in get_all_paths('songs', only_files=True):
+            if filepath.is_absolute():
+                filepath = filepath.relative_to(python_file_directory)
+            print(filepath)
         exit()
-    return all_candidates[0]
+    return selected_song
 
 #################################################
 

@@ -241,38 +241,13 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
             chunk_levels_out.append('low')
         else:
             chunk_levels_out.append('mid')
-            
-    # TODO get silent beats. fix off-by-one later?
-    # beats_song = int(length_s/beat_length)
-    # beat_levels = []
-    # for beat in range(beats_song)[1:]:
-    #     prev = beat-1
-    #     energy_in_i = int(beat/beats_song*len(energies_in))
-    #     energy_in_prev = int(prev/beats_song*len(energies_in))
-    #     print(f'{energy_in_i}, {energy_in_prev}')
-    #     value = sum([sum(x[energy_in_prev:energy_in_i]) for x in energies_in.T])
-    #     beat_levels.append(value)
-    # print(beat_levels)
 
-    # check 1-4 beats prior/post each transition for silence?
 
     matches = []
     for peak in peaks_to_use:
         matches.append(round((peak-delay)/beat_length)) # beats are 1 indexed, but off-by-one is intentional
 
     return matches, chunk_levels_out
-
-
-# def compile_effect_color(channel_lut, effect_name, rotate=None):
-#     directory_for_compiled_colors = python_file_directory.joinpath('effects').joinpath('colored_effects')
-#     if not os.path.exists(directory_for_compiled_colors):
-#         print(f'Creating {directory_for_compiled_colors} directory')
-#         os.mkdir(directory_for_compiled_colors)
-    
-#     # print(list(server.channel_lut.keys()))
-#     # server.channel_lut[effect_name]
-#     # server.compile_lut(effect_name)
-
 
 
 # only works to 10 decimal places
@@ -441,8 +416,6 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                     candidates = [x for x in scenes if x[0] <= length_left]# and x[1] != prev_scene]
                     if length_left > 2:
                         candidates = [x for x in candidates if x[1] != ['flash']]
-                    # if bound == boundary_beats[-1]: # to make ending pure UV
-                    #     candidates = [x for x in candidates if x[1] == 'UV pulse']
 
                 if not candidates:
                     candidates = [1, ['UV pulse']] # bugfix for case that seems impossible
@@ -451,8 +424,6 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                 while length_left >= length:
                     for effect_type in effect_types:
                         effect_candidates = deepcopy(effect_types_to_name[effect_type])
-                        # if len(effect_candidates) > 1:
-                        #     effect_candidates = [x for x in effect_candidates if x not in prev_effects]
 
                         if chunk_level == "hi":
                             effect_candidates = [x for x in effect_candidates if not (

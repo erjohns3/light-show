@@ -1337,7 +1337,7 @@ def fuzzy_find(name, valid_names, filter_words=None, filter_song=None):
 
         selected_song = non_autogen[0]
 
-    if effects_config[selected_song].get('song_not_avaliable', None):
+    if filter_song and effects_config[selected_song].get('song_not_avaliable', None):
         print_yellow(f'Song isnt availiable for effect "{selected_song}", press enter to try downloading?')
         input()
         just_filename = pathlib.Path(effects_config[selected_song]['song_path']).stem

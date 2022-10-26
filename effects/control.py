@@ -4,6 +4,7 @@ effects = {
 
     "control UV clap": {
         "length": 2,
+        "autogen": "UV",
         "beats": [
             [2, "UV", 1, 1, 0],
         ],

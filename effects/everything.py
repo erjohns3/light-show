@@ -9,6 +9,7 @@ effects = {
         ],
     },
     "everything melody glow top": {
+        "autogen": "downbeat top",
         "length": 8,
         "beats": [
             [1, "Pink top", 3.5],
@@ -56,6 +57,7 @@ effects = {
         ],
     },
     "everything kick line 2": {
+        "autogen": "downbeat bottom",
         "length": 4,
         "beats": [
             [1, "everything kick 2", 1],

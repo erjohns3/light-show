@@ -8,9 +8,9 @@ effects = {
         "length": 1,
         "autogen": "dimmers",
         "beats": [
-            [1.5, "Sidechain top rbg", .5, 0, .8],
-            [1.5, "Sidechain bottom rbg", .5, 0, .8],
-            [1.5, "Sidechain UV", .5, 0, .8],
+            [1.5, "Sidechain top 100", .5, 0, .5],
+            # [1.5, "Sidechain bottom rbg", .5, 0, .8],
+            # [1.5, "Sidechain UV", .5, 0, .8],
         ],
     },
     # fillers

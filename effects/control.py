@@ -61,6 +61,16 @@ effects = {
         ],
     },
 
+    "control pulse top": {
+        "length": 4,
+        "beats": [
+            [1, "Purple top", .5, 1, 0, 0, 0],
+            [2, "Pink top", .5, 1, 0],
+            [3, "Blue top", .5, 1, 0],
+            [4, "Red top", .5, 1, 0, 0, -40/360],
+        ],
+    },
+
     "control cycle bottom pulse": {
         "length": 32,
         "beats": [
@@ -89,6 +99,23 @@ effects = {
         ]
     },
 
+    "control cycle bottom waves high": {
+        "length": 32,
+        "beats": [
+            [1, "control cycle bottom", 32, .5],
+            [1, "Red bottom", 4, .4, 0],
+            [1, "Blue bottom", 4, .4, 0],
+            [9, "Red bottom", 4, .4, 0],
+            [9, "Blue bottom", 4, .4, 0],
+            [17, "Red bottom", 4, .4, 0],
+            [17, "Blue bottom", 4, .4, 0],
+            [22, "Blue bottom", 2, .4, 0],
+            [22, "Red bottom", 2, .4, 0],
+            [25, "Blue bottom", 2, .4, 0],
+            [25, "Red bottom", 2, .4, 0],
+        ]
+    },
+
     "control UV clap full": {
         "length": 16,
         "beats": [
@@ -103,6 +130,15 @@ effects = {
             [1, "White top", 4, .6, .2],
             [5, "White top", .2, .2],
             [5, "control subtract green triplet top",4],
+        ],
+    },
+
+    "control blat red top": {
+        "length": 8,
+        "beats": [
+            [1, "Red top", 4, .6, .2],
+            [5, "Red top", .2, .2],
+            [5, "control subtract all triplet top",4],
         ],
     },
 
@@ -177,6 +213,15 @@ effects = {
         ],
     },
 
+    "control subtract all triplet top": {
+        "length": 1,
+        "beats": [
+            [1, "control subtract 20 top", .33, 1, 0],
+            [1.33, "control subtract 20 top", .33, 1, 0],
+            [1.66, "control subtract 20 top", .33, 1, 0],
+        ],
+    },
+
     "control bottom ripple fast": {
         "length": .5,
         "beats": [
@@ -226,6 +271,39 @@ effects = {
         ],
     },
 
+    "control back let the": {
+        "length": 4,
+        "beats": [
+            [4, "Red back", .5, 1, 0, 0, 0],
+            [4.5, "Red back", .5, 1, 0, 0, 0],
+        ],
+    },
+
+    "control front let the": {
+        "length": 4,
+        "beats": [
+            [4, "Red front", .5, 1, 0, 0, 0],
+            [4.5, "Red front", .5, 1, 0, 0, 0],
+        ],
+    },
+
+    "control top let the full": {
+        "length": 16,
+        "beats": [
+            [1, "control back let the", 4, 1, 1, 0, -40/360],
+            [5, "control front let the", 4, 1, 1, 0, -60/360],
+            [9, "control back let the", 4, 1, 1, 0, -80/360],
+        ],
+    },
+
+    "control top flash": {
+        "length": 4,
+        "beats": [
+            [1, "White top", .5, 1, .2],
+            [1.5, "White top", .5, .2, 0],
+        ],
+    },
+
     "control bottom rainbow": {
         "length": 4,
         "beats": [
@@ -271,10 +349,26 @@ effects = {
             [169, "control bottom purple pulse color change",16, .8],
             [169, "control ghostly", 32],
             [185, "control bottom purple pulse color change",15.5, .8, .8, 0, -20/300],
-            # 201 "let the"
-            [209, "control cycle bottom waves", 53],
-            # 209 come in with bottom
+            [201, "control top let the full", 64],
+            [217, "control top flash", 4],
+            [233, "control top flash", 4],
+            [233, "control UV clap full", 24,.5],
+
+            [249, "control top flash", 4],
+            [265, "control top flash", 4],
             
+            [209, "control cycle bottom waves", 53],
+            [259, "UV Strobe", 2, .1, .8],
+            
+            [269, "control UV clap full", 64],
+            [269, "control blat red top", 8],
+            [269, "control bottom ripple triplet", 8, 1, 0],
+
+            [277, "control cycle bottom waves high", 56],
+            [277, "control pulse top", 24],
+            [301, "control blat top", 8],
+            [301, "control pulse top", 32, .6],
+            [333, "control UV offbeat", 4, .8, .2],
         ]
     }
 }

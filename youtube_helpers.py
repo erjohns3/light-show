@@ -3,6 +3,7 @@ import argparse
 import traceback
 import json
 import shutil
+from copy import deepcopy
 
 from helpers import *
 
@@ -25,12 +26,56 @@ def scp_to_doorbell(local_filepath, remote_folder):
 
     print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
     scp = SCPClient(ssh.get_transport())
-
     if is_windows():
         remote_filepath = str(remote_filepath).replace('\\\\', '/').replace('\\', '/')
     scp.put(str(local_filepath), remote_filepath)
     scp.close()
 
+
+
+ydl_search_opts = {
+    'format': 'bestaudio/best',
+    'noplaylist':'True',
+    'quiet': True,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'mp3',
+        'preferredquality': '192',
+    }],
+}
+
+
+# API limiters
+global last_youtube_searched_time
+last_youtube_searched_time = None
+
+minimum_youtube_api_wait_time_seconds = 1
+
+# variables to control search
+results_to_consider = 3
+def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_length_of_video_seconds=1000):
+    global last_youtube_searched_time
+    import yt_dlp
+
+    if last_youtube_searched_time:
+        time_to_wait = max(0, minimum_youtube_api_wait_time_seconds - (time.time() - last_youtube_searched_time))
+        time.sleep(time_to_wait)
+
+    curr_ydl_opts = deepcopy(ydl_search_opts) 
+    try:
+        with yt_dlp.YoutubeDL(curr_ydl_opts) as ydl:
+            # This line can throw a DownloadError, somehow split it up to consider the other results?
+            all_results = ydl.extract_info(f"ytsearch{results_to_consider}:{search_phrase}", download=False)
+            for entry in all_results['entries']:
+                if 'title' not in entry or 'webpage_url' not in entry:
+                    print(f'{bcolors.FAIL}Somehow title or webpage_url arent in this object {entry}{bcolors.ENDC}')
+                if 'duration' in entry and entry['duration'] >= minimum_length_of_video_seconds and entry['duration'] <= maximum_length_of_video_seconds:
+                    return entry
+    except yt_dlp.DownloadError as e:
+        # maybe i misread this, this can throw a DownloadError?
+        print(f'{bcolors.FAIL}Couldnt download "{search_phrase}" due to DownloadError: {e}{bcolors.ENDC}')
+
+    last_youtube_searched_time = time.time()
 
 def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, codec='vorbis'):
     if url is None:

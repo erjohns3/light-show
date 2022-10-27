@@ -47,10 +47,8 @@ effects = {
     },
     'porter flubs phrase rotating': {
         'beats': [
-            b(1, name='green laser motor', length=32),
             b(1, name='porter flubs phrase', length=16, hue_shift=.2),
             b(17, name='porter flubs phrase', length=16, hue_shift=.4),
-            b(33, name='green laser', length=32),
             b(33, name='porter flubs phrase', length=16, hue_shift=.6),
             b(49, name='porter flubs phrase', length=16, hue_shift=.8),
         ],
@@ -82,7 +80,7 @@ effects = {
             [25, 'Seafoam top', 4, 1, 0],
         ],
     },
-    'porter robinson  a breath superbloom edit show': {
+    'porter robinson  a breath superbloom edit': {
         'bpm': 126,
         'song_path': 'songs/porter robinson  a breath superbloom edit.ogg',
         'delay_lights': 0.12,

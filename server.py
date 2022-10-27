@@ -61,7 +61,7 @@ if args.autogen_simple:
 pca = None
 
 SUB_BEATS = 24
-LIGHT_COUNT = 13
+LIGHT_COUNT = 16
 
 curr_effects = []
 song_queue = []
@@ -589,75 +589,6 @@ async def send_song_status():
 ####################################
 
 
-# terminal specific
-if args.local:
-    # straight pow(2, 16) to what i think it should be
-    green_vals = {
-        1: 1,
-        .7: .6,
-        .6: .4,
-        .4: .2,
-        .20: .13,
-        0.1: .05,
-        0: 0,    
-    }
-    red_vals = {
-        1: 1,
-        .7: .6,
-        .6: .4,
-        .4: .2,
-        .20: .13,
-        0.1: .05,
-        0: 0,    
-    }
-    blue_vals = {
-        1: 1,
-        .7: .6,
-        .6: .4,
-        .4: .2,
-        .20: .13,
-        0.1: .05,
-        0: 0,    
-    }
-    green_vals = {y:x for x, y in green_vals.items()}
-    red_vals = {y:x for x, y in red_vals.items()}
-    blue_vals = {y:x for x, y in blue_vals.items()}
-
-    # floor to perceieved
-    # green_vals = { 1: 1, .9: .95, .5: .70, .4: .60, .3: .45, .2: .30, .15: .25, .14: .2, .13: .18, .12: .15, .11: .1, .1: 0,  0: 0,  }
-    # red_vals = { 1: 1,.9: .95,.5: .70,.4: .60,.3: .40,.25: .25,.2: .20,.14: .12,.13: .11,.12: 0, 0: 0, }
-    # blue_vals = { 1: 1, .9: .90, .5: .65, .4: .50, .3: .35, .25: .28, .2: .2, .14: .15, .13: .13, .12: .11, .11: 0,  0: 0,  }
-
-    max_num = pow(2, 16) - 1
-    def get_interpolated_value(interpolation_dict, value):
-        if value == 0:
-            return 0
-        if 255 <= value:
-            return 255
-
-        value /= 255
-        pairs = sorted([(i, o) for i, o in interpolation_dict.items()])
-        for index, (i1, o1) in enumerate(pairs):
-            (i2, o2) = pairs[index + 1]
-            if value <= pairs[index + 1][0]:
-                difference_in_outputs = o2 - o1
-                difference_in_inputs = i2 - i1
-                difference_in_value = value - i1
-                scaling = difference_in_value / difference_in_inputs
-                # print(f'({i1=}, {i2=}), ({o1=}, {o2=}), {scaling=}, {difference_in_outputs=}, {difference_in_inputs=}, {difference_in_value=}')
-                final_output = 255 * (o1 + (difference_in_outputs * scaling))
-                # print(f'got {value}, returning: {final_output}')
-                return int(final_output)
-
-    terminal_lut = {'red': [0] * (255 + 1), 'green': [0] * (255 + 1), 'blue': [0] * (255 + 1)}
-    for i in range(255 + 1):
-        terminal_lut['red'][i] = get_interpolated_value(red_vals, i)
-        terminal_lut['green'][i] = get_interpolated_value(green_vals, i)
-        terminal_lut['blue'][i] = get_interpolated_value(blue_vals, i)
-    purple = [153, 50, 204]
-    terminal_size = os.get_terminal_size().columns
-
-
 def get_sub_effect_names(effect_name, beat):
     sub_effect_names = []
     effect_beats = effects_config[effect_name]['beats']
@@ -669,12 +600,14 @@ def get_sub_effect_names(effect_name, beat):
     return sub_effect_names
 
 
-last_extra_lines = None
 stage = random.randint(0, 110)
 stage_chars = '.,-~:;=!*#$@'
+max_num = pow(2, 16) - 1
+purple = [153, 50, 204]
 async def render_to_terminal(all_levels):
-    global last_extra_lines, rekordbox_time, rekordbox_bpm, rekordbox_title, stage
+    global rekordbox_time, rekordbox_bpm, rekordbox_title, stage
     curr_beat = (beat_index / SUB_BEATS) + 1
+    terminal_size = os.get_terminal_size().columns
     dead_space = terminal_size - 15
 
     show_specific = ''
@@ -682,8 +615,6 @@ async def render_to_terminal(all_levels):
     for effect in curr_effects:
         effect_name = effect[0]
 
-        # if has_song(effect[0]):
-        #     all_effect_names += get_sub_effect_names(effect[0], curr_beat)
         if has_song(effect_name):
             channel_lut_index = (beat_index + effect[1])
             show_specific = f"""\
@@ -692,13 +623,6 @@ async def render_to_terminal(all_levels):
             all_effect_names += get_sub_effect_names(effect_name, curr_beat)
         else:
             all_effect_names.append(effect[0])
-            # getting duration thru the song
-            # time_diff = time.time() - time_start
-            # song_path = effects_config[effect_name]['song_path']
-            # if 'song_path' in songs_config:
-            #     f", {round(100 * (time_diff / songs_config[song_path]['duration']))}% song"
-
-# Seconds: {round(time.time() - time_start, 2):.2f}\
 
     useful_info = ''
     if rekordbox_bpm is not None:
@@ -714,34 +638,12 @@ Beat {curr_beat:.1f}\
 """
     useful_info += f'{show_specific}'
 
-
-    # size_of_current_line = len(useful_info) - (terminal_size * (len(useful_info) // terminal_size))
     size_of_current_line = len(useful_info) % (terminal_size + 1)
     chars_until_end_of_line = terminal_size - size_of_current_line
-    # print(f'{size_of_current_line=}, {chars_until_end_of_line=}, {terminal_size=}')
     useful_info += ' ' * chars_until_end_of_line
-    extra_lines_up = (len(useful_info) // (terminal_size + 1)) + 1
-    # if last_extra_lines is not None and last_extra_lines > extra_lines_up:
-    #     print(f'{" " * dead_space}\n' * (last_extra_lines - extra_lines_up))
-        # print(f'last_extra_lines: {last_extra_lines}, extra_lines_up: {extra_lines_up}')
-        # exit()
 
-    last_extra_lines = extra_lines_up
-
-
-    # print('pre 255:', list(map(lambda x: x / max_num, all_levels)))
     levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
-    # print('after 255:', levels_255)
-    # levels_255[0] = terminal_lut['red'][levels_255[0]]
-    # levels_255[1] = terminal_lut['green'][levels_255[1]]
-    # levels_255[2] = terminal_lut['blue'][levels_255[2]]
-    # levels_255[3] = terminal_lut['red'][levels_255[3]]
-    # levels_255[4] = terminal_lut['green'][levels_255[4]]
-    # levels_255[5] = terminal_lut['blue'][levels_255[5]]
 
-    # print('after terminal lut', levels_255)
-
-    # uv_level_scaling = min(1, levels_255[6] / 255.0)
 
     top_front_values = levels_255[0:3]
     top_back_values = levels_255[3:6]
@@ -763,7 +665,7 @@ Beat {curr_beat:.1f}\
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(terminal_size - 1):
-                if j > 1 and j < 15 and random.randint(0, 4) == 2:
+                if j > 1 and j < 15 and (j + i + (stage // 9)) % 4 == 0:
                     laser_arr[j + (line_length * i)] = stage_chars[stage // 10]
         laser_string = ''.join(laser_arr)
         # print(f'{len(laser_string)}\n' * 3)
@@ -1078,7 +980,7 @@ def update_config_and_lut_from_disk():
     effects_config_to_compile = {}
     if args.show and not args.autogen:
         if args.show not in effects_config:
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_song=True)
         effects_config_to_compile[args.show] = effects_config[args.show]
 
     for effect_name, effect in effects_config.items():
@@ -1115,7 +1017,11 @@ def set_effect_defaults(effect):
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
     if 'song_path' in effect and effect['song_path'] not in songs_config:
-        del effect['song_path']
+        if effect.get('song_not_avaliable', True):
+            if args.show:
+                effect['song_not_avaliable'] = True
+            else:
+                del effect['song_path']
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red('song effects must have bpm\n' * 10)
@@ -1223,6 +1129,8 @@ def compile_lut(local_effects_config):
                 channels[3:3] = channels[0:3]
             if len(channels) == 10:
                 channels += [0,0,0]
+            if len(channels) == 13:
+                channels += [0,0,0]
 
             if len(component) == 2:
                 component.append(effect['length'])
@@ -1306,7 +1214,7 @@ def compile_lut(local_effects_config):
                     hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
                     new_hue = (hue + effect['hue_shift']) % 1
                     new_sat = min(1, max(0, sat + effect['sat_shift']))
-                    new_bright = min(1, max(0, bright + effect['bright_shift']))
+                    new_bright = min(1, max(0, bright + bright*effect['bright_shift']))
                     compiled_sub_beat[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
                     compiled_sub_beat[i * 3] *= 100
                     compiled_sub_beat[i * 3 + 1] *= 100
@@ -1349,14 +1257,14 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-
                     if hue_shift or sat_shift or bright_shift:
                         for i in range(3):
                             rd, gr, bl = final_channel[i * 3:(i * 3) + 3]
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
-                            new_bright = min(1, max(0, bright + bright_shift))
+                            # bright shift is relative to initial brightness
+                            new_bright = min(1, max(0, bright + bright*bright_shift))
                             final_channel[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
                             final_channel[i * 3] *= 100
                             final_channel[i * 3 + 1] *= 100
@@ -1401,12 +1309,17 @@ def signal_handler(sig, frame):
 
 #################################################
 
-def fuzzy_find(name, valid_names, filter_words=None):
+def fuzzy_find(name, valid_names, filter_words=None, filter_song=None):
     name = name.lower()
     all_candidates = []
+
+    if filter_song:
+        valid_names = list(filter(lambda x: 'song_path' in effects_config.get(x, []), valid_names))
+
     if filter_words:
         valid_names = list(filter(lambda x: any([y in x.lower() for y in filter_words]), valid_names))
     valid_names = [x for x in valid_names if x[-5:] != '.webm']
+
     lower_to_real = {x.lower():x for x in valid_names}
     for show_name in lower_to_real:
         if name in show_name:
@@ -1414,15 +1327,33 @@ def fuzzy_find(name, valid_names, filter_words=None):
     if not all_candidates:
         print(f'{bcolors.FAIL}No shows for "{name}" were found{bcolors.ENDC}')
         exit()
+
+    selected_song = all_candidates[0]
     if len(all_candidates) > 1:
         # autogen = filter(lambda x: x.startswith('g_'), all_candidates)
         non_autogen = list(filter(lambda x: not x.startswith('g_'), all_candidates))
-        if len(non_autogen) == 1:
-            return non_autogen[0]
+        if len(non_autogen) != 1:
+            print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
+            exit()
 
-        print(f'{bcolors.FAIL}Too many candidates for show "{name}" {all_candidates}{bcolors.ENDC}')
-        exit()
-    return all_candidates[0]
+        selected_song = non_autogen[0]
+
+    if filter_song and effects_config[selected_song].get('song_not_avaliable', None):
+        print_yellow(f'Song isnt availiable for effect "{selected_song}", press enter to try downloading?')
+        input()
+        just_filename = pathlib.Path(effects_config[selected_song]['song_path']).stem
+        print(f'Searching with phrase "{just_filename}"')
+        youtube_search_result = youtube_helpers.youtube_search(just_filename)
+        if not youtube_search_result:
+            print('Couldnt find relevant video on youtube, exiting...')
+            exit()
+
+        url = youtube_search_result['webpage_url']
+        if youtube_helpers.download_youtube_url(url, dest_path='songs'):
+            print('downloaded video, continuing to try to recover')
+            effects_config[selected_song]['song_not_avaliable'] = False
+
+    return selected_song
 
 #################################################
 
@@ -1531,6 +1462,7 @@ if __name__ == '__main__':
             print(f'skipping to {time_to_skip_to}')
 
             if reload:
+                print('RELOAD REFRESHING')
                 update_config_and_lut_from_disk()
 
             effect = effects_config[effect_name]
@@ -1545,6 +1477,7 @@ if __name__ == '__main__':
             add_effect(effect_name)
             play_song(effect_name, print_out=False)
         elif reload:
+            print('RELOAD REFRESHING NO EFFECT')
             update_config_and_lut_from_disk()
 
     if args.reload:
@@ -1558,6 +1491,7 @@ if __name__ == '__main__':
 
             @staticmethod
             def on_any_event(event):
+                global downloaded
                 if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path or not event.src_path.endswith('.py'):
                     return None
                 if FilesystemHandler.last_updated > (time.time() - .05):
@@ -1664,7 +1598,7 @@ if __name__ == '__main__':
         if args.show:
             print('Starting show from CLI')
 
-            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_words=['show', 'g_'])
+            args.show = fuzzy_find(args.show, list(effects_config.keys()), filter_song=True)
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:
                     effects_config[args.show]['bpm'] *= args.speed

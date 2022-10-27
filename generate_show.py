@@ -364,22 +364,22 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
             effect_types_to_name[effect['autogen']].append(name)
     
     scenes = [
-        [8, ['downbeat top', 'downbeat bottom']],
-        [8, ['downbeat top', 'downbeat bottom']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top']],
-        [8, ['downbeat bottom']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed', 'UV pulse']],
-        [8, ['downbeat mixed', 'UV']],
-        [8, ['downbeat top', 'downbeat bottom', 'UV']],
-        [8, ['downbeat top', 'UV']],
-        [8, ['downbeat bottom', 'UV']],
-        [8, ['rainbow top', 'downbeat bottom']],
-        [2, ['filler']],
-        [1, ['filler']],
-        [2, ['UV pulse']],
+        [8, ['downbeat top', 'downbeat bottom', 'dimmers']],
+        # [8, ['downbeat top', 'downbeat bottom']],
+        # [8, ['downbeat top']],
+        # [8, ['downbeat top']],
+        # [8, ['downbeat bottom']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed', 'UV pulse']],
+        # [8, ['downbeat mixed', 'UV']],
+        # [8, ['downbeat top', 'downbeat bottom', 'UV']],
+        # [8, ['downbeat top', 'UV']],
+        # [8, ['downbeat bottom', 'UV']],
+        # [8, ['rainbow top', 'downbeat bottom']],
+        # [2, ['filler']],
+        # [1, ['filler']],
+        # [2, ['UV pulse']],
         [1, ['UV pulse single']],
         [1, ['flash']],
     ]
@@ -441,7 +441,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         # shift by a random color
                         # hardcode sat_shift -0.2 to turn down lights a bit TODO
-                        if random_color:
+                        if random_color and effect_type != 'dimmers':
                             effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 
                         new_prev_effects.append(effect_name)

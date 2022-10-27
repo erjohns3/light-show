@@ -1,6 +1,18 @@
 from effects.compiler import b
+# [beat, effect, length, start intensity, end intensity, beat skip, hue[-1, 1], sat, brightness]
 
 effects = {
+    # dimmers
+    "dimmer all": {
+        "profiles": ["autogen helpers"],
+        "length": 1,
+        "autogen": "dimmers",
+        "beats": [
+            [1.5, "Sidechain top rbg", .5, 0, .8],
+            [1.5, "Sidechain bottom rbg", .5, 0, .8],
+            [1.5, "Sidechain UV", .5, 0, .8],
+        ],
+    },
     # fillers
     "g_Strobe": {
         "profiles": ["autogen helpers"],

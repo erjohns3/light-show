@@ -440,7 +440,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
-                        # hardcode sat_shift -0.2 to turn down lights a bit TODO
+                        # dimmer doesn't play well with hue shifter
                         if random_color and effect_type != 'dimmers':
                             effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 

@@ -110,6 +110,12 @@ effects = {
             b(8.5, name='Nothing', length=.5, intensity=1),
         ],
     },
+    # "me new": {
+    #     "length": 2,
+    #     "beats": [
+    #         b(-20, name='Red top', length=.2, intensity=1),
+    #     ],
+    # },
     "Dom Dolla  Take It Official Music Video": {
         "bpm": 123,
         "song_path": "songs/Dom Dolla  Take It Official Music Video.ogg",
@@ -118,6 +124,7 @@ effects = {
         "beats": [
             b(16, name='dom windy melody', length=64),
             b(48, name='dom intro bassline', length=32),
+            # b(40, name='me new', length=8),
             b(71, name='dom drop sidechain', length=8),
             b(80, name='dom chorus', length=64),
             b(144, name='dom chorus 2', length=64),

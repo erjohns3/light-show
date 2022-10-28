@@ -15,7 +15,7 @@ effects = {
             [137.75, 'proxima bass loop', 3],
             [143, 'Blue bottom', 1, 1, 0],
             [145, 'green laser', 128],
-            [145, 'proxima laser motor', 128],
+            [144.92, 'proxima laser motor', 128],
             [145, 'proxima bassline fixed', 128],
             [209, 'green laser', 4.5, -1],
             [273, 'UV', 60],
@@ -26,14 +26,14 @@ effects = {
             [337, 'proxima disco loop', 59],
             [401, 'proxima bassline fixed', 192],
             [405.5, 'green laser', 59.5],
-            [405.5, 'proxima laser motor', 59.5],
+            [405.42, 'proxima laser motor', 59.5],
         ]
     },
 
     "proxima laser motor": {
         "length": 1,
         "beats": [
-            [1, 'laser motor', 0.25],
+            [1, 'laser motor', 0.17],
         ]
     },
 

@@ -1310,6 +1310,8 @@ def signal_handler(sig, frame):
 #################################################
 
 def fuzzy_find(name, valid_names, filter_words=None, filter_song=None):
+    if name in valid_names:
+        return name
     name = name.lower()
     all_candidates = []
 

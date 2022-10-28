@@ -2,6 +2,12 @@ from effects.compiler import b
 
 effects = {
     # pulses and strobes
+    "Strobe green laser": {
+        "length": 0.35,
+        "beats": [
+            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], .04],
+        ],
+    },
     "Strobe": {
         "length": 0.2,
         "beats": [

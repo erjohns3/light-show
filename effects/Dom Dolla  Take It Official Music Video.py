@@ -127,6 +127,7 @@ effects = {
             # b(40, name='me new', length=8),
             b(71, name='dom drop sidechain', length=8),
             b(80, name='dom chorus', length=64),
+            # b(78.8, name='dom chorus', length=64),
             b(144, name='dom chorus 2', length=64),
             b(200, name='dom drop sidechain', length=8),
             b(207, name='Nothing', length=1),

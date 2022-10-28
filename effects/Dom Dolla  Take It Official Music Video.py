@@ -27,9 +27,9 @@ effects = {
     "dom effect": {
         "length": 2,
         "beats": [
-            [1, 'Pink bottom', .25, 1, 0],
-            [2, 'Cyan front', .5, 1, .2],
-            [2, 'Cyan back', .5, 1, .2],
+            # [1, 'Pink bottom', .7, 1, 0],
+            b(1, name='Pink bottom', length=.7, intensity=(1, 0)),
+            b(2, name='Cyan top', length=.8, intensity=(1, .2), bright_shift=-.9),
         ],
     },
     "dom repeated claps": {

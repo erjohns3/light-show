@@ -128,7 +128,7 @@ effects = {
         "length": 8,
         "autogen": "downbeat top",
         "intensity": "low",
-        "profiles": ["Andrew"],
+        # "profiles": ["Andrew"],
         "beats": [
             [1, "Autogen helper white top pulse 1", 8],
             [1, "Green top", 3.7, .4, 0],
@@ -171,7 +171,7 @@ effects = {
         "length": 8,
         "autogen": "rainbow top",
         "intensity": "low",
-        "profiles": ["Andrew"],
+        # "profiles": ["Andrew"],
         "beats": [
             [1, "Green top", 3.7, 1, 0],
             [1, "Red top", 2.66, 0, 1],
@@ -342,7 +342,7 @@ effects = {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
-        "profiles": ["Andrew"],
+        # "profiles": ["Andrew"],
         "beats": [
             [1, "Blue bottom", 1, 1, .2],
             [2, "Blue bottom", 1, .2, .2],
@@ -359,7 +359,7 @@ effects = {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
-        "profiles": ["Andrew"],
+        # "profiles": ["Andrew"],
         "beats": [
             [1, "Blue top", 1, 1, .2],
             [2, "Blue top", 1, .2, .2],

@@ -21,7 +21,7 @@ def generate_rekordbox_effect(filepath):
 if __name__ == '__main__':
     rekordbox_song_directory = ray_directory.joinpath('music_creation', 'downloaded_songs')
     for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True, recursive=True):
-        if filepath.suffix in ['.py', '.exe']:
+        if filepath.suffix in ['.py', '.exe', '.html']:
             continue
         if filename.startswith('.'):
             continue

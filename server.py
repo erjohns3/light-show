@@ -278,7 +278,7 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True)
+    new_effects, output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return

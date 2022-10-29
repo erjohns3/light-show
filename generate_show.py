@@ -492,9 +492,6 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     write_effect_to_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     
-    print(show_name)
-    print(show['song_path'])
-    
     return the_show, output_filepath
 
 def get_effect_files_jsons():

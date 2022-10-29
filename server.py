@@ -975,9 +975,11 @@ def update_config_and_lut_from_disk():
 
     for effect in effects_config.values():
         if 'song_path' in effect:
-            print(effect['song_path'])
+            if is_windows():
+                print(effect['song_path'])
             effect['song_path'] = str(pathlib.Path(effect['song_path']))
-            print(effect['song_path'])
+            if is_windows():
+                print(effect['song_path'])
 
 
     print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')

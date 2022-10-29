@@ -136,7 +136,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -153,6 +153,9 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
+            song_playing = False
+            broadcast_song = True
+
             take_rekordbox_input = True
             rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])

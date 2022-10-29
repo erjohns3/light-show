@@ -112,11 +112,11 @@ def http_server():
 
 ########################################
 
-def add_effect_from_dj(effect_name):
+def add_effect_from_dj(effect_name, no_music=False):
     global song_time, song_playing, broadcast_song
     song_time = 0
     add_effect(effect_name)
-    if has_song(effect_name):
+    if not no_music and has_song(effect_name):
         song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
         if not os.path.exists(song_path):
             print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
@@ -169,7 +169,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
             print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
             clear_effects()
-            add_effect_from_dj(rekordbox_title)
+            add_effect_from_dj(rekordbox_title, no_music=True)
 
         # print(f'{list(msg.keys())}\n' * 10)
         if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:

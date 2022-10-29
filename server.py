@@ -158,10 +158,14 @@ async def init_rekordbox_bridge_client(websocket, path):
             rekordbox_original_bpm = float(msg['original_bpm'])
 
             if rekordbox_title not in effects_config:
+                print(f'Couldnt find handmade {rekordbox_title=}\n' * 8)
                 rekordbox_title = 'g_' + rekordbox_title
                 if rekordbox_title not in effects_config:
                     print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
                     continue
+            else:
+                print(f'FOUND handmade {rekordbox_title=}\n' * 8)
+
 
             print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
             clear_effects()

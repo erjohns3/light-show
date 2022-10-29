@@ -134,8 +134,9 @@ rekordbox_title = None
 rekordbox_bpm = None
 rekordbox_time = None
 rekordbox_original_bpm = None
+take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -151,6 +152,8 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'key': stuff[0],
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
+            stop_song()
+            take_rekordbox_input = True
             rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
 
@@ -165,7 +168,7 @@ async def init_rekordbox_bridge_client(websocket, path):
             add_effect_from_dj(rekordbox_title)
 
         # print(f'{list(msg.keys())}\n' * 10)
-        if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
+        if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
             # print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']), float(msg['master_bpm'])
@@ -847,6 +850,8 @@ def add_effect(name):
 
 
 def play_song(effect_name, print_out=True):
+    global take_rekordbox_input
+    take_rekordbox_input = False
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:

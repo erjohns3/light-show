@@ -18,6 +18,7 @@ import pandas as pd
 import aubio
 import numpy as np
 
+from effects.compiler import b
 import sound_helpers
 from helpers import *
 
@@ -33,6 +34,10 @@ def eliminate(string, matches):
 
 def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False):
     print(f'writing effect/show to {output_filepath}')
+
+    show_name = list(dict_to_dump.keys())[0]    
+    if is_windows() and 'song_path' in dict_to_dump[show_name]:
+        dict_to_dump[show_name]['song_path'] = dict_to_dump[show_name]['song_path'].replace('\\\\', '/').replace('\\', '/')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
         shows_json_str = shows_json_str.replace(': true', ': True')
@@ -441,16 +446,20 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
                         # shift by a random color
                         # dimmer doesn't play well with hue shifter
-                        if random_color and effect_type != 'dimmers':
-                            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
+                        hue_shift, sat_shift, bright_shift = 0, 0, 0
+                        # if random_color and effect_type != 'dimmers':
+                        if effect_type != 'dimmers':
+                            hue_shift=random.random()
+                            bright_shift = -.2
+                            # effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 
                         new_prev_effects.append(effect_name)
+                        the_length = length
                         if length_left >= length*4 and length==8:
-                            show['beats'].append([beat, effect_name, length*4])
+                            the_length = length * 4
                         elif length_left >= length*2 and length==8:
-                            show['beats'].append([beat, effect_name, length*2])
-                        else:
-                            show['beats'].append([beat, effect_name, length])
+                            the_length = length * 2
+                        show['beats'].append(b(beat, name=effect_name, length=the_length, hue_shift=hue_shift, sat_shift=sat_shift, bright_shift=bright_shift))
                     
                     if length_left >= length*4 and length==8:
                         beat += length*4
@@ -482,6 +491,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         return None
     write_effect_to_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
+    
     return the_show, output_filepath
 
 def get_effect_files_jsons():

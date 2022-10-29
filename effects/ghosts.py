@@ -101,7 +101,7 @@ effects = {
         ],
     },
 
-    "ghosts show": {
+    "deadmau5 feat Rob Swire - Ghosts N Stuff": {
         "beats": [
             [17, "Ghosts melody", 96], 
             [17, "Ghosts bassline", 96], 

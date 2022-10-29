@@ -22,7 +22,7 @@ effects = {
         ],
     },
 
-    "Avenue show": {
+    "Avenue": {
         "bpm": 128,
         "song_path": "songs\\Avenue.ogg",
         "delay_lights": 0.09605,

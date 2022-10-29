@@ -134,7 +134,7 @@ effects = {
             [17, "hooked wandering top", 16, .8, .5],
         ],
     },
-    "hooked show": {
+    "Notion - Hooked": {
         "beats": [
             # Beat(8, "hooked scream fade", len=2, inten=(.4, .2), rot=90),
             [8, "hooked scream fade", 2, 0.4, 0.2],

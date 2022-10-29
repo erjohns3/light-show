@@ -112,11 +112,11 @@ def http_server():
 
 ########################################
 
-def add_effect_from_dj(effect_name):
+def add_effect_from_dj(effect_name, no_music=False):
     global song_time, song_playing, broadcast_song
     song_time = 0
     add_effect(effect_name)
-    if has_song(effect_name):
+    if not no_music and has_song(effect_name):
         song_path = python_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
         if not os.path.exists(song_path):
             print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
@@ -134,8 +134,9 @@ rekordbox_title = None
 rekordbox_bpm = None
 rekordbox_time = None
 rekordbox_original_bpm = None
+take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -151,21 +152,30 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'key': stuff[0],
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
+            stop_song()
+            song_playing = False
+            broadcast_song = True
+
+            take_rekordbox_input = True
             rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
 
             if rekordbox_title not in effects_config:
+                print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
                 rekordbox_title = 'g_' + rekordbox_title
                 if rekordbox_title not in effects_config:
                     print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
                     continue
+            else:
+                print(f'FOUND handmade {rekordbox_title}\n' * 8)
+
 
             print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
             clear_effects()
-            add_effect_from_dj(rekordbox_title)
+            add_effect_from_dj(rekordbox_title, no_music=True)
 
         # print(f'{list(msg.keys())}\n' * 10)
-        if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
+        if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
             # print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
             if rekordbox_title in effects_config:
                 rekordbox_time, rekordbox_bpm = float(msg['master_time']), float(msg['master_bpm'])
@@ -275,7 +285,7 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False, debug=True)
+    new_effects, output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return
@@ -458,9 +468,9 @@ def search_youtube():
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('temp', 'search_parse.html', encoding="utf-8"), 'w') as f:
+        with open(get_temp_dir().joinpath('search_parse.html'), 'w', encoding="utf-8") as f:
             f.write(out[start:end])
-        with open(get_temp_dir().joinpath('temp', 'search_full.html', encoding="utf-8"), 'w') as f:
+        with open(get_temp_dir().joinpath('search_full.html'), 'w', encoding="utf-8") as f:
             f.write(out)
 
         list1 = []
@@ -847,6 +857,9 @@ def add_effect(name):
 
 
 def play_song(effect_name, print_out=True):
+    global take_rekordbox_input
+    take_rekordbox_input = False
+    print('trying to play', effect_name)
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:
@@ -954,9 +967,10 @@ def update_config_and_lut_from_disk():
     found = {}
 
     effects_dir = python_file_directory.joinpath('effects')
-    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True):
+    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         if name == 'compiler.py':
             continue
+    
         relative_path = filepath.relative_to(python_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
@@ -965,6 +979,11 @@ def update_config_and_lut_from_disk():
         else:
             all_globals[module_name] = importlib.import_module(module_name)
         effects_config.update(all_globals[module_name].effects)
+
+
+    for effect_name, effect in effects_config.items():
+        if 'song_path' in effect:
+            effect['song_path'] = str(pathlib.Path(effect['song_path']))
 
     print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
     if not songs_config:
@@ -1017,10 +1036,13 @@ def set_effect_defaults(effect):
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
     if 'song_path' in effect and effect['song_path'] not in songs_config:
+        # print_red(f'NOT AVAIL {effect}')
         if effect.get('song_not_avaliable', True):
             if args.show:
                 effect['song_not_avaliable'] = True
             else:
+                print(effect)
+                print_red('deleting song_path')
                 del effect['song_path']
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
@@ -1395,12 +1417,13 @@ if __name__ == '__main__':
         import traceback
         traceback.print_exc()
         print_red(f'Got traceback from update_config_and_lut_from_disk ^^^')
-        print_yellow('Press ENTER to delete the autogen directory and retry')
-        input()
-        autogen_shows_dir = python_file_directory.joinpath('effects').joinpath('autogen_shows')
-        shutil.rmtree(autogen_shows_dir)
-        # os.rmdir(autogen_shows_dir)
-        update_config_and_lut_from_disk()
+        exit()
+        # print_yellow('Press ENTER to delete the autogen directory and retry')
+        # input()
+        # autogen_shows_dir = python_file_directory.joinpath('effects').joinpath('autogen_shows')
+        # # shutil.rmtree(autogen_shows_dir)
+        # # os.rmdir(autogen_shows_dir)
+        # update_config_and_lut_from_disk()
 
     if args.autogen:
         autogenerated_effects = {}
@@ -1409,13 +1432,14 @@ if __name__ == '__main__':
         if args.show:
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.show, list(os.listdir('songs'))))
             new_effect, output_filepath = generate_show.generate_show(song_path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
-            autogenerated_effects.update(new_effect)
+            effects_config.update(new_effect)
             effect_name = list(new_effect.keys())[0]
+            effects_config[effect_name] = new_effect[effect_name]
             args.show = effect_name
         else:
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for name, path in get_all_paths('songs', only_files=True):
-                new_effect, output_filepath = generate_show.generate_show(path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple, debug=False)
+                new_effect, output_filepath = generate_show.generate_show(path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
                 if new_effect is not None:
                     autogenerated_effects.update(new_effect)    
         update_config_and_lut_from_disk()

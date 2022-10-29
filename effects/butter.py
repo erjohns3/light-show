@@ -194,7 +194,7 @@ effects = {
             [1, "butter ho", 64],
         ],
     },
-    "butter show": {
+    "Not Butter": {
         "beats": [
             [1, "everything UV waver", 32],
             [33, "butter melody 1 intro", 32],

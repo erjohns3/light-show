@@ -386,7 +386,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         [1, ['filler']],
         [2, ['UV pulse']],
         [1, ['UV pulse single']],
-        [1, ['flash']],
+        # [1, ['flash']],
     ]
     # if chunk is high intensity: at least one effect must be mid or high
     # if chunk is low: no effects should be high

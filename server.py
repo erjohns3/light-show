@@ -964,9 +964,10 @@ def update_config_and_lut_from_disk():
     found = {}
 
     effects_dir = python_file_directory.joinpath('effects')
-    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True):
+    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         if name == 'compiler.py':
             continue
+    
         relative_path = filepath.relative_to(python_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
@@ -974,17 +975,25 @@ def update_config_and_lut_from_disk():
             importlib.reload(all_globals[module_name])
         else:
             all_globals[module_name] = importlib.import_module(module_name)
+
+        # if 'rekordbox_effects' in str(filepath):
+        #     first_key = list(all_globals[module_name].effects.keys())[0]
+        #     all_globals[module_name].effects[first_key]
+        #     all_globals[module_name].effects[first_key]
+        #     del all_globals[module_name].effects[first_key]
         effects_config.update(all_globals[module_name].effects)
 
 
-    for effect in effects_config.values():
+    for effect_name, effect in effects_config.items():
+        # if effect_name.startswith('g_Carly'):
+        #     print(effect_name)
         if 'song_path' in effect:
-            if is_windows():
-                print(effect['song_path'])
+            # if is_windows():
+            #     print(effect['song_path'])
             effect['song_path'] = str(pathlib.Path(effect['song_path']))
-            if is_windows():
-                print(effect['song_path'])
-
+    #         if is_windows():
+    #             print(effect['song_path'])
+    # exit()
 
     print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
     if not songs_config:

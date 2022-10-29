@@ -461,9 +461,9 @@ def search_youtube():
     videos = []
     print(f'start: {start}, end {end}')
     if start >= 0 and end >= 0:
-        with open(get_temp_dir().joinpath('temp', 'search_parse.html', encoding="utf-8"), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_parse.html'), 'w', encoding="utf-8") as f:
             f.write(out[start:end])
-        with open(get_temp_dir().joinpath('temp', 'search_full.html', encoding="utf-8"), 'w') as f:
+        with open(get_temp_dir().joinpath('temp', 'search_full.html'), 'w', encoding="utf-8") as f:
             f.write(out)
 
         list1 = []

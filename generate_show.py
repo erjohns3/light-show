@@ -447,7 +447,8 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                         # shift by a random color
                         # dimmer doesn't play well with hue shifter
                         hue_shift, sat_shift, bright_shift = 0, 0, 0
-                        if random_color and effect_type != 'dimmers':
+                        # if random_color and effect_type != 'dimmers':
+                        if effect_type != 'dimmers':
                             hue_shift=random.random()
                             bright_shift = -.2
                             # effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)

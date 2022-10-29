@@ -176,7 +176,7 @@ effects = {
             [3.22, "Green top", .05],
         ],
     },
-    "shelter show": {
+    "shelter": {
         "beats": [
             [1, "muddy yellow ay", 1], 
             [5, "muddy yellow ay", 1],

@@ -128,7 +128,7 @@ effects = {
             [2, "UV", .4, .2, .8],
         ],
     },
-    "everything show": {
+    "Radiohead - Everything in Its Right Place (Sam Goku Edit)": {
         "beats": [
             [1, "rainbow good slow top", 120, 0, .35],
             [1, "everything bottom glow", 120, .25, .25],

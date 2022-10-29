@@ -1,7 +1,7 @@
 from effects.compiler import b
 
 effects = {
-    "Muse  Supermassive Black Hole Official Music Video show": {
+    "Muse  Supermassive Black Hole Official Music Video": {
         "bpm": 120,
         "song_path": "songs/Muse  Supermassive Black Hole Official Music Video.ogg",
         "delay_lights": 0.154,

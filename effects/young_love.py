@@ -8,7 +8,7 @@ effects = {
             [1, "UV", 0.25, 1, 0],
         ],
     },
-    "young_love show": {
+    "Superhumanoids - Too Young For Love": {
         "beats": [
             [1, "rainbow good slow top", 32],
             [33, "love kicks", 128],

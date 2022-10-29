@@ -9,7 +9,7 @@ effects = {
     },
 
     # 1 - 64: 
-    "remember show": {
+    "deadmau5 & Kaskade - I Remember (HQ)": {
         "beats": [
             [1, "g_filler 2", 64],
             # [1, "Yellow Top to Bottom hang", 64],

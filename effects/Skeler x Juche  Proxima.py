@@ -1,7 +1,7 @@
 from effects.compiler import b
 
 effects = {
-    "Proxima show": {
+    "Skeler x Juche  Proxima": {
         "bpm": 130,
         "song_path": "songs/Skeler x Juche  Proxima.ogg",
         "delay_lights": -0.0,

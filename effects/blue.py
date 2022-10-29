@@ -518,7 +518,7 @@ effects = {
         ],
     },
 
-    "blue show": {
+    "Eiffel 65  Blue Flume Remix  Official Visualiser": {
         "bpm": 135,
         "song_path": "songs/Eiffel 65  Blue Flume Remix  Official Visualiser.ogg",
         "delay_lights": 0.0228,

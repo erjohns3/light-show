@@ -1,7 +1,7 @@
 from effects.compiler import b
 
 effects = {
-    "visitor show": {
+    "Mad Zach - The Visitor": {
         "beats": [
             [1, "White", 176, 0.5, 0],
             [1, "White Strobe", 176, 0, 1],

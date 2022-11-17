@@ -330,7 +330,7 @@ if __name__ == '__main__':
         generate_show.write_effect_to_file_pretty(
             output_filepath, 
             {
-                downloaded_filepath.stem + ' show': {
+                downloaded_filepath.stem: {
                     'bpm': bpm_guess,
                     'song_path': str(relative_downloaded_filepath),
                     'delay_lights': delay,

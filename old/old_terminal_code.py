@@ -99,6 +99,29 @@ if len(all_candidates) > 1:
 
     selected_song = non_autogen[0]
 
+
+
+# this ASSUMES a LOT
+# !TODO ditch this code in favor of the other below in the component probably?
+# if effect['hue_shift'] or effect['sat_shift'] or effect['bright_shift']:
+#     name_of_compiled_effect = effect['beats'][0][1]
+#     channel_lut[effect_name] = deepcopy(channel_lut[name_of_compiled_effect])
+#     for compiled_sub_beat in channel_lut[effect_name]['beats']:
+#         for i in range(3):
+#             rd, gr, bl = compiled_sub_beat[i * 3:(i * 3) + 3]
+#             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
+#             new_hue = (hue + effect['hue_shift']) % 1
+#             new_sat = min(1, max(0, sat + effect['sat_shift']))
+#             new_bright = min(1, max(0, bright + bright*effect['bright_shift']))
+#             compiled_sub_beat[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+#             compiled_sub_beat[i * 3] *= 100
+#             compiled_sub_beat[i * 3 + 1] *= 100
+#             compiled_sub_beat[i * 3 + 2] *= 100
+#     continue
+
+
+
+
 # if filter_song and effects_config[selected_song].get('song_not_avaliable', None):
 #     print_yellow(f'Song isnt availiable for effect "{selected_song}", press enter to try downloading?')
 #     input()

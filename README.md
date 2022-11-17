@@ -5,15 +5,9 @@
 * label intensity of some lights and cleanup
     * get rid of white flashes alone
 * add more variety
-    * color wheel rotation
     * custom fades - linear, sine wave, exponential dropoff
     * andrew's idea: apply a custom fade to all effects in a scene.  could end at a different point too
     * chris's idea - changing some effects but not all - on non-high delta changes
-* halloween
-    * spooky lights for UI
-    * make it spooky button
-        * add "boo" sounds to drop
-        * lights are all orange
 
 # Running locally
 ## To get all songs from doorbell
@@ -35,14 +29,20 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
-`python server.py --local --autogen --show shelter`
+`python server.py --local --autogen shelter`
 
 
 # andrew specific commands
 
-`python server.py --local --keyboard --delay .189 --autogen --volume 5 --show shelter`
+`python server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
 `python server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
 
+# stretch todo
+* halloween
+    * spooky lights for UI
+    * make it spooky button
+        * add "boo" sounds to drop
+        * lights are all orange
 
 # Other
 ## ideas for python audio feature extraction:

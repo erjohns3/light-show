@@ -1,4 +1,3 @@
-import multiprocessing
 import pathlib
 import json
 import math
@@ -13,9 +12,8 @@ import colorsys
 from scipy.stats import circmean
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
-from numpy import vstack, zeros, hstack
-import pandas as pd 
 import aubio
+import pandas as pd
 import numpy as np
 
 from effects.compiler import b

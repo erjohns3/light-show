@@ -150,11 +150,15 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
         print(f'stdout: {stdout.decode("utf-8")}')
     return process.returncode, stdout.decode("utf-8"), stderr.decode("utf-8")
 
-def get_temp_dir():
-    output_dir = python_file_directory.joinpath('temp')
+
+def make_if_not_exist(output_dir):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     return output_dir
+
+
+def get_temp_dir():
+    return make_if_not_exist(python_file_directory.joinpath('temp'))
 
 
 def run_command_async(full_command_arr, debug=False):

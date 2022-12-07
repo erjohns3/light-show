@@ -1224,6 +1224,7 @@ def signal_handler(sig, frame):
 
 def fuzzy_find(search, collection):
     from thefuzz import process
+    print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
     return process.extractOne(search, collection)[0]
 
 
@@ -1465,7 +1466,7 @@ if __name__ == '__main__':
         print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
 
         if args.show:
-            print('Starting show from CLI')
+            print('Starting show from CLI:', args.show)
 
             only_shows = list(filter(lambda x: has_song(x), effects_config.keys()))
             args.show = fuzzy_find(args.show, only_shows)
@@ -1493,6 +1494,7 @@ if __name__ == '__main__':
 
         compile_all_luts_from_effects_config()
         if args.show:
+            print_blue('Found in CLI:', args.show)
             song_queue.append([args.show, get_queue_salt(), 'CLI'])
             add_effect(args.show)
             play_song(args.show)

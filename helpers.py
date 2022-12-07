@@ -68,21 +68,27 @@ def red(s):
 
 
 def print_yellow(*args):
+    args = map(str, args)
     print(yellow(' '.join(args)))
 
 def print_green(*args):
+    args = map(str, args)
     print(green(' '.join(args)))
 
 def print_cyan(*args):
+    args = map(str, args)
     print(cyan(' '.join(args)))
 
 def print_bold(*args):
+    args = map(str, args)
     print(bold(' '.join(args)))
 
 def print_blue(*args):
+    args = map(str, args)
     print(blue(' '.join(args)))
 
 def print_red(*args):
+    args = map(str, args)
     print(red(' '.join(args)))
 
 # go up a line: '\033[A'

@@ -66,23 +66,24 @@ def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
 
-def print_yellow(s):
-    print(yellow(s))
 
-def print_green(s):
-    print(green(s))
+def print_yellow(*args):
+    print(yellow(' '.join(args)))
 
-def print_cyan(s):
-    print(cyan(s))
+def print_green(*args):
+    print(green(' '.join(args)))
 
-def print_bold(s):
-    print(bold(s))
+def print_cyan(*args):
+    print(cyan(' '.join(args)))
 
-def print_blue(s):
-    print(blue(s))
+def print_bold(*args):
+    print(bold(' '.join(args)))
 
-def print_red(s):
-    print(red(s))
+def print_blue(*args):
+    print(blue(' '.join(args)))
+
+def print_red(*args):
+    print(red(' '.join(args)))
 
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'

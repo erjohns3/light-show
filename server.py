@@ -969,7 +969,6 @@ def load_effects_config_from_disk():
                     if args.show:
                         effect['song_not_avaliable'] = True
                     else:
-                        print_red(f'deleting song_path: {effect["song_path"]}')
                         del effect['song_path']
     print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
 

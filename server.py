@@ -959,7 +959,7 @@ def load_effects_config_from_disk():
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:
-            effect['song_path'] = str(pathlib.Path(effect['song_path']))
+            effect['song_path'] = effect['song_path'].replace('\\', '/')
     print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
 
     if not songs_config:
@@ -1023,6 +1023,7 @@ def set_effect_defaults(effect):
     if 'song_path' in effect and effect['song_path'] not in songs_config:
         # print_red(f'NOT AVAIL {effect}')
         if effect.get('song_not_avaliable', True):
+            print('yeaaa', effect['song_path'])
             if args.show:
                 effect['song_not_avaliable'] = True
             else:

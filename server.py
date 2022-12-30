@@ -965,9 +965,7 @@ def load_effects_config_from_disk():
         if 'song_path' in effect:
             effect['song_path'] = effect['song_path'].replace('\\', '/')
             if effect['song_path'] not in songs_config:
-                # print_red(f'NOT AVAIL {effect["song_path"]}')
                 if effect.get('song_not_avaliable', True):
-                    print('yeaaa', effect['song_path'])
                     if args.show:
                         effect['song_not_avaliable'] = True
                     else:
@@ -1288,6 +1286,7 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
+        return
     raise Exception('Couldnt download video')
 
 

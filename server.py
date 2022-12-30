@@ -970,7 +970,6 @@ def load_effects_config_from_disk():
                         effect['song_not_avaliable'] = True
                     else:
                         del effect['song_path']
-    print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
 
     for effect_name, effect in effects_config.items():
         graph[effect_name] = {}
@@ -979,7 +978,7 @@ def load_effects_config_from_disk():
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
-    print_cyan(f'all songs done {time.time() - update_config_and_lut_time:.3f}')
+    print_cyan(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}')
 
 
 def compile_all_luts_from_effects_config():
@@ -1273,8 +1272,6 @@ def get_effects_config():
     return effects_config
 
 def try_download_video(show_name):
-    print_yellow(f'Song isnt availiable for effect "{show_name}", press enter to try downloading?')
-    input()
     just_filename = pathlib.Path(effects_config[show_name]['song_path']).stem
     print(f'Searching with phrase "{just_filename}"')
     youtube_search_result = youtube_helpers.youtube_search(just_filename)
@@ -1476,6 +1473,8 @@ if __name__ == '__main__':
             args.show = fuzzy_find(args.show, only_shows)
 
             if effects_config[args.show].get('song_not_avaliable'):
+                print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
+                input()
                 try_download_video(args.show)
 
             if args.show in effects_config:

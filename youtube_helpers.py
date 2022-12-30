@@ -120,7 +120,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         return None
 
     # this sucks for some reason
-    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char in [' ', '-'])
+    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char in ' -_.()')
     if downloaded_filepath.name != no_special_name + downloaded_filepath.suffix:
         if not no_special_name:
             no_special_name = random_letters(5)

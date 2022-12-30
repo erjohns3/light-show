@@ -1007,10 +1007,6 @@ def compile_all_luts_from_effects_config():
 
     channel_lut = {}
 
-    # for _effect_name, effect in effects_config.items():
-    #     if 'song_path' in effect:
-    #         print(effect['song_path'])
-
     effects_config_to_compile = {}
     if args.show:
         effects_config_to_compile[args.show] = effects_config[args.show]

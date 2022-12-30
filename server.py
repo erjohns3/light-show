@@ -957,14 +957,23 @@ def load_effects_config_from_disk():
             globals()[module_name] = importlib.import_module(module_name)
         effects_config.update(globals()[module_name].effects)
 
-    for effect_name, effect in effects_config.items():
-        if 'song_path' in effect:
-            effect['song_path'] = effect['song_path'].replace('\\', '/')
-    print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
-
     if not songs_config:
         for name, filepath in get_all_paths('songs', only_files=True):
             add_song_to_config(filepath)
+
+    for effect_name, effect in effects_config.items():
+        if 'song_path' in effect:
+            effect['song_path'] = effect['song_path'].replace('\\', '/')
+            if effect['song_path'] not in songs_config:
+                # print_red(f'NOT AVAIL {effect["song_path"]}')
+                if effect.get('song_not_avaliable', True):
+                    print('yeaaa', effect['song_path'])
+                    if args.show:
+                        effect['song_not_avaliable'] = True
+                    else:
+                        print_red(f'deleting song_path: {effect["song_path"]}')
+                        del effect['song_path']
+    print_cyan(f'importing all python files took {time.time() - update_config_and_lut_time:.3f}')
 
     for effect_name, effect in effects_config.items():
         graph[effect_name] = {}
@@ -1020,15 +1029,6 @@ def set_effect_defaults(effect):
         effect['profiles'] = []
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
-    if 'song_path' in effect and effect['song_path'] not in songs_config:
-        # print_red(f'NOT AVAIL {effect}')
-        if effect.get('song_not_avaliable', True):
-            print('yeaaa', effect['song_path'])
-            if args.show:
-                effect['song_not_avaliable'] = True
-            else:
-                print_red(f'deleting song_path: {effect["song_path"]}')
-                del effect['song_path']
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red('song effects must have bpm\n' * 10)
@@ -1452,6 +1452,8 @@ if __name__ == '__main__':
 
         keyboard_thread = threading.Thread(target=listen_for_keystrokes, args=[], daemon=True)
         keyboard_thread.start()
+        if is_macos():
+            time.sleep(.05)
 
 
     http_thread = threading.Thread(target=http_server, args=[], daemon=True)

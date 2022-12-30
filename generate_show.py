@@ -535,8 +535,6 @@ if __name__ == '__main__':
             print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
 
 
-
-
 # old shit to look thru effects:
 
 # counting number of times effect is used

@@ -902,6 +902,25 @@ def effects_config_sort(path):
     elif curr:
         complex_effects.append(curr)
 
+
+def dfs(effect_name):
+    if effect_name in found:
+        return
+    for component in effects_config[effect_name]['beats']:
+        if type(component[1]) == str:
+            dfs(component[1])
+    effects_config_sort([effect_name])
+
+
+def add_dependancies(effects_config):
+    for effect_name, effect in effects_config.items():
+        graph[effect_name] = {}
+        for component in effect['beats']:
+            if type(component[1]) is str:
+                graph[effect_name][component[1]] = True
+        graph[effect_name] = list(graph[effect_name].keys())
+
+
 def add_song_to_config(filepath):
     filepath = pathlib.Path(str(filepath).replace('\\', '/'))
     relative_path = filepath
@@ -932,15 +951,6 @@ def add_song_to_config(filepath):
         }
     else:
         print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
-
-
-def add_dependancies(effects_config):
-    for effect_name, effect in effects_config.items():
-        graph[effect_name] = {}
-        for component in effect['beats']:
-            if type(component[1]) is str:
-                graph[effect_name][component[1]] = True
-        graph[effect_name] = list(graph[effect_name].keys())
 
 
 def load_effects_config_from_disk():
@@ -1031,7 +1041,7 @@ def set_effect_defaults(effect):
         effect['song_path'] = str(pathlib.Path(effect['song_path']))
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
-            print_red('song effects must have bpm\n' * 10)
+            print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
             exit()
         effect['delay_lights'] = effect.get('delay_lights', 0)
         if not args.local:
@@ -1047,15 +1057,6 @@ def set_effect_defaults(effect):
             effect['loop'] = True
     if 'song_path' not in effect:
         effect['profiles'].append('All Effects')
-
-
-def dfs(effect_name):
-    if effect_name in found:
-        return
-    for component in effects_config[effect_name]['beats']:
-        if type(component[1]) == str:
-            dfs(component[1])
-    effects_config_sort([effect_name])
 
 
 def compile_lut(local_effects_config):
@@ -1210,6 +1211,7 @@ def kill_in_n_seconds(seconds):
     print(f'running to kill: "{kill_string}"')
     os.system(kill_string)
 
+
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
     if not args.local:
@@ -1221,7 +1223,6 @@ def signal_handler(sig, frame):
         observer.stop()
         observer.join()
     exit()
-
 
 #################################################
 

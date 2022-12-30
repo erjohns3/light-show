@@ -98,7 +98,10 @@ class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         http.server.SimpleHTTPRequestHandler.end_headers(self)
         
 PORT = 9555
-local_ip = socket.gethostbyname(socket.gethostname())
+try:
+    local_ip = socket.gethostbyname(socket.gethostname())
+except:
+    local_ip = 'cant_resolve_hostbyname'
 
 def http_server():
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)

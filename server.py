@@ -903,6 +903,7 @@ def effects_config_sort(path):
         complex_effects.append(curr)
 
 def add_song_to_config(filepath):
+    filepath = pathlib.Path(str(filepath).replace('\\', '/'))
     relative_path = filepath
     if relative_path.is_absolute():
         relative_path = relative_path.relative_to(python_file_directory)
@@ -924,7 +925,7 @@ def add_song_to_config(filepath):
             print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow')
             duration = sound_helpers.get_audio_clip_length(filepath)
         
-        songs_config[str(relative_path)] = {
+        songs_config[str(relative_path.as_posix())] = {
             'name': name,
             'artist': artist,
             'duration': duration

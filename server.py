@@ -934,6 +934,15 @@ def add_song_to_config(filepath):
         print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
 
 
+def add_dependancies(effects_config):
+    for effect_name, effect in effects_config.items():
+        graph[effect_name] = {}
+        for component in effect['beats']:
+            if type(component[1]) is str:
+                graph[effect_name][component[1]] = True
+        graph[effect_name] = list(graph[effect_name].keys())
+
+
 def load_effects_config_from_disk():
     global effects_config, effects_config_client, graph, found
     update_config_and_lut_time = time.time()
@@ -972,13 +981,7 @@ def load_effects_config_from_disk():
                     else:
                         del effect['song_path']
 
-    for effect_name, effect in effects_config.items():
-        graph[effect_name] = {}
-        for component in effect['beats']:
-            if type(component[1]) is str:
-                graph[effect_name][component[1]] = True
-        graph[effect_name] = list(graph[effect_name].keys())
-
+    add_dependancies(effects_config)
     print_cyan(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}')
 
 
@@ -1317,12 +1320,14 @@ if __name__ == '__main__':
                 new_effect, output_filepath = generate_show.generate_show(path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
                 effects_config.update(new_effect)
                 effect_name = list(new_effect.keys())[0]
+                add_dependancies(new_effect)
                 effects_config[effect_name] = new_effect[effect_name]
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
             new_effect, output_filepath = generate_show.generate_show(song_path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
             effect_name = list(new_effect.keys())[0]
+            add_dependancies(new_effect)
             effects_config[effect_name] = new_effect[effect_name]
             args.show = effect_name
 

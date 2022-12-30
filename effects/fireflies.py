@@ -8,7 +8,7 @@ effects = {
         "delay_lights": .285,
         "skip_song": 0,
         "bpm": 180,
-        "song_path": "songs/Owl City  Fireflies Lyrics.ogg",
+        "song_path": "songs/Owl City - Fireflies (Lyrics).ogg",
         "profiles": ["Shows"]
     },
 }

@@ -1314,23 +1314,22 @@ if __name__ == '__main__':
     if args.autogen:
         import generate_show
 
-        if args.autogen == 'all':
-            print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
-            for name, path in get_all_paths('songs', only_files=True):
-                new_effect, output_filepath = generate_show.generate_show(path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
-                effects_config.update(new_effect)
-                effect_name = list(new_effect.keys())[0]
-                add_dependancies(new_effect)
-                effects_config[effect_name] = new_effect[effect_name]
-        else:
-            not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
-            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-            new_effect, output_filepath = generate_show.generate_show(song_path, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
+        def gen_show_and_add_to_config(filepath):
+            new_effect, output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
+            effects_config.update(new_effect)
             effect_name = list(new_effect.keys())[0]
             add_dependancies(new_effect)
             effects_config[effect_name] = new_effect[effect_name]
-            args.show = effect_name
+            return effect_name
 
+        if args.autogen == 'all':
+            print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
+            for _name, song_path in get_all_paths('songs', only_files=True):
+                gen_show_and_add_to_config(song_path)
+        else:
+            not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
+            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
+            args.show = gen_show_and_add_to_config(song_path)
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:

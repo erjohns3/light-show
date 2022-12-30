@@ -259,7 +259,7 @@ async def init_dj_client(websocket, path):
 
 
 def download_song(url, uuid):
-    download_start_time = time.time() 
+    download_start_time = time.time()
     import generate_show
 
     if 'search_query' in url:
@@ -276,23 +276,25 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
+    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return
+    effect_name = list(new_effects.keys())[0]
 
     print(f'passing filepath: {filepath}')
-    compile_lut(new_effects)
     effects_config.update(new_effects)
-    print(f'created show for: {list(new_effects.keys())}')
+    add_dependancies(new_effects)
 
-    for name, effect in new_effects.items():
-        effects_config_client[name] = {}
-        for key, value in effect.items():
-            if key != 'beats':
-                effects_config_client[name][key] = value
-        if 'song_path' in effect:
-            add_queue_balanced(name, uuid)
+    # compile_lut(new_effects)
+    print(f'created show for: {effect_name}')
+
+    effects_config_client[effect_name] = {}
+    for key, value in effect.items():
+        if key != 'beats':
+            effects_config_client[effect_name][key] = value
+    if 'song_path' in effect:
+        add_queue_balanced(effect_name, uuid)
 
 
 async def init_queue_client(websocket, path):
@@ -977,19 +979,23 @@ def load_effects_config_from_disk():
             globals()[module_name] = importlib.import_module(module_name)
         effects_config.update(globals()[module_name].effects)
 
+    for _effect_name, effect in effects_config.items():
+        if 'song_path' in effect:
+            effect['song_path'] = effect['song_path'].replace('\\', '/')
+
+
+
     if not songs_config:
         for name, filepath in get_all_paths('songs', only_files=True):
             add_song_to_config(filepath)
-
-    for effect_name, effect in effects_config.items():
-        if 'song_path' in effect:
-            effect['song_path'] = effect['song_path'].replace('\\', '/')
-            if effect['song_path'] not in songs_config:
-                if effect.get('song_not_avaliable', True):
-                    if args.show:
-                        effect['song_not_avaliable'] = True
-                    else:
-                        del effect['song_path']
+    
+    for _effect_name, effect in effects_config.items():
+        if 'song_path' in effect and effect['song_path'] not in songs_config and effect.get('song_not_avaliable', True):
+            if args.show:
+                effect['song_not_avaliable'] = True
+            else:
+                del effect['song_path']
+                # print_red('deleted', _effect_name)
 
     add_dependancies(effects_config)
     print_cyan(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}')
@@ -1001,22 +1007,25 @@ def compile_all_luts_from_effects_config():
 
     channel_lut = {}
 
-    for effect in effects_config.values():
-        set_effect_defaults(effect)
+    # for _effect_name, effect in effects_config.items():
+    #     if 'song_path' in effect:
+    #         print(effect['song_path'])
 
     effects_config_to_compile = {}
     if args.show:
         effects_config_to_compile[args.show] = effects_config[args.show]
 
-    for effect_name, effect in effects_config.items():
-        if 'bpm' not in effect:
-            effects_config_to_compile[effect_name] = effect
-
     for name, effect in effects_config.items():
+        set_effect_defaults(effect)
+
         effects_config_client[name] = {}
         for key, value in effect.items():
             if key != 'beats':
                 effects_config_client[name][key] = value
+
+    for effect_name, effect in effects_config.items():
+        if 'bpm' not in effect:
+            effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
     print_cyan(f'compile_all_luts_from_effects_config took {time.time() - start_time:.3f}')
@@ -1038,7 +1047,7 @@ def set_effect_defaults(effect):
     if 'profiles' not in effect:
         effect['profiles'] = []
     if 'song_path' in effect:
-        effect['song_path'] = str(pathlib.Path(effect['song_path']))
+        effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
@@ -1065,8 +1074,9 @@ def compile_lut(local_effects_config):
     simple_effects = []
     complex_effects = []
 
-    for effect_name in local_effects_config:
-        dfs(effect_name)
+    for name, effect in local_effects_config.items():
+        set_effect_defaults(effect)
+        dfs(name)
     
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:

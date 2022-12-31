@@ -965,10 +965,16 @@ def load_effects_config_from_disk():
     found = {}
 
     effects_dir = this_file_directory.joinpath('effects')
-    for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+
+    total_time = 0
+    for name, filepath in get_all_paths(effects_dir, only_files=True) + \
+                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + \
+                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + \
+                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         if name == 'compiler.py':
             continue
     
+        t1 = time.time()
         relative_path = filepath.relative_to(this_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
@@ -977,16 +983,17 @@ def load_effects_config_from_disk():
         else:
             globals()[module_name] = importlib.import_module(module_name)
         effects_config.update(globals()[module_name].effects)
+        total_time += time.time() - t1
 
     for _effect_name, effect in effects_config.items():
         if 'song_path' in effect:
             effect['song_path'] = effect['song_path'].replace('\\', '/')
 
-
-
+    before_song_config_import = time.time()
     if not songs_config:
         for name, filepath in get_all_paths('songs', only_files=True):
             add_song_to_config(filepath)
+    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
     
     for _effect_name, effect in effects_config.items():
         if 'song_path' in effect and effect['song_path'] not in songs_config and effect.get('song_not_avaliable', True):
@@ -997,7 +1004,7 @@ def load_effects_config_from_disk():
                 # print_red('deleted', _effect_name)
 
     add_dependancies(effects_config)
-    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}')
+    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
 
 
 def set_effect_defaults(effect):
@@ -1306,6 +1313,7 @@ def try_download_video(show_name):
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
     try:
+        # pygame.mixer.pre_init(48000, 16, 2, 4096)
         pygame.mixer.init(frequency=48000)
     except:
         print_red('PYGAME COULDNT INITIALIZE, NO SOUND WILL WORK')

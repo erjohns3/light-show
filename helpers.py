@@ -134,7 +134,7 @@ def random_letters(num_chars: int) -> str:
 
 
 def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False):
-    if type(directory) != pathlib.Path:
+    if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
         print_yellow(f'{directory} does not exist, returning [] for paths')

@@ -7,7 +7,6 @@ import signal
 import importlib
 import pathlib
 import asyncio
-import http.server
 import argparse
 import os
 import colorsys
@@ -42,13 +41,13 @@ parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', default='')
 parser.add_argument('--autogen_simple', dest='autogen_simple', default='')
-# bluetooth qc35 headphones are .189 latency
-parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0)
+parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 
 
 args = parser.parse_args()
 
 
+this_file_directory = pathlib.Path(__file__).parent
 
 pca = None
 
@@ -64,11 +63,8 @@ curr_bpm = 121
 time_start = time.time()
 beat_index = 0
 
-light_lock = threading.Lock()
-song_lock = threading.Lock()
-
-light_sockets = []
-song_sockets = []
+light_lock, song_lock = threading.Lock(), threading.Lock() 
+light_sockets, song_sockets = [], []
 
 song_playing = False
 song_time = 0
@@ -77,20 +73,19 @@ queue_salt = 0
 broadcast_light = False 
 broadcast_song = False
 
-download_queue = []
-search_queue = []
+download_queue, search_queue = [], []
 
 
 
 ########################################
 
-class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-    def end_headers(self):
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
-        self.send_header('Access-Control-Allow-Origin', '*')
-        http.server.SimpleHTTPRequestHandler.end_headers(self)
+# class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+#     def end_headers(self):
+#         self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+#         self.send_header("Pragma", "no-cache")
+#         self.send_header("Expires", "0")
+#         self.send_header('Access-Control-Allow-Origin', '*')
+#         http.server.SimpleHTTPRequestHandler.end_headers(self)
         
 PORT = 9555
 try:
@@ -99,6 +94,7 @@ except:
     local_ip = 'cant_resolve_hostbyname'
 
 def http_server():
+    import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
     print(f'{bcolors.OKGREEN}Dj interface: http://{local_ip}:{PORT}/dj.html')
     print(f'Queue: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
@@ -112,7 +108,7 @@ def add_effect_from_dj(effect_name, no_music=False):
     song_time = 0
     add_effect(effect_name)
     if not no_music and has_song(effect_name):
-        song_path = pathlib.Path(__file__).parent.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
+        song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
         if not os.path.exists(song_path):
             print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
             return
@@ -264,7 +260,7 @@ def download_song(url, uuid):
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 15 * 60
-    filepath = youtube_helpers.download_youtube_url(url=url, dest_path=pathlib.Path(__file__).parent.joinpath('songs'), max_length_seconds=max_length_seconds)
+    filepath = youtube_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
         return
@@ -930,7 +926,7 @@ def add_song_to_config(filepath):
     filepath = pathlib.Path(str(filepath).replace('\\', '/'))
     relative_path = filepath
     if relative_path.is_absolute():
-        relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
+        relative_path = relative_path.relative_to(this_file_directory)
 
     if filepath.suffix in ['.mp3', '.ogg', '.wav']:
         tags = TinyTag.get(filepath)
@@ -966,12 +962,12 @@ def load_effects_config_from_disk():
     graph = {}
     found = {}
 
-    effects_dir = pathlib.Path(__file__).parent.joinpath('effects')
+    effects_dir = this_file_directory.joinpath('effects')
     for name, filepath in get_all_paths(effects_dir, only_files=True) + get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
         if name == 'compiler.py':
             continue
     
-        relative_path = filepath.relative_to(pathlib.Path(__file__).parent)
+        relative_path = filepath.relative_to(this_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
         if module_name in globals():
@@ -1393,7 +1389,7 @@ if __name__ == '__main__':
                 print_cyan(f'Time to reload: {time.time() - time_before_restart:.3f}')
 
         observer = Observer()
-        observer.schedule(FilesystemHandler(), pathlib.Path(__file__).parent, recursive = True)
+        observer.schedule(FilesystemHandler(), this_file_directory, recursive = True)
         observer.start()
 
     if args.keyboard:

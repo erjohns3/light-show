@@ -270,7 +270,7 @@ def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, brigh
         return new_effect_name
     new_effects_made.add(new_effect_name)
 
-    output_directory = python_file_directory.joinpath('effects', 'generated_effects')
+    output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'generated_effects')
     if not os.path.exists(output_directory):
         print(f'making directory {output_directory}')
         os.mkdir(output_directory)
@@ -317,7 +317,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     if output_directory is None:
-        output_directory = python_file_directory.joinpath('effects', 'autogen_shows')
+        output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
     if not os.path.exists(output_directory):
         print(f'making directory {output_directory}')
         os.mkdir(output_directory)
@@ -349,7 +349,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
     if include_song_path:
         relative_path = song_filepath
         if relative_path.is_absolute():
-            relative_path = relative_path.relative_to(python_file_directory)
+            relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
 
         show['song_path'] = str(relative_path)
 

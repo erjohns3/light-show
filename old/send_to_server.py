@@ -15,7 +15,7 @@ import sound_helpers
 
 
 
-shows_filepath = python_file_directory.joinpath('shows.json')
+shows_filepath = pathlib.Path(__file__).parent.joinpath('shows.json')
 with open(shows_filepath) as f:
     shows = json.loads(f.read())
 
@@ -37,7 +37,7 @@ async def show(websocket, show_name):
     if '/' in show_obj['song_name'] or '\\' in show_obj['song_name']:
         song_filepath = pathlib.Path(show_obj['song_name'])
     else:
-        song_filepath = python_file_directory.joinpath('data').joinpath(show_obj['song_name'])
+        song_filepath = pathlib.Path(__file__).parent.joinpath('data').joinpath(show_obj['song_name'])
     if not sound_helpers.is_audio_running():
         sound_helpers.play_audio_async(song_filepath, volume=100, paused=True)
         time.sleep(.5)

@@ -86,7 +86,7 @@ def start_song():
     show_light_index = 0
     beat = 0
     beats_so_far = 0
-    shelter_filepath = python_file_directory.joinpath('data').joinpath(shows[selected_show]['song_name'])
+    shelter_filepath = pathlib.Path(__file__).parent.joinpath('data').joinpath(shows[selected_show]['song_name'])
     if not sound_helpers.is_audio_running():
         sound_helpers.play_audio_async(shelter_filepath, volume=30, paused=True)
         time.sleep(.5)
@@ -131,7 +131,7 @@ def release_callback(key_obj):
 
 def write_to_random_file(effects_json):
     output_filename = random_letters(8) + '.json'
-    output_filepath = python_file_directory.joinpath('data').joinpath(output_filename)
+    output_filepath = pathlib.Path(__file__).parent.joinpath('data').joinpath(output_filename)
 
 
     effects_json_json = json.dumps(effects_json, indent=4, sort_keys=True)
@@ -157,14 +157,14 @@ thread = Thread(target=key_input_time, args = ())
 thread.start()
 time.sleep(.05)
 
-shows_filepath = python_file_directory.joinpath('shows.json')
+shows_filepath = pathlib.Path(__file__).parent.joinpath('shows.json')
 with open(shows_filepath) as f:
     shows = json.loads(f.read())
 
 
-effects_json_filepath = python_file_directory.joinpath('effects_json.json')
+effects_json_filepath = pathlib.Path(__file__).parent.joinpath('effects_json.json')
 
-light_array = light3.read_effects_json(python_file_directory.joinpath(effects_json_filepath))
+light_array = light3.read_effects_json(pathlib.Path(__file__).parent.joinpath(effects_json_filepath))
 
 starting_mode = 'Nothing'
 starting_bpm = 100

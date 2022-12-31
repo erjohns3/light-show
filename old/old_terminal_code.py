@@ -162,7 +162,7 @@ if len(all_candidates) > 1:
 
 # print_yellow('Press ENTER to delete the autogen directory and retry')
 # input()
-# autogen_shows_dir = python_file_directory.joinpath('effects').joinpath('autogen_shows')
+# autogen_shows_dir = pathlib.Path(__file__).parent.joinpath('effects').joinpath('autogen_shows')
 # # shutil.rmtree(autogen_shows_dir)
 # # os.rmdir(autogen_shows_dir)
 # update_config_and_lut_from_disk()

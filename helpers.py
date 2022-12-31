@@ -1,37 +1,63 @@
-from genericpath import isdir
-import random
 import os
-import subprocess
 import pathlib
-import platform
-import time
+
 
 def is_windows():
+    import platform
     plt = platform.system()
     if plt == "Windows":
         return True
     return False
 
+
 def is_linux():
+    import platform
     plt = platform.system()
     if plt == "Linux":
         return True
     return False
 
+
 def is_macos():
+    import platform
     plt = platform.system()
     if plt == "Darwin":
         return True
     return False
 
-if is_windows():
-    ray_directory = pathlib.Path('Y:/')
-elif is_linux(): # actually only works on andrews computer lol
-    ray_directory = pathlib.Path('/mnt/ray_network_share')
-else:
-    print('ray_directory does not exist')
 
-python_file_directory = pathlib.Path(__file__).parent
+def is_marias_computer():
+    import socket
+    return socket.gethostname() in ['DESKTOP-IKO6828']
+
+
+def is_ray():
+    import socket
+    return socket.gethostname() in ['ray']
+
+
+def is_erics_laptop():
+    import socket
+    return socket.gethostname() in ['LAPTOP-ERIC']
+
+
+def is_andrews_main_computer():
+    import socket
+    return socket.gethostname() in ['zetai']
+
+
+def is_andrews_laptop():
+    import socket
+    return socket.gethostname() in ['DESKTOP-754BOFE']
+
+
+def get_ray_directory():
+    if is_windows():
+        return pathlib.Path('Y:/')
+    elif is_andrews_main_computer(): # actually only works on andrews computer lol
+        return pathlib.Path('/mnt/ray_network_share')
+    else:
+        print('doesnt know how contact ray_directory')
 
 
 class bcolors:
@@ -44,7 +70,6 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
 
 
 def yellow(s):
@@ -103,12 +128,15 @@ def print_red(*args):
 
 
 def random_letters(num_chars: int) -> str:
+    import random
     letters = [chr(ord('a') + a) for a in range(26)]
     return ''.join(random.sample(letters, num_chars))
 
 
 def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False):
-    if not os.path.exists(directory):
+    if type(directory) != pathlib.Path:
+        directory = pathlib.Path(directory)
+    if not directory.exists():
         print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
     paths = []
@@ -118,9 +146,9 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
         
-        if os.path.isfile(filepath) or not only_files:
+        if filepath.is_file() or not only_files:
             paths.append((filename, filepath))
-        if os.path.isdir(filepath) and recursive:
+        if filepath.is_dir() and recursive:
             paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive)
     return paths
 
@@ -128,6 +156,7 @@ def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
 def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
+    import subprocess
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
@@ -165,10 +194,12 @@ def make_if_not_exist(output_dir):
 
 
 def get_temp_dir():
-    return make_if_not_exist(python_file_directory.joinpath('temp'))
+    return make_if_not_exist(pathlib.Path(__file__).parent.joinpath('temp'))
 
 
 def run_command_async(full_command_arr, debug=False):
+    import subprocess
+
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:

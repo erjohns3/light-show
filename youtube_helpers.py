@@ -316,7 +316,7 @@ if __name__ == '__main__':
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
     args = parser.parse_args()
 
-    downloaded_filepath = download_youtube_url(url=args.url, dest_path=python_file_directory.joinpath('songs'), max_length_seconds=args.max_seconds)
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=pathlib.Path(__file__).parent.joinpath('songs'), max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:
         print('Couldnt download video')
         exit()
@@ -324,8 +324,8 @@ if __name__ == '__main__':
     if args.gen_show:
         import generate_show
         print_blue('Generating show file for the downloaded file')
-        relative_downloaded_filepath = downloaded_filepath.relative_to(python_file_directory)
-        output_filepath = python_file_directory.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
+        relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
+        output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
         _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
         generate_show.write_effect_to_file_pretty(
             output_filepath, 

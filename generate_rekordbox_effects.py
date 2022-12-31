@@ -9,7 +9,7 @@ channel_lut = light_server.get_channel_lut()
 effects_config = light_server.get_effects_config()
 
 def generate_rekordbox_effect(filepath):
-    effect_output_directory = python_file_directory.joinpath('effects').joinpath('rekordbox_effects')
+    effect_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
     new_show, local_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False, include_song_path=False, output_directory=effect_output_directory, random_color=False)
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')

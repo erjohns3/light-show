@@ -182,7 +182,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 async def init_dj_client(websocket, path):
     global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song
-    print('dj made connection to new client')
+    print('DJ Client: made connection to new client')
 
     message = {
         'effects': effects_config_client,
@@ -195,9 +195,9 @@ async def init_dj_client(websocket, path):
     dump = json.dumps(message)
     try:
         await websocket.send(dump)
-        print('dj sent config to new client')
+        print('DJ Client: sent config to new client')
     except:
-        print('socket send failed', flush=True)
+        print('DJ Client: socket send failed', flush=True)
 
     light_sockets.append(websocket)
 
@@ -209,7 +209,7 @@ async def init_dj_client(websocket, path):
                 if light_sockets[i] == websocket:
                     light_sockets.pop(i)
                     break
-            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
         msg = json.loads(msg_string)
@@ -290,7 +290,7 @@ def download_song(url, uuid):
 
 async def init_queue_client(websocket, path):
     global curr_bpm, song_playing, song_time, broadcast_light, broadcast_song
-    print('queue made connection to new client')
+    print('Song Queue: made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
     message = {
@@ -305,18 +305,18 @@ async def init_queue_client(websocket, path):
     }
     dump = json.dumps(message)
     try:
-        print('queue sent config to new client')
+        print('Song Queue: sent config to new client')
         await websocket.send(dump)
     except:
-        print('socket send failed', flush=True)
+        print('Song Queue: socket send failed', flush=True)
 
     song_sockets.append(websocket)
 
     while True:
         try:
-            print('queue waiting for message')
+            print('Song Queue: waiting for message')
             msg_string = await websocket.recv()
-            print('queue waiting for message')
+            print('Song Queue: waiting for message')
         except:
             for i in range(len(song_sockets)):
                 if song_sockets[i] == websocket:
@@ -381,7 +381,7 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'play_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
-                print(f'----UUID: {uuid}')
+                print(f'Song Queue: Play requested ----UUID: {uuid}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
@@ -392,7 +392,7 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
-                print(f'----UUID: {uuid}')
+                print(f'Song Queue: Pause requested ----UUID: {uuid}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and song_playing:
                         effect_name = song_queue[0][0]
@@ -411,7 +411,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
                 url = msg.get('url', None)
-                print_blue(f'Adding "{url}" to youtube downloading queue')
+                print_blue(f'Song Queue: Adding "{url}" to youtube downloading queue from {uuid}')
                 download_queue.append([url, uuid])
                 message = {
                     'notification': 'Download Started...'
@@ -425,6 +425,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'search_song' and 'uuid' in msg:
                 uuid = msg['uuid']
                 search = msg.get('search', None)
+                print(f'Song Queue: searching youtube "{search}" from {uuid}')
                 search_queue.append([search, websocket, False])
             broadcast_song = True
 

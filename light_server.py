@@ -908,6 +908,7 @@ def effects_config_sort(path):
 def dfs(effect_name):
     if effect_name in found:
         return
+    print('dfs', effect_name)
     for component in effects_config[effect_name]['beats']:
         if type(component[1]) == str:
             dfs(component[1])
@@ -999,32 +1000,6 @@ def load_effects_config_from_disk():
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}')
 
 
-def compile_all_luts_from_effects_config():
-    global channel_lut
-    start_time = time.time()
-
-    channel_lut = {}
-
-    effects_config_to_compile = {}
-    if args.show:
-        effects_config_to_compile[args.show] = effects_config[args.show]
-
-    for name, effect in effects_config.items():
-        set_effect_defaults(effect)
-
-        effects_config_client[name] = {}
-        for key, value in effect.items():
-            if key != 'beats':
-                effects_config_client[name][key] = value
-
-    for effect_name, effect in effects_config.items():
-        if 'bpm' not in effect:
-            effects_config_to_compile[effect_name] = effect
-
-    compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - start_time:.3f}')
-
-
 def set_effect_defaults(effect):
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
@@ -1062,19 +1037,51 @@ def set_effect_defaults(effect):
         effect['profiles'].append('All Effects')
 
 
+
+def compile_all_luts_from_effects_config():
+    global channel_lut
+    start_time = time.time()
+
+    channel_lut = {}
+
+    effects_config_to_compile = {}
+    if args.show:
+        effects_config_to_compile[args.show] = effects_config[args.show]
+
+    for name, effect in effects_config.items():
+        set_effect_defaults(effect)
+
+        effects_config_client[name] = {}
+        for key, value in effect.items():
+            if key != 'beats':
+                effects_config_client[name][key] = value
+
+    if is_linux() and not is_andrews_main_computer():
+        # eager compile all normal effects
+        for effect_name, effect in effects_config.items():
+            if 'bpm' not in effect:
+                effects_config_to_compile[effect_name] = effect
+
+    compile_lut(effects_config_to_compile)
+    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - start_time:.3f}')
+
+
+
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 
     simple_effects = []
     complex_effects = []
 
+    sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
         set_effect_defaults(effect)
         dfs(name)
+    print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
-        effect = local_effects_config[effect_name]
+        effect = effects_config[effect_name]
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
@@ -1125,7 +1132,7 @@ def compile_lut(local_effects_config):
 
     complex_effect_perf_timer = time.time()
     for effect_name in complex_effects:
-        effect = local_effects_config[effect_name]
+        effect = effects_config[effect_name]
 
         # if length isn't specified, generate a length
         calced_effect_length = 0
@@ -1133,10 +1140,10 @@ def compile_lut(local_effects_config):
             start_beat = component[0] - 1
             name = component[1]
             if len(component) == 2:
-                if local_effects_config[name]['loop']:
+                if effects_config[name]['loop']:
                     component.append(effect['length'] - start_beat)
                 else:
-                    component.append(local_effects_config[name]['length'])
+                    component.append(effects_config[name]['length'])
             if len(component) == 3:
                 component.append(1)
             if len(component) == 4:

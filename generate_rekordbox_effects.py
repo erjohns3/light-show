@@ -1,12 +1,12 @@
 import generate_show
 from helpers import *
-import server
+import light_server
 import youtube_helpers
 
 
-server.update_config_and_lut_from_disk()
-channel_lut = server.get_channel_lut()
-effects_config = server.get_effects_config()
+light_server.update_config_and_lut_from_disk()
+channel_lut = light_server.get_channel_lut()
+effects_config = light_server.get_effects_config()
 
 def generate_rekordbox_effect(filepath):
     effect_output_directory = python_file_directory.joinpath('effects').joinpath('rekordbox_effects')

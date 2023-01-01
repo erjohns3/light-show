@@ -908,7 +908,6 @@ def effects_config_sort(path):
 def dfs(effect_name):
     if effect_name in found:
         return
-    print('dfs', effect_name)
     for component in effects_config[effect_name]['beats']:
         if type(component[1]) == str:
             dfs(component[1])

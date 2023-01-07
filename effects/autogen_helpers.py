@@ -14,7 +14,7 @@ effects = {
         ],
     },
     # fillers
-    "g_Strobe": {
+    "a_Strobe": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "strobe",
@@ -22,7 +22,7 @@ effects = {
             [1, "Strobe", 1],
         ],
     },
-    "g_UV Strobe": {
+    "a_UV Strobe": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "strobe",
@@ -31,7 +31,7 @@ effects = {
         ],
     },
 
-    "g_UV": {
+    "a_UV": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV",
@@ -39,7 +39,7 @@ effects = {
             [1, "UV", 1],
         ],
     },
-    "g_UV pulse": {
+    "a_UV pulse": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV pulse single",
@@ -48,7 +48,7 @@ effects = {
         ],
     },
 
-    "g_UV pulse copy": {
+    "a_UV pulse copy": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV pulse",
@@ -66,7 +66,7 @@ effects = {
         ],
     },
 
-    "g_white bottom": {
+    "a_white bottom": {
         "autogen": "filler",
         "length": 1,
         "beats": [
@@ -75,7 +75,27 @@ effects = {
     },
 
 
-    "g_filler 1": {
+    "a_filler laser 1": {
+        "profiles": ["autogen helpers"],
+        "length": 1,
+        "autogen": "filler laser",
+        "intensity": "high",
+        "beats": [
+            b(1, "green laser motor", length=1),
+        ],
+    },
+
+    "a_filler laser 2": {
+        "profiles": ["autogen helpers"],
+        "length": 1,
+        "autogen": "filler laser",
+        "intensity": "high",
+        "beats": [
+            b(1, "Strobe green laser", length=1),
+        ],
+    },
+
+    "a_filler 1": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "filler",
@@ -88,7 +108,7 @@ effects = {
         ],
     },
 
-    "g_filler 2": {
+    "a_filler 2": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "filler",
@@ -102,7 +122,7 @@ effects = {
         ],
     },
 
-    "g_filler 3": {
+    "a_filler 3": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "filler",
@@ -123,7 +143,7 @@ effects = {
             [3, "White top", .4, 1, 0],
         ],
     },
-    "g_rainbow good top pulse 1": {
+    "a_rainbow good top pulse 1": {
         "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "downbeat top",
@@ -147,7 +167,7 @@ effects = {
             [4, "White top", .4, 1, 0],
         ],
     },
-    "g_rainbow good top pulse 2": {
+    "a_rainbow good top pulse 2": {
         "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "downbeat top",
@@ -166,7 +186,7 @@ effects = {
 
 
     # rainbows
-    "g_rainbow good top": {
+    "a_rainbow good top": {
         "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "rainbow top",
@@ -181,7 +201,7 @@ effects = {
             [6.32, "Green top", 2.66, 0, 1],
         ],
     },
-    "g_rainbow good slow top": {
+    "a_rainbow good slow top": {
         "profiles": ["autogen helpers"],
         "length": 16,
         "intensity": "low",
@@ -209,7 +229,7 @@ effects = {
     },
 
     # downbeat tops and bottoms
-    "g_solid bottom cycle": {
+    "a_solid bottom cycle": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat bottom",
@@ -225,7 +245,7 @@ effects = {
         ],
     },
 
-    "g_solid bottom cycle down then up": {
+    "a_solid bottom cycle down then up": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat bottom",
@@ -248,7 +268,7 @@ effects = {
         ],
     },
 
-    "g_pulse top swap 1": {
+    "a_pulse top swap 1": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
@@ -260,7 +280,7 @@ effects = {
         ],
     },
 
-    "g_pulse top swap 2": {
+    "a_pulse top swap 2": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
@@ -272,7 +292,7 @@ effects = {
         ],
     },
 
-    "g_pulse top swap 3": {
+    "a_pulse top swap 3": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
@@ -283,7 +303,7 @@ effects = {
         ],
     },
 
-    # "g_pulse top brown": {
+    # "a_pulse top brown": {
     #     "profiles": ["autogen helpers"],
     #     "length": 1,
     #     "autogen": "downbeat top",
@@ -291,7 +311,7 @@ effects = {
     #         [1, "Rosy brown top", .2, 1, 0],
     #     ],
     # },
-    # "g_pulse bottom brown": {
+    # "a_pulse bottom brown": {
     #     "profiles": ["autogen helpers"],
     #     "length": 1,
     #     "autogen": "downbeat bottom",
@@ -300,7 +320,7 @@ effects = {
     #     ],
     # },
 
-    "g_solid top cycle 1": {
+    "a_solid top cycle 1": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
@@ -312,7 +332,7 @@ effects = {
         ],
     },
 
-    "g_solid top cycle 2": {
+    "a_solid top cycle 2": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
@@ -324,7 +344,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed 1": {
+    "a_solid mixed 1": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
@@ -338,7 +358,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed 2": {
+    "a_solid mixed 2": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
@@ -355,7 +375,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed 3": {
+    "a_solid mixed 3": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
@@ -372,7 +392,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed 4": {
+    "a_solid mixed 4": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
@@ -386,7 +406,7 @@ effects = {
         ],
     },
 
-    "g_solid mixed cycle": {
+    "a_solid mixed cycle": {
         "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
@@ -398,7 +418,7 @@ effects = {
         ],
     },
 
-    "g_cyan top pulse": {
+    "a_cyan top pulse": {
         "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "downbeat top",
@@ -406,7 +426,7 @@ effects = {
             [1, "Cyan top", 1, 0.42, .2],
         ],
     },
-    "g_purple purple yellow top pulse": {
+    "a_purple purple yellow top pulse": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
@@ -416,7 +436,7 @@ effects = {
         ],
     },
 
-    "g_green sidechain top pulse": {
+    "a_green sidechain top pulse": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
@@ -429,7 +449,7 @@ effects = {
     },
 
 
-    "g_purple green bottom pulse": {
+    "a_purple green bottom pulse": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat bottom",
@@ -438,7 +458,7 @@ effects = {
             [2, "Green bottom", 1, 0.42, .2],
         ],
     },
-    "g_green sidechain bottom pulse": {
+    "a_green sidechain bottom pulse": {
         "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat bottom",

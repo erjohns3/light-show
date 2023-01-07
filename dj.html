@@ -43,6 +43,7 @@
     <div id="rate-curr"></div>
 
     <div id="refresh" class="button">Refresh</div>
+    <div id="laser-mode" class="button">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
 </body>
 
@@ -402,6 +403,15 @@
         startTime = Date.now();
     }
 
+    function sendToggleLaserMode(){
+        let msg = {
+            type: "toggle_laser_mode",
+        };
+        socket.send(JSON.stringify(msg));
+        console.log(msg);
+        // startTime = Date.now();
+    }
+
     function sendUpdate(){
         let msg = {
             type: "update_config"
@@ -463,6 +473,7 @@
     var rateDecElem = document.getElementById("rate-dec");
 
     var refreshElem = document.getElementById("refresh");
+    var laserModeElem = document.getElementById("laser-mode");
     var clearElem = document.getElementById("clear");
 
     // rateNextElem.focus();
@@ -531,6 +542,10 @@
 
     refreshElem.onclick = function () {
         location.reload();
+    }
+
+    laserModeElem.onclick = function () {
+        sendToggleLaserMode();
     }
 
     clearElem.onclick = function () {
@@ -802,7 +817,22 @@
         position: absolute;
         left: 1vw;
         bottom: 21vh;
-        width: 8.5vw;
+        width: 5.5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(40, 100%, 40%, 0.5);
+    }
+
+    #laser-mode{
+        position: absolute;
+        left: 7.25vw;
+        bottom: 21vh;
+        width: 5.5vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -815,9 +845,9 @@
 
     #clear{
         position: absolute;
-        left: 10.5vw;
+        left: 13.5vw;
         bottom: 21vh;
-        width: 8.5vw;
+        width: 5.5vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;

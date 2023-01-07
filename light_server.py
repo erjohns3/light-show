@@ -41,7 +41,7 @@ parser.add_argument('--invert', dest='invert', default=False, action='store_true
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', default='')
-parser.add_argument('--autogen_simple', dest='autogen_simple', default='')
+parser.add_argument('--autogen_mode', dest='autogen_mode', default=None)
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 
 
@@ -121,7 +121,7 @@ def add_effect_from_dj(effect_name, no_music=False):
         broadcast_song = True
 
 
-
+laser_mode = False
 rekordbox_title = None
 rekordbox_bpm = None
 rekordbox_time = None
@@ -195,7 +195,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -248,6 +248,10 @@ async def init_dj_client(websocket, path):
                 clear_effects()
                 stop_song()
 
+            elif msg['type'] == 'toggle_laser_mode':
+                laser_mode = not laser_mode
+                print(f'Toggled laser mode, now in state: {laser_mode}\n' * 5)
+
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
                 curr_bpm = float(msg['bpm'])
@@ -281,7 +285,7 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
+    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return
@@ -846,6 +850,15 @@ def clear_effects():
 def add_effect(name):
     global beat_index, time_start, curr_bpm
 
+    if name.startswith('g_') and laser_mode:
+        laser_name = 'g_laser' + name[2:]
+        print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
+        if laser_name in effects_config:
+            print_green(f'Found "{laser_name}"')
+            name = laser_name
+        else:
+            print_yellow(f'Could not find laser effect, using normal effect instead')
+
     if name not in channel_lut:
         print_green(f'late lut compiling {name}')
         compile_lut({name: effects_config[name]})
@@ -1378,7 +1391,7 @@ if __name__ == '__main__':
         import generate_show
 
         def gen_show_and_add_to_config(filepath):
-            new_effect, output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
+            new_effect, output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=args.autogen_mode)
             effects_config.update(new_effect)
             effect_name = list(new_effect.keys())[0]
             add_dependancies(new_effect)

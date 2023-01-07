@@ -13,8 +13,8 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
-# light_show_server = 'localhost'
-light_show_server = '192.168.86.55'
+light_show_server = 'localhost'
+# light_show_server = '192.168.86.55'
 
 
 rt_data_ready_to_send = None
@@ -137,6 +137,8 @@ def light_show_client_sender():
             send_to_light_show_server(track_data_ready_to_send_copied)
         elif rt_data_ready_to_send and time.time() > (last_sent + .01):
             with lock_rt_copy:
+                if rt_data_ready_to_send['master_bpm'] == 0:
+                    continue
                 # if rt_data_copied == rt_data_ready_to_send
                 #     send_pause()
                 #     continue

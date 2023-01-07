@@ -198,11 +198,15 @@
 
             //this.colorElem = this.querySelector(".button-color");
 
-            this.addEventListener('touchstart', this.press, {passive: true});
-            // this.addEventListener('mousedown', this.press, {passive: true});
-
-            this.addEventListener('touchend', this.release, {passive: true});
-            // this.addEventListener('mouseup', this.release, {passive: true});
+            // if (window.matchMedia("(min-width: 1024px)").matches) {
+            if (/Mobi/.test(navigator.userAgent)) {
+                this.addEventListener('touchstart', this.press, {passive: true});
+                this.addEventListener('touchend', this.release, {passive: true});            
+            } 
+            else {
+                this.addEventListener('mousedown', this.press, {passive: true});
+                this.addEventListener('mouseup', this.release, {passive: true});
+            }
         }
 
         press(event){

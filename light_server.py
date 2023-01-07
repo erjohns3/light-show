@@ -1033,10 +1033,11 @@ def load_effects_config_from_disk():
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect: 
             if effect['song_path'] in songs_config:
-                song_name = pathlib.Path(effect['song_path']).stem
+                song_name = pathlib.Path(effect['song_path']).stem                    
                 if song_name not in song_name_to_show_names:
-                    song_name_to_show_names[song_name] = []    
+                    song_name_to_show_names[song_name] = []
                 song_name_to_show_names[song_name].append(effect_name)
+                # print(effect_name, song_name_to_show_names[song_name])
             elif effect.get('song_not_avaliable', True):
                     if args.show:
                         effect['song_not_avaliable'] = True

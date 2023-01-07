@@ -116,7 +116,7 @@ effects = {
     #         b(-20, name='Red top', length=.2, intensity=1),
     #     ],
     # },
-    "Dom Dolla  Take": {
+    "Dom Dolla - Take It (Official Music Video)": {
         "bpm": 123,
         "song_path": "songs/Dom Dolla - Take It (Official Music Video).ogg",
         "delay_lights": 0.15150000000000002,

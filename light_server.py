@@ -128,7 +128,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song, song_name_to_show_names
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -152,18 +152,31 @@ async def init_rekordbox_bridge_client(websocket, path):
             rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
 
-            if rekordbox_title not in effects_config:
-                print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
-                rekordbox_title = 'g_' + rekordbox_title
-                if rekordbox_title not in effects_config:
-                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
-                    continue
+            effect_to_play = None
+            if rekordbox_title in song_name_to_show_names:
+                print_green(f'Found: {len(song_name_to_show_names[rekordbox_title])} effects with the song "{rekordbox_title}"\n' * 8)
+                print_green(f'Picking first of: {song_name_to_show_names[rekordbox_title]}\n' * 8)
+                effect_to_play = song_name_to_show_names[rekordbox_title][0]
             else:
-                print(f'FOUND handmade {rekordbox_title}\n' * 8)
+                effect_to_play = 'g_' + rekordbox_title
+                print(f'Couldnt find handmade {rekordbox_title}, looking for effect named {effect_to_play}\n' * 8)
+                if effect_to_play not in effects_config:
+                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {effect_to_play}\n' * 8)
+                    continue
 
-            print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
-            clear_effects()
-            add_effect_from_dj(rekordbox_title, no_music=True)
+            # if rekordbox_title not in effects_config:
+            #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
+            #     rekordbox_title = 'g_' + rekordbox_title
+            #     if rekordbox_title not in effects_config:
+            #         print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
+            #         continue
+            # else:
+            #     print(f'FOUND handmade {rekordbox_title}\n' * 8)
+
+            if effect_to_play is not None:
+                print_green(f'Playing light show effect from rekordbox: {effect_to_play}\n' * 8)                    
+                clear_effects()
+                add_effect_from_dj(effect_to_play, no_music=True)
 
         # print(f'{list(msg.keys())}\n' * 10)
         if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
@@ -901,6 +914,7 @@ def setup_gpio():
 effects_config = {}
 effects_config_client = {}
 songs_config = {}
+song_name_to_show_names = {}
 
 channel_lut = {}
 
@@ -974,7 +988,7 @@ def add_song_to_config(filepath):
 
 
 def load_effects_config_from_disk():
-    global effects_config, effects_config_client, graph, found
+    global effects_config, effects_config_client, graph, found, song_name_to_show_names
     update_config_and_lut_time = time.time()
 
     effects_config = {}
@@ -982,6 +996,8 @@ def load_effects_config_from_disk():
 
     graph = {}
     found = {}
+
+    song_name_to_show_names = {}
 
     effects_dir = this_file_directory.joinpath('effects')
 
@@ -1014,13 +1030,19 @@ def load_effects_config_from_disk():
             add_song_to_config(filepath)
     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
     
-    for _effect_name, effect in effects_config.items():
-        if 'song_path' in effect and effect['song_path'] not in songs_config and effect.get('song_not_avaliable', True):
-            if args.show:
-                effect['song_not_avaliable'] = True
-            else:
-                del effect['song_path']
-                # print_red('deleted', _effect_name)
+    for effect_name, effect in effects_config.items():
+        if 'song_path' in effect: 
+            if effect['song_path'] in songs_config:
+                song_name = pathlib.Path(effect['song_path']).stem
+                if song_name not in song_name_to_show_names:
+                    song_name_to_show_names[song_name] = []    
+                song_name_to_show_names[song_name].append(effect_name)
+            elif effect.get('song_not_avaliable', True):
+                    if args.show:
+                        effect['song_not_avaliable'] = True
+                    else:
+                        del effect['song_path']
+                        # print_red('deleted', _effect_name)
 
     add_dependancies(effects_config)
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')

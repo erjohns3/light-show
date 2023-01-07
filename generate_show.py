@@ -315,7 +315,10 @@ def get_avg_hue(channel_lut, effect_name):
 def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
     start_time = time.time()
     use_boundaries = True and mode != 'simple'
-    show_name = f'g_{pathlib.Path(song_filepath).stem}'
+    if mode == 'lasers':
+        show_name = f'g_lasers_{pathlib.Path(song_filepath).stem}'
+    else:
+        show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     if output_directory is None:
         output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
@@ -387,7 +390,13 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
         [1, ['UV pulse single']],
     ]
 
-    if mode == 'laser':
+    if mode == 'lasers':
+        for i in range(10):
+            scenes += [
+                [8, ['laser long']],
+            ]
+
+
         scenes += [
             [2, ['filler laser']],
             [1, ['filler laser']],

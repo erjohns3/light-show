@@ -851,13 +851,13 @@ def add_effect(name):
     global beat_index, time_start, curr_bpm
 
     if name.startswith('g_') and laser_mode:
-        laser_name = 'g_laser' + name[2:]
+        laser_name = 'g_lasers_' + name[2:]
         print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
         if laser_name in effects_config:
-            print_green(f'Found "{laser_name}"')
+            print_green(f'Found "{laser_name}"\n' * 5)
             name = laser_name
         else:
-            print_yellow(f'Could not find laser effect, using normal effect instead')
+            print_yellow(f'Could not find laser effect, using normal effect instead\n' * 5)
 
     if name not in channel_lut:
         print_green(f'late lut compiling {name}')
@@ -1394,8 +1394,8 @@ if __name__ == '__main__':
     if args.autogen:
         import generate_show
 
-        def gen_show_and_add_to_config(filepath):
-            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=args.autogen_mode)
+        def gen_show_and_add_to_config(filepath, mode):
+            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=mode)
             effect_name = list(new_effect.keys())[0]
             effects_config[effect_name] = new_effect[effect_name]
             # set_effect_defaults(effects_config[effect_name])
@@ -1405,11 +1405,20 @@ if __name__ == '__main__':
         if args.autogen == 'all':
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for _name, song_path in get_all_paths('songs', only_files=True):
-                gen_show_and_add_to_config(song_path)
+                if args.autogen_mode == 'both':
+                    args.show = gen_show_and_add_to_config(song_path, mode=None)
+                    args.show = gen_show_and_add_to_config(song_path, mode='lasers')
+                else:
+                    args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-            args.show = gen_show_and_add_to_config(song_path)
+            
+            if args.autogen_mode == 'both':
+                args.show = gen_show_and_add_to_config(song_path, mode=None)
+                args.show = gen_show_and_add_to_config(song_path, mode='lasers')
+            else:
+                args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:

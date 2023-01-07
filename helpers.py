@@ -54,10 +54,10 @@ def is_andrews_laptop():
 def get_ray_directory():
     if is_windows():
         return pathlib.Path('Y:/')
-    elif is_andrews_main_computer(): # actually only works on andrews computer lol
+    elif is_andrews_main_computer():
         return pathlib.Path('/mnt/ray_network_share')
     else:
-        print('doesnt know how contact ray_directory')
+        print_red('doesnt know how contact ray_directory')
 
 
 class bcolors:

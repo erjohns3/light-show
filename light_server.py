@@ -1062,7 +1062,7 @@ def load_effects_config_from_disk():
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
 
 
-def set_effect_defaults(effect):
+def set_effect_defaults(name, effect):
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
     if 'sat_shift' not in effect:
@@ -1083,6 +1083,10 @@ def set_effect_defaults(effect):
         if 'bpm' not in effect:
             print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
             exit()
+        
+        if name in originals:
+            effect['delay_lights'] = originals[name]['delay_lights']
+
         effect['delay_lights'] = effect.get('delay_lights', 0)
         if not args.local:
             effect['delay_lights'] += 0.1
@@ -1111,7 +1115,7 @@ def compile_all_luts_from_effects_config():
         effects_config_to_compile[args.show] = effects_config[args.show]
 
     for name, effect in effects_config.items():
-        set_effect_defaults(effect)
+        set_effect_defaults(name, effect)
 
         effects_config_client[name] = {}
         for key, value in effect.items():
@@ -1137,7 +1141,7 @@ def compile_lut(local_effects_config):
 
     sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
-        set_effect_defaults(effect)
+        set_effect_defaults(name, effect)
         dfs(name)
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
@@ -1391,11 +1395,11 @@ if __name__ == '__main__':
         import generate_show
 
         def gen_show_and_add_to_config(filepath):
-            new_effect, output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=args.autogen_mode)
-            effects_config.update(new_effect)
+            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=args.autogen_mode)
             effect_name = list(new_effect.keys())[0]
-            add_dependancies(new_effect)
             effects_config[effect_name] = new_effect[effect_name]
+            # set_effect_defaults(effects_config[effect_name])
+            add_dependancies(new_effect)
             return effect_name
 
         if args.autogen == 'all':
@@ -1464,7 +1468,7 @@ if __name__ == '__main__':
         observer.start()
 
     if args.keyboard:
-        from pynput.keyboard import Key, Listener, KeyCode
+        from pynput.keyboard import Listener, KeyCode
 
         if is_linux():
             _return_code, stdout, _stderr = run_command_blocking([
@@ -1477,8 +1481,8 @@ if __name__ == '__main__':
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
-            # 'j': 'Blue bottom',
-            # 'k': 'Green bottom',
+            'j': lambda: restart_show(skip=-skip_time),
+            ';': lambda: restart_show(skip=skip_time),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             # 'space': 'UV',

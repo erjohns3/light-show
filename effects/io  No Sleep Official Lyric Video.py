@@ -25,65 +25,7 @@ effects = {
         "loop": True,
         "profiles": ["Eric"],
         "beats": [
-            [1, [
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    100, 0, 0, 
-                    0,
-                    0, 0, 0,
-                    0, 0, 0
-                ], 0.25],
-        ]
-    },
-
-    "Red disco": {
-        "length": 1,
-        "trigger": "toggle",
-        "loop": True,
-        "profiles": ["Eric"],
-        "beats": [
-            [1, [
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0,
-                    0, 0, 0,
-                    100, 0, 0
-                ], 1],
-        ]
-    },
-
-    "Green disco": {
-        "length": 1,
-        "trigger": "toggle",
-        "loop": True,
-        "profiles": ["Eric"],
-        "beats": [
-            [1, [
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0,
-                    0, 0, 0,
-                    0, 100, 0
-                ], 1],
-        ]
-    },
-
-    "Blue disco": {
-        "length": 1,
-        "trigger": "toggle",
-        "loop": True,
-        "profiles": ["Eric"],
-        "beats": [
-            [1, [
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0, 0, 0, 
-                    0,
-                    0, 0, 0,
-                    0, 0, 100
-                ], 1],
+            b(1, 'Red bottom', length=.25),
         ]
     },
 
@@ -93,7 +35,7 @@ effects = {
         "loop": True,
         "profiles": ["Eric"],
         "beats": [
-            [1, 'Red disco', 0.25],
+            b(1, 'Red disco', length=.25),
         ]
     },
 }

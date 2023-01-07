@@ -27,6 +27,19 @@ def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_sh
         disco_rgb = [0, 0, 0]
 
     if name is None:
+        if top_rgb is None:
+            top_rgb = [0, 0, 0]
+        if bottom_rgb is None:
+            bottom_rgb = [0, 0, 0]
+        if uv is None:
+            uv = 0
+        if green_laser is None:
+            green_laser = 0
+        if red_laser is None:
+            red_laser = 0             
+        if laser_motor is None:
+            laser_motor = 0
+
         if top_rgb:
             front_rgb = top_rgb
             back_rgb = top_rgb

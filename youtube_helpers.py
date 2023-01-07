@@ -121,7 +121,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
 
     # this sucks for some reason
     # print((downloaded_filepath.stem + '\n') * 100)
-    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char in ' -_.()')
+    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char in ' -_.()[]')
     # print((no_special_name + '\n') * 5)
     if downloaded_filepath.name != no_special_name + downloaded_filepath.suffix:
         if not no_special_name:

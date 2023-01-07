@@ -10,6 +10,7 @@ import asyncio
 import argparse
 import os
 import colorsys
+import random
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -587,16 +588,14 @@ def get_sub_effect_names(effect_name, beat):
     return sub_effect_names
 
 
-stage = None
 stage_chars = '.,-~:;=!*#$@'
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
+laser_stage = random.randint(0, 110)
+disco_stage = random.randint(0, 100)
+disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
-    import random
-    global rekordbox_time, rekordbox_bpm, rekordbox_title, stage
-
-    if stage is None:
-        stage = random.randint(0, 110)
+    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style
 
     curr_beat = (beat_index / SUB_BEATS) + 1
     terminal_size = os.get_terminal_size().columns
@@ -643,6 +642,7 @@ Beat {curr_beat:.1f}\
     uv_value = levels_255[9]
     laser_color_values = levels_255[10:12]
     laser_motor_value = levels_255[12] / 2.55
+    disco_color_values = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
 
@@ -652,13 +652,14 @@ Beat {curr_beat:.1f}\
     bottom_rgb_style = f'rgb({bottom_values[0]},{bottom_values[1]},{bottom_values[2]})'
 
     # print(f'{top_front_values=}, {top_back_values=}, {bottom_values=}, {uv_value=}, {laser_color_values=}, {laser_motor_value=}')
-    if any((x != 0 for x in laser_color_values)):
+    # print(f'{laser_color_values=}, {laser_motor_value=}')
+    if any(laser_color_values):
         line_length = terminal_size - 1
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(terminal_size - 1):
-                if j > 1 and j < 15 and (j + i + (stage // 9)) % 4 == 0:
-                    laser_arr[j + (line_length * i)] = stage_chars[stage // 10]
+                if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
+                    laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
         # print(f'{len(laser_string)}\n' * 3)
         laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
@@ -666,12 +667,27 @@ Beat {curr_beat:.1f}\
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = 'default'
 
+    if any(disco_color_values):
+        disco_string = ''
+        for i in range(14):
+            thing = (i + (disco_stage // 10))
+            if thing % 4 == 0 or thing % 6 == 0:
+                disco_string += 'o'
+            else:
+                disco_string += ' '
+        disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
+    else:
+        disco_string = ' ' * 14
+
+
     if all_levels[12] != 0:
-        stage += int(max(1, laser_motor_value // 10))
-        stage %= 110
+        laser_stage += int(max(1, laser_motor_value // 10))
+        laser_stage %= 110
+
+    disco_stage = (disco_stage + 1) % 10000
 
     effect_string = f'Effects: {", ".join(all_effect_names)}'
-    remaining = terminal_size - len(effect_string) 
+    remaining = terminal_size - len(effect_string)
     console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
     console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
 
@@ -683,7 +699,11 @@ Beat {curr_beat:.1f}\
     console.print('\n', style=top_back_rgb_style, end='')
     console.print(laser_string, style=laser_style, end='')
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('', end='\033[F' * 6)
+    console.print(' ', style='default', end='')
+    for char in disco_string:
+        console.print(char, style=disco_style, end='')
+    console.print(' ' * dead_space, style='default', end='')
+    console.print('', end='\033[F' * 7)
 
 
 all_levels = [0] * LIGHT_COUNT

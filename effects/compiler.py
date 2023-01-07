@@ -36,7 +36,7 @@ def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_sh
     if intensity is None:
         intensity = 1
 
-    if type(intensity) == int:
+    if type(intensity) == int or type(intensity) == float:
         intensity = (intensity, intensity)
 
     if beat_skip is None:

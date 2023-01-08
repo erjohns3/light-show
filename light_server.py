@@ -581,6 +581,7 @@ async def send_light_status():
 
 async def send_song_status():
     global broadcast_song
+    # print((str(song_queue) + '\n') * 10)
     message = {
         'queue': song_queue,
         'status': {

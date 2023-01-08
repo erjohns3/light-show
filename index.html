@@ -704,7 +704,10 @@
     }, 1000);
 
     function setTime(){
+        console.log('queue', queue)
+        console.log('queueKey', queueKey)
         if(queue[queueKey]){
+            console.log('queue[queueKey].duration', queue[queueKey].duration)
             endTime = queue[queueKey].duration;
             currTimeElem.textContent = Math.floor(currTime/60)+":"+Math.floor(currTime%60).toString().padStart(2, '0');
             endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');

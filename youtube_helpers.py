@@ -4,6 +4,7 @@ import traceback
 import json
 import shutil
 from copy import deepcopy
+import time
 
 from helpers import *
 
@@ -121,15 +122,15 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
 
     # this sucks for some reason
     # print((downloaded_filepath.stem + '\n') * 100)
-    no_special_name = ''.join(char for char in downloaded_filepath.stem if char.isalnum() or char in ' -_.()[]')
-    # print((no_special_name + '\n') * 5)
-    if downloaded_filepath.name != no_special_name + downloaded_filepath.suffix:
-        if not no_special_name:
-            no_special_name = random_letters(5)
-            print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {no_special_name} to assign')
-        no_special_name += downloaded_filepath.suffix
-        no_special_chars_filepath = downloaded_filepath.parent.joinpath(no_special_name)
-        
+    clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
+    # print((clean_filesystem_name + '\n') * 5)
+    if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
+        if not clean_filesystem_name:
+            clean_filesystem_name = random_letters(5)
+            print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
+        clean_filesystem_name += downloaded_filepath.suffix
+        no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
+        print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
         shutil.move(downloaded_filepath, no_special_chars_filepath)
         return no_special_chars_filepath
 

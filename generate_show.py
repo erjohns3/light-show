@@ -326,9 +326,8 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
         print(f'making directory {output_directory}')
         os.mkdir(output_directory)
 
-    show_name = show_name.replace('.', '_')
-    show_name_without_spaces = show_name.replace(' ', '_')
-    output_filepath = output_directory.joinpath(show_name_without_spaces + '.py')
+    show_name = ''.join([x if x.isalpha() else '_' for x in show_name])
+    output_filepath = output_directory.joinpath(show_name + '.py')
     if os.path.exists(output_filepath):
         if overwrite:
             print(f'{bcolors.WARNING}overwrite is set to True, and {output_filepath} exists, generating and overwriting{bcolors.ENDC}')

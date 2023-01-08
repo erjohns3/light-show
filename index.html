@@ -7,6 +7,7 @@
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Song Queue</title>
     <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
 </head>
 
 <body tabindex="-1">
@@ -45,7 +46,7 @@
             <div id="available-list" class="list"></div>
             <div id="search-wrapper">
                 <input type="text" id="search-textbox" placeholder="Search Youtube">
-                <div id="search-submit" class="button">Submit</div>
+                <div id="search-submit" class="button">Search</div>
                 <div id="search-close" class="button">X</div>
                 <div id="search-list"></div>
                 <div id="search-loading"></div>
@@ -113,10 +114,13 @@
         socket.onmessage = function (event) {
             console.log("socket message");
             let msg = JSON.parse(event.data);
-            console.log(msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
+                console.log('songs', msg);
+            }
+            else {
+                console.log(msg);
             }
 
             if(msg.users){

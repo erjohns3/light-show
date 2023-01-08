@@ -127,6 +127,14 @@ def print_red(*args):
 #     null_std_out = open('/dev/null', 'w')
 
 
+def get_clean_filesystem_string(s):
+    return ''.join(char for char in s if char.isalnum() or char in ' -_.()[],')
+
+def get_no_duplicate_spaces(s):
+    import re
+    return re.sub(r"\s+", " ", s)
+
+
 def random_letters(num_chars: int) -> str:
     import random
     letters = [chr(ord('a') + a) for a in range(26)]

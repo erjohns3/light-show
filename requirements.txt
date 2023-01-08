@@ -9,4 +9,4 @@ scp
 thefuzz
 pynput
 scipy
-# git+https://github.com/aubio/aubio.git
+git+https://github.com/aubio/aubio.git

@@ -199,7 +199,7 @@
             //this.colorElem = this.querySelector(".button-color");
 
             // if (window.matchMedia("(min-width: 1024px)").matches) {
-            if (/Mobi/.test(navigator.userAgent)) {
+            if (navigator.userAgent.includes('Mobi')) {
                 this.addEventListener('touchstart', this.press, {passive: true});
                 this.addEventListener('touchend', this.release, {passive: true});            
             } 
@@ -539,11 +539,11 @@
 
     socketInit();
 
-    window.oncontextmenu = function(event) {
-        event.preventDefault();
-        event.stopPropagation();
-        return false;
-    };
+    // window.oncontextmenu = function(event) {
+    //     event.preventDefault();
+    //     event.stopPropagation();
+    //     return false;
+    // };
 
     var flareColors = [
         'hsl(170, 100%, 20%)',

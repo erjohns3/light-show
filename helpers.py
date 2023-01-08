@@ -116,16 +116,6 @@ def print_red(*args):
     args = map(str, args)
     print(red(' '.join(args)))
 
-# go up a line: '\033[A'
-# up a line and begining: '\033[F'
-
-
-# disabling std out
-# if is_windows():
-#     null_std_out = open('nul', 'w')
-# elif is_linux() or is_macos():
-#     null_std_out = open('/dev/null', 'w')
-
 
 def get_clean_filesystem_string(s):
     return ''.join(char for char in s if char.isalnum() or char in ' -_.()[],')
@@ -251,3 +241,27 @@ def seconds_to_hmsm_string(seconds) -> str:
     # parser.add_argument('--testing', action='store_true', default=False,
     #                help='To run without rasberry pi support')
     # args = parser.parse_args()
+
+
+
+
+
+
+# make directory above importable
+# import sys
+# import pathlib
+
+# def make_directory_above_importable():
+#     path_above_file = pathlib.Path(__file__).parent.joinpath('..').resolve()
+#     sys.path.insert(0, str(path_above_file))
+
+
+# go up a line: '\033[A'
+# up a line and begining: '\033[F'
+
+
+# disabling std out
+# if is_windows():
+#     null_std_out = open('nul', 'w')
+# elif is_linux() or is_macos():
+#     null_std_out = open('/dev/null', 'w')

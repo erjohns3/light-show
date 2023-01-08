@@ -43,6 +43,14 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 ### copy generated shows to doorbell
 `scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
 
+## download song from youtube and make show file (auto finds BPM and offset)
+`python youtube_helpers.py --show "YOUTUBE_URL_HERE"`
+
+
+### youtube download on command line (don't use this)
+`youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
+
+
 # andrew specific commands
 
 `python light_server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
@@ -74,11 +82,6 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 * fixing octave error (double or half bpm instead of dead on)
     * https://stackoverflow.com/questions/61621282/how-can-we-improve-tempo-detection-accuracy-in-librosa
-
-
-
-## youtube download
-`youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
 
 ## find pid of the process using the port
 sudo ss -lptn 'sport = :1337'

@@ -410,7 +410,7 @@
             this.uuid = effect_uuid;
             this.key = key;
             this.used = true;
-            console.log(this.effect);
+            console.log('setSong()', this.effect);
             this.song = effectsConfig[this.effect].song_path;
             this.name.textContent = songsConfig[this.song].name;
             this.artist.textContent = songsConfig[this.song].artist;

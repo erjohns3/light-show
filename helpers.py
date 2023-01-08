@@ -92,29 +92,29 @@ def red(s):
 
 
 
-def print_yellow(*args):
+def print_yellow(*args, **kwargs):
     args = map(str, args)
-    print(yellow(' '.join(args)))
+    print(yellow(' '.join(args)), **kwargs)
 
-def print_green(*args):
+def print_green(*args, **kwargs):
     args = map(str, args)
-    print(green(' '.join(args)))
+    print(green(' '.join(args)), **kwargs)
 
-def print_cyan(*args):
+def print_cyan(*args, **kwargs):
     args = map(str, args)
-    print(cyan(' '.join(args)))
+    print(cyan(' '.join(args)), **kwargs)
 
-def print_bold(*args):
+def print_bold(*args, **kwargs):
     args = map(str, args)
-    print(bold(' '.join(args)))
+    print(bold(' '.join(args)), **kwargs)
 
-def print_blue(*args):
+def print_blue(*args, **kwargs):
     args = map(str, args)
-    print(blue(' '.join(args)))
+    print(blue(' '.join(args)), **kwargs)
 
-def print_red(*args):
+def print_red(*args, **kwargs):
     args = map(str, args)
-    print(red(' '.join(args)))
+    print(red(' '.join(args)), **kwargs)
 
 
 def get_clean_filesystem_string(s):

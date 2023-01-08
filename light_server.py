@@ -97,8 +97,8 @@ except:
 def http_server():
     import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
-    print(f'{bcolors.OKGREEN}Dj interface: http://{local_ip}:{PORT}/dj.html')
-    print(f'Queue: http://{local_ip}:{PORT}{bcolors.ENDC}', flush=True)
+    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html')
+    print_green(f'Queue: http://{local_ip}:{PORT}', flush=True)
     httpd.serve_forever()
 
 

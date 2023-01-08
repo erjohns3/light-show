@@ -1,21 +1,9 @@
-# club time
+# Club time, TLDR:
+## Requirements
+Install ffmpeg, and have avaliable on your path
+`pip install -r requirements.txt`
 
-# TODO
-* cubic bezier for custom curves
-* label intensity of some lights and cleanup
-    * get rid of white flashes alone
-* add more variety
-    * custom fades - linear, sine wave, exponential dropoff
-    * andrew's idea: apply a custom fade to all effects in a scene.  could end at a different point too
-    * chris's idea - changing some effects but not all - on non-high delta changes
-
-# Running locally
-## To get all songs from doorbell
-`scp -r pi@doorbell:/home/pi/light-show/songs .`
-
-## To push your songs TO the doorbell
-`scp -r songs pi@doorbell:/home/pi/light-show/`
-
+## Running locally (not on the doorbell, just on your computer)
 ## example 1
 `python light_server.py --local --keyboard --show shelter`
 
@@ -26,6 +14,26 @@ To start with 5% volume locally (terminal UI). Starts on the show hooked
 ## Using the UI 
 `python light_server.py --local`
 To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+
+# TODO
+* cubic bezier for custom curves
+* label intensity of some lights and cleanup
+    * get rid of white flashes alone
+* add more variety
+    * custom fades - linear, sine wave, exponential dropoff
+    * andrew's idea: apply a custom fade to all effects in a scene.  could end at a different point too
+    * chris's idea - changing some effects but not all - on non-high delta changes
+
+
+# Getting songs
+It should be pretty good about auto downloading specific songs with the --show parameter, but you can also copy on mass from the doorbell with the below commands
+
+## To get all songs from doorbell
+`scp -r pi@doorbell:/home/pi/light-show/songs .`
+
+## To push your songs TO the doorbell
+`scp -r songs pi@doorbell:/home/pi/light-show/`
+
 
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename

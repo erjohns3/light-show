@@ -5,12 +5,10 @@
 * `pip install -r requirements.txt`
 
 ### Running locally (not on the doorbell, just on your computer)
-#### example 1
-`python light_server.py --local --keyboard --show shelter`
-
-#### example 2
-To start with 5% volume locally (terminal UI). Starts on the show hooked
-`python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
+* example 1, start the light show "shelter" locally (terminal UI), and with arrow key support. 
+    * `python light_server.py --local --keyboard --show shelter`
+* example 2, start the show hooked with 5% volume locally (terminal UI). Starts with arrow key support.
+    * `python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
 
 ## Using the UI 
 `python light_server.py --local`

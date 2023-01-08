@@ -24,7 +24,7 @@ effects = {
 
     "Avenue": {
         "bpm": 128,
-        "song_path": "songs\\Avenue.ogg",
+        "song_path": "songs/Avenue.ogg",
         "delay_lights": 0.09605,
         "skip_song": 0.0,
         "beats": [

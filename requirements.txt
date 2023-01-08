@@ -9,4 +9,5 @@ scp
 thefuzz
 pynput
 scipy
+pandas
 git+https://github.com/aubio/aubio.git

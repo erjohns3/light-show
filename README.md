@@ -17,22 +17,22 @@
 `scp -r songs pi@doorbell:/home/pi/light-show/`
 
 ## example 1
-`python server.py --local --keyboard --reload --show shelter`
+`python light_server.py --local --keyboard --reload --show shelter`
 
 ## example 2
 To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads when you save in the directory
-`python server.py --local --keyboard --reload --volume 7 --show butter --skip 30`
+`python light_server.py --local --keyboard --reload --volume 7 --show butter --skip 30`
 
 ## Using the UI 
-`python server.py --local`
+`python light_server.py --local`
 To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
 
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
-`python server.py --local --autogen shelter`
+`python light_server.py --local --autogen shelter`
 
 ## to autogenerate everything for a party
-`python light_server.py --local --autogen all --autogen_mode both`
+`python light_light_server.py --local --autogen all --autogen_mode both`
 
 ### autogen_mode options
 * `default` - autogenerates normal
@@ -45,8 +45,8 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 
 # andrew specific commands
 
-`python server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
-`python server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
+`python light_server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
+`python light_server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
 
 # stretch todo
 * halloween

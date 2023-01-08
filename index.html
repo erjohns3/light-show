@@ -181,6 +181,7 @@
                             index++;
                             if(index >= queueArray.length){
                                 for(let i=0; i<100; i++){
+                                    console.log('andrew debug: adding queue item')
                                     let item = new QueueItem();
                                     queueArray.push(item);
                                     queueList.append(item);

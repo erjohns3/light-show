@@ -153,7 +153,7 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
-def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
+def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_out=False):
     import subprocess
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
@@ -165,9 +165,8 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
         if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
-    full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
     process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = process.communicate()
+    stdout, stderr = process.communicate(timeout=timeout)
 
     if debug:
         print(f'Finished execution, return code was {process.returncode}')
@@ -178,6 +177,7 @@ def run_command_blocking(full_command_arr, debug=False, print_std_out=False):
         print(f'stdout: {stdout.decode("utf-8")}\nstderr: {stderr.decode("utf-8")}')
 
     if debug or process.returncode:
+        full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
         print(f'{return_string_start}{full_call}{bcolors.ENDC}')
 
     if print_std_out and not process.returncode:

@@ -1,13 +1,14 @@
-# Club time, TLDR:
-## Requirements
+# Club time
+## TLDR:
+### Requirements
 Install ffmpeg, and have avaliable on your path
 `pip install -r requirements.txt`
 
 ## Running locally (not on the doorbell, just on your computer)
-## example 1
+### example 1
 `python light_server.py --local --keyboard --show shelter`
 
-## example 2
+### example 2
 To start with 5% volume locally (terminal UI). Starts on the show hooked
 `python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
 

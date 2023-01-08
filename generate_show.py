@@ -493,8 +493,14 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
                 effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
                 show['beats'].append([beat, effect_name, length])
             beat += length
-                
     
+    ending_beat = 0
+    for index in range(len(show['beats'])):
+        beat = show['beats'][index][0]
+        length = show['beats'][index][2]
+        ending_beat = max(ending_beat, beat + length)
+    show['length'] = ending_beat
+
     the_show = {
         show_name: show
     }

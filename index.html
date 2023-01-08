@@ -436,25 +436,26 @@
 
     /////////////////////////////////////////////////////////////
 
-    function addQueueBack(effect){
-        let msg = {
-            uuid: uuid,
-            type: "add_queue_back",
-            effect: effect
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg);
-    }
+    // andrew: are these even used?
+    // function addQueueBack(effect){
+    //     let msg = {
+    //         uuid: uuid,
+    //         type: "add_queue_back",
+    //         effect: effect
+    //     };
+    //     socket.send(JSON.stringify(msg));
+    //     console.log(msg);
+    // }
 
-    function addQueueFront(effect){
-        let msg = {
-            uuid: uuid,
-            type: "add_queue_front",
-            effect: effect
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg);
-    }
+    // function addQueueFront(effect){
+    //     let msg = {
+    //         uuid: uuid,
+    //         type: "add_queue_front",
+    //         effect: effect
+    //     };
+    //     socket.send(JSON.stringify(msg));
+    //     console.log(msg);
+    // }
 
     function addQueueBalanced(effect){
         let msg = {
@@ -704,10 +705,7 @@
     }, 1000);
 
     function setTime(){
-        console.log('queue', queue)
-        console.log('queueKey', queueKey)
         if(queue[queueKey]){
-            console.log('queue[queueKey].duration', queue[queueKey].duration)
             endTime = queue[queueKey].duration;
             currTimeElem.textContent = Math.floor(currTime/60)+":"+Math.floor(currTime%60).toString().padStart(2, '0');
             endTimeElem.textContent = Math.floor(endTime/60)+":"+Math.floor(endTime%60).toString().padStart(2, '0');

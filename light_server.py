@@ -273,7 +273,7 @@ def download_song(url, uuid):
     import generate_show
 
     if 'search_query' in url:
-        print_yellow(f'user {uuid} entered a url with search_query in it, returning')
+        print_yellow(f'user {uuid_to_user(uuid)} entered a url with search_query in it, returning')
         return None
 
     max_length_seconds = None
@@ -346,38 +346,41 @@ async def init_queue_client(websocket, path):
 
         msg = json.loads(msg_string)
 
-        print(msg)
+        print('Song Queue: message recieved:', msg)
         if 'type' in msg:
-            if msg['type'] == 'add_queue_back' and 'uuid' in msg:
-                uuid = msg['uuid']
-                effect_name = msg['effect']
-                song_queue.append([effect_name, get_queue_salt(), uuid])
-                if len(song_queue) == 1:
-                    song_time = 0
-                    add_effect(effect_name)
-                    broadcast_light = True
-                    play_song(effect_name)
-                    song_playing = True
+            # andrew: are these even used?
+            # if msg['type'] == 'add_queue_back' and 'uuid' in msg:
+            #     uuid = msg['uuid']
+            #     effect_name = msg['effect']
+            #     song_queue.append([effect_name, get_queue_salt(), uuid])
+            #     if len(song_queue) == 1:
+            #         song_time = 0
+            #         add_effect(effect_name)
+            #         broadcast_light = True
+            #         play_song(effect_name)
+            #         song_playing = True
 
-            elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
-                uuid = msg['uuid']
-                effect_name = msg['effect']
-                if len(song_queue) == 0:
-                    song_queue.append([effect_name, get_queue_salt(), uuid])
-                else:
-                    song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
-                if len(song_queue) == 1:
-                    song_time = 0
-                    add_effect(effect_name)
-                    broadcast_light = True
-                    play_song(effect_name)
-                    song_playing = True
+            # elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
+            #     uuid = msg['uuid']
+            #     effect_name = msg['effect']
+            #     if len(song_queue) == 0:
+            #         song_queue.append([effect_name, get_queue_salt(), uuid])
+            #     else:
+            #         song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
+            #     if len(song_queue) == 1:
+            #         song_time = 0
+            #         add_effect(effect_name)
+            #         broadcast_light = True
+            #         play_song(effect_name)
+            #         song_playing = True
 
-            elif msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
+            if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
+                print(f'Song Queue: added to queue by {uuid_to_user(msg["uuid"])}')
                 add_queue_balanced(msg['effect'], msg['uuid'])
 
             elif msg['type'] == 'remove_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
+                print(f'Song Queue: removed from queue by {uuid_to_user(msg["uuid"])}')
                 effect_name = msg['effect']
                 salt = msg['salt']
                 for i in range(len(song_queue)):
@@ -400,7 +403,7 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'play_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
-                print(f'Song Queue: Play requested ----UUID: {uuid}')
+                print(f'Song Queue: Play requested ----UUID: {uuid_to_user(uuid)}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
@@ -411,7 +414,7 @@ async def init_queue_client(websocket, path):
 
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
-                print(f'Song Queue: Pause requested ----UUID: {uuid}')
+                print(f'Song Queue: Pause requested ----UUID: {uuid_to_user(uuid)}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and song_playing:
                         effect_name = song_queue[0][0]
@@ -430,7 +433,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
                 url = msg.get('url', None)
-                print_blue(f'Song Queue: Adding "{url}" to youtube downloading queue from {uuid}')
+                print_blue(f'Song Queue: Adding "{url}" to youtube downloading queue from {uuid_to_user(uuid)}')
                 download_queue.append([url, uuid])
                 message = {
                     'notification': 'Download Started...'
@@ -444,7 +447,7 @@ async def init_queue_client(websocket, path):
             elif msg['type'] == 'search_song' and 'uuid' in msg:
                 uuid = msg['uuid']
                 search = msg.get('search', None)
-                print(f'Song Queue: searching youtube "{search}" from {uuid}')
+                print(f'Song Queue: searching youtube "{search}" from {uuid_to_user(uuid)}')
                 search_queue.append([search, websocket, False])
             broadcast_song = True
 
@@ -490,10 +493,10 @@ def search_youtube():
                             'views': info['viewCountText']['simpleText'],
                             'id': info['videoId']
                         })
-                    except:
-                        print(f'parsing 4 failed', flush=True)
-            except:
-                    print(f'parsing 3 failed', flush=True)
+                    except Exception as e:
+                        print_yellow(f'parsing 4 failed, aborting youtube search, exception: {e}')
+            except Exception as e:
+                print_yellow(f'parsing 3 failed, aborting youtube search, exception: {e}')
     else:
         print('--- WARNING: JSON NOT FOUND ---')
 
@@ -738,6 +741,11 @@ async def terminal(level, i):
 
 ####################################
 
+def uuid_to_user(uuid):
+    if uuid in users:
+        return users[uuid]['name'] + f' ({uuid})'
+    return uuid
+
 async def light():
     global beat_index, song_playing, song_time, broadcast_song, broadcast_light
 
@@ -798,7 +806,7 @@ async def light():
                 download_thread = None
         elif download_queue:
             url, uuid = download_queue.pop(0)
-            print_blue(f'Starting download of {url} from client {uuid}')
+            print_blue(f'Starting download of {url} from client {uuid_to_user(uuid)}')
             download_thread = threading.Thread(target=download_song, args=(url, uuid))
             download_thread.start()
 

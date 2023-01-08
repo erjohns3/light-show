@@ -17,11 +17,11 @@
 `scp -r songs pi@doorbell:/home/pi/light-show/`
 
 ## example 1
-`python light_server.py --local --keyboard --reload --show shelter`
+`python light_server.py --local --keyboard --show shelter`
 
 ## example 2
-To start with 5% volume locally (terminal UI). Starts on the show hooked, and reloads when you save in the directory
-`python light_server.py --local --keyboard --reload --volume 7 --show butter --skip 30`
+To start with 5% volume locally (terminal UI). Starts on the show hooked
+`python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
 
 ## Using the UI 
 `python light_server.py --local`

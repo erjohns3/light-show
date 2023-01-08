@@ -250,7 +250,8 @@ async def init_dj_client(websocket, path):
 
             elif msg['type'] == 'toggle_laser_mode':
                 laser_mode = not laser_mode
-                print(f'Toggled laser mode, now in state: {laser_mode}\n' * 5)
+                print(f'Toggled laser mode, now in state: {laser_mode}\n')
+                restart_show(skip=0)
 
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
@@ -633,6 +634,10 @@ async def render_to_terminal(all_levels):
             all_effect_names.append(effect[0])
 
     useful_info = ''
+    if laser_mode:
+        useful_info += f'L1, '
+    else:
+        useful_info += f'L0, '
     if rekordbox_bpm is not None:
         useful_info += f', r_bpm {round(rekordbox_bpm, 1)}'
     if rekordbox_time is not None:
@@ -850,7 +855,9 @@ def clear_effects():
 def add_effect(name):
     global beat_index, time_start, curr_bpm
 
-    if name.startswith('g_') and laser_mode:
+    if name.startswith('g_lasers_') and not laser_mode:
+        name = 'g_' + name[9:]
+    elif name.startswith('g_') and laser_mode:
         laser_name = 'g_lasers_' + name[2:]
         print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
         if laser_name in effects_config:
@@ -858,6 +865,9 @@ def add_effect(name):
             name = laser_name
         else:
             print_yellow(f'Could not find laser effect, using normal effect instead\n' * 5)
+
+    if name in effects_config and 'song_path' in effects_config[name]:
+        print(f'Adding effect with song named {name}')
 
     if name not in channel_lut:
         print_green(f'late lut compiling {name}')
@@ -886,7 +896,7 @@ def add_effect(name):
 def play_song(effect_name, print_out=True):
     global take_rekordbox_input
     take_rekordbox_input = False
-    print('trying to play', effect_name)
+    print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:
@@ -1117,6 +1127,7 @@ def compile_all_luts_from_effects_config():
     for name, effect in effects_config.items():
         set_effect_defaults(name, effect)
 
+        # if not name.startswith('g_lasers_'):
         effects_config_client[name] = {}
         for key, value in effect.items():
             if key != 'beats':
@@ -1406,17 +1417,17 @@ if __name__ == '__main__':
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for _name, song_path in get_all_paths('songs', only_files=True):
                 if args.autogen_mode == 'both':
-                    args.show = gen_show_and_add_to_config(song_path, mode=None)
-                    args.show = gen_show_and_add_to_config(song_path, mode='lasers')
+                    gen_show_and_add_to_config(song_path, mode=None)
+                    gen_show_and_add_to_config(song_path, mode='lasers')
                 else:
-                    args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+                    gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
             
             if args.autogen_mode == 'both':
                 args.show = gen_show_and_add_to_config(song_path, mode=None)
-                args.show = gen_show_and_add_to_config(song_path, mode='lasers')
+                gen_show_and_add_to_config(song_path, mode='lasers')
             else:
                 args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
 

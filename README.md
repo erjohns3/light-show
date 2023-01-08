@@ -2,6 +2,7 @@
 ## TLDR:
 ### Requirements
 Install ffmpeg, and have avaliable on your path
+
 `pip install -r requirements.txt`
 
 ### Running locally (not on the doorbell, just on your computer)

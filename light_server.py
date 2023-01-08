@@ -10,6 +10,7 @@ import asyncio
 import argparse
 import os
 import colorsys
+import random
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -40,7 +41,7 @@ parser.add_argument('--invert', dest='invert', default=False, action='store_true
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', default='')
-parser.add_argument('--autogen_simple', dest='autogen_simple', default='')
+parser.add_argument('--autogen_mode', dest='autogen_mode', default=None)
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 
 
@@ -120,14 +121,14 @@ def add_effect_from_dj(effect_name, no_music=False):
         broadcast_song = True
 
 
-
+laser_mode = False
 rekordbox_title = None
 rekordbox_bpm = None
 rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song, song_name_to_show_names
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -151,18 +152,31 @@ async def init_rekordbox_bridge_client(websocket, path):
             rekordbox_title = msg['title']
             rekordbox_original_bpm = float(msg['original_bpm'])
 
-            if rekordbox_title not in effects_config:
-                print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
-                rekordbox_title = 'g_' + rekordbox_title
-                if rekordbox_title not in effects_config:
-                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
-                    continue
+            effect_to_play = None
+            if rekordbox_title in song_name_to_show_names:
+                print_green(f'Found: {len(song_name_to_show_names[rekordbox_title])} effects with the song "{rekordbox_title}"\n' * 8)
+                print_green(f'Picking first of: {song_name_to_show_names[rekordbox_title]}\n' * 8)
+                effect_to_play = song_name_to_show_names[rekordbox_title][0]
             else:
-                print(f'FOUND handmade {rekordbox_title}\n' * 8)
+                effect_to_play = 'g_' + rekordbox_title
+                print(f'Couldnt find handmade {rekordbox_title}, looking for effect named {effect_to_play}\n' * 8)
+                if effect_to_play not in effects_config:
+                    print_yellow(f'Cant play light show effect from rekordbox! Missing effect {effect_to_play}\n' * 8)
+                    continue
 
-            print_green(f'Playing light show effect from rekordbox: {rekordbox_title}\n' * 8)                    
-            clear_effects()
-            add_effect_from_dj(rekordbox_title, no_music=True)
+            # if rekordbox_title not in effects_config:
+            #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
+            #     rekordbox_title = 'g_' + rekordbox_title
+            #     if rekordbox_title not in effects_config:
+            #         print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
+            #         continue
+            # else:
+            #     print(f'FOUND handmade {rekordbox_title}\n' * 8)
+
+            if effect_to_play is not None:
+                print_green(f'Playing light show effect from rekordbox: {effect_to_play}\n' * 8)                    
+                clear_effects()
+                add_effect_from_dj(effect_to_play, no_music=True)
 
         # print(f'{list(msg.keys())}\n' * 10)
         if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
@@ -181,7 +195,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -234,6 +248,11 @@ async def init_dj_client(websocket, path):
                 clear_effects()
                 stop_song()
 
+            elif msg['type'] == 'toggle_laser_mode':
+                laser_mode = not laser_mode
+                print(f'Toggled laser mode, now in state: {laser_mode}\n')
+                restart_show(skip=0)
+
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
                 curr_bpm = float(msg['bpm'])
@@ -267,7 +286,7 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, simple=False)
+    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
     if new_effects is None:
         print_red(f'Autogenerator failed to create effect for {url}')
         return
@@ -587,16 +606,14 @@ def get_sub_effect_names(effect_name, beat):
     return sub_effect_names
 
 
-stage = None
 stage_chars = '.,-~:;=!*#$@'
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
+laser_stage = random.randint(0, 110)
+disco_stage = random.randint(0, 100)
+disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
-    import random
-    global rekordbox_time, rekordbox_bpm, rekordbox_title, stage
-
-    if stage is None:
-        stage = random.randint(0, 110)
+    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style
 
     curr_beat = (beat_index / SUB_BEATS) + 1
     terminal_size = os.get_terminal_size().columns
@@ -617,6 +634,10 @@ async def render_to_terminal(all_levels):
             all_effect_names.append(effect[0])
 
     useful_info = ''
+    if laser_mode:
+        useful_info += f'L1, '
+    else:
+        useful_info += f'L0, '
     if rekordbox_bpm is not None:
         useful_info += f', r_bpm {round(rekordbox_bpm, 1)}'
     if rekordbox_time is not None:
@@ -643,6 +664,7 @@ Beat {curr_beat:.1f}\
     uv_value = levels_255[9]
     laser_color_values = levels_255[10:12]
     laser_motor_value = levels_255[12] / 2.55
+    disco_color_values = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
 
@@ -652,13 +674,14 @@ Beat {curr_beat:.1f}\
     bottom_rgb_style = f'rgb({bottom_values[0]},{bottom_values[1]},{bottom_values[2]})'
 
     # print(f'{top_front_values=}, {top_back_values=}, {bottom_values=}, {uv_value=}, {laser_color_values=}, {laser_motor_value=}')
-    if any((x != 0 for x in laser_color_values)):
+    # print(f'{laser_color_values=}, {laser_motor_value=}')
+    if any(laser_color_values):
         line_length = terminal_size - 1
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(terminal_size - 1):
-                if j > 1 and j < 15 and (j + i + (stage // 9)) % 4 == 0:
-                    laser_arr[j + (line_length * i)] = stage_chars[stage // 10]
+                if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
+                    laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
         # print(f'{len(laser_string)}\n' * 3)
         laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
@@ -666,12 +689,27 @@ Beat {curr_beat:.1f}\
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = 'default'
 
+    if any(disco_color_values):
+        disco_string = ''
+        for i in range(14):
+            thing = (i + (disco_stage // 10))
+            if thing % 4 == 0 or thing % 6 == 0:
+                disco_string += 'o'
+            else:
+                disco_string += ' '
+        disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
+    else:
+        disco_string = ' ' * 14
+
+
     if all_levels[12] != 0:
-        stage += int(max(1, laser_motor_value // 10))
-        stage %= 110
+        laser_stage += int(max(1, laser_motor_value // 10))
+        laser_stage %= 110
+
+    disco_stage = (disco_stage + 1) % 10000
 
     effect_string = f'Effects: {", ".join(all_effect_names)}'
-    remaining = terminal_size - len(effect_string) 
+    remaining = terminal_size - len(effect_string)
     console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
     console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
 
@@ -683,7 +721,11 @@ Beat {curr_beat:.1f}\
     console.print('\n', style=top_back_rgb_style, end='')
     console.print(laser_string, style=laser_style, end='')
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print('', end='\033[F' * 6)
+    console.print(' ', style='default', end='')
+    for char in disco_string:
+        console.print(char, style=disco_style, end='')
+    console.print(' ' * dead_space, style='default', end='')
+    console.print('', end='\033[F' * 7)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -813,6 +855,20 @@ def clear_effects():
 def add_effect(name):
     global beat_index, time_start, curr_bpm
 
+    if name.startswith('g_lasers_') and not laser_mode:
+        name = 'g_' + name[9:]
+    elif name.startswith('g_') and laser_mode:
+        laser_name = 'g_lasers_' + name[2:]
+        print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
+        if laser_name in effects_config:
+            print_green(f'Found "{laser_name}"\n' * 5)
+            name = laser_name
+        else:
+            print_yellow(f'Could not find laser effect, using normal effect instead\n' * 5)
+
+    if name in effects_config and 'song_path' in effects_config[name]:
+        print(f'Adding effect with song named {name}')
+
     if name not in channel_lut:
         print_green(f'late lut compiling {name}')
         compile_lut({name: effects_config[name]})
@@ -840,7 +896,7 @@ def add_effect(name):
 def play_song(effect_name, print_out=True):
     global take_rekordbox_input
     take_rekordbox_input = False
-    print('trying to play', effect_name)
+    print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:
@@ -881,6 +937,7 @@ def setup_gpio():
 effects_config = {}
 effects_config_client = {}
 songs_config = {}
+song_name_to_show_names = {}
 
 channel_lut = {}
 
@@ -954,7 +1011,7 @@ def add_song_to_config(filepath):
 
 
 def load_effects_config_from_disk():
-    global effects_config, effects_config_client, graph, found
+    global effects_config, effects_config_client, graph, found, song_name_to_show_names
     update_config_and_lut_time = time.time()
 
     effects_config = {}
@@ -962,6 +1019,8 @@ def load_effects_config_from_disk():
 
     graph = {}
     found = {}
+
+    song_name_to_show_names = {}
 
     effects_dir = this_file_directory.joinpath('effects')
 
@@ -994,19 +1053,26 @@ def load_effects_config_from_disk():
             add_song_to_config(filepath)
     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
     
-    for _effect_name, effect in effects_config.items():
-        if 'song_path' in effect and effect['song_path'] not in songs_config and effect.get('song_not_avaliable', True):
-            if args.show:
-                effect['song_not_avaliable'] = True
-            else:
-                del effect['song_path']
-                # print_red('deleted', _effect_name)
+    for effect_name, effect in effects_config.items():
+        if 'song_path' in effect: 
+            if effect['song_path'] in songs_config:
+                song_name = pathlib.Path(effect['song_path']).stem                    
+                if song_name not in song_name_to_show_names:
+                    song_name_to_show_names[song_name] = []
+                song_name_to_show_names[song_name].append(effect_name)
+                # print(effect_name, song_name_to_show_names[song_name])
+            elif effect.get('song_not_avaliable', True):
+                    if args.show:
+                        effect['song_not_avaliable'] = True
+                    else:
+                        del effect['song_path']
+                        # print_red('deleted', _effect_name)
 
     add_dependancies(effects_config)
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
 
 
-def set_effect_defaults(effect):
+def set_effect_defaults(name, effect):
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
     if 'sat_shift' not in effect:
@@ -1027,6 +1093,10 @@ def set_effect_defaults(effect):
         if 'bpm' not in effect:
             print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
             exit()
+        
+        if name in originals:
+            effect['delay_lights'] = originals[name]['delay_lights']
+
         effect['delay_lights'] = effect.get('delay_lights', 0)
         if not args.local:
             effect['delay_lights'] += 0.1
@@ -1055,8 +1125,9 @@ def compile_all_luts_from_effects_config():
         effects_config_to_compile[args.show] = effects_config[args.show]
 
     for name, effect in effects_config.items():
-        set_effect_defaults(effect)
+        set_effect_defaults(name, effect)
 
+        # if not name.startswith('g_lasers_'):
         effects_config_client[name] = {}
         for key, value in effect.items():
             if key != 'beats':
@@ -1081,7 +1152,7 @@ def compile_lut(local_effects_config):
 
     sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
-        set_effect_defaults(effect)
+        set_effect_defaults(name, effect)
         dfs(name)
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
@@ -1334,22 +1405,31 @@ if __name__ == '__main__':
     if args.autogen:
         import generate_show
 
-        def gen_show_and_add_to_config(filepath):
-            new_effect, output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, simple=args.autogen_simple)
-            effects_config.update(new_effect)
+        def gen_show_and_add_to_config(filepath, mode):
+            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=mode)
             effect_name = list(new_effect.keys())[0]
-            add_dependancies(new_effect)
             effects_config[effect_name] = new_effect[effect_name]
+            # set_effect_defaults(effects_config[effect_name])
+            add_dependancies(new_effect)
             return effect_name
 
         if args.autogen == 'all':
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for _name, song_path in get_all_paths('songs', only_files=True):
-                gen_show_and_add_to_config(song_path)
+                if args.autogen_mode == 'both':
+                    gen_show_and_add_to_config(song_path, mode=None)
+                    gen_show_and_add_to_config(song_path, mode='lasers')
+                else:
+                    gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-            args.show = gen_show_and_add_to_config(song_path)
+            
+            if args.autogen_mode == 'both':
+                args.show = gen_show_and_add_to_config(song_path, mode=None)
+                gen_show_and_add_to_config(song_path, mode='lasers')
+            else:
+                args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:
@@ -1408,7 +1488,7 @@ if __name__ == '__main__':
         observer.start()
 
     if args.keyboard:
-        from pynput.keyboard import Key, Listener, KeyCode
+        from pynput.keyboard import Listener, KeyCode
 
         if is_linux():
             _return_code, stdout, _stderr = run_command_blocking([
@@ -1421,8 +1501,8 @@ if __name__ == '__main__':
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
-            # 'j': 'Blue bottom',
-            # 'k': 'Green bottom',
+            'j': lambda: restart_show(skip=-skip_time),
+            ';': lambda: restart_show(skip=skip_time),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             # 'space': 'UV',

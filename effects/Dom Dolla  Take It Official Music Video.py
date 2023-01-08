@@ -18,6 +18,7 @@ effects = {
     },
     "dom chorus": {
         'length': 16,
+        'autogen': 'laser long',
         "beats": [
             b(1, name='dom chorus laser', length=16),
             b(10, name='UV pulse', length=3),
@@ -116,9 +117,9 @@ effects = {
     #         b(-20, name='Red top', length=.2, intensity=1),
     #     ],
     # },
-    "Dom Dolla  Take It Official Music Video": {
+    "Dom Dolla - Take It (Official Music Video)": {
         "bpm": 123,
-        "song_path": "songs/Dom Dolla  Take It Official Music Video.ogg",
+        "song_path": "songs/Dom Dolla - Take It (Official Music Video).ogg",
         "delay_lights": 0.15150000000000002,
         "skip_song": 0.0,
         "beats": [

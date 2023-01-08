@@ -31,6 +31,17 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 ### Note that the --show parameter here fuzzy finds the filename
 `python server.py --local --autogen shelter`
 
+## to autogenerate everything for a party
+`python light_server.py --local --autogen all --autogen_mode both`
+
+### autogen_mode options
+* `default` - autogenerates normal
+* `lasers` - autogenerates laser mode
+* `both` - autogenerates both normal and laser modes
+* `simple` - autogenerates simple RBBB 1 bar for song
+
+### copy generated shows to doorbell
+`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
 
 # andrew specific commands
 

@@ -11,7 +11,7 @@ effects = {
     # 1 - 64: 
     "deadmau5 & Kaskade - I Remember (HQ)": {
         "beats": [
-            [1, "g_filler 2", 64],
+            [1, "RBBB 1 bar", 64],
             # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],

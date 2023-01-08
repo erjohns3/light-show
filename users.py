@@ -19,6 +19,10 @@ users = {
         "name": "Andrews Upstairs Computer Chrome",
         "admin": True
     },
+    "e465a27f-1e8f-ca37-2ad3-c148ebe1e54a": {
+        "name": "Andrews Upstairs Computer Firefox",
+        "admin": True
+    },
     "f9219d16-42e7-bf2f-9fa6-a2828d87bdc": {
         "name": "Andrews Phone",
         "admin": True

@@ -6,8 +6,9 @@ import importlib
 import time
 from collections import Counter
 from multiprocessing import Queue, Process
-from copy import deepcopy, copy
+from copy import deepcopy
 import colorsys
+import random
 
 from scipy.stats import circmean
 from scipy.signal import find_peaks
@@ -311,10 +312,13 @@ def get_avg_hue(channel_lut, effect_name):
     return avg_hue_cache[effect_name]
 
 
-def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, simple=False, include_song_path=True, output_directory=None, random_color=True):
+def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
     start_time = time.time()
-    use_boundaries = True and not simple
-    show_name = f'g_{pathlib.Path(song_filepath).stem}'
+    use_boundaries = True and mode != 'simple'
+    if mode == 'lasers':
+        show_name = f'g_lasers_{pathlib.Path(song_filepath).stem}'
+    else:
+        show_name = f'g_{pathlib.Path(song_filepath).stem}'
 
     if output_directory is None:
         output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
@@ -384,8 +388,21 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
         [1, ['filler']],
         [2, ['UV pulse']],
         [1, ['UV pulse single']],
-        # [1, ['flash']],
     ]
+
+    if mode == 'lasers':
+        for i in range(10):
+            scenes += [
+                [8, ['laser long']],
+            ]
+
+
+        scenes += [
+            [2, ['filler laser']],
+            [1, ['filler laser']],
+        ]
+
+
     # if chunk is high intensity: at least one effect must be mid or high
     # if chunk is low: no effects should be high
     # if chunk is silence: show UV pulse at half time
@@ -393,14 +410,13 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
 
     # apply lights
     total_beats = int((song_length / 60) * bpm_guess)
-    beat = 1    
-    if simple: # Only RBBB timing
+    beat = 1  
+    if mode == 'simple': # Only RBBB timing
         while beat < total_beats:
-            effect_name = 'RBBB 1 bar'
-            effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
+            # effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
             # avg_hue = get_avg_hue(channel_lut, effect_name)
             # print(f'avg hue of {effect_name}: {avg_hue}')
-            show['beats'].append([beat, effect_name, 4])
+            show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
     elif use_boundaries==True: # Based on scenes
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
@@ -439,7 +455,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, si
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         if not effect_candidates: # it's low intensity but all candidates are high
-                            effect_candidates = ['g_UV pulse']
+                            effect_candidates = ['a_UV pulse']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color

@@ -40,6 +40,9 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 * `both` - autogenerates both normal and laser modes
 * `simple` - autogenerates simple RBBB 1 bar for song
 
+### copy generated shows to doorbell
+`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
+
 # andrew specific commands
 
 `python server.py --local --keyboard --delay .189 --autogen shelter --volume 5`

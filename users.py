@@ -31,6 +31,10 @@ users = {
         "name": "Andrews Phone 2",
         "admin": True,
     },
+    "fcce4d6-662c-eead-809b-c57753418041": {
+        "name": "Andrews chrome phone",
+        "admin": True,
+    },
     "f03bcee9-b573-338f-9289-a49ebd70f062": {
         "name": "Erics phone",
         "admin": True,

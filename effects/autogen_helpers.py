@@ -3,7 +3,7 @@ from effects.compiler import b
 
 effects = {
     # dimmers
-    "dimmer all": {
+    "z_dimmer all": {
         "length": 1,
         "autogen": "dimmers",
         "beats": [
@@ -13,14 +13,14 @@ effects = {
         ],
     },
     # fillers
-    "a_Strobe": {
+    "z_Strobe": {
         "length": 1,
         "autogen": "strobe",
         "beats": [
             [1, "Strobe", 1],
         ],
     },
-    "a_UV Strobe": {
+    "z_UV Strobe": {
         "length": 1,
         "autogen": "strobe",
         "beats": [
@@ -28,14 +28,14 @@ effects = {
         ],
     },
 
-    "a_UV": {
+    "z_UV": {
         "length": 1,
         "autogen": "UV",
         "beats": [
             [1, "UV", 1],
         ],
     },
-    "a_UV pulse": {
+    "z_UV pulse": {
         "length": 1,
         "autogen": "UV pulse single",
         "beats": [
@@ -43,7 +43,7 @@ effects = {
         ],
     },
 
-    "a_UV pulse copy": {
+    "z_UV pulse copy": {
         "length": 1,
         "autogen": "UV pulse",
         "beats": [
@@ -59,7 +59,7 @@ effects = {
         ],
     },
 
-    "a_white bottom": {
+    "z_white bottom": {
         "autogen": "filler",
         "length": 1,
         "beats": [
@@ -68,7 +68,7 @@ effects = {
     },
 
 
-    "a_filler laser 1": {
+    "z_filler laser 1": {
         "length": 1,
         "autogen": "filler laser",
         "intensity": "high",
@@ -77,7 +77,7 @@ effects = {
         ],
     },
 
-    "a_filler laser 2": {
+    "z_filler laser 2": {
         "length": 1,
         "autogen": "filler laser",
         "intensity": "high",
@@ -86,7 +86,7 @@ effects = {
         ],
     },
 
-    "a_filler 1": {
+    "z_filler 1": {
         "length": 1,
         "autogen": "filler",
         "intensity": "high",
@@ -98,7 +98,7 @@ effects = {
         ],
     },
 
-    "a_filler 2": {
+    "z_filler 2": {
         "length": 2,
         "autogen": "filler",
         "intensity": "high",
@@ -111,7 +111,7 @@ effects = {
         ],
     },
 
-    "a_filler 3": {
+    "z_filler 3": {
         "length": 2,
         "autogen": "filler",
         "intensity": "low",
@@ -130,7 +130,7 @@ effects = {
             [3, "White top", .4, 1, 0],
         ],
     },
-    "a_rainbow good top pulse 1": {
+    "z_rainbow good top pulse 1": {
         "length": 8,
         "autogen": "downbeat top",
         "intensity": "low",
@@ -152,7 +152,7 @@ effects = {
             [4, "White top", .4, 1, 0],
         ],
     },
-    "a_rainbow good top pulse 2": {
+    "z_rainbow good top pulse 2": {
         "length": 8,
         "autogen": "downbeat top",
         "intensity": "low",
@@ -170,7 +170,7 @@ effects = {
 
 
     # rainbows
-    "a_rainbow good top": {
+    "z_rainbow good top": {
         "length": 8,
         "autogen": "rainbow top",
         "intensity": "low",
@@ -184,7 +184,7 @@ effects = {
             [6.32, "Green top", 2.66, 0, 1],
         ],
     },
-    "a_rainbow good slow top": {
+    "z_rainbow good slow top": {
         "length": 16,
         "intensity": "low",
         "autogen": "rainbow top",
@@ -210,7 +210,7 @@ effects = {
     },
 
     # downbeat tops and bottoms
-    "a_solid bottom cycle": {
+    "z_solid bottom cycle": {
         "length": 4,
         "autogen": "downbeat bottom",
         "beats": [
@@ -225,7 +225,7 @@ effects = {
         ],
     },
 
-    "a_solid bottom cycle down then up": {
+    "z_solid bottom cycle down then up": {
         "length": 4,
         "autogen": "downbeat bottom",
         "beats": [
@@ -247,7 +247,7 @@ effects = {
         ],
     },
 
-    "a_pulse top swap 1": {
+    "z_pulse top swap 1": {
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -258,7 +258,7 @@ effects = {
         ],
     },
 
-    "a_pulse top swap 2": {
+    "z_pulse top swap 2": {
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -269,7 +269,7 @@ effects = {
         ],
     },
 
-    "a_pulse top swap 3": {
+    "z_pulse top swap 3": {
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -281,7 +281,7 @@ effects = {
 
 
     # andrew i think this sucks
-    # "a_solid top cycle 1": {
+    # "z_solid top cycle 1": {
     #     "length": 4,
     #     "autogen": "downbeat top",
     #     "beats": [
@@ -292,7 +292,7 @@ effects = {
     #     ],
     # },
 
-    "a_solid top cycle 2": {
+    "z_solid top cycle 2": {
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -303,7 +303,7 @@ effects = {
         ],
     },
 
-    "a_solid mixed 1": {
+    "z_solid mixed 1": {
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -316,7 +316,7 @@ effects = {
         ],
     },
 
-    "a_solid mixed 2": {
+    "z_solid mixed 2": {
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -331,7 +331,7 @@ effects = {
         ],
     },
 
-    "a_solid mixed 3": {
+    "z_solid mixed 3": {
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -346,7 +346,7 @@ effects = {
         ],
     },
 
-    "a_solid mixed 4": {
+    "z_solid mixed 4": {
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -359,7 +359,7 @@ effects = {
         ],
     },
 
-    "a_solid mixed cycle": {
+    "z_solid mixed cycle": {
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -370,14 +370,14 @@ effects = {
         ],
     },
 
-    "a_cyan top pulse": {
+    "z_cyan top pulse": {
         "length": 1,
         "autogen": "downbeat top",
         "beats": [
             [1, "Cyan top", 1, 0.42, .2],
         ],
     },
-    "a_purple purple yellow top pulse": {
+    "z_purple purple yellow top pulse": {
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -386,7 +386,7 @@ effects = {
         ],
     },
 
-    "a_green sidechain top pulse": {
+    "z_green sidechain top pulse": {
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -398,7 +398,7 @@ effects = {
     },
 
 
-    "a_purple green bottom pulse": {
+    "z_purple green bottom pulse": {
         "length": 2,
         "autogen": "downbeat bottom",
         "beats": [
@@ -406,7 +406,7 @@ effects = {
             [2, "Green bottom", 1, 0.42, .2],
         ],
     },
-    "a_green sidechain bottom pulse": {
+    "z_green sidechain bottom pulse": {
         "length": 2,
         "autogen": "downbeat bottom",
         "beats": [
@@ -419,21 +419,21 @@ effects = {
 
 
     # disco
-    "a_green disco": {
+    "z_z_green disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
             b(1, name='Green disco', length=8),
         ],
     },
-    "a_red disco": {
+    "z_z_red disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
             b(1, name='Red disco', length=8),
         ],
     },
-    "a_blue disco": {
+    "z_z_blue disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -441,7 +441,7 @@ effects = {
         ],
     },
     
-    "a_green_red disco": {
+    "z_z_green_red disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -449,7 +449,7 @@ effects = {
             b(1, name='Red disco', length=8),
         ],
     },
-    "a_green_blue disco": {
+    "z_z_green_blue disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -458,7 +458,7 @@ effects = {
         ],
     },
 
-    "a_blue_red disco": {
+    "z_z_blue_red disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -466,7 +466,7 @@ effects = {
             b(1, name='Red disco', length=8),
         ],
     },
-    "a_blue_green disco": {
+    "z_z_blue_green disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -475,7 +475,7 @@ effects = {
         ],
     },
 
-    "a_red_blue disco": {
+    "z_z_red_blue disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -483,7 +483,7 @@ effects = {
             b(1, name='Blue disco', length=8),
         ],
     },
-    "a_red_green disco": {
+    "z_z_red_green disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -492,7 +492,7 @@ effects = {
         ],
     },
 
-    "a_red_green_blue disco": {
+    "z_z_red_green_blue disco": {
         "length": 8,
         "autogen": "disco",
         "beats": [
@@ -504,21 +504,21 @@ effects = {
 
 
     # disco 2 (strobers)
-    "a_green disco strobe": {
+    "z_z_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Green disco pulse', length=8),
         ],
     },
-    "a_red disco strobe": {
+    "z_z_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_blue disco strobe": {
+    "z_z_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -526,7 +526,7 @@ effects = {
         ],
     },
     
-    "a_green_red disco strobe": {
+    "z_z_green_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -534,7 +534,7 @@ effects = {
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_green_blue disco strobe": {
+    "z_z_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -543,7 +543,7 @@ effects = {
         ],
     },
 
-    "a_blue_red disco strobe": {
+    "z_z_blue_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -551,7 +551,7 @@ effects = {
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_blue_green disco strobe": {
+    "z_z_blue_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -560,7 +560,7 @@ effects = {
         ],
     },
 
-    "a_red_blue disco strobe": {
+    "z_z_red_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -568,7 +568,7 @@ effects = {
             b(1, name='Blue disco pulse', length=8),
         ],
     },
-    "a_red_green disco strobe": {
+    "z_z_red_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -577,7 +577,7 @@ effects = {
         ],
     },
 
-    "a_red_green_blue disco strobe": {
+    "z_z_red_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -588,21 +588,21 @@ effects = {
     },
 
 
-    "a_green disco strobe": {
+    "z_z_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Green disco pulse', length=8, offset=.5),
         ],
     },
-    "a_red disco strobe": {
+    "z_z_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_blue disco strobe": {
+    "z_z_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -610,7 +610,7 @@ effects = {
         ],
     },
     
-    "a_green_red disco strobe": {
+    "z_z_green_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -618,7 +618,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_green_blue disco strobe": {
+    "z_z_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -627,7 +627,7 @@ effects = {
         ],
     },
 
-    "a_blue_red disco strobe": {
+    "z_z_blue_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -635,7 +635,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_blue_green disco strobe": {
+    "z_z_blue_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -644,7 +644,7 @@ effects = {
         ],
     },
 
-    "a_red_blue disco strobe": {
+    "z_z_red_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -652,7 +652,7 @@ effects = {
             b(1, name='Blue disco pulse', length=8, offset=.5),
         ],
     },
-    "a_red_green disco strobe": {
+    "z_z_red_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -661,7 +661,7 @@ effects = {
         ],
     },
 
-    "a_red_green_blue disco strobe": {
+    "z_z_red_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [

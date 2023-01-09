@@ -40,7 +40,7 @@ parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
-parser.add_argument('--autogen', dest='autogen', default='')
+parser.add_argument('--autogen', dest='autogen', default='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default=None)
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 

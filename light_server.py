@@ -99,9 +99,8 @@ def run_http_server_forever():
     global printed_http_info
     import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
-    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html')
-    print_green(f'Queue: http://{local_ip}:{PORT}', flush=True)
-    printed_http_info = False
+    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
+    printed_http_info = True
     httpd.serve_forever()
 
 
@@ -623,7 +622,7 @@ disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
     global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style, printed_http_info
 
-    if not printed_http_info:
+    while not printed_http_info:
         time.sleep(.01)
 
     curr_beat = (beat_index / SUB_BEATS) + 1

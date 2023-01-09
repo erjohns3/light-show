@@ -105,7 +105,7 @@ def http_server():
 ########################################
 
 def add_effect_from_dj(effect_name, no_music=False):
-    global song_time, song_playing, broadcast_song_status
+    global song_time, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
     if not no_music and has_song(effect_name):
@@ -117,7 +117,6 @@ def add_effect_from_dj(effect_name, no_music=False):
             song_queue.pop()
         song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
         play_song(effect_name)
-        song_playing = True
         broadcast_song_status = True
 
 
@@ -388,7 +387,6 @@ async def init_queue_client(websocket, path):
                         add_effect(effect_name)
                         broadcast_light_status = True
                         play_song(effect_name)
-                        song_playing = True
 
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -517,7 +515,6 @@ def add_queue_balanced(effect_name, uuid):
         add_effect(effect_name)
         broadcast_light_status = True
         play_song(effect_name)
-        song_playing = True
         broadcast_song_status = True
 
 
@@ -887,7 +884,7 @@ def add_effect(new_effect_name):
 
 
 def play_song(effect_name, print_out=True):
-    global take_rekordbox_input
+    global take_rekordbox_input, song_playing
     take_rekordbox_input = False
     print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
@@ -902,7 +899,7 @@ def play_song(effect_name, print_out=True):
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
     pygame.mixer.music.play(start=start_time)
-
+    song_playing = True
 
 def stop_song():
     pygame.mixer.music.stop()

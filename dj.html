@@ -140,11 +140,6 @@
                     laserModeElem.classList.remove('lighten-laser-mode')
                 }
                 console.log('laser classlist', laserModeElem.classList)
-
-
-                if(startTime){
-                    console.log(Date.now() - startTime);
-                }
             }
         }
     }
@@ -373,7 +368,6 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        startTime = Date.now();
     }
 
     function removeEffect(effect){
@@ -383,7 +377,6 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        startTime = Date.now();
     }
 
     function sendToggleLaserMode(){
@@ -392,7 +385,6 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        // startTime = Date.now();
     }
 
     function sendUpdate(){
@@ -401,7 +393,6 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        startTime = Date.now();
     }
 
     function sendClear(){
@@ -410,14 +401,11 @@
         };
         socket.send(JSON.stringify(msg));
         console.log(msg);
-        startTime = Date.now();
     }
 
     var socket = null;
     var socketConnected = false;
     var socketAttempts = 0;
-
-    var startTime = false;
 
     var effectsConfig = {};
     var songsConfig = {};

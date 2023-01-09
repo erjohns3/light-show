@@ -469,4 +469,174 @@ effects = {
             [2, "Some color bottom", 0.3, 1, .7],
         ],
     },
+
+
+    # disco
+    "a_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco', length=8),
+        ],
+    },
+    "a_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco', length=8),
+        ],
+    },
+    "a_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco', length=8),
+        ],
+    },
+    
+    "a_green_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco', length=8),
+            b(1, name='Red disco', length=8),
+        ],
+    },
+    "a_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco', length=8),
+            b(1, name='Blue disco', length=8),
+        ],
+    },
+
+    "a_blue_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco', length=8),
+            b(1, name='Red disco', length=8),
+        ],
+    },
+    "a_blue_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco', length=8),
+            b(1, name='Green disco', length=8),
+        ],
+    },
+
+    "a_red_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco', length=8),
+            b(1, name='Blue disco', length=8),
+        ],
+    },
+    "a_red_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco', length=8),
+            b(1, name='Green disco', length=8),
+        ],
+    },
+
+    "a_red_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco', length=8),
+            b(1, name='Green disco', length=8),
+            b(1, name='Blue disco', length=8),
+        ],
+    },
+
+
+    # disco 2 (strobers)
+    "a_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8),
+        ],
+    },
+    "a_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8),
+        ],
+    },
+    "a_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8),
+        ],
+    },
+    
+    "a_green_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8),
+            b(1, name='Red disco pulse', length=8),
+        ],
+    },
+    "a_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8),
+            b(1, name='Blue disco pulse', length=8),
+        ],
+    },
+
+    "a_blue_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8),
+            b(1, name='Red disco pulse', length=8),
+        ],
+    },
+    "a_blue_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8),
+            b(1, name='Green disco pulse', length=8),
+        ],
+    },
+
+    "a_red_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8),
+            b(1, name='Blue disco pulse', length=8),
+        ],
+    },
+    "a_red_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8),
+            b(1, name='Green disco pulse', length=8),
+        ],
+    },
+
+    "a_red_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8),
+            b(1, name='Green disco pulse', length=8),
+            b(1, name='Blue disco pulse', length=8),
+        ],
+    },   
 }

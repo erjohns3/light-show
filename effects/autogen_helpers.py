@@ -504,21 +504,21 @@ effects = {
 
 
     # disco 2 (strobers)
-    "a_green disco": {
+    "a_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Green disco pulse', length=8),
         ],
     },
-    "a_red disco": {
+    "a_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_blue disco": {
+    "a_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -526,7 +526,7 @@ effects = {
         ],
     },
     
-    "a_green_red disco": {
+    "a_green_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -534,7 +534,7 @@ effects = {
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_green_blue disco": {
+    "a_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -543,7 +543,7 @@ effects = {
         ],
     },
 
-    "a_blue_red disco": {
+    "a_blue_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -551,7 +551,7 @@ effects = {
             b(1, name='Red disco pulse', length=8),
         ],
     },
-    "a_blue_green disco": {
+    "a_blue_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -560,7 +560,7 @@ effects = {
         ],
     },
 
-    "a_red_blue disco": {
+    "a_red_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -568,7 +568,7 @@ effects = {
             b(1, name='Blue disco pulse', length=8),
         ],
     },
-    "a_red_green disco": {
+    "a_red_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -577,7 +577,7 @@ effects = {
         ],
     },
 
-    "a_red_green_blue disco": {
+    "a_red_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -588,21 +588,21 @@ effects = {
     },
 
 
-    "a_green disco": {
+    "a_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Green disco pulse', length=8, offset=.5),
         ],
     },
-    "a_red disco": {
+    "a_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_blue disco": {
+    "a_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -610,7 +610,7 @@ effects = {
         ],
     },
     
-    "a_green_red disco": {
+    "a_green_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -618,7 +618,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_green_blue disco": {
+    "a_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -627,7 +627,7 @@ effects = {
         ],
     },
 
-    "a_blue_red disco": {
+    "a_blue_red disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -635,7 +635,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "a_blue_green disco": {
+    "a_blue_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -644,7 +644,7 @@ effects = {
         ],
     },
 
-    "a_red_blue disco": {
+    "a_red_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -652,7 +652,7 @@ effects = {
             b(1, name='Blue disco pulse', length=8, offset=.5),
         ],
     },
-    "a_red_green disco": {
+    "a_red_green disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -661,7 +661,7 @@ effects = {
         ],
     },
 
-    "a_red_green_blue disco": {
+    "a_red_green_blue disco strobe": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [

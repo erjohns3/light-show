@@ -250,8 +250,11 @@ async def init_dj_client(websocket, path):
                 laser_mode = not laser_mode
                 print(f'Toggled laser mode, now in state: {laser_mode}\n')
                 if curr_effects:
-                    curr_effects[0][0] = maybe_get_laser_version(curr_effects[0][0])
-                    # restart_show(skip=0)
+                    maybe_new_effect_name = maybe_get_laser_version(curr_effects[0][0])
+                    if maybe_new_effect_name not in channel_lut:
+                        print_green(f'late lut compiling {maybe_new_effect_name}')
+                        compile_lut({maybe_new_effect_name: effects_config[maybe_new_effect_name]})
+                    curr_effects[0][0] = maybe_new_effect_name
 
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()

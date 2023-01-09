@@ -138,7 +138,7 @@
                         buttons[effect_name][profile_name].activate();
                     }
                 }
-                
+
                 rateCurr = msg.status.rate;
                 rateCurrElem.textContent = rateCurr.toFixed(1);
                 
@@ -146,6 +146,15 @@
                     rateNext = rateCurr;
                     rateNextElem.textContent = rateNext.toFixed(1);;
                 }
+
+                if (msg.status.laser_mode) {
+                    laserModeElem.classList.add('lighten-laser-mode')
+                }
+                else {
+                    laserModeElem.classList.remove('lighten-laser-mode')
+                }
+                console.log('laser classlist', laserModeElem.classList)
+
 
                 if(startTime){
                     console.log(Date.now() - startTime);
@@ -172,7 +181,12 @@
 
             this.length = effectsConfig[this.effect].length;
             this.bpm = effectsConfig[this.effect].bpm;
-            
+
+            //             cnam drop
+            // dj.html:104 cnam show
+            // dj.html:186 Uncaught TypeError: Cannot read properties of undefined (reading 'name')
+            //     at new ButtonItem (dj.html:186:116)
+            //     at socket.onmessage (dj.html:118:70)
             if('song_path' in effectsConfig[this.effect]) {
                 this.querySelector(".button-name").textContent = songsConfig[effectsConfig[this.effect].song_path].name;
                 this.querySelector(".button-symbol").textContent = '♫';
@@ -828,6 +842,10 @@
         background-color: hsla(40, 100%, 40%, 0.5);
     }
 
+    .lighten-laser-mode{
+        background-color: hsla(119, 100%, 40%, 0.5) !important;
+    }
+
     #laser-mode{
         position: absolute;
         left: 7.25vw;
@@ -840,8 +858,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(40, 100%, 40%, 0.5);
+        background-color: hsla(119, 100%, 20%, 0.5);
     }
+
 
     #clear{
         position: absolute;

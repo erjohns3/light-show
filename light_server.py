@@ -203,7 +203,8 @@ async def init_dj_client(websocket, path):
         'songs': songs_config,
         'status': {
             'effects': curr_effects,
-            'rate': curr_bpm
+            'rate': curr_bpm,
+            'laser_mode': laser_mode,
         }
     }
     dump = json.dumps(message)
@@ -552,7 +553,8 @@ async def send_light_status():
     message = {
         'status': {
             'effects': curr_effects,
-            'rate': curr_bpm
+            'rate': curr_bpm,
+            'laser_mode': laser_mode,
         }
     }
     await broadcast(light_sockets, json.dumps(message))

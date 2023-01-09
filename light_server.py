@@ -251,7 +251,9 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'toggle_laser_mode':
                 laser_mode = not laser_mode
                 print(f'Toggled laser mode, now in state: {laser_mode}\n')
-                restart_show(skip=0)
+                if curr_effects:
+                    curr_effects[0][0] = maybe_get_laser_version(curr_effects[0][0])
+                    # restart_show(skip=0)
 
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
@@ -836,30 +838,34 @@ def clear_effects():
     while len(curr_effects) > 0:
         remove_effect(0)
 
-def add_effect(name):
-    global beat_index, time_start, curr_bpm
-
-    if name.startswith('g_lasers_'):
+def maybe_get_laser_version(effect_name):
+    if effect_name.startswith('g_lasers_'):
         if not laser_mode:
-            name = 'g_' + name[9:]
-    elif name.startswith('g_') and laser_mode:
-        laser_name = 'g_lasers_' + name[2:]
+            return 'g_' + effect_name[9:]
+    elif effect_name.startswith('g_') and laser_mode:
+        laser_name = 'g_lasers_' + effect_name[2:]
         print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
         if laser_name in effects_config:
             print_green(f'Found "{laser_name}"\n' * 5)
-            name = laser_name
+            return laser_name
         else:
             print_yellow(f'Could not find laser effect, using normal effect instead\n' * 5)
+    return effect_name
 
-    if name in effects_config and 'song_path' in effects_config[name]:
-        print(f'Adding effect with song named {name}')
+def add_effect(new_effect_name):
+    global beat_index, time_start, curr_bpm
 
-    if name not in channel_lut:
-        print_green(f'late lut compiling {name}')
-        compile_lut({name: effects_config[name]})
+    new_effect_name = maybe_get_laser_version(new_effect_name)
 
-    effect = effects_config[name]
-    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(name) is not False:
+    if new_effect_name in effects_config and 'song_path' in effects_config[new_effect_name]:
+        print(f'Adding effect with song named {new_effect_name}')
+
+    if new_effect_name not in channel_lut:
+        print_green(f'late lut compiling {new_effect_name}')
+        compile_lut({new_effect_name: effects_config[new_effect_name]})
+
+    effect = effects_config[new_effect_name]
+    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(new_effect_name) is not False:
         return
 
     if 'bpm' in effect:
@@ -875,7 +881,7 @@ def add_effect(name):
         if offset > snap * 0.5:
             offset -= snap
         offset -= beat_index
-    curr_effects.append([name, offset])
+    curr_effects.append([new_effect_name, offset])
 
 
 def play_song(effect_name, print_out=True):

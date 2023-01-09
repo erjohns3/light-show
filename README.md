@@ -24,16 +24,6 @@ To use the UI, the terminal output will output something like `serving at: `, ju
     * chris's idea - changing some effects but not all - on non-high delta changes
 
 
-# Getting songs
-It should be pretty good about auto downloading specific songs with the --show parameter, but you can also copy on mass from the doorbell with the below commands
-
-## To get all songs from doorbell
-`scp -r pi@doorbell:/home/pi/light-show/songs .`
-
-## To push your songs TO the doorbell
-`scp -r songs pi@doorbell:/home/pi/light-show/`
-
-
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
 `python light_server.py --local --autogen shelter`
@@ -47,12 +37,19 @@ It should be pretty good about auto downloading specific songs with the --show p
 * `lasers` - autogenerates laser mode
 * `simple` - autogenerates simple RBBB 1 bar for song
 
-### copy generated shows to doorbell
-`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
-
-## download song from youtube and make show file (auto finds BPM and offset)
+# Getting songs
+### download song from youtube and make show file (auto finds BPM and offset)
 `python youtube_helpers.py --show "YOUTUBE_URL_HERE"`
 
+### To get all songs from doorbell
+It should be pretty good about auto downloading specific songs with the --show parameter (run it and see what it says), but to download all songs, run:
+`scp -r pi@doorbell:/home/pi/light-show/songs .`
+
+### To push your songs TO the doorbell
+`scp -r songs pi@doorbell:/home/pi/light-show/`
+
+#### copy generated shows to doorbell
+`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
 
 ### youtube download on command line (don't use this)
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`

@@ -1,7 +1,5 @@
 import json
 import time
-import argparse
-import sys
 
 import youtube_helpers
 from helpers import *

@@ -4,7 +4,7 @@ import light_server
 import youtube_helpers
 
 
-light_server.update_config_and_lut_from_disk()
+light_server.load_effects_config_from_disk()
 channel_lut = light_server.get_channel_lut()
 effects_config = light_server.get_effects_config()
 

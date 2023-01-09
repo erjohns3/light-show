@@ -140,7 +140,13 @@
                 else {
                     laserModeElem.classList.remove('lighten-laser-mode')
                 }
-                console.log('laser classlist', laserModeElem.classList)
+
+                if (msg.status.dev_mode) {
+                    devModeElem.classList.add('lighten-dev-mode')
+                }
+                else {
+                    devModeElem.classList.remove('lighten-dev-mode')
+                }
             }
         }
     }
@@ -447,6 +453,7 @@
     var refreshElem = document.getElementById("refresh");
     var laserModeElem = document.getElementById("laser-mode");
     var clearElem = document.getElementById("clear");
+    var devModeElem = document.getElementById("dev-mode");
 
     function decimal(num, place) {
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
@@ -462,6 +469,10 @@
 
     clearElem.onclick = function () {
         sendClear();
+    }
+
+    devModeElem.onclick = function () {
+        sendDevMode();
     }
 
     socketInit();
@@ -791,7 +802,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(303, 100%, 17%, 0.5);
+        background-color: hsla(303, 100%, 14%, 0.5);
     }
 
     .button:active{

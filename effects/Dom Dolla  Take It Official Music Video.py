@@ -58,7 +58,6 @@ effects = {
         ]
     },
     "dom fade blue red bottom": {
-        "profiles": ["autogen helpers"],
         "length": 8,
         "beats": [
             [1, "Blue bottom", .7, 1, 0],

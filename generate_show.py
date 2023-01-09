@@ -371,7 +371,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     
     scenes = [
         [8, ['downbeat top', 'downbeat bottom']],
-        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'downbeat bottom', 'disco']],
         [8, ['downbeat top']],
         [8, ['downbeat top']],
         [8, ['downbeat bottom']],
@@ -383,6 +383,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
         [8, ['downbeat top', 'UV']],
         [8, ['downbeat bottom', 'UV']],
         [8, ['rainbow top', 'downbeat bottom']],
+        [8, ['disco']],
         [2, ['filler']],
         [1, ['filler']],
         [2, ['UV pulse']],

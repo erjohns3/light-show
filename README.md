@@ -28,7 +28,7 @@ To use the UI, the terminal output will output something like `serving at: `, ju
 ### Note that the --show parameter here fuzzy finds the filename
 `python light_server.py --local --autogen shelter`
 
-## to autogenerate everything for a party
+### to autogenerate everything for a party
 `python light_server.py --local --autogen`
 
 ### autogen_mode options

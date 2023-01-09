@@ -65,7 +65,7 @@ time_start = time.time()
 beat_index = 0
 
 light_lock, song_lock = threading.Lock(), threading.Lock() 
-light_sockets, song_sockets = [], []
+light_sockets, song_sockets, dev_sockets = [], [], []
 
 song_playing = False
 song_time = 0
@@ -245,6 +245,14 @@ async def init_dj_client(websocket, path):
             elif msg['type'] == 'clear_effects':
                 clear_effects()
                 stop_song()
+
+            elif msg['type'] == 'toggle_dev_mode':
+                if websocket in dev_sockets:
+                    print(f'Turned dev mode off')
+                    dev_sockets.remove(websocket)
+                else:
+                    print(f'Turned dev mode on')
+                    dev_sockets.append(websocket)
 
             elif msg['type'] == 'toggle_laser_mode':
                 laser_mode = not laser_mode
@@ -572,6 +580,26 @@ async def send_song_status():
     broadcast_song_status = False
 
 
+async def send_dev_status():
+    if not curr_effects:
+        return
+    print('sent dev status')
+
+    sub_effect_names = []
+    for effect in curr_effects:
+        sub_effect_names += get_sub_effect_names(effect[0], (beat_index / SUB_BEATS) + 1)
+    if not sub_effect_names:
+        return
+
+    message = {
+        'status': {
+            'effects': [[x, 0] for x in sub_effect_names],
+            'dev_mode': True,
+        }
+    }
+    await broadcast(dev_sockets, json.dumps(message))
+
+
 ####################################
 
 
@@ -579,10 +607,11 @@ def get_sub_effect_names(effect_name, beat):
     sub_effect_names = []
     effect_beats = effects_config[effect_name]['beats']
     for effect in effect_beats:
-        if effect[0] <= beat <= effect[0] + effect[2]:
-            sub_effect_names.append(effect[1])
-        elif sub_effect_names:
-            break
+        if type(effect[1]) == str:
+            if effect[0] <= beat <= effect[0] + effect[2]:
+                sub_effect_names.append(effect[1])
+            elif sub_effect_names:
+                break
     return sub_effect_names
 
 
@@ -800,8 +829,10 @@ async def light():
         if broadcast_song_status:
             await send_song_status()
 
-        if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
-            print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
+        if dev_sockets and beat_index % SUB_BEATS == 0:
+            await send_dev_status()
+            if args.print_beat and not args.local:
+                print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
 
         time_diff = time.time() - time_start
 

@@ -96,7 +96,7 @@
                 for(let effect_name in effectsConfig){
                     if(!(effect_name in buttons)){
                         buttons[effect_name] = {};
-                        console.log(effect_name)
+                        // console.log(effect_name)
                         for(let profile_name of effectsConfig[effect_name].profiles){
                             if(!(profile_name in profiles)){
                                 profiles[profile_name] = new ProfileItem(profile_name);
@@ -134,11 +134,13 @@
                     }
                 }
 
-                if (msg.status.laser_mode) {
-                    laserModeElem.classList.add('lighten-laser-mode')
-                }
-                else {
-                    laserModeElem.classList.remove('lighten-laser-mode')
+                if ('laser_mode' in msg.status) {
+                    if (msg.status.laser_mode){
+                        laserModeElem.classList.add('lighten-laser-mode')
+                    }
+                    else {
+                        laserModeElem.classList.remove('lighten-laser-mode')
+                    }
                 }
 
                 if (msg.status.dev_mode) {
@@ -412,7 +414,7 @@
 
     function sendDevMode(){
         let msg = {
-            type: "toggle_dev_mode"
+            type: "toggle_dev_mode",
         };
         socket.send(JSON.stringify(msg));
         console.log('Sending:', msg);
@@ -421,6 +423,25 @@
     var socket = null;
     var socketConnected = false;
     var socketAttempts = 0;
+
+    var uuid = localStorage.getItem('uuid');
+    if (uuid == null) {
+
+        let array = new Uint8Array(16);
+        self.crypto.getRandomValues(array);
+        var uuid = "";
+        for (let i = 0; i < 16; i++) {
+            if (i == 4 || i == 6 || i == 8 || i == 10) {
+                uuid += "-";
+            }
+            uuid += array[i].toString(16);
+        };
+
+        localStorage.setItem('uuid', uuid)
+        console.log("new user: " + uuid);
+    }
+    console.log("----UUID----")
+    console.log(uuid);
 
     var effectsConfig = {};
     var songsConfig = {};

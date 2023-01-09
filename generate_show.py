@@ -373,7 +373,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
 
 
 
-    effect_files_json = get_effect_files_jsons()
+    effect_files_json = get_top_level_effect_config()
     effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
     
     effect_names = list(effects_config_filtered.keys())
@@ -532,7 +532,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     
     return the_show, output_filepath
 
-def get_effect_files_jsons():
+def get_top_level_effect_config():
     all_globals = globals()
     effects_config = {}
     for name, path in get_all_paths('effects', only_files=True):
@@ -545,7 +545,7 @@ def get_effect_files_jsons():
 
 
 if __name__ == '__main__':
-    effect_files_jsons = get_effect_files_jsons()
+    effect_files_jsons = get_top_level_effect_config()
 
     configs_with_bpm = {}
     for effect_name, effect in effect_files_jsons.items():

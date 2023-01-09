@@ -1408,11 +1408,11 @@ if __name__ == '__main__':
         if args.autogen == 'all':
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for _name, song_path in get_all_paths('songs', only_files=True):
-                if args.autogen_mode == 'both':
-                    gen_show_and_add_to_config(song_path, mode=None)
-                    gen_show_and_add_to_config(song_path, mode='lasers')
-                else:
-                    gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+                # if args.autogen_mode == 'both':
+                gen_show_and_add_to_config(song_path, mode=None)
+                gen_show_and_add_to_config(song_path, mode='lasers')
+                # else:
+                #     gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))

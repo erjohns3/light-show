@@ -272,15 +272,21 @@ if __name__ == '__main__':
                     'song_path': str(relative_downloaded_filepath),
                     'delay_lights': delay,
                     'skip_song': 0.0,
-                    'beats': [],
+                    'beats': [
+                        # 'b(1, "RBBB 1 bar", 500),'
+                    ],
                 }
             },
             write_compiler=True,
+            # rip_out_char='"',
         )
 
     remote_folder = pathlib.Path('/home/pi/light-show/songs')
     print('Starting scp to doorbell')
     scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
+
+    if args.gen_show:
+        print_green(bold(f'\nStart editing your show here: {output_filepath}'))
 
 
 

@@ -31,7 +31,7 @@ def eliminate(string, matches):
         string = string.replace(match, '')
     return string
 
-def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False):
+def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False, rip_out_char=None):
     print(f'writing effect/show to {output_filepath}')
 
     show_name = list(dict_to_dump.keys())[0]    
@@ -39,6 +39,8 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
         dict_to_dump[show_name]['song_path'] = dict_to_dump[show_name]['song_path'].replace('\\\\', '/').replace('\\', '/')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
+        # if rip_out_char is not None:
+        #     shows_json_str = shows_json_str.replace(rip_out_char, '')
         shows_json_str = shows_json_str.replace(': true', ': True')
 
         shows_json_str = shows_json_str.replace('\n            ]', ']')

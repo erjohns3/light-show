@@ -48,7 +48,7 @@ parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #b
 args = parser.parse_args()
 
 
-this_file_directory = pathlib.Path(__file__).parent
+this_file_directory = pathlib.Path(__file__).parent.resolve()
 
 pca = None
 

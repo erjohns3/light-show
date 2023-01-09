@@ -348,10 +348,7 @@ async def init_queue_client(websocket, path):
             msg_string = await websocket.recv()
             print('Song Queue: waiting for message')
         except:
-            for i in range(len(song_sockets)):
-                if song_sockets[i] == websocket:
-                    song_sockets.pop(i)
-                    break
+            song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 

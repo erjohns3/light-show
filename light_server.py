@@ -76,6 +76,7 @@ broadcast_song_status = False
 
 download_queue, search_queue = [], []
 
+printed_http_info = False
 
 
 ########################################
@@ -94,11 +95,13 @@ try:
 except:
     local_ip = 'cant_resolve_hostbyname'
 
-def http_server():
+def run_http_server_forever():
+    global printed_http_info
     import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
     print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html')
     print_green(f'Queue: http://{local_ip}:{PORT}', flush=True)
+    printed_http_info = False
     httpd.serve_forever()
 
 
@@ -618,7 +621,10 @@ laser_stage = random.randint(0, 110)
 disco_stage = random.randint(0, 100)
 disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style
+    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style, printed_http_info
+
+    if not printed_http_info:
+        time.sleep(.01)
 
     curr_beat = (beat_index / SUB_BEATS) + 1
     terminal_size = os.get_terminal_size().columns
@@ -688,7 +694,6 @@ Beat {curr_beat:.1f}\
                 if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
                     laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
-        # print(f'{len(laser_string)}\n' * 3)
         laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
     else:
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
@@ -1579,10 +1584,8 @@ if __name__ == '__main__':
             time.sleep(.05)
 
 
-    http_thread = threading.Thread(target=http_server, args=[], daemon=True)
+    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True)
     http_thread.start()
-    if args.local:
-        time.sleep(.03)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

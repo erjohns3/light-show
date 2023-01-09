@@ -39,6 +39,7 @@
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
+    <div id="dev-mode" class="button">Dev Mode</div>
 </body>
 
 <script>
@@ -84,7 +85,7 @@
         socket.onmessage = function (event) {
             console.log("socket message");
             let msg = JSON.parse(event.data);
-            console.log(msg);
+            console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -367,7 +368,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
+        console.log('Sending:', msg);
     }
 
     function removeEffect(effect){
@@ -376,7 +377,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
+        console.log('Sending:', msg);
     }
 
     function sendToggleLaserMode(){
@@ -384,7 +385,7 @@
             type: "toggle_laser_mode",
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
+        console.log('Sending:', msg);
     }
 
     function sendUpdate(){
@@ -392,7 +393,7 @@
             type: "update_config"
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
+        console.log('Sending:', msg);
     }
 
     function sendClear(){
@@ -400,7 +401,15 @@
             type: "clear_effects"
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
+        console.log('Sending:', msg);
+    }
+
+    function sendDevMode(){
+        let msg = {
+            type: "toggle_dev_mode"
+        };
+        socket.send(JSON.stringify(msg));
+        console.log('Sending:', msg);
     }
 
     var socket = null;
@@ -764,6 +773,25 @@
         justify-content: center;
         align-items: center;
         background-color: hsla(0, 100%, 40%, 0.5);
+    }
+
+    .lighten-dev-mode{
+        background-color: hsla(303, 100%, 40%, 0.5) !important;
+    }
+
+    #dev-mode{
+        position: absolute;
+        left: 10.5vw;
+        bottom: 10vh;
+        width: 8vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(303, 100%, 17%, 0.5);
     }
 
     .button:active{

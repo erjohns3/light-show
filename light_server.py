@@ -71,8 +71,8 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light = False 
-broadcast_song = False
+broadcast_light_status = False 
+broadcast_song_status = False
 
 download_queue, search_queue = [], []
 
@@ -105,7 +105,7 @@ def http_server():
 ########################################
 
 def add_effect_from_dj(effect_name, no_music=False):
-    global song_time, song_playing, broadcast_song
+    global song_time, song_playing, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
     if not no_music and has_song(effect_name):
@@ -118,7 +118,7 @@ def add_effect_from_dj(effect_name, no_music=False):
         song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
         play_song(effect_name)
         song_playing = True
-        broadcast_song = True
+        broadcast_song_status = True
 
 
 laser_mode = False
@@ -128,7 +128,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song, song_name_to_show_names
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -146,7 +146,7 @@ async def init_rekordbox_bridge_client(websocket, path):
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
             song_playing = False
-            broadcast_song = True
+            broadcast_song_status = True
 
             take_rekordbox_input = True
             rekordbox_title = msg['title']
@@ -195,7 +195,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song, laser_mode
+    global curr_bpm, time_start, song_playing, song_time, broadcast_light_status, broadcast_song_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -239,7 +239,7 @@ async def init_dj_client(websocket, path):
                         song_queue.pop()
                     stop_song()
                     song_playing = False
-                    broadcast_song = True
+                    broadcast_song_status = True
                 index = curr_effect_index(effect_name)
                 if index is not False:
                     remove_effect(index)
@@ -261,7 +261,7 @@ async def init_dj_client(websocket, path):
                 for effect in curr_effects:
                     effect[1] = 0
 
-            broadcast_light = True
+            broadcast_light_status = True
 
 
 def download_song(url, uuid):
@@ -311,7 +311,7 @@ def download_song(url, uuid):
 
 
 async def init_queue_client(websocket, path):
-    global curr_bpm, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
@@ -373,7 +373,7 @@ async def init_queue_client(websocket, path):
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
-                            broadcast_light = True
+                            broadcast_light_status = True
                         break
                 if len(song_queue) == 0:
                     song_playing = False
@@ -385,7 +385,7 @@ async def init_queue_client(websocket, path):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
                         add_effect(effect_name)
-                        broadcast_light = True
+                        broadcast_light_status = True
                         play_song(effect_name)
                         song_playing = True
 
@@ -401,11 +401,11 @@ async def init_queue_client(websocket, path):
                         if index is not False:
                             remove_effect(index)
                         song_playing = False
-                        broadcast_light = True
+                        broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
                 restart_show(abs_time=msg['time'])
-                broadcast_light = True
+                broadcast_light_status = True
 
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -426,7 +426,7 @@ async def init_queue_client(websocket, path):
                 search = msg.get('search', None)
                 print(f'Song Queue: searching youtube "{search}" from {uuid_to_user(uuid)}')
                 search_queue.append([search, websocket, False])
-            broadcast_song = True
+            broadcast_song_status = True
 
 
 def search_youtube():
@@ -484,7 +484,7 @@ def search_youtube():
 
 
 def add_queue_balanced(effect_name, uuid):
-    global song_playing, song_time, broadcast_light, broadcast_song
+    global song_playing, song_time, broadcast_light_status, broadcast_song_status
 
     if False: # is_admin(uuid):
         index = 1
@@ -514,10 +514,10 @@ def add_queue_balanced(effect_name, uuid):
     if len(song_queue) == 1:
         song_time = 0
         add_effect(effect_name)
-        broadcast_light = True
+        broadcast_light_status = True
         play_song(effect_name)
         song_playing = True
-        broadcast_song = True
+        broadcast_song_status = True
 
 
 def is_admin(uuid):
@@ -548,7 +548,7 @@ async def send_config():
 
 
 async def send_light_status():
-    global broadcast_light
+    global broadcast_light_status
     message = {
         'status': {
             'effects': curr_effects,
@@ -556,11 +556,11 @@ async def send_light_status():
         }
     }
     await broadcast(light_sockets, json.dumps(message))
-    broadcast_light = False
+    broadcast_light_status = False
 
 
 async def send_song_status():
-    global broadcast_song
+    global broadcast_song_status
     # print((str(song_queue) + '\n') * 10)
     message = {
         'queue': song_queue,
@@ -570,7 +570,7 @@ async def send_song_status():
         }
     }
     await broadcast(song_sockets, json.dumps(message))
-    broadcast_song = False
+    broadcast_song_status = False
 
 
 ####################################
@@ -724,7 +724,7 @@ def uuid_to_user(uuid):
     return uuid
 
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song, broadcast_light
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
 
     download_thread = None
     search_thread = None
@@ -750,8 +750,8 @@ async def light():
                         play_song(new_effect_name)
                     elif len(song_queue) == 0:
                         song_playing = False
-                    broadcast_song = True
-                broadcast_light = True
+                    broadcast_song_status = True
+                broadcast_light_status = True
             else:
                 i+=1
         for i in range(LIGHT_COUNT):
@@ -796,9 +796,9 @@ async def light():
             search_thread = threading.Thread(target=search_youtube, args=())
             search_thread.start()
 
-        if broadcast_light:
+        if broadcast_light_status:
             await send_light_status()
-        if broadcast_song:
+        if broadcast_song_status:
             await send_song_status()
 
         if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
@@ -1078,6 +1078,8 @@ def set_effect_defaults(name, effect):
         effect['trigger'] = 'toggle'
     if 'profiles' not in effect:
         effect['profiles'] = []
+    if effect.get('autogen') and 'Autogen effects' not in effect['profiles']:
+        effect['profiles'].append(['Autogen effects'])
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
     if 'song_path' in effect and effect['song_path'] in songs_config:

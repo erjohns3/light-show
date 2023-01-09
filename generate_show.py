@@ -391,11 +391,14 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     ]
 
     if mode == 'lasers':
-        for i in range(10):
+        for _ in range(5):
+            scenes += [
+                [8, ['laser long', 'disco strobe']],
+            ]
+        for _ in range(5):
             scenes += [
                 [8, ['laser long']],
             ]
-
 
         scenes += [
             [2, ['filler laser']],

@@ -4,7 +4,6 @@ from effects.compiler import b
 effects = {
     # dimmers
     "dimmer all": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "dimmers",
         "beats": [
@@ -15,7 +14,6 @@ effects = {
     },
     # fillers
     "a_Strobe": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "strobe",
         "beats": [
@@ -23,7 +21,6 @@ effects = {
         ],
     },
     "a_UV Strobe": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "strobe",
         "beats": [
@@ -32,7 +29,6 @@ effects = {
     },
 
     "a_UV": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV",
         "beats": [
@@ -40,7 +36,6 @@ effects = {
         ],
     },
     "a_UV pulse": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV pulse single",
         "beats": [
@@ -49,7 +44,6 @@ effects = {
     },
 
     "a_UV pulse copy": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "UV pulse",
         "beats": [
@@ -58,7 +52,6 @@ effects = {
     },
 
     "1_2 UV Pulse": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "UV pulse",
         "beats": [
@@ -76,7 +69,6 @@ effects = {
 
 
     "a_filler laser 1": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "filler laser",
         "intensity": "high",
@@ -86,7 +78,6 @@ effects = {
     },
 
     "a_filler laser 2": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "filler laser",
         "intensity": "high",
@@ -96,7 +87,6 @@ effects = {
     },
 
     "a_filler 1": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "filler",
         "intensity": "high",
@@ -109,7 +99,6 @@ effects = {
     },
 
     "a_filler 2": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "filler",
         "intensity": "high",
@@ -123,7 +112,6 @@ effects = {
     },
 
     "a_filler 3": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "filler",
         "intensity": "low",
@@ -136,7 +124,6 @@ effects = {
     
 
     "Autogen helper white top pulse 1": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [1, "White top", .4, 1, 0],
@@ -144,7 +131,6 @@ effects = {
         ],
     },
     "a_rainbow good top pulse 1": {
-        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "downbeat top",
         "intensity": "low",
@@ -160,7 +146,6 @@ effects = {
         ],
     },
     "Autogen helper white top pulse 2": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "beats": [
             [2, "White top", .4, 1, 0],
@@ -168,7 +153,6 @@ effects = {
         ],
     },
     "a_rainbow good top pulse 2": {
-        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "downbeat top",
         "intensity": "low",
@@ -187,7 +171,6 @@ effects = {
 
     # rainbows
     "a_rainbow good top": {
-        "profiles": ["autogen helpers"],
         "length": 8,
         "autogen": "rainbow top",
         "intensity": "low",
@@ -202,7 +185,6 @@ effects = {
         ],
     },
     "a_rainbow good slow top": {
-        "profiles": ["autogen helpers"],
         "length": 16,
         "intensity": "low",
         "autogen": "rainbow top",
@@ -218,7 +200,6 @@ effects = {
 
     # misc
     "Yellow Top to Bottom hang": {
-        "profiles": ["autogen helpers"],
         "length": 3,
         "beats": [
             [1, [100, 30, 5, 0, 25, 0, 0], .2, 0, .5],
@@ -230,7 +211,6 @@ effects = {
 
     # downbeat tops and bottoms
     "a_solid bottom cycle": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat bottom",
         "beats": [
@@ -246,7 +226,6 @@ effects = {
     },
 
     "a_solid bottom cycle down then up": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat bottom",
         "beats": [
@@ -269,7 +248,6 @@ effects = {
     },
 
     "a_pulse top swap 1": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -281,7 +259,6 @@ effects = {
     },
 
     "a_pulse top swap 2": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -293,7 +270,6 @@ effects = {
     },
 
     "a_pulse top swap 3": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -303,37 +279,20 @@ effects = {
         ],
     },
 
-    # "a_pulse top brown": {
-    #     "profiles": ["autogen helpers"],
-    #     "length": 1,
+
+    # andrew i think this sucks
+    # "a_solid top cycle 1": {
+    #     "length": 4,
     #     "autogen": "downbeat top",
     #     "beats": [
-    #         [1, "Rosy brown top", .2, 1, 0],
+    #         [1, "Firebrick top", 1, .6],
+    #         [2, "Pink top", 1],
+    #         [3, "Red top", 1, .6],
+    #         [4, "Green top", 1, .4],
     #     ],
     # },
-    # "a_pulse bottom brown": {
-    #     "profiles": ["autogen helpers"],
-    #     "length": 1,
-    #     "autogen": "downbeat bottom",
-    #     "beats": [
-    #         [1, "Rosy brown bottom", .2, 1, 0],
-    #     ],
-    # },
-
-    "a_solid top cycle 1": {
-        "profiles": ["autogen helpers"],
-        "length": 4,
-        "autogen": "downbeat top",
-        "beats": [
-            [1, "Firebrick top", 1, .6],
-            [2, "Pink top", 1],
-            [3, "Red top", 1, .6],
-            [4, "Green top", 1, .4],
-        ],
-    },
 
     "a_solid top cycle 2": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat top",
         "beats": [
@@ -345,7 +304,6 @@ effects = {
     },
 
     "a_solid mixed 1": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -359,10 +317,8 @@ effects = {
     },
 
     "a_solid mixed 2": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
-        # "profiles": ["Andrew"],
         "beats": [
             [1, "Blue bottom", 1, 1, .2],
             [2, "Blue bottom", 1, .2, .2],
@@ -376,10 +332,8 @@ effects = {
     },
 
     "a_solid mixed 3": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
-        # "profiles": ["Andrew"],
         "beats": [
             [1, "Blue top", 1, 1, .2],
             [2, "Blue top", 1, .2, .2],
@@ -393,7 +347,6 @@ effects = {
     },
 
     "a_solid mixed 4": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -407,7 +360,6 @@ effects = {
     },
 
     "a_solid mixed cycle": {
-        "profiles": ["autogen helpers"],
         "length": 4,
         "autogen": "downbeat mixed",
         "beats": [
@@ -419,7 +371,6 @@ effects = {
     },
 
     "a_cyan top pulse": {
-        "profiles": ["autogen helpers"],
         "length": 1,
         "autogen": "downbeat top",
         "beats": [
@@ -427,7 +378,6 @@ effects = {
         ],
     },
     "a_purple purple yellow top pulse": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -437,7 +387,6 @@ effects = {
     },
 
     "a_green sidechain top pulse": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat top",
         "beats": [
@@ -450,7 +399,6 @@ effects = {
 
 
     "a_purple green bottom pulse": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat bottom",
         "beats": [
@@ -459,7 +407,6 @@ effects = {
         ],
     },
     "a_green sidechain bottom pulse": {
-        "profiles": ["autogen helpers"],
         "length": 2,
         "autogen": "downbeat bottom",
         "beats": [
@@ -638,5 +585,89 @@ effects = {
             b(1, name='Green disco pulse', length=8),
             b(1, name='Blue disco pulse', length=8),
         ],
-    },   
+    },
+
+
+    "a_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8, offset=.5),
+        ],
+    },
+    "a_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8, offset=.5),
+        ],
+    },
+    "a_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+        ],
+    },
+    
+    "a_green_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8, offset=.5),
+            b(1, name='Red disco pulse', length=8, offset=.5),
+        ],
+    },
+    "a_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Green disco pulse', length=8, offset=.5),
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+        ],
+    },
+
+    "a_blue_red disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+            b(1, name='Red disco pulse', length=8, offset=.5),
+        ],
+    },
+    "a_blue_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+            b(1, name='Green disco pulse', length=8, offset=.5),
+        ],
+    },
+
+    "a_red_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8, offset=.5),
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+        ],
+    },
+    "a_red_green disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8, offset=.5),
+            b(1, name='Green disco pulse', length=8, offset=.5),
+        ],
+    },
+
+    "a_red_green_blue disco": {
+        "length": 8,
+        "autogen": "disco",
+        "beats": [
+            b(1, name='Red disco pulse', length=8, offset=.5),
+            b(1, name='Green disco pulse', length=8, offset=.5),
+            b(1, name='Blue disco pulse', length=8, offset=.5),
+        ],
+    },
 }

@@ -1,5 +1,6 @@
 import json
 import time
+import random
 
 import youtube_helpers
 from helpers import *
@@ -50,6 +51,6 @@ if __name__ == '__main__':
         if not already_downloaded:
             print('nothing downloaded')
 
-        seconds_to_sleep = random.randint(59, 60)
-        print(f'Sleeping for 1 minutes ({seconds_to_sleep} seconds)...')
+        seconds_to_sleep = random.randint(59, 400)
+        print(f'Sleeping for {seconds_to_sleep} seconds)...')
         time.sleep(seconds_to_sleep)

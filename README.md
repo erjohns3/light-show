@@ -11,8 +11,12 @@
     * `python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
 
 ## Using the UI 
-`python light_server.py --local`
-To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+To use the UI, the terminal output will output something like:
+```
+Dj interface: http://YOUR_IP:9555/dj.html
+Queue: http://YOUR_IP:9555
+```
+Just copy either into your browser, and you'll be able to control the show from there.
 
 # TODO
 * cubic bezier for custom curves

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport"
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+
     <title>Song Queue</title>
     <link rel="manifest" href="manifest.webmanifest">
 </head>
@@ -71,6 +72,10 @@
 </body>
 
 <script>
+    // https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
+    var viewport = document.querySelector("meta[name=viewport]");
+    viewport.setAttribute("content", viewport.content + ", height=" + window.innerHeight);
+
     function socketInit() {
         console.log("socket init");
         

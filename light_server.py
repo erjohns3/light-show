@@ -144,7 +144,6 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
-            song_playing = False
             broadcast_song_status = True
 
             take_rekordbox_input = True
@@ -238,7 +237,6 @@ async def init_dj_client(websocket, path):
                     if song_playing and len(song_queue) > 0:
                         song_queue.pop()
                     stop_song()
-                    song_playing = False
                     broadcast_song_status = True
                 index = curr_effect_index(effect_name)
                 if index is not False:
@@ -399,7 +397,6 @@ async def init_queue_client(websocket, path):
                         index = curr_effect_index(effect_name)
                         if index is not False:
                             remove_effect(index)
-                        song_playing = False
                         broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
@@ -902,7 +899,9 @@ def play_song(effect_name, print_out=True):
     song_playing = True
 
 def stop_song():
+    global song_playing
     pygame.mixer.music.stop()
+    song_playing = False
 
 ######################################
 

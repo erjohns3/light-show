@@ -114,12 +114,14 @@
             console.log("socket message");
             let msg = JSON.parse(event.data);
 
+
+            if(!msg.songs && !msg.effects) {
+                console.log(msg);
+            }
+
             if(msg.songs){
                 songsConfig = msg.songs;
-                console.log('songs', msg);
-            }
-            else {
-                console.log(msg);
+                console.log('songs recieved:', msg);
             }
 
             if(msg.users){
@@ -132,6 +134,7 @@
             }
             
             if(msg.effects){
+                console.log('effects recieved:', msg);
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
                     if('song_path' in effectsConfig[effect_name]){

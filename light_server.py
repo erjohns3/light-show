@@ -286,25 +286,27 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
-    if new_effects is None:
-        print_red(f'Autogenerator failed to create effect for {url}')
-        return
-    effect_name = list(new_effects.keys())[0]
 
-    print(f'passing filepath: {filepath}')
-    effects_config.update(new_effects)
-    add_dependancies(new_effects)
+    for mode in [None, 'lasers']:
+        new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
+        if new_effects is None:
+            print_red(f'Autogenerator failed to create effect for {url}')
+            return
+        effect_name = list(new_effects.keys())[0]
 
-    # compile_lut(new_effects)
-    print(f'created show for: {effect_name}')
+        print(f'passing filepath: {filepath}')
+        effects_config.update(new_effects)
+        add_dependancies(new_effects)
 
-    effects_config_client[effect_name] = {}
-    for key, value in new_effects[effect_name].items():
-        if key != 'beats':
-            effects_config_client[effect_name][key] = value
-    if 'song_path' in effect:
-        add_queue_balanced(effect_name, uuid)
+        # compile_lut(new_effects)
+        print(f'created show for: {effect_name}')
+
+        effects_config_client[effect_name] = {}
+        for key, value in new_effects[effect_name].items():
+            if key != 'beats':
+                effects_config_client[effect_name][key] = value
+        if 'song_path' in effect:
+            add_queue_balanced(effect_name, uuid)
 
 
 async def init_queue_client(websocket, path):
@@ -1138,9 +1140,10 @@ def compile_all_luts_from_effects_config():
 
         # if not name.startswith('g_lasers_'):
         effects_config_client[name] = {}
-        for key, value in effect.items():
-            if key != 'beats':
-                effects_config_client[name][key] = value
+        if effect['profiles'] or ('song_path' in effect and effect['song_path'] in songs_config):
+            for key, value in effect.items():
+                if key != 'beats':
+                    effects_config_client[name][key] = value
 
     if is_linux() and not is_andrews_main_computer():
         # eager compile all normal effects

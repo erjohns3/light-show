@@ -1139,8 +1139,8 @@ def compile_all_luts_from_effects_config():
         set_effect_defaults(name, effect)
 
         # if not name.startswith('g_lasers_'):
-        effects_config_client[name] = {}
         if effect['profiles'] or ('song_path' in effect and effect['song_path'] in songs_config):
+            effects_config_client[name] = {}
             for key, value in effect.items():
                 if key != 'beats':
                     effects_config_client[name][key] = value

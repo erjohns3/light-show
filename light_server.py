@@ -259,12 +259,6 @@ async def init_dj_client(websocket, path):
                 for effect in curr_effects:
                     effect[1] = 0
 
-            elif msg['type'] == 'inc_time':
-                time_start += 0.1
-
-            elif msg['type'] == 'dec_time':
-                time_start -= 0.1
-
             broadcast_light = True
 
 
@@ -287,8 +281,9 @@ def download_song(url, uuid):
 
     add_song_to_config(filepath)
 
+    added = False
     for mode in [None, 'lasers']:
-        new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
+        new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, mode=mode, overwrite=True)
         if new_effects is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return
@@ -298,15 +293,19 @@ def download_song(url, uuid):
         effects_config.update(new_effects)
         add_dependancies(new_effects)
 
-        # compile_lut(new_effects)
+        compile_lut(new_effects)
         print(f'created show for: {effect_name}')
 
         effects_config_client[effect_name] = {}
         for key, value in new_effects[effect_name].items():
             if key != 'beats':
                 effects_config_client[effect_name][key] = value
-        if 'song_path' in effect:
-            add_queue_balanced(effect_name, uuid)
+
+        if not added and ((mode == None and not laser_mode) or mode == 'lasers'):
+            added = True
+            if 'song_path' in effect:
+                print(f'Auto adding "{effect_name}" to queue')
+                add_queue_balanced(effect_name, uuid)
 
 
 async def init_queue_client(websocket, path):
@@ -350,32 +349,6 @@ async def init_queue_client(websocket, path):
 
         print('Song Queue: message recieved:', msg)
         if 'type' in msg:
-            # andrew: are these even used?
-            # if msg['type'] == 'add_queue_back' and 'uuid' in msg:
-            #     uuid = msg['uuid']
-            #     effect_name = msg['effect']
-            #     song_queue.append([effect_name, get_queue_salt(), uuid])
-            #     if len(song_queue) == 1:
-            #         song_time = 0
-            #         add_effect(effect_name)
-            #         broadcast_light = True
-            #         play_song(effect_name)
-            #         song_playing = True
-
-            # elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
-            #     uuid = msg['uuid']
-            #     effect_name = msg['effect']
-            #     if len(song_queue) == 0:
-            #         song_queue.append([effect_name, get_queue_salt(), uuid])
-            #     else:
-            #         song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
-            #     if len(song_queue) == 1:
-            #         song_time = 0
-            #         add_effect(effect_name)
-            #         broadcast_light = True
-            #         play_song(effect_name)
-            #         song_playing = True
-
             if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
                 print(f'Song Queue: added to queue by {uuid_to_user(msg["uuid"])}')
                 add_queue_balanced(msg['effect'], msg['uuid'])
@@ -866,8 +839,9 @@ def clear_effects():
 def add_effect(name):
     global beat_index, time_start, curr_bpm
 
-    if name.startswith('g_lasers_') and not laser_mode:
-        name = 'g_' + name[9:]
+    if name.startswith('g_lasers_'):
+        if not laser_mode:
+            name = 'g_' + name[9:]
     elif name.startswith('g_') and laser_mode:
         laser_name = 'g_lasers_' + name[2:]
         print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)

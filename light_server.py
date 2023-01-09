@@ -218,10 +218,9 @@ async def init_dj_client(websocket, path):
         try:
             msg_string = await websocket.recv()
         except:
-            for i in range(len(light_sockets)):
-                if light_sockets[i] == websocket:
-                    light_sockets.pop(i)
-                    break
+            light_sockets.remove(websocket)
+            if websocket in dev_sockets:
+                dev_sockets.remove(websocket)
             print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 

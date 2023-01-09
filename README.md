@@ -39,12 +39,12 @@ It should be pretty good about auto downloading specific songs with the --show p
 `python light_server.py --local --autogen shelter`
 
 ## to autogenerate everything for a party
-`python light_light_server.py --local --autogen all --autogen_mode both`
+`python light_server.py --local --autogen`
 
 ### autogen_mode options
-* `default` - autogenerates normal
+* `both` [DEFAULT] - autogenerates both normal and laser modes
+* `normal` - autogenerates normal
 * `lasers` - autogenerates laser mode
-* `both` - autogenerates both normal and laser modes
 * `simple` - autogenerates simple RBBB 1 bar for song
 
 ### copy generated shows to doorbell

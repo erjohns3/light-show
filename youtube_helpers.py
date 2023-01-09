@@ -245,73 +245,6 @@ def get_info_from_youtube_playlist(url, write_files=True):
     return videos
 
 
-# working postman
-
-# full URL: https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false
-
-
-# url: https://www.youtube.com/youtubei/v1/browse
-
-# key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8
-# prettyPrint=false
-
-
-# body
-# {
-#     "context": {
-#         "client": {
-#             "clientName": "WEB",
-#             "clientVersion": "2.20221024.01.00"
-#         }
-#     },
-#     "continuation": "4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"
-# }
-
-
-
-# python requests default headers
-# {
-#     'User-Agent': 'python-requests/2.26.0', 
-#     'Accept-Encoding': 'gzip, deflate, br', 
-#     'Accept': '*/*', 
-#     'Connection': 'keep-alive', 
-#     'Content-Length': '234', 
-#     'Content-Type': 'application/json'
-# }
-
-
-
-# full dump
-
-# {
-#     "context":{
-#     "client":{
-#     "hl":"en","gl":"US","remoteHost":"73.143.173.76","deviceMake":"","deviceModel":"","visitorData":"CgtRVGpVSGpxelBPSSjY3dyaBg%3D%3D","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0,gzip(gfe)","clientName":"WEB","clientVersion":"2.20221024.01.00","osName":"X11","osVersion":"","originalUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","screenPixelDensity":2,"platform":"DESKTOP","clientFormFactor":"UNKNOWN_FORM_FACTOR","configInfo":{
-#     "appInstallData":"CNjd3JoGENSDrgUQmcauBRDpjf4SELKI_hIQvrauBRDiua4FEOrKrgUQgon-EhCo1K4FELiLrgUQ6dWuBRDbyq4FENmP_hIQmM2uBRDYvq0FEJH4_BI%3D"},"screenDensityFloat":1.5,"userInterfaceTheme":"USER_INTERFACE_THEME_DARK","timeZone":"America/New_York","browserName":"Firefox","browserVersion":"106.0","acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8","deviceExperimentId":"CgtqRDB1UGRBaEtxMBDY3dyaBg%3D%3D","screenWidthPoints":847,"screenHeightPoints":503,"utcOffsetMinutes":-240,"mainAppWebInfo":{
-#     "graftUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","webDisplayMode":"WEB_DISPLAY_MODE_BROWSER","isWebNativeShareAvailable":false}},"user":{
-#     "lockedSafetyMode":false},"request":{
-#     "useSsl":true,"internalExperimentFlags":[],"consistencyTokenJars":[]},"clickTracking":{
-#     "clickTrackingParams":"CDgQ7zsYACITCPOC1PSQ-voCFQPHPwQdV_AA6A=="},"adSignalsInfo":{
-#     "params":[{
-#     "key":"dt","value":"1666658009145"},{
-#     "key":"flash","value":"0"},{
-#     "key":"frm","value":"0"},{
-#     "key":"u_tz","value":"-240"},{
-#     "key":"u_his","value":"1"},{
-#     "key":"u_h","value":"960"},{
-#     "key":"u_w","value":"1707"},{
-#     "key":"u_ah","value":"960"},{
-#     "key":"u_aw","value":"1707"},{
-#     "key":"u_cd","value":"24"},{
-#     "key":"bc","value":"31"},{
-#     "key":"bih","value":"503"},{
-#     "key":"biw","value":"847"},{
-#     "key":"brdim","value":"0,16,0,16,1707,0,847,937,847,503"},{
-#     "key":"vis","value":"1"},{
-#     "key":"wgl","value":"true"},{
-#     "key":"ca_type","value":"image"}]}},"continuation":"4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"}
-
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description = '')
@@ -349,6 +282,77 @@ if __name__ == '__main__':
     print('Starting scp to doorbell')
     scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
 
+
+
+
+
+
+# working postman
+
+# full URL: https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false
+
+
+# url: https://www.youtube.com/youtubei/v1/browse
+
+# key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8
+# prettyPrint=false
+
+
+# body
+# {
+#     "context": {
+#         "client": {
+#             "clientName": "WEB",
+#             "clientVersion": "2.20221024.01.00"
+#         }
+#     },
+#     "continuation": "4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"
+# }
+
+
+
+# python requests default headers
+# {
+#     'User-Agent': 'python-requests/2.26.0', 
+#     'Accept-Encoding': 'gzip, deflate, br', 
+#     'Accept': '*/*', 
+#     'Connection': 'keep-alive', 
+#     'Content-Length': '234', 
+#     'Content-Type': 'application/json'
+# }
+
+
+
+
+# full dump
+
+# {
+#     "context":{
+#     "client":{
+#     "hl":"en","gl":"US","remoteHost":"73.143.173.76","deviceMake":"","deviceModel":"","visitorData":"CgtRVGpVSGpxelBPSSjY3dyaBg%3D%3D","userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:106.0) Gecko/20100101 Firefox/106.0,gzip(gfe)","clientName":"WEB","clientVersion":"2.20221024.01.00","osName":"X11","osVersion":"","originalUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","screenPixelDensity":2,"platform":"DESKTOP","clientFormFactor":"UNKNOWN_FORM_FACTOR","configInfo":{
+#     "appInstallData":"CNjd3JoGENSDrgUQmcauBRDpjf4SELKI_hIQvrauBRDiua4FEOrKrgUQgon-EhCo1K4FELiLrgUQ6dWuBRDbyq4FENmP_hIQmM2uBRDYvq0FEJH4_BI%3D"},"screenDensityFloat":1.5,"userInterfaceTheme":"USER_INTERFACE_THEME_DARK","timeZone":"America/New_York","browserName":"Firefox","browserVersion":"106.0","acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8","deviceExperimentId":"CgtqRDB1UGRBaEtxMBDY3dyaBg%3D%3D","screenWidthPoints":847,"screenHeightPoints":503,"utcOffsetMinutes":-240,"mainAppWebInfo":{
+#     "graftUrl":"https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-","webDisplayMode":"WEB_DISPLAY_MODE_BROWSER","isWebNativeShareAvailable":false}},"user":{
+#     "lockedSafetyMode":false},"request":{
+#     "useSsl":true,"internalExperimentFlags":[],"consistencyTokenJars":[]},"clickTracking":{
+#     "clickTrackingParams":"CDgQ7zsYACITCPOC1PSQ-voCFQPHPwQdV_AA6A=="},"adSignalsInfo":{
+#     "params":[{
+#     "key":"dt","value":"1666658009145"},{
+#     "key":"flash","value":"0"},{
+#     "key":"frm","value":"0"},{
+#     "key":"u_tz","value":"-240"},{
+#     "key":"u_his","value":"1"},{
+#     "key":"u_h","value":"960"},{
+#     "key":"u_w","value":"1707"},{
+#     "key":"u_ah","value":"960"},{
+#     "key":"u_aw","value":"1707"},{
+#     "key":"u_cd","value":"24"},{
+#     "key":"bc","value":"31"},{
+#     "key":"bih","value":"503"},{
+#     "key":"biw","value":"847"},{
+#     "key":"brdim","value":"0,16,0,16,1707,0,847,937,847,503"},{
+#     "key":"vis","value":"1"},{
+#     "key":"wgl","value":"true"},{
+#     "key":"ca_type","value":"image"}]}},"continuation":"4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"}
 
 
 # KEY: id

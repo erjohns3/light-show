@@ -41,7 +41,7 @@ parser.add_argument('--invert', dest='invert', default=False, action='store_true
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
-parser.add_argument('--autogen_mode', dest='autogen_mode', default=None)
+parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 
 
@@ -1442,8 +1442,11 @@ if __name__ == '__main__':
         if args.autogen == 'all':
             print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
             for _name, song_path in get_all_paths('songs', only_files=True):
-                gen_show_and_add_to_config(song_path, mode=None)
-                gen_show_and_add_to_config(song_path, mode='lasers')
+                if args.autogen_mode == 'both':
+                    gen_show_and_add_to_config(song_path, mode=None)
+                    gen_show_and_add_to_config(song_path, mode='lasers')
+                else:
+                    args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))

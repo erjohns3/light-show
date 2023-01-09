@@ -312,7 +312,12 @@ def get_avg_hue(channel_lut, effect_name):
     return avg_hue_cache[effect_name]
 
 
+last_song_filepath = None
+last_song_data = None
+
 def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
+    global last_song_filepath, last_song_data
+
     start_time = time.time()
     use_boundaries = True and mode != 'simple'
     if mode == 'lasers':
@@ -337,8 +342,16 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     
     
     print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-    song_length, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries)
-    print_blue(f'autogen: time taken up to get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
+
+    if last_song_filepath == song_filepath:
+        song_length, bpm_guess, delay, boundary_beats, chunk_levels = last_song_data
+        print_green(f'autogen: had cached data, using...')
+    else:
+        song_length, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries)
+        last_song_data = [song_length, bpm_guess, delay, deepcopy(boundary_beats), chunk_levels]
+        print_blue(f'autogen: time taken up to get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
+        last_song_filepath = song_filepath
+
 
     show = {
         'bpm': bpm_guess,

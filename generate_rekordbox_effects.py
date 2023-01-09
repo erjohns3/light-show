@@ -30,7 +30,7 @@ def generate_rekordbox_effect(filepath):
         ssh.connect(hostname=youtube_helpers.doorbell_ip,
                     port = 22,
                     username='pi')
-
+        stdin, stdout, stderr = ssh.exec_command('mkdir /home/pi/light-show/effects/rekordbox_effects')
         youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
 
 

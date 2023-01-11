@@ -6,7 +6,6 @@ import generate_show
 # import light_server
 # light_server.load_effects_config_from_disk()
 # channel_lut = light_server.get_channel_lut()
-effects_config = generate_show.get_top_level_effect_config()
 
 def generate_rekordbox_effect(filepath):
     import paramiko
@@ -14,7 +13,7 @@ def generate_rekordbox_effect(filepath):
 
     effect_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
-    new_show, local_filepath = generate_show.generate_show(filepath, None, effects_config, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
+    _, _, local_filepath = generate_show.generate_show(filepath, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
     print_blue(f'Show created, scping from "{local_filepath}" to folder "{remote_folder}"')
 

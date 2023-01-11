@@ -317,7 +317,7 @@ def get_avg_hue(channel_lut, effect_name):
 last_song_filepath = None
 last_song_data = None
 
-def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
+def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
     global last_song_filepath, last_song_data
 
     start_time = time.time()
@@ -351,7 +351,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     else:
         song_length, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries)
         last_song_data = [song_length, bpm_guess, delay, deepcopy(boundary_beats), chunk_levels]
-        print_blue(f'autogen: time taken up to get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
+        print_blue(f'autogen: time taken up through get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
         last_song_filepath = song_filepath
 
 
@@ -374,6 +374,8 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
 
 
     effect_files_json = get_top_level_effect_config()
+    print_blue(f'autogen: time taken up through get_top_level_effect_config(): {time.time() - start_time} seconds')
+    
     effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
     
     effect_names = list(effects_config_filtered.keys())
@@ -530,7 +532,7 @@ def generate_show(song_filepath, channel_lut, effects_config, overwrite=True, mo
     write_effect_to_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
     
-    return the_show, output_filepath
+    return show_name, show, output_filepath
 
 def get_top_level_effect_config():
     all_globals = globals()

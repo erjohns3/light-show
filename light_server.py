@@ -295,29 +295,28 @@ def download_song(url, uuid):
 
     added = False
     for mode in [None, 'lasers']:
-        new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, mode=mode, overwrite=True)
-        if new_effects is None:
+        show_name, show, _ = generate_show.generate_show(filepath, mode=mode, overwrite=True)
+        if show is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return
-        effect_name = list(new_effects.keys())[0]
 
         print(f'passing filepath: {filepath}')
-        effects_config.update(new_effects)
-        add_dependancies(new_effects)
+        effects_config[show_name] = show
+        add_dependancies({show: show_name})
 
-        compile_lut(new_effects)
-        print(f'created show for: {effect_name}')
+        compile_lut({show: show_name})
+        print(f'created show for: {show_name}')
 
-        effects_config_client[effect_name] = {}
-        for key, value in new_effects[effect_name].items():
+        effects_config_client[show_name] = {}
+        for key, value in show.items():
             if key != 'beats':
-                effects_config_client[effect_name][key] = value
+                effects_config_client[show_name][key] = value
 
         if not added and ((mode == None and not laser_mode) or mode == 'lasers'):
             added = True
             if 'song_path' in effect:
-                print(f'Auto adding "{effect_name}" to queue')
-                add_queue_balanced(effect_name, uuid)
+                print(f'Auto adding "{show_name}" to queue')
+                add_queue_balanced(show_name, uuid)
 
 
 async def init_queue_client(websocket, path):
@@ -1426,36 +1425,31 @@ if __name__ == '__main__':
     else:
         setup_gpio()
     
-    load_effects_config_from_disk()
-
     if args.autogen is not None:
         import generate_show
 
-        def gen_show_and_add_to_config(filepath, mode):
-            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=mode)
-            effect_name = list(new_effect.keys())[0]
-            effects_config[effect_name] = new_effect[effect_name]
-            # set_effect_defaults(effects_config[effect_name])
-            add_dependancies(new_effect)
-            return effect_name
-
         if args.autogen == 'all':
-            print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
-            for _name, song_path in get_all_paths('songs', only_files=True):
+            autogen_song_directory = 'songs'
+            print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
+            for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
                 if args.autogen_mode == 'both':
-                    gen_show_and_add_to_config(song_path, mode=None)
-                    gen_show_and_add_to_config(song_path, mode='lasers')
+                    generate_show.generate_show(song_path, overwrite=True, mode=None)
+                    generate_show.generate_show(song_path, overwrite=True, mode='lasers')
                 else:
-                    args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+                    generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            print_green(f'FINISHED AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
+            exit()
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-            
+
             if args.autogen_mode == 'both':
-                args.show = gen_show_and_add_to_config(song_path, mode=None)
-                gen_show_and_add_to_config(song_path, mode='lasers')
+                args.show, _, _ = generate_show.generate_show(song_path, overwrite=True, mode=None)
+                generate_show.generate_show(song_path, overwrite=True, mode='lasers')
             else:
-                args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+                args.show, _, _ = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+
+    load_effects_config_from_disk()
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:
@@ -1465,7 +1459,8 @@ if __name__ == '__main__':
                 'bpm': effects_config[effect_name]['bpm'],
                 'song_path': effects_config[effect_name]['song_path'],
             }
-    print_cyan(f'Up through copying effects: {time.time() - first_start_time:.3f}')
+    print_cyan(f'Up through copying effects to originals: {time.time() - first_start_time:.3f}')
+
 
     def detailed_output_on_enter():
         while True:

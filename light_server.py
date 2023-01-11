@@ -11,6 +11,7 @@ import argparse
 import os
 import colorsys
 import random
+import traceback
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -1165,7 +1166,7 @@ def compile_all_luts_from_effects_config():
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - start_time:.3f}')
+    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - first_start_time:.3f}')
 
 
 
@@ -1427,27 +1428,54 @@ if __name__ == '__main__':
     
     if args.autogen is not None:
         import generate_show
+        from functools import partial
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import tqdm
 
+
+        in_flight = set()
+        def gen_show_worker(song_path, mode):
+            in_flight.add(song_path.stem)
+            if mode == 'both':
+                results = generate_show.generate_show(song_path, overwrite=True, mode=None)
+                generate_show.generate_show(song_path, overwrite=True, mode='lasers')
+                
+            else:
+                results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            in_flight.remove(song_path.stem)
+            return results
+        
         if args.autogen == 'all':
             autogen_song_directory = 'songs'
             print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
-            for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
-                if args.autogen_mode == 'both':
-                    generate_show.generate_show(song_path, overwrite=True, mode=None)
-                    generate_show.generate_show(song_path, overwrite=True, mode='lasers')
-                else:
-                    generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
-            print_green(f'FINISHED AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
+            # for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
+
+            all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
+            progress_bar = tqdm.tqdm(total=len(all_song_paths))
+            with ThreadPoolExecutor() as executor:
+                futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_song_paths]
+
+
+                # 18 in flight light shows: {'Nice For What', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Jsan x Pandrezz  Insomnia', 'Coldplay  Paradise Official Audio', 'UH OH TOWN Original Aka Stinky Lavender Town', 'DRAM  Broccoli feat Lil Yachty Official Music Video', 'Hypnocurrency', 'Daft Punk  Get Lucky Evan Duffy Improvisation', 'Tailwind', 'Møme  Aloha Official Music Video ft Merryn Jeann', 'Kenny Price - The Shortest Song In The World', 'Toby Keith  Red Solo Cup Unedited Version', 'Short Song', 's_Drake  Massive Official Audio', 'Halogen  U Got That', 'hooked', 'Littles kids playing recorders', 'Caravan Palace  Star Scat'}
+                try:
+                    for future in as_completed(futures):
+                        print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)
+                        progress_bar.update(1)
+
+                        # os.system(f'kill -9 {os.getpid()}')
+                except:
+                    print_red(traceback.format_exc(), flush=True)
+                    os.system(f'kill -9 {os.getpid()}')
+
+                # executor.map(partial(gen_show_worker, mode=args.autogen_mode), all_song_paths)
+
+            progress_bar.close()
+            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)}) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds')
             exit()
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-
-            if args.autogen_mode == 'both':
-                args.show, _, _ = generate_show.generate_show(song_path, overwrite=True, mode=None)
-                generate_show.generate_show(song_path, overwrite=True, mode='lasers')
-            else:
-                args.show, _, _ = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            args.show, _, _ = gen_show_worker(song_path, args.autogen_mode)
 
     load_effects_config_from_disk()
 

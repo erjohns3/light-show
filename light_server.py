@@ -1429,7 +1429,7 @@ if __name__ == '__main__':
     if args.autogen is not None:
         import generate_show
         from functools import partial
-        from concurrent.futures import ThreadPoolExecutor, as_completed
+        from concurrent.futures import ThreadPoolExecutor, as_completed, wait
         import tqdm
 
 
@@ -1457,6 +1457,11 @@ if __name__ == '__main__':
 
 
                 # 18 in flight light shows: {'Nice For What', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Jsan x Pandrezz  Insomnia', 'Coldplay  Paradise Official Audio', 'UH OH TOWN Original Aka Stinky Lavender Town', 'DRAM  Broccoli feat Lil Yachty Official Music Video', 'Hypnocurrency', 'Daft Punk  Get Lucky Evan Duffy Improvisation', 'Tailwind', 'Møme  Aloha Official Music Video ft Merryn Jeann', 'Kenny Price - The Shortest Song In The World', 'Toby Keith  Red Solo Cup Unedited Version', 'Short Song', 's_Drake  Massive Official Audio', 'Halogen  U Got That', 'hooked', 'Littles kids playing recorders', 'Caravan Palace  Star Scat'}
+                # 10 in flight light shows: {'porter robinson  a breath superbloom edit', 'Short Song', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Coldplay  Paradise Official Audio', 'Juvenile  Back That Thang Up ft Mannie Fresh Lil Wayne', 'Kenny Price - The Shortest Song In The World', 'Littles kids playing recorders', 's_Drake  Massive Official Audio', 'Daft Punk  Something About Us Official Video', 'YuGiOh  Season 1 Theme Song'}
+                
+                wait(futures)
+                print('donzo')
+                exit()
                 try:
                     for future in as_completed(futures):
                         print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)

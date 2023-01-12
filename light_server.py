@@ -1427,7 +1427,7 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
-        return
+        return song_path
     raise Exception('Couldnt download video')
 
 

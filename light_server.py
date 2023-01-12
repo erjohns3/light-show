@@ -1483,6 +1483,9 @@ if __name__ == '__main__':
             import tqdm
             import concurrent
 
+            if is_macos():
+                import multiprocessing
+                multiprocessing.set_start_method('fork')
             print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
         
             total_duration = 0
@@ -1499,7 +1502,8 @@ if __name__ == '__main__':
                     futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_ogg_song_paths]
                     for future in concurrent.futures.as_completed(futures):
                         progress_bar.update(1)
-            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_ogg_song_paths)} songs, {total_duration} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds', flush=True)
+                        time_diff = time.time() - time_start
+            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_ogg_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
             sys.exit()
         else:
             all_ogg_song_names = [name for name, _path in all_ogg_song_name_and_paths]

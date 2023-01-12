@@ -475,7 +475,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         if not effect_candidates: # it's low intensity but all candidates are high
-                            effect_candidates = ['a_UV pulse']
+                            effect_candidates = ['UV pulse']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color

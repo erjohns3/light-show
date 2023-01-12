@@ -1403,7 +1403,12 @@ def restart_show(skip=0, abs_time=None, reload=False):
             # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
             # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
         add_effect(effect_name)
-        play_song(effect_name, print_out=False)
+        try:
+            play_song(effect_name, print_out=False)
+        except:
+            print_red('play_song errored, running stop_song + clear_effects and continuing')
+            clear_effects()
+            stop_song()
     elif reload:
         print('RELOAD REFRESHING NO EFFECT')
         compile_all_luts_from_effects_config()
@@ -1428,7 +1433,6 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
-        return song_path
     raise Exception('Couldnt download video')
 
 

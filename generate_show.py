@@ -40,32 +40,28 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
             final_str = 'from effects.compiler import b\n\n' + final_str
         file.writelines([final_str])
 
-def get_src_bpm_offset(song_filepath, use_boundaries):
-    queue = multiprocessing.Queue()
-    proc = multiprocessing.Process(target=get_src_bpm_offset_multiprocess, args=(song_filepath, use_boundaries, queue,), daemon=True)
-    print(f'autogen: {song_filepath.stem} - About to call proc.start()', flush=True)
-    proc.start()
-    print(f'autogen: {song_filepath.stem} - proc is {proc.is_alive()}. About to call queue.get()', flush=True)
-    results = queue.get()
-    print(f'autogen: {song_filepath.stem} - About to call proc.join()', flush=True)
-    proc.join()
-    return results
+def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
+    try:
+        queue = multiprocessing.Queue()
+        proc = multiprocessing.Process(target=get_src_bpm_offset, args=(song_filepath, use_boundaries, queue,), daemon=True)
+        proc.start()
+        results = queue.get()
+        proc.join()
+        return results
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        raise e
 
 
-def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
-    print(f'autogen: {song_filepath.stem} - Stated process INTERNALLY', flush=True)
+def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
-    print(f'autogen: {song_filepath.stem} - About to start aubio.source()')
     src = aubio.source(str(song_filepath), 0, hop_s)
-    print(f'autogen: {song_filepath.stem} - Finshed aubio.source()')
     # print(src.uri, src.samplerate, src.channels, src.duration)
-    print(f'autogen: {song_filepath.stem} - About to start aubio.tempo()')
     o = aubio.tempo('default', win_s, hop_s, src.samplerate)
-    print(f'autogen: {song_filepath.stem} - Finished aubio.tempo()')
 
     pv = pvoc(win_s, hop_s)
     f = filterbank(40, win_s)
@@ -265,241 +261,223 @@ def get_top_level_effect_config():
         effects_config.update(all_globals[module].effects)
     return effects_config
 
-# last_song_filepath = None
-# last_song_data = None
-effect_files_json = get_top_level_effect_config()
-def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
-    try:
-        global last_song_filepath, last_song_data
 
-        start_time = time.time()
-        use_boundaries = True and mode != 'simple'
-        if mode == 'lasers':
-            show_name = f'g_lasers_{pathlib.Path(song_filepath).stem}'
+top_level_effect_config = get_top_level_effect_config()
+# print_blue(f'autogen: time taken up through get_top_level_effect_config(): {time.time() - generate_show_start_time} seconds')
+def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=True, output_directory=None, src_bpm_offset_cache=None):
+    global last_song_filepath, last_song_data
+
+    print_green(f'autogen: {song_filepath.stem} - Generating show...')
+
+    generate_show_start_time = time.time()
+    use_boundaries = True and mode != 'simple'
+    if mode == 'lasers':
+        show_name = f'g_lasers_{pathlib.Path(song_filepath).stem}'
+    else:
+        show_name = f'g_{pathlib.Path(song_filepath).stem}'
+
+    if output_directory is None:
+        output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
+    make_if_not_exist(output_directory)
+
+    show_name = ''.join([x if x.isalpha() else '_' for x in show_name])
+    output_filepath = output_directory.joinpath(show_name + '.py')
+    if output_filepath.exists():
+        if overwrite:
+            pass
+            # print_yellow(f'overwrite is set to True, and {output_filepath} exists, generating and overwriting')
         else:
-            show_name = f'g_{pathlib.Path(song_filepath).stem}'
-
-        if output_directory is None:
-            output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
-        make_if_not_exist(output_directory)
-
-        show_name = ''.join([x if x.isalpha() else '_' for x in show_name])
-        output_filepath = output_directory.joinpath(show_name + '.py')
-        if os.path.exists(output_filepath):
-            if overwrite:
-                pass
-                # print(f'{bcolors.WARNING}overwrite is set to True, and {output_filepath} exists, generating and overwriting{bcolors.ENDC}')
-            else:
-                print_yellow(f'autogen: overwrite is set to False, and {output_filepath} exists, so returning without generating show')
-                return None
-        
-        
-        print_green(f'autogen: {song_filepath.stem} - Generating show...')
-
-        # i think i need to be more precise here...
-        # if last_song_filepath == song_filepath:
-        #     song_length, bpm_guess, delay, boundary_beats, chunk_levels = last_song_data
-        #     print_green(f'autogen: {song_filepath.stem} - had cached data, using...')
-        # else:
-        song_length, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries)
-        # last_song_data = [song_length, bpm_guess, delay, deepcopy(boundary_beats), chunk_levels]
-        print_blue(f'autogen: {song_filepath.stem} - time taken up through get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
-        # last_song_filepath = song_filepath
+            print_yellow(f'autogen: overwrite is set to False, and {output_filepath} exists, so returning without generating show')
+            return None
+    
+    song_length, bpm_guess, delay, boundary_beats, chunk_levels = src_bpm_offset_cache or get_src_bpm_offset_multiprocess(song_filepath, use_boundaries)
+    print_blue(f'autogen: {song_filepath.stem} - time taken up through get_src_bpm_offset_multiprocess: {time.time() - generate_show_start_time} seconds')
 
 
-        show = {
-            'bpm': bpm_guess,
-            'delay_lights': delay,
-            'generated_boundaries': boundary_beats,
-            'skip_song': 0.0,
-            'profiles': ['Generated Shows'],
-            'beats': [],
-            'was_autogenerated': True,
-        }
-        if include_song_path:
-            relative_path = song_filepath
-            if relative_path.is_absolute():
-                relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
+    show = {
+        'bpm': bpm_guess,
+        'delay_lights': delay,
+        'generated_boundaries': boundary_beats,
+        'skip_song': 0.0,
+        'profiles': ['Generated Shows'],
+        'beats': [],
+        'was_autogenerated': True,
+    }
+    if include_song_path:
+        relative_path = song_filepath
+        if relative_path.is_absolute():
+            relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
 
-            show['song_path'] = str(relative_path)
+        show['song_path'] = str(relative_path)
 
+    
+    effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), top_level_effect_config.items()))
+    
+    effect_names = list(effects_config_filtered.keys())
+    effect_types_to_name = {}
+    for name, effect in effects_config_filtered.items():
+        if type(effect['autogen']) == str:
+            if effect['autogen'] not in effect_types_to_name:
+                effect_types_to_name[effect['autogen']] = []
+            effect_types_to_name[effect['autogen']].append(name)
+    
+    scenes = [
+        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'downbeat bottom', 'disco']],
+        [8, ['downbeat top', 'downbeat bottom', 'disco strobe']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top', 'disco']],
+        [8, ['downbeat bottom']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed', 'disco']],
+        [8, ['downbeat mixed', 'disco strobe']],
+        [8, ['downbeat mixed', 'UV pulse']],
+        [8, ['downbeat mixed', 'UV']],
+        [8, ['downbeat top', 'downbeat bottom', 'UV']],
+        [8, ['downbeat top', 'UV']],
+        [8, ['downbeat bottom', 'UV']],
+        [8, ['rainbow top', 'downbeat bottom']],
+        [8, ['rainbow top', 'disco strobe']],
+        [8, ['disco']],
+        [8, ['disco strobe']],
+        [2, ['filler']],
+        [2, ['UV pulse']],
+        [1, ['filler']],
+        [1, ['filler', 'disco strobe']],
+        [1, ['UV pulse single']],
+    ]
 
-
-        print_blue(f'autogen: time taken up through get_top_level_effect_config(): {time.time() - start_time} seconds')
-        
-        effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
-        
-        effect_names = list(effects_config_filtered.keys())
-        effect_types_to_name = {}
-        for name, effect in effects_config_filtered.items():
-            if type(effect['autogen']) == str:
-                if effect['autogen'] not in effect_types_to_name:
-                    effect_types_to_name[effect['autogen']] = []
-                effect_types_to_name[effect['autogen']].append(name)
-        
-        scenes = [
-            [8, ['downbeat top', 'downbeat bottom']],
-            [8, ['downbeat top', 'downbeat bottom', 'disco']],
-            [8, ['downbeat top', 'downbeat bottom', 'disco strobe']],
-            [8, ['downbeat top']],
-            [8, ['downbeat top']],
-            [8, ['downbeat top', 'disco']],
-            [8, ['downbeat bottom']],
-            [8, ['downbeat mixed']],
-            [8, ['downbeat mixed']],
-            [8, ['downbeat mixed', 'disco']],
-            [8, ['downbeat mixed', 'disco strobe']],
-            [8, ['downbeat mixed', 'UV pulse']],
-            [8, ['downbeat mixed', 'UV']],
-            [8, ['downbeat top', 'downbeat bottom', 'UV']],
-            [8, ['downbeat top', 'UV']],
-            [8, ['downbeat bottom', 'UV']],
-            [8, ['rainbow top', 'downbeat bottom']],
-            [8, ['rainbow top', 'disco strobe']],
-            [8, ['disco']],
-            [8, ['disco strobe']],
-            [2, ['filler']],
-            [2, ['UV pulse']],
-            [1, ['filler']],
-            [1, ['filler', 'disco strobe']],
-            [1, ['UV pulse single']],
-        ]
-
-        if mode == 'lasers':
-            for _ in range(5):
-                scenes += [
-                    [8, ['laser long', 'disco strobe']],
-                ]
-            for _ in range(5):
-                scenes += [
-                    [8, ['laser long']],
-                ]
-
+    if mode == 'lasers':
+        for _ in range(5):
             scenes += [
-                [2, ['filler laser']],
-                [1, ['filler laser']],
+                [8, ['laser long', 'disco strobe']],
+            ]
+        for _ in range(5):
+            scenes += [
+                [8, ['laser long']],
             ]
 
+        scenes += [
+            [2, ['filler laser']],
+            [1, ['filler laser']],
+        ]
 
-        # if chunk is high intensity: at least one effect must be mid or high
-        # if chunk is low: no effects should be high
-        # if chunk is silence: show UV pulse at half time
+
+    # if chunk is high intensity: at least one effect must be mid or high
+    # if chunk is low: no effects should be high
+    # if chunk is silence: show UV pulse at half time
 
 
-        # apply lights
-        total_beats = int((song_length / 60) * bpm_guess)
-        beat = 1  
-        if mode == 'simple': # Only RBBB timing
-            while beat < total_beats:
-                show['beats'].append([beat, 'RBBB 1 bar', 4])
-                beat += 4
-        elif use_boundaries==True: # Based on scenes
-            boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
-            prev_bound = 0
-            prev_scene = None
-            prev_effects = []
-            for iter, bound in enumerate(boundary_beats):
-                chunk_level = chunk_levels[iter] #TODO use this for filtering
-                length_left = bound-prev_bound
-                while length_left>0:
-                    new_prev_effects = []
-                    candidates = []
-                    if length_left > 16:
-                        candidates = [x for x in scenes if x[0] >= 4 and  x[0] <= length_left]# and x[1] != prev_scene]
-                    else:
-                        candidates = [x for x in scenes if x[0] <= length_left]# and x[1] != prev_scene]
-                        if length_left > 2:
-                            candidates = [x for x in candidates if x[1] != ['flash']]
+    # apply lights
+    total_beats = int((song_length / 60) * bpm_guess)
+    beat = 1  
+    if mode == 'simple': # Only RBBB timing
+        while beat < total_beats:
+            show['beats'].append([beat, 'RBBB 1 bar', 4])
+            beat += 4
+    elif use_boundaries==True: # Based on scenes
+        boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
+        prev_bound = 0
+        prev_scene = None
+        prev_effects = []
+        for iter, bound in enumerate(boundary_beats):
+            chunk_level = chunk_levels[iter] #TODO use this for filtering
+            length_left = bound-prev_bound
+            while length_left>0:
+                new_prev_effects = []
+                candidates = []
+                if length_left > 16:
+                    candidates = [x for x in scenes if x[0] >= 4 and  x[0] <= length_left]# and x[1] != prev_scene]
+                else:
+                    candidates = [x for x in scenes if x[0] <= length_left]# and x[1] != prev_scene]
+                    if length_left > 2:
+                        candidates = [x for x in candidates if x[1] != ['flash']]
 
-                    if not candidates:
-                        candidates = [1, ['UV pulse']] # bugfix for case that seems impossible
+                if not candidates:
+                    candidates = [1, ['UV pulse']] # bugfix for case that seems impossible
 
-                    length, effect_types = random.choice([x for x in candidates])
-                    while length_left >= length:
-                        for effect_type in effect_types:
-                            effect_candidates = deepcopy(effect_types_to_name[effect_type])
+                length, effect_types = random.choice([x for x in candidates])
+                while length_left >= length:
+                    for effect_type in effect_types:
+                        effect_candidates = deepcopy(effect_types_to_name[effect_type])
 
-                            if chunk_level == "hi":
-                                effect_candidates = [x for x in effect_candidates if not (
-                                    "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "low"
-                                    )]
-                                # effect_candidates = effect_types_to_name['flash'] #DEBUG
-                            elif chunk_level == "low":
-                                effect_candidates = [x for x in effect_candidates if not (
-                                    "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
-                                    )]
-                                # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
-                            if not effect_candidates: # it's low intensity but all candidates are high
-                                effect_candidates = ['UV pulse']
-                            effect_name = random.choice(effect_candidates)
+                        if chunk_level == "hi":
+                            effect_candidates = [x for x in effect_candidates if not (
+                                "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "low"
+                                )]
+                            # effect_candidates = effect_types_to_name['flash'] #DEBUG
+                        elif chunk_level == "low":
+                            effect_candidates = [x for x in effect_candidates if not (
+                                "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
+                                )]
+                            # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
+                        if not effect_candidates: # it's low intensity but all candidates are high
+                            effect_candidates = ['UV pulse']
+                        effect_name = random.choice(effect_candidates)
 
-                            # shift by a random color
-                            # dimmer doesn't play well with hue shifter
-                            hue_shift, sat_shift, bright_shift = 0, 0, 0
-                            # if random_color and effect_type != 'dimmers':
-                            if effect_type != 'dimmers':
-                                hue_shift=random.random()
-                                bright_shift = -.2
+                        # shift by a random color
+                        # dimmer doesn't play well with hue shifter
+                        hue_shift, sat_shift, bright_shift = 0, 0, 0
+                        # if random_color and effect_type != 'dimmers':
+                        if effect_type != 'dimmers':
+                            hue_shift=random.random()
+                            bright_shift = -.2
 
-                            new_prev_effects.append(effect_name)
-                            the_length = length
-                            if length_left >= length*4 and length==8:
-                                the_length = length * 4
-                            elif length_left >= length*2 and length==8:
-                                the_length = length * 2
-                            show['beats'].append(b(beat, name=effect_name, length=the_length, hue_shift=hue_shift, sat_shift=sat_shift, bright_shift=bright_shift))
-                        
+                        new_prev_effects.append(effect_name)
+                        the_length = length
                         if length_left >= length*4 and length==8:
-                            beat += length*4
-                            length_left -= length*4
+                            the_length = length * 4
                         elif length_left >= length*2 and length==8:
-                            beat += length*2
-                            length_left -= length*2
-                        else:
-                            beat += length
-                            length_left -= length
-                    prev_effects = new_prev_effects
-                    prev_scene = effect_types
-                prev_bound = bound
-        else: # Based on scenes
-            while beat < total_beats:
-                length, effect_types = random.choices(scenes, k=1)[0]
-                for effect_type in effect_types:
-                    effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
-                    show['beats'].append([beat, effect_name, length])
-                beat += length
-        
-        ending_beat = 0
-        for index in range(len(show['beats'])):
-            beat = show['beats'][index][0]
-            length = show['beats'][index][2]
-            ending_beat = max(ending_beat, beat + length)
-        show['length'] = ending_beat
+                            the_length = length * 2
+                        show['beats'].append(b(beat, name=effect_name, length=the_length, hue_shift=hue_shift, sat_shift=sat_shift, bright_shift=bright_shift))
+                    
+                    if length_left >= length*4 and length==8:
+                        beat += length*4
+                        length_left -= length*4
+                    elif length_left >= length*2 and length==8:
+                        beat += length*2
+                        length_left -= length*2
+                    else:
+                        beat += length
+                        length_left -= length
+                prev_effects = new_prev_effects
+                prev_scene = effect_types
+            prev_bound = bound
+    else: # Based on scenes
+        while beat < total_beats:
+            length, effect_types = random.choices(scenes, k=1)[0]
+            for effect_type in effect_types:
+                effect_name = random.choices(effect_types_to_name[effect_type], k=1)[0]
+                show['beats'].append([beat, effect_name, length])
+            beat += length
+    
+    ending_beat = 0
+    for index in range(len(show['beats'])):
+        beat = show['beats'][index][0]
+        length = show['beats'][index][2]
+        ending_beat = max(ending_beat, beat + length)
+    show['length'] = ending_beat
 
-        the_show = {
-            show_name: show
-        }
+    the_show = {
+        show_name: show
+    }
 
-        write_effect_to_file_pretty(output_filepath, the_show)
-        print_blue(f'autogen: {song_filepath.stem} - time taken to finish: {time.time() - start_time} seconds')
-        
-        return show_name, show, output_filepath
-    except Exception as e:
-        print_red(traceback.format_exc(), flush=True)
-        raise e
+    write_effect_to_file_pretty(output_filepath, the_show)
+    print_blue(f'autogen: {song_filepath.stem} - time taken to finish: {time.time() - generate_show_start_time} seconds')
+    
+    return show_name, show, output_filepath
 
 
 if __name__ == '__main__':
-    effect_files_jsons = get_top_level_effect_config()
-
     configs_with_bpm = {}
-    for effect_name, effect in effect_files_jsons.items():
+    for effect_name, effect in top_level_effect_config.items():
         if 'bpm' in effect and 'song_path' in effect:
             configs_with_bpm[effect['song_path']] = {
                 'bpm': effect['bpm'],
                 'delay': effect['delay_lights'] + effect['skip_song'],
             }
-    
 
     guess_bpm_delay = {}
     for name, song_filepath in get_all_paths('songs', only_files=True):
@@ -513,9 +491,9 @@ if __name__ == '__main__':
             
             delay_string = f'config_delay: {config_delay}, guess_delay: {guess_delay}'
             if config_bpm == guess_bpm:
-                print(f'{bcolors.OKGREEN}BPM match: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
+                print_green(f'BPM match: {guess_bpm}, {delay_string}, {song_filepath}')
             else:
-                print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
+                print_red(f'config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}')
         else:
-            print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
+            print_cyan(f'BPM: {guess_bpm}, no config_bpm found, {song_filepath}')
 

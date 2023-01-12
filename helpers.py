@@ -131,18 +131,19 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False):
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_filepaths=None):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
         print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
     paths = []
-    directory = pathlib.Path(directory)
     for filename in os.listdir(directory):
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
+        if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
+            pass
         
         if filepath.is_file() or not only_files:
             paths.append((filename, filepath))
@@ -203,7 +204,7 @@ def run_command_async(full_command_arr, debug=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
-            print(f'{bcolors.WARNING}WARNING: the parameter "cmd" was not a str, casting and continuing{bcolors.ENDC}')
+            print_yellow(f'the parameter "cmd" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():

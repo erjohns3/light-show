@@ -101,3 +101,7 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o
+
+
+## andrews zetai timing
+* FINISHED AUTOGENERATING ALL (208) SHOWS IN DIRECTORY songs in 107.53671836853027 seconds

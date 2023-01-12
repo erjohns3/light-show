@@ -1004,34 +1004,43 @@ def add_dependancies(effects_config):
         graph[effect_name] = list(graph[effect_name].keys())
 
 
-def add_song_to_config(filepath):
-    filepath = pathlib.Path(str(filepath).replace('\\', '/'))
-    relative_path = filepath
-    if relative_path.is_absolute():
-        relative_path = relative_path.relative_to(this_file_directory)
-
-    if filepath.suffix in ['.mp3', '.ogg', '.wav']:
-        tags = TinyTag.get(filepath)
+allowed_song_extensions = set(['.mp3', '.ogg', '.wav'])
+def get_song_metadata_info(song_path):
+    if song_path.suffix in allowed_song_extensions:
+        tags = TinyTag.get(song_path)
         name, duration = tags.title, tags.duration
 
         if tags.samplerate != 48000:
-            print_red(f'THe song file is not 48000hz sample rate, {filepath}. This introduces weird bugs, delete the file.')
+            print_red(f'THe song file is not 48000hz sample rate, {song_path}. This introduces weird bugs, delete the file.')
             return False
 
         if name == None:
-            name = filepath.stem
+            name = song_path.stem
 
         if not duration:
-            print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow.')
-            duration = sound_helpers.get_audio_clip_length(filepath)
+            print_yellow(f'No tag found for file: "{song_path}", ffprobing, but this is slow.')
+            duration = sound_helpers.get_audio_clip_length(song_path)
+        return name, tags.artist, duration
+    else:
+        print_red(f'File type not in: {allowed_song_extensions}')
+
+
+def add_song_to_config(song_path):
+    song_path = pathlib.Path(str(song_path).replace('\\', '/'))
+    relative_path = song_path
+    if relative_path.is_absolute():
+        relative_path = relative_path.relative_to(this_file_directory)
+
+    if song_path.suffix in ['.mp3', '.ogg', '.wav']:
+        name, artist, duration = get_song_metadata_info(song_path)
         
         songs_config[str(relative_path.as_posix())] = {
             'name': name,
-            'artist': tags.artist,
+            'artist': artist,
             'duration': duration
         }
     else:
-        print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
+        print_red(f'CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
 def load_effects_config_from_disk():
@@ -1160,6 +1169,7 @@ def compile_all_luts_from_effects_config():
                 if key != 'beats':
                     effects_config_client[name][key] = value
 
+    # andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():
         # eager compile all normal effects
         for effect_name, effect in effects_config.items():
@@ -1437,43 +1447,49 @@ if __name__ == '__main__':
         setup_gpio()
     
     if args.autogen is not None:
-        in_flight = set()
         def gen_show_worker(song_path, mode):
-            in_flight.add(song_path.stem)
-            import generate_show
-            if mode == 'both':
-                results = generate_show.generate_show(song_path, overwrite=True, mode=None)
-                generate_show.generate_show(song_path, overwrite=True, mode='lasers')
-            else:
-                results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
-            in_flight.remove(song_path.stem)
-            return results
-        
+            try:
+                import generate_show
+                
+                src_bpm_offset_cache = generate_show.get_src_bpm_offset(song_path, use_boundaries=True)
+                if mode == 'all':
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=None, src_bpm_offset_cache=src_bpm_offset_cache)
+                    generate_show.generate_show(song_path, overwrite=True, mode='lasers', src_bpm_offset_cache=src_bpm_offset_cache)
+                else:
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode, src_bpm_offset_cache=src_bpm_offset_cache)
+                return results
+            except Exception as e:
+                print_red(f'{traceback.format_exc()}')
+                raise e
+
+        autogen_song_directory = 'songs'
+        all_ogg_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=['.ogg'])
+        all_ogg_song_paths = [path for _name, path in all_ogg_song_name_and_paths]
         if args.autogen == 'all':
             import tqdm
-            from functools import partial
-            import multiprocessing
             import concurrent
 
-            autogen_song_directory = 'songs'
             print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
-            # for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
+        
+            total_duration = 0
+            duration_and_song_paths = []
+            for song_path in all_ogg_song_paths:
+                _, _, duration = get_song_metadata_info(song_path)
+                duration_and_song_paths.append((duration, song_path))
+                total_duration += duration
+            all_ogg_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
 
-            all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
-            progress_bar = tqdm.tqdm(total=len(all_song_paths))
-
-            with concurrent.futures.ProcessPoolExecutor() as executor:
-                futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_song_paths]
-                for future in concurrent.futures.as_completed(futures):
-                    print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)
-                    progress_bar.update(1)
-
-            progress_bar.close()
-            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)}) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds')
+            # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
+            with tqdm.tqdm(total=len(all_ogg_song_paths)) as progress_bar:
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_ogg_song_paths]
+                    for future in concurrent.futures.as_completed(futures):
+                        progress_bar.update(1)
+            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_ogg_song_paths)} songs, {total_duration} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds', flush=True)
             sys.exit()
         else:
-            not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
-            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
+            all_ogg_song_names = [name for name, _path in all_ogg_song_name_and_paths]
+            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_ogg_song_names))
             args.show, _, _ = gen_show_worker(song_path, args.autogen_mode)
 
     load_effects_config_from_disk()

@@ -1417,6 +1417,7 @@ def try_download_video(show_name):
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
+    make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     try:
         # pygame.mixer.pre_init(48000, 16, 2, 4096)
         pygame.mixer.init(frequency=48000)

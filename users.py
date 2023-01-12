@@ -59,4 +59,8 @@ users = {
         "name": "Andrews laptop chrome",
         "admin": True,
     },
+    "1e5afd24-793b-43c6-1462-24c331d54454": {
+        "name": "chris phone",
+        "admin": True,
+    },
 }

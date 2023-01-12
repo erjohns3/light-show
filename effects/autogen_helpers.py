@@ -269,6 +269,7 @@ effects = {
         ],
     },
 
+    #  i think bad
     "z_pulse top swap 3": {
         "length": 2,
         "autogen": "downbeat top",

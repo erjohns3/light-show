@@ -621,11 +621,11 @@
         thumbAnimate = false;
     }
 
-    function sliderStop(){
+    function sliderStop(event){
         barAnimate = false;
         thumbAnimate = true;
         endTime = queue[queueKey].duration;
-        newTime = endTime * seekInputElem.value;
+        newTime = endTime * event.currentTarget.value;
         msg = {
             uuid: uuid,
             type: "set_time",

@@ -370,16 +370,19 @@ async def init_queue_client(websocket, path):
                 print(f'Song Queue: removed from queue by {uuid_to_user(msg["uuid"])}')
                 effect_name = msg['effect']
                 salt = msg['salt']
+                # TODO share this code with light() probably
                 for i in range(len(song_queue)):
                     if song_queue[i][0] == effect_name and song_queue[i][1] == salt and (song_queue[i][2] == uuid or is_admin(uuid)):
                         song_queue.pop(i)
                         if i == 0:
+                            # andrew: oops, this is ew
+                            song_was_playing = song_playing
                             stop_song()
                             song_time = 0
                             index = curr_effect_index(effect_name)
                             if index is not False:
                                 remove_effect(index)
-                            if song_playing and len(song_queue) > 0:
+                            if song_was_playing and len(song_queue) > 0:
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
@@ -775,7 +778,7 @@ async def light():
                     stop_song()
                     song_queue.pop(0)
                     song_time = 0
-                    if song_playing and len(song_queue) > 0:
+                    if len(song_queue) > 0:
                         new_effect_name = song_queue[0][0]
                         add_effect(new_effect_name)
                         play_song(new_effect_name)

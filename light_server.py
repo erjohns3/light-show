@@ -992,12 +992,14 @@ def effects_config_sort(path):
 
 
 def dfs(effect_name):
-    if effect_name in found:
-        return
-    for component in effects_config[effect_name]['beats']:
-        if type(component[1]) == str:
-            dfs(component[1])
-    effects_config_sort([effect_name])
+    if effect_name not in found:
+        if effect_name not in effects_config:
+            return effect_name
+        for component in effects_config[effect_name]['beats']:
+            if type(component[1]) == str:
+                if missing_effect := dfs(component[1]):
+                    return missing_effect
+        effects_config_sort([effect_name])
 
 
 def add_dependancies(effects_config):
@@ -1195,7 +1197,10 @@ def compile_lut(local_effects_config):
     sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
         set_effect_defaults(name, effect)
-        dfs(name)
+        missing_effect = dfs(name)
+        if missing_effect is not None:
+            print_red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
+            sys.exit()
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()

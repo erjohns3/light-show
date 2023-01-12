@@ -287,6 +287,8 @@ def download_song(url, uuid):
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 15 * 60
+    
+    # TODO add caching here
     filepath = youtube_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
@@ -1169,7 +1171,7 @@ def compile_all_luts_from_effects_config():
                 if key != 'beats':
                     effects_config_client[name][key] = value
 
-    # andrew: replace with is_doorbell()
+    # TODO andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():
         # eager compile all normal effects
         for effect_name, effect in effects_config.items():

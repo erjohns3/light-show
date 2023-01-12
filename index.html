@@ -606,8 +606,15 @@
     seekInputElem.oninput = ()=>{
         
     };
-    seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
-    seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
+
+    if (navigator.userAgent.includes('Mobi')) {
+        seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
+        seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
+    }
+    else {
+        seekInputElem.addEventListener('mousedown', sliderStart, { passive: true });
+        seekInputElem.addEventListener('mouseup', sliderStop, { passive: true });
+    }
     seekInputElem.addEventListener('touchcancel', sliderStop, { passive: true });
 
     function sliderStart(){

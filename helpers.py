@@ -144,7 +144,7 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
         if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
-            pass
+            continue
         
         if filepath.is_file() or not only_files:
             paths.append((filename, filepath))

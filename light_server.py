@@ -1026,7 +1026,7 @@ def get_song_metadata_info(song_path):
             duration = sound_helpers.get_audio_clip_length(song_path)
         return name, tags.artist, duration
     else:
-        print_red(f'File type not in: {allowed_song_extensions}')
+        print_red(f'File type not in: {allowed_song_extensions}, {song_path}')
 
 
 def add_song_to_config(song_path):

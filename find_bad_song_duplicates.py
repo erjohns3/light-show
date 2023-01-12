@@ -4,7 +4,7 @@ from helpers import *
 
 
 def is_similar(item1, item2):
-    return fuzz.ratio(item1, item2) > 90
+    return fuzz.ratio(item1, item2) > 80
 
 def fuzzy_find_get_one(search, collection):
     return process.extractOne(search, collection)[0]

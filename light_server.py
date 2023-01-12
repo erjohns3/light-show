@@ -904,6 +904,7 @@ def add_effect(new_effect_name):
     if 'bpm' in effect:
         clear_effects()
         time_start = time.time() + effect['delay_lights'] - song_time
+        print('effect will have time_start of:', effect['delay_lights'] - song_time)
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0

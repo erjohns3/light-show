@@ -12,6 +12,7 @@ import os
 import colorsys
 import random
 import traceback
+import sys
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -1318,6 +1319,9 @@ def compile_lut(local_effects_config):
 
 def kill_in_n_seconds(seconds):
     time.sleep(seconds)
+    import atexit
+    atexit._run_exitfuncs()
+
     if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /F'
     else:
@@ -1328,15 +1332,20 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
+    if 'multiprocessing' in sys.modules:
+        import multiprocessing
+        print_yellow('multiprocessing was imported! time to COOK')
+        for child in multiprocessing.active_children():
+            print_yellow(f'killing {child.pid}')
+            child.kill()
     if not args.local:
-        x = threading.Thread(target=kill_in_n_seconds, args=(0.5,))
-        x.start()
+        threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
     if args.reload:
         observer.stop()
         observer.join()
-    exit()
+    sys.exit()
 
 #################################################
 
@@ -1427,56 +1436,40 @@ if __name__ == '__main__':
         setup_gpio()
     
     if args.autogen is not None:
-        import generate_show
-        from functools import partial
-        from concurrent.futures import ThreadPoolExecutor, as_completed, wait
-        # import tqdm
-
-
         in_flight = set()
         def gen_show_worker(song_path, mode):
             in_flight.add(song_path.stem)
+            import generate_show
             if mode == 'both':
                 results = generate_show.generate_show(song_path, overwrite=True, mode=None)
                 generate_show.generate_show(song_path, overwrite=True, mode='lasers')
-                
             else:
                 results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
             in_flight.remove(song_path.stem)
             return results
         
         if args.autogen == 'all':
+            import tqdm
+            from functools import partial
+            import multiprocessing
+            import concurrent
+
             autogen_song_directory = 'songs'
             print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
             # for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
 
             all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
             progress_bar = tqdm.tqdm(total=len(all_song_paths))
-            with ThreadPoolExecutor() as executor:
+
+            with concurrent.futures.ProcessPoolExecutor() as executor:
                 futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_song_paths]
-
-
-                # 18 in flight light shows: {'Nice For What', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Jsan x Pandrezz  Insomnia', 'Coldplay  Paradise Official Audio', 'UH OH TOWN Original Aka Stinky Lavender Town', 'DRAM  Broccoli feat Lil Yachty Official Music Video', 'Hypnocurrency', 'Daft Punk  Get Lucky Evan Duffy Improvisation', 'Tailwind', 'Møme  Aloha Official Music Video ft Merryn Jeann', 'Kenny Price - The Shortest Song In The World', 'Toby Keith  Red Solo Cup Unedited Version', 'Short Song', 's_Drake  Massive Official Audio', 'Halogen  U Got That', 'hooked', 'Littles kids playing recorders', 'Caravan Palace  Star Scat'}
-                # 10 in flight light shows: {'porter robinson  a breath superbloom edit', 'Short Song', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Coldplay  Paradise Official Audio', 'Juvenile  Back That Thang Up ft Mannie Fresh Lil Wayne', 'Kenny Price - The Shortest Song In The World', 'Littles kids playing recorders', 's_Drake  Massive Official Audio', 'Daft Punk  Something About Us Official Video', 'YuGiOh  Season 1 Theme Song'}
-                
-                wait(futures)
-                print('donzo')
-                exit()
-                try:
-                    for future in as_completed(futures):
-                        print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)
-                        progress_bar.update(1)
-
-                        # os.system(f'kill -9 {os.getpid()}')
-                except:
-                    print_red(traceback.format_exc(), flush=True)
-                    os.system(f'kill -9 {os.getpid()}')
-
-                # executor.map(partial(gen_show_worker, mode=args.autogen_mode), all_song_paths)
+                for future in concurrent.futures.as_completed(futures):
+                    print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)
+                    progress_bar.update(1)
 
             progress_bar.close()
             print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)}) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds')
-            exit()
+            sys.exit()
         else:
             not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))

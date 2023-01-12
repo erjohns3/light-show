@@ -185,8 +185,10 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
     return process.returncode, stdout.decode("utf-8"), stderr.decode("utf-8")
 
 
-def make_if_not_exist(output_dir):
+def make_if_not_exist(output_dir, quiet=False):
     if not os.path.exists(output_dir):
+        if not quiet:
+            print_yellow(f'Creating {output_dir} since it didn\'t exist')
         os.mkdir(output_dir)
     return output_dir
 

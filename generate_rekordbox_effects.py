@@ -1,21 +1,36 @@
-import generate_show
 from helpers import *
-import light_server
 import youtube_helpers
+import generate_show
 
 
-light_server.load_effects_config_from_disk()
-channel_lut = light_server.get_channel_lut()
-effects_config = light_server.get_effects_config()
+# import light_server
+# light_server.load_effects_config_from_disk()
+# channel_lut = light_server.get_channel_lut()
 
 def generate_rekordbox_effect(filepath):
+    import paramiko
+    from scp import SCPClient
+
     effect_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
-    new_show, local_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
+    _, _, local_filepath = generate_show.generate_show(filepath, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
     print_blue(f'Show created, scping from "{local_filepath}" to folder "{remote_folder}"')
 
-    youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+    
+    try:
+        youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+    except:
+        # !TODO catch teh right exception here (file not found)
+        print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
+    
+        ssh = paramiko.client.SSHClient()
+        ssh.load_system_host_keys()
+        ssh.connect(hostname=youtube_helpers.doorbell_ip,
+                    port = 22,
+                    username='pi')
+        stdin, stdout, stderr = ssh.exec_command('mkdir /home/pi/light-show/effects/rekordbox_effects')
+        youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
 
 
 if __name__ == '__main__':

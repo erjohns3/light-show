@@ -10,4 +10,5 @@ thefuzz
 pynput
 scipy
 pandas
+tqdm
 git+https://github.com/aubio/aubio.git

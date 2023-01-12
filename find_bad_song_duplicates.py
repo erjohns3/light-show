@@ -20,3 +20,4 @@ for name2, path2 in get_all_paths(ray_songs_folder, only_files=True, recursive=T
         print(name1)
         if is_similar(name1, name2):
             print('TOO SIMILAR:', blue(path1), yellow(path2))
+print_green('Done')

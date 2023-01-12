@@ -303,9 +303,9 @@ def download_song(url, uuid):
 
         print(f'passing filepath: {filepath}')
         effects_config[show_name] = show
-        add_dependancies({show: show_name})
+        add_dependancies({show_name: show})
 
-        compile_lut({show: show_name})
+        compile_lut({show_name: show})
         print(f'created show for: {show_name}')
 
         effects_config_client[show_name] = {}
@@ -1430,7 +1430,7 @@ if __name__ == '__main__':
         import generate_show
         from functools import partial
         from concurrent.futures import ThreadPoolExecutor, as_completed, wait
-        import tqdm
+        # import tqdm
 
 
         in_flight = set()

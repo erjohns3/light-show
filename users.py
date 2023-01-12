@@ -15,6 +15,10 @@ users = {
         "name": "Matts Phone Chrome",
         "admin": True,
     },
+    "3a864221-cc10-6cb-5528-1ab57e01d1e": {
+        "name": "Andrews Upstairs Computer Chrome updated...",
+        "admin": True,
+    },
     "82c4e8e0-644d-cd3c-cac6-8875aace6356": {
         "name": "Andrews Upstairs Computer Chrome",
         "admin": True,

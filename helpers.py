@@ -131,11 +131,12 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_filepaths=None):
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_filepaths=None, quiet=False):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
-        print_yellow(f'{directory} does not exist, returning [] for paths')
+        if not quiet:
+            print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
     paths = []
     for filename in os.listdir(directory):

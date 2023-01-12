@@ -1063,9 +1063,9 @@ def load_effects_config_from_disk():
 
     total_time = 0
     for name, filepath in get_all_paths(effects_dir, only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True, quiet=True):
         if name == 'compiler.py':
             continue
     

@@ -165,7 +165,8 @@ async def init_rekordbox_bridge_client(websocket, path):
                 if effect_to_play not in effects_config:
                     print_yellow(f'Cant play light show effect from rekordbox! Missing effect {effect_to_play}\n' * 8)
                     continue
-
+            
+            # TODO we gotta check above and all the songs
             # if rekordbox_title not in effects_config:
             #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
             #     rekordbox_title = 'g_' + rekordbox_title
@@ -351,7 +352,6 @@ async def init_queue_client(websocket, path):
         try:
             print('Song Queue: waiting for message')
             msg_string = await websocket.recv()
-            print('Song Queue: waiting for message')
         except:
             song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
@@ -497,29 +497,26 @@ def search_youtube():
 def add_queue_balanced(effect_name, uuid):
     global song_playing, song_time, broadcast_light_status, broadcast_song_status
 
-    if False: # is_admin(uuid):
-        index = 1
-        while index < len(song_queue):
-            if song_queue[index][2] != uuid:
-                break
-            index += 1
-    else:
-        index = 0
-        count = 0
-        user_counts = {}
-        for entry in song_queue:
-            user_counts[entry[2]] = 0
-            if entry[2] == uuid:
-                count += 1
-        while index < len(song_queue):
-            # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL. Should be fixed now
-            # if song_queue[index][2] not in user_counts:
-            #     print('saving a crash')
-            #     user_counts[song_queue[index][2]] = 0
-            if user_counts[song_queue[index][2]] > count:
-                break
-            user_counts[song_queue[index][2]] += 1
-            index += 1
+    # TODO Eric, is this code useless now? i just commented it out
+    # if False: # is_admin(uuid):
+    #     index = 1
+    #     while index < len(song_queue):
+    #         if song_queue[index][2] != uuid:
+    #             break
+    #         index += 1
+    # else:
+    index = 0
+    count = 0
+    user_counts = {}
+    for entry in song_queue:
+        user_counts[entry[2]] = 0
+        if entry[2] == uuid:
+            count += 1
+    while index < len(song_queue):
+        if user_counts[song_queue[index][2]] > count:
+            break
+        user_counts[song_queue[index][2]] += 1
+        index += 1
     song_queue.insert(index, [effect_name, get_queue_salt(), uuid])
 
     if len(song_queue) == 1:

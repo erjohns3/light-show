@@ -1045,7 +1045,7 @@ def add_song_to_config(song_path):
             'duration': duration
         }
     else:
-        print_red(f'CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
+        print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
 def load_effects_config_from_disk():
@@ -1352,10 +1352,12 @@ def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
     if 'multiprocessing' in sys.modules:
         import multiprocessing
-        print_yellow('multiprocessing was imported! time to COOK')
-        for child in multiprocessing.active_children():
-            print_yellow(f'killing {child.pid}')
-            child.kill()
+        active_children = multiprocessing.active_children()        
+        if active_children:
+            print_yellow(f'Module multiprocessing was imported! Killing active_children processes, PIDS: {[x.pid for x in active_children]}')
+            for child in active_children:
+                print_yellow(f'killing {child.pid}')
+                child.kill()
     if not args.local:
         threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
         for i in range(len(pca.channels)):

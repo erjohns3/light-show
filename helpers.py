@@ -143,10 +143,10 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
-        if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
-            continue
         
         if filepath.is_file() or not only_files:
+            if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
+                continue
             paths.append((filename, filepath))
         if filepath.is_dir() and recursive:
             paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive)

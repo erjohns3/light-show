@@ -41,6 +41,22 @@ effects = {
         ],
     },
 
+    "dayglow fade blue red bottom": {
+        "length": 8,
+        "beats": [
+            b(1, 'Blue bottom', length=.9, intensity=(1, 0)),
+            b(1.1, 'Red bottom', length=.9, intensity=(0, 1)),
+            b(2, 'Red bottom', length=2.2, intensity=(1, 0)),
+        ],
+    },
+    "dayglow breakdown": {
+        "length": 8.5,
+        "beats": [
+            b(1, name='dayglow fade blue red bottom', length=1.9),
+            b(2.9, name='Green bottom', length=1),
+        ],
+    },
+
     "dayglow_close_to_you": {
         "bpm": 140,
         "delay_lights": 0.1,
@@ -50,9 +66,9 @@ effects = {
             b(21, name='dayglow guitar', length=96),
             b(117, name='dayglow slow laser', length=32),
             b(181, name='dayglow full chorus', length=64),
-            b(245, name='RBBB 1 bar', length=64),
-            b(253, name='dayglow kicks', length=56),
-            b(308.5, name='UV pulse', length=8),
+            b(245, name='RBBB 1 bar', length=63),
+            b(253, name='dayglow kicks', length=55),
+            b(308.5, name='dayglow breakdown', length=8.5),
             b(317, name='dayglow full chorus', length=32),
         ],
         "song_path": "songs/Dayglow - Close to You (Official Video).ogg",

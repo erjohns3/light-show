@@ -946,7 +946,14 @@ def stop_song():
 def setup_gpio():
     global pca
 
-    import board
+    try:
+        import board
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        print_yellow(f'you need to add --local probably')        
+        sys.exit()
+
+    
     import busio
     import adafruit_pca9685
 

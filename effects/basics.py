@@ -172,7 +172,6 @@ effects = {
     # timings
     "RBBB 1 bar": {
         "length": 4,
-        "autogen": True,
         "beats": [
             [1, [100, 0, 0, 0, 0, 0, 0], 0.25],
             [2, [0, 0, 100, 0, 0, 0, 0], 0.25],
@@ -210,6 +209,36 @@ effects = {
         "profiles": ["Eric"],
         "beats": [
             b(1, length=1, disco_rgb=[0, 0, 100]),
+        ]
+    },
+
+    "Red disco pulse": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "profiles": ["Eric"],
+        "beats": [
+            b(1, length=.5, disco_rgb=[100, 0, 0])
+        ]
+    },
+
+    "Green disco pulse": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "profiles": ["Eric"],
+        "beats": [
+            b(1, length=.5, disco_rgb=[0, 100, 0]),
+        ]
+    },
+
+    "Blue disco pulse": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "profiles": ["Eric"],
+        "beats": [
+            b(1, length=.5, disco_rgb=[0, 0, 100]),
         ]
     },
 

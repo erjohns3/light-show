@@ -36,15 +36,10 @@
     <div id="page-label">0/0</div>
     <div id="page-down" class="button">Dn</div>
 
-    <div id="rate-inc" class="button">+</div>
-    <div id="rate-dec" class="button">—</div>
-    <div id="rate-next"></div>
-    <div id="rate-apply" class="button">Apply</div>
-    <div id="rate-curr"></div>
-
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
+    <div id="dev-mode" class="button">Dev Mode</div>
 </body>
 
 <script>
@@ -90,7 +85,7 @@
         socket.onmessage = function (event) {
             console.log("socket message");
             let msg = JSON.parse(event.data);
-            console.log(msg);
+            console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -101,7 +96,7 @@
                 for(let effect_name in effectsConfig){
                     if(!(effect_name in buttons)){
                         buttons[effect_name] = {};
-                        console.log(effect_name)
+                        // console.log(effect_name)
                         for(let profile_name of effectsConfig[effect_name].profiles){
                             if(!(profile_name in profiles)){
                                 profiles[profile_name] = new ProfileItem(profile_name);
@@ -138,17 +133,21 @@
                         buttons[effect_name][profile_name].activate();
                     }
                 }
-                
-                rateCurr = msg.status.rate;
-                rateCurrElem.textContent = rateCurr.toFixed(1);
-                
-                if(rateNext == false){
-                    rateNext = rateCurr;
-                    rateNextElem.textContent = rateNext.toFixed(1);;
+
+                if ('laser_mode' in msg.status) {
+                    if (msg.status.laser_mode){
+                        laserModeElem.classList.add('lighten-laser-mode')
+                    }
+                    else {
+                        laserModeElem.classList.remove('lighten-laser-mode')
+                    }
                 }
 
-                if(startTime){
-                    console.log(Date.now() - startTime);
+                if (msg.status.dev_mode) {
+                    devModeElem.classList.add('lighten-dev-mode')
+                }
+                else {
+                    devModeElem.classList.remove('lighten-dev-mode')
                 }
             }
         }
@@ -172,12 +171,10 @@
 
             this.length = effectsConfig[this.effect].length;
             this.bpm = effectsConfig[this.effect].bpm;
-            
-            if('song_path' in effectsConfig[this.effect]) {
+
+            if('song_path' in effectsConfig[this.effect] && effectsConfig[this.effect].song_path in songsConfig) {
                 this.querySelector(".button-name").textContent = songsConfig[effectsConfig[this.effect].song_path].name;
                 this.querySelector(".button-symbol").textContent = '♫';
-                // console.log('cmon')
-                // console.log(songsConfig[this.effect['song_path']].name)
             }
             else {
                 this.querySelector(".button-name").textContent = this.effect;
@@ -196,8 +193,6 @@
             this.style.left = ((index % 5) * 20) + "%";
 
             this.active = false;
-
-            //this.colorElem = this.querySelector(".button-color");
 
             // if (window.matchMedia("(min-width: 1024px)").matches) {
             if (navigator.userAgent.includes('Mobi')) {
@@ -379,8 +374,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
+        console.log('Sending:', msg);
     }
 
     function removeEffect(effect){
@@ -389,18 +383,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
-    }
-
-    function sendRate(rate){
-        let msg = {
-            type: "set_bpm",
-            bpm: rate
-        };
-        socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
+        console.log('Sending:', msg);
     }
 
     function sendToggleLaserMode(){
@@ -408,8 +391,7 @@
             type: "toggle_laser_mode",
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
-        // startTime = Date.now();
+        console.log('Sending:', msg);
     }
 
     function sendUpdate(){
@@ -417,8 +399,7 @@
             type: "update_config"
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
+        console.log('Sending:', msg);
     }
 
     function sendClear(){
@@ -426,15 +407,39 @@
             type: "clear_effects"
         };
         socket.send(JSON.stringify(msg));
-        console.log(msg);
-        startTime = Date.now();
+        console.log('Sending:', msg);
+    }
+
+    function sendDevMode(){
+        let msg = {
+            type: "toggle_dev_mode",
+        };
+        socket.send(JSON.stringify(msg));
+        console.log('Sending:', msg);
     }
 
     var socket = null;
     var socketConnected = false;
     var socketAttempts = 0;
 
-    var startTime = false;
+    var uuid = localStorage.getItem('uuid');
+    if (uuid == null) {
+
+        let array = new Uint8Array(16);
+        self.crypto.getRandomValues(array);
+        var uuid = "";
+        for (let i = 0; i < 16; i++) {
+            if (i == 4 || i == 6 || i == 8 || i == 10) {
+                uuid += "-";
+            }
+            uuid += array[i].toString(16);
+        };
+
+        localStorage.setItem('uuid', uuid)
+        console.log("new user: " + uuid);
+    }
+    console.log("----UUID----")
+    console.log(uuid);
 
     var effectsConfig = {};
     var songsConfig = {};
@@ -449,8 +454,6 @@
     var templateButtonItem = document.getElementById("template-button-item");
     var templateProfileItem = document.getElementById("template-profile-item");
 
-    var rateCurr = false;
-    var rateNext = false;
     var effectsCurr = [];
     var activeProfile = null;
 
@@ -466,80 +469,15 @@
         buttonTables[activeProfile].down();
     }
 
-    var rateCurrElem = document.getElementById("rate-curr");
-    var rateNextElem = document.getElementById("rate-next");
-    var rateApplyElem = document.getElementById("rate-apply");
-    var rateIncElem = document.getElementById("rate-inc");
-    var rateDecElem = document.getElementById("rate-dec");
-
     var refreshElem = document.getElementById("refresh");
     var laserModeElem = document.getElementById("laser-mode");
     var clearElem = document.getElementById("clear");
-
-    // rateNextElem.focus();
-
-    // rateNextElem.onblur = function(){
-    //     fixRate();
-    // }
+    var devModeElem = document.getElementById("dev-mode");
 
     function decimal(num, place) {
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
     }
     
-    function changeValue(num){
-        rateNext = Math.max(0.1, Math.min(300, rateNext + num));
-        rateNextElem.textContent = rateNext.toFixed(1);
-        timer = Math.max(16.67, timer * 0.9);
-        timeout = setTimeout(changeValue, timer, num);
-    }
-
-    function stopValue(){
-        clearTimeout(timeout);
-        timer = 250;
-    }
-
-    var timer = 250;
-    var timeout = null;
-
-    rateIncElem.addEventListener('touchstart', startIncrease, {passive: true});
-    // rateIncElem.addEventListener('mousedown', startIncrease, false);
-    rateIncElem.addEventListener('touchend', stopIncrease, {passive: true});
-    // rateIncElem.addEventListener('mouseup', stopIncrease, false);
-
-    rateDecElem.addEventListener('touchstart', startDecrease, {passive: true});
-    // rateDecElem.addEventListener('mousedown', startDecrease, false);
-    rateDecElem.addEventListener('touchend', stopDecrease, {passive: true});
-    // rateDecElem.addEventListener('mouseup', stopDecrease, false);
-
-
-    function startIncrease(event){
-        // event.preventDefault();
-        rateIncElem.classList.add('pressed');
-        changeValue(0.1);
-    }
-
-    function stopIncrease(event){
-        // event.preventDefault();
-        rateIncElem.classList.remove('pressed');
-        stopValue();
-    }
-
-    function startDecrease(event){
-        // event.preventDefault();
-        rateDecElem.classList.add('pressed');
-        changeValue(-0.1);
-    }
-
-    function stopDecrease(event){
-        // event.preventDefault();
-        rateDecElem.classList.remove('pressed');
-        stopValue();
-    }
-
-    rateApplyElem.onclick = function () {
-        sendRate(rateNext);
-    }
-
     refreshElem.onclick = function () {
         location.reload();
     }
@@ -550,6 +488,10 @@
 
     clearElem.onclick = function () {
         sendClear();
+    }
+
+    devModeElem.onclick = function () {
+        sendDevMode();
     }
 
     socketInit();
@@ -816,8 +758,8 @@
     #refresh{
         position: absolute;
         left: 1vw;
-        bottom: 21vh;
-        width: 5.5vw;
+        bottom: 20vh;
+        width: 8vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -826,13 +768,17 @@
         justify-content: center;
         align-items: center;
         background-color: hsla(40, 100%, 40%, 0.5);
+    }
+
+    .lighten-laser-mode{
+        background-color: hsla(119, 100%, 40%, 0.5) !important;
     }
 
     #laser-mode{
         position: absolute;
-        left: 7.25vw;
-        bottom: 21vh;
-        width: 5.5vw;
+        left: 10.5vw;
+        bottom: 20vh;
+        width: 8vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -840,14 +786,15 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(40, 100%, 40%, 0.5);
+        background-color: hsla(119, 100%, 20%, 0.5);
     }
+
 
     #clear{
         position: absolute;
-        left: 13.5vw;
-        bottom: 21vh;
-        width: 5.5vw;
+        left: 1vw;
+        bottom: 10vh;
+        width: 8vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -858,56 +805,15 @@
         background-color: hsla(0, 100%, 40%, 0.5);
     }
 
-    #rate-tap{
-        position: absolute;
-        left: 1vw;
-        bottom: 15vh;
-        width: 11vw;
-        height: 8vh;
-        border-radius: 0.5vw;
-        font-size: 3vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: hsla(204, 100%, 40%, 0.5);
+    .lighten-dev-mode{
+        background-color: hsla(303, 100%, 40%, 0.5) !important;
     }
 
-    #rate-curr {
+    #dev-mode{
         position: absolute;
-        left: 13vw;
-        bottom: 1vh;
-        width: 7vw;
-        height: 8vh;
-        font-size: 3vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        color: hsla(204, 100%, 40%, 0.5);
-    }
-
-    #rate-next {
-        position: absolute;
-        left: 13vw;
+        left: 10.5vw;
         bottom: 10vh;
-        width: 7vw;
-        height: 8vh;
-        font-size: 3vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-weight: bold;
-        color: hsla(120, 100%, 40%, 0.5);
-    }
-
-    #rate-apply{
-        position: absolute;
-        left: 1vw;
-        bottom: 1vh;
-        width: 11vw;
+        width: 8vw;
         height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
@@ -915,39 +821,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(204, 100%, 40%, 0.5);
-    }
-
-    #rate-dec{
-        position: absolute;
-        left: 1vw;
-        bottom: 10vh;
-        width: 5vw;
-        height: 8vh;
-        border-radius: 0.5vw;
-        font-size: 4vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: hsla(120, 100%, 40%, 0.5);
-        will-change: transform;
-    }
-
-    #rate-inc{
-        position: absolute;
-        left: 7vw;
-        bottom: 10vh;
-        width: 5vw;
-        height: 8vh;
-        border-radius: 0.5vw;
-        font-size: 6vh;
-        text-align: center;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: hsla(120, 100%, 40%, 0.5);
-        will-change: transform;
+        background-color: hsla(303, 100%, 14%, 0.5);
     }
 
     .button:active{

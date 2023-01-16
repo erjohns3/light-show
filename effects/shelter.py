@@ -215,7 +215,7 @@ effects = {
         "delay_lights": 0.1,
         "skip_song": 0.21,
         "bpm": 100,
-        "song_path": "songs/shelter.ogg",
+        "song_path": "songs/Porter Robinson Madeon - Shelter (Official Video) (Short Film with A-1 Pictures Crunchyroll).ogg",
         "profiles": ["Shows"],
     },
 }

@@ -1,7 +1,7 @@
 # start_beat: this is the beat that the pattern will start on
 # effect_name: this is the effect that will play
 # len: the length in beats
-# beat_skip: how many beats in to skip to in the pattern
+# offset: how many beats in to skip to in the pattern
 # hue_shift: -1 - 1
 # sat_shift: -1 - 1
 # bright_shift: -1 - 1
@@ -10,18 +10,26 @@
 # red laser: 0 - 100
 # laser motor: 0 - 100
 
-def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None):
+
+following_beat = None
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None):
+    global following_beat
+
     if length is None:
-        print('length must be defined')
-        raise Exception()
+        raise Exception('length must be defined')
+
+    if start_beat is None:
+        if following_beat is None:
+            raise Exception('needed to specify last beat first')
+        start_beat = following_beat
     
-    if (name or intensity or beat_skip or hue_shift or sat_shift or bright_shift) and (disco_rgb or top_rgb or front_rgb or back_rgb or bottom_rgb or uv or green_laser or red_laser or laser_motor):
-        print(f'Anything between the sets "name intensity beat_skip hue_shift sat_shift bright_shift" and "disco_rgb top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')
-        raise Exception()
+    following_beat = start_beat + length 
+
+    if (name or intensity or offset or hue_shift or sat_shift or bright_shift) and (disco_rgb or top_rgb or front_rgb or back_rgb or bottom_rgb or uv or green_laser or red_laser or laser_motor):
+        raise Exception(f'Anything between the sets "name intensity offset hue_shift sat_shift bright_shift" and "disco_rgb top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')
     
     if (back_rgb or front_rgb) and top_rgb:
-        print('Cannot define back_rgb or front_rgb if top_rgb is defined')
-        raise Exception()
+        raise Exception('Cannot define back_rgb or front_rgb if top_rgb is defined')
 
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
@@ -36,7 +44,7 @@ def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_sh
         if green_laser is None:
             green_laser = 0
         if red_laser is None:
-            red_laser = 0             
+            red_laser = 0
         if laser_motor is None:
             laser_motor = 0
 
@@ -52,8 +60,8 @@ def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_sh
     if type(intensity) == int or type(intensity) == float:
         intensity = (intensity, intensity)
 
-    if beat_skip is None:
-        beat_skip = 0
+    if offset is None:
+        offset = 0
 
     if hue_shift is None:
         hue_shift = 0
@@ -69,7 +77,7 @@ def b(start_beat, name=None, length=None, intensity=None, beat_skip=None, hue_sh
         name,
         length,
     ] + list(intensity[:]) + [
-        beat_skip,
+        offset,
         hue_shift,
         sat_shift,
         bright_shift,

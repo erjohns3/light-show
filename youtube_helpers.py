@@ -5,20 +5,19 @@ import json
 import shutil
 from copy import deepcopy
 import time
+import subprocess
 
 from helpers import *
 
 
+doorbell_ip = '192.168.86.58'
 def scp_to_doorbell(local_filepath, remote_folder):
     # looks like most people use https://www.fabfile.org/ for the higher level library
     import paramiko
     from scp import SCPClient
     
     remote_filepath = remote_folder.joinpath(local_filepath.name)
-
-    # doorbell_ip = 'doorbell'
-    doorbell_ip = '192.168.86.58'
-
+    
     ssh = paramiko.client.SSHClient()
     ssh.load_system_host_keys()
     ssh.connect(hostname=doorbell_ip,
@@ -209,7 +208,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
     continuation_index = 0
     while continuation_token:
         import requests
-        time.sleep(5)
+        time.sleep(10)
         print_blue(f'Querying continuation_token: {continuation_token}')
 
         url = 'https://www.youtube.com/youtubei/v1/browse'
@@ -242,6 +241,55 @@ def get_info_from_youtube_playlist(url, write_files=True):
         continuation_index += 1
     # print(f'{len(videos)} titles: ', ', '.join(map(lambda x: x[0], videos)))
     return videos
+
+
+
+if __name__ == '__main__':
+    make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
+    parser = argparse.ArgumentParser(description = '')
+    parser.add_argument('url', type=str)
+    parser.add_argument('--show', dest='gen_show', default=None, action='store_true')
+    parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
+    args = parser.parse_args()
+
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=pathlib.Path(__file__).parent.joinpath('songs'), max_length_seconds=args.max_seconds)
+    if downloaded_filepath is None:
+        print('Couldnt download video')
+        exit()
+
+    if args.gen_show:
+        import generate_show
+        print_blue('Generating show file for the downloaded file')
+        relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
+        output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
+        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
+        generate_show.write_effect_to_file_pretty(
+            output_filepath, 
+            {
+                downloaded_filepath.stem: {
+                    'bpm': bpm_guess,
+                    'song_path': str(relative_downloaded_filepath),
+                    'delay_lights': delay,
+                    'skip_song': 0.0,
+                    'beats': [
+                        # 'b(1, "RBBB 1 bar", 500),'
+                    ],
+                }
+            },
+            write_compiler=True,
+            # rip_out_char='"',
+        )
+
+    remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    print('Starting scp to doorbell')
+    scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
+
+    if args.gen_show:
+        print_green(bold(f'\nStart editing your show here: {output_filepath}'))
+
+
+
+
 
 
 # working postman
@@ -280,6 +328,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
 
 
 
+
 # full dump
 
 # {
@@ -309,45 +358,6 @@ def get_info_from_youtube_playlist(url, write_files=True):
 #     "key":"vis","value":"1"},{
 #     "key":"wgl","value":"true"},{
 #     "key":"ca_type","value":"image"}]}},"continuation":"4qmFsgJhEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aFENBRjZCbEJVT2tOSFVRJTNEJTNEmgIiUEw4Z0pnbDBEd2NoQjZJbW9CNjBmRHZrcUxjZ3JzWUNoLQ%3D%3D"}
-
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description = '')
-    parser.add_argument('url', type=str)
-    parser.add_argument('--show', dest='gen_show', default=None, action='store_true')
-    parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
-    args = parser.parse_args()
-
-    downloaded_filepath = download_youtube_url(url=args.url, dest_path=pathlib.Path(__file__).parent.joinpath('songs'), max_length_seconds=args.max_seconds)
-    if downloaded_filepath is None:
-        print('Couldnt download video')
-        exit()
-
-    if args.gen_show:
-        import generate_show
-        print_blue('Generating show file for the downloaded file')
-        relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
-        output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
-        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
-        generate_show.write_effect_to_file_pretty(
-            output_filepath, 
-            {
-                downloaded_filepath.stem: {
-                    'bpm': bpm_guess,
-                    'song_path': str(relative_downloaded_filepath),
-                    'delay_lights': delay,
-                    'skip_song': 0.0,
-                    'beats': [],
-                }
-            },
-            write_compiler=True,
-        )
-
-    remote_folder = pathlib.Path('/home/pi/light-show/songs')
-    print('Starting scp to doorbell')
-    scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
-
 
 
 # KEY: id

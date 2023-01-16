@@ -3,7 +3,7 @@ from effects.compiler import b
 effects = {
     "io  No Sleep Official Lyric Video": {
         "bpm": 125,
-        "song_path": "songs/io  No Sleep Official Lyric Video.ogg",
+        "song_path": "songs/i_o - No Sleep (Official Lyric Video).ogg",
         "delay_lights": 0.25849999999999995,
         "skip_song": 0.0,
         "profiles": ["Eric"],

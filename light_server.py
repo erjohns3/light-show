@@ -11,6 +11,8 @@ import argparse
 import os
 import colorsys
 import random
+import traceback
+import sys
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -40,15 +42,15 @@ parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
-parser.add_argument('--autogen', dest='autogen', default='')
-parser.add_argument('--autogen_mode', dest='autogen_mode', default=None)
+parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
+parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 
 
 args = parser.parse_args()
 
 
-this_file_directory = pathlib.Path(__file__).parent
+this_file_directory = pathlib.Path(__file__).parent.resolve()
 
 pca = None
 
@@ -65,17 +67,18 @@ time_start = time.time()
 beat_index = 0
 
 light_lock, song_lock = threading.Lock(), threading.Lock() 
-light_sockets, song_sockets = [], []
+light_sockets, song_sockets, dev_sockets = [], [], []
 
 song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light = False 
-broadcast_song = False
+broadcast_light_status = False 
+broadcast_song_status = False
 
 download_queue, search_queue = [], []
 
+printed_http_info = False
 
 
 ########################################
@@ -94,18 +97,19 @@ try:
 except:
     local_ip = 'cant_resolve_hostbyname'
 
-def http_server():
+def run_http_server_forever():
+    global printed_http_info
     import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
-    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html')
-    print_green(f'Queue: http://{local_ip}:{PORT}', flush=True)
+    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
+    printed_http_info = True
     httpd.serve_forever()
 
 
 ########################################
 
 def add_effect_from_dj(effect_name, no_music=False):
-    global song_time, song_playing, broadcast_song
+    global song_time, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
     if not no_music and has_song(effect_name):
@@ -117,8 +121,7 @@ def add_effect_from_dj(effect_name, no_music=False):
             song_queue.pop()
         song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
         play_song(effect_name)
-        song_playing = True
-        broadcast_song = True
+        broadcast_song_status = True
 
 
 laser_mode = False
@@ -128,7 +131,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song, song_name_to_show_names
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -145,8 +148,7 @@ async def init_rekordbox_bridge_client(websocket, path):
         # 'master_total_time': stuff[3],
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
-            song_playing = False
-            broadcast_song = True
+            broadcast_song_status = True
 
             take_rekordbox_input = True
             rekordbox_title = msg['title']
@@ -163,7 +165,8 @@ async def init_rekordbox_bridge_client(websocket, path):
                 if effect_to_play not in effects_config:
                     print_yellow(f'Cant play light show effect from rekordbox! Missing effect {effect_to_play}\n' * 8)
                     continue
-
+            
+            # TODO we gotta check above and all the songs
             # if rekordbox_title not in effects_config:
             #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
             #     rekordbox_title = 'g_' + rekordbox_title
@@ -195,7 +198,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, song_time, broadcast_light, broadcast_song, laser_mode
+    global curr_bpm, time_start, song_playing, song_time, broadcast_light_status, broadcast_song_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -203,7 +206,8 @@ async def init_dj_client(websocket, path):
         'songs': songs_config,
         'status': {
             'effects': curr_effects,
-            'rate': curr_bpm
+            'rate': curr_bpm,
+            'laser_mode': laser_mode,
         }
     }
     dump = json.dumps(message)
@@ -219,10 +223,9 @@ async def init_dj_client(websocket, path):
         try:
             msg_string = await websocket.recv()
         except:
-            for i in range(len(light_sockets)):
-                if light_sockets[i] == websocket:
-                    light_sockets.pop(i)
-                    break
+            light_sockets.remove(websocket)
+            if websocket in dev_sockets:
+                dev_sockets.remove(websocket)
             print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
@@ -238,8 +241,7 @@ async def init_dj_client(websocket, path):
                     if song_playing and len(song_queue) > 0:
                         song_queue.pop()
                     stop_song()
-                    song_playing = False
-                    broadcast_song = True
+                    broadcast_song_status = True
                 index = curr_effect_index(effect_name)
                 if index is not False:
                     remove_effect(index)
@@ -248,10 +250,23 @@ async def init_dj_client(websocket, path):
                 clear_effects()
                 stop_song()
 
+            elif msg['type'] == 'toggle_dev_mode':
+                if websocket in dev_sockets:
+                    print(f'Turned dev mode off')
+                    dev_sockets.remove(websocket)
+                else:
+                    print(f'Turned dev mode on')
+                    dev_sockets.append(websocket)
+
             elif msg['type'] == 'toggle_laser_mode':
                 laser_mode = not laser_mode
                 print(f'Toggled laser mode, now in state: {laser_mode}\n')
-                restart_show(skip=0)
+                if curr_effects:
+                    maybe_new_effect_name = maybe_get_laser_version(curr_effects[0][0])
+                    if maybe_new_effect_name not in channel_lut:
+                        print_green(f'late lut compiling {maybe_new_effect_name}')
+                        compile_lut({maybe_new_effect_name: effects_config[maybe_new_effect_name]})
+                    curr_effects[0][0] = maybe_new_effect_name
 
             elif msg['type'] == 'set_bpm':
                 time_start = time.time()
@@ -259,13 +274,7 @@ async def init_dj_client(websocket, path):
                 for effect in curr_effects:
                     effect[1] = 0
 
-            elif msg['type'] == 'inc_time':
-                time_start += 0.1
-
-            elif msg['type'] == 'dec_time':
-                time_start -= 0.1
-
-            broadcast_light = True
+            broadcast_light_status = True
 
 
 def download_song(url, uuid):
@@ -279,6 +288,8 @@ def download_song(url, uuid):
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 15 * 60
+    
+    # TODO add caching here
     filepath = youtube_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
@@ -286,29 +297,35 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
-    new_effects, _output_filepath = generate_show.generate_show(filepath, channel_lut, effects_config, overwrite=True)
-    if new_effects is None:
-        print_red(f'Autogenerator failed to create effect for {url}')
-        return
-    effect_name = list(new_effects.keys())[0]
 
-    print(f'passing filepath: {filepath}')
-    effects_config.update(new_effects)
-    add_dependancies(new_effects)
+    added = False
+    for mode in [None, 'lasers']:
+        show_name, show, _ = generate_show.generate_show(filepath, mode=mode, overwrite=True)
+        if show is None:
+            print_red(f'Autogenerator failed to create effect for {url}')
+            return
 
-    # compile_lut(new_effects)
-    print(f'created show for: {effect_name}')
+        print(f'passing filepath: {filepath}')
+        effects_config[show_name] = show
+        add_dependancies({show_name: show})
 
-    effects_config_client[effect_name] = {}
-    for key, value in new_effects[effect_name].items():
-        if key != 'beats':
-            effects_config_client[effect_name][key] = value
-    if 'song_path' in effect:
-        add_queue_balanced(effect_name, uuid)
+        compile_lut({show_name: show})
+        print(f'created show for: {show_name}')
+
+        effects_config_client[show_name] = {}
+        for key, value in show.items():
+            if key != 'beats':
+                effects_config_client[show_name][key] = value
+
+        if not added and ((mode == None and not laser_mode) or mode == 'lasers'):
+            added = True
+            if 'song_path' in effect:
+                print(f'Auto adding "{show_name}" to queue')
+                add_queue_balanced(show_name, uuid)
 
 
 async def init_queue_client(websocket, path):
-    global curr_bpm, song_playing, song_time, broadcast_light, broadcast_song
+    global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
@@ -335,12 +352,8 @@ async def init_queue_client(websocket, path):
         try:
             print('Song Queue: waiting for message')
             msg_string = await websocket.recv()
-            print('Song Queue: waiting for message')
         except:
-            for i in range(len(song_sockets)):
-                if song_sockets[i] == websocket:
-                    song_sockets.pop(i)
-                    break
+            song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
@@ -348,32 +361,6 @@ async def init_queue_client(websocket, path):
 
         print('Song Queue: message recieved:', msg)
         if 'type' in msg:
-            # andrew: are these even used?
-            # if msg['type'] == 'add_queue_back' and 'uuid' in msg:
-            #     uuid = msg['uuid']
-            #     effect_name = msg['effect']
-            #     song_queue.append([effect_name, get_queue_salt(), uuid])
-            #     if len(song_queue) == 1:
-            #         song_time = 0
-            #         add_effect(effect_name)
-            #         broadcast_light = True
-            #         play_song(effect_name)
-            #         song_playing = True
-
-            # elif msg['type'] == 'add_queue_front' and 'uuid' in msg:
-            #     uuid = msg['uuid']
-            #     effect_name = msg['effect']
-            #     if len(song_queue) == 0:
-            #         song_queue.append([effect_name, get_queue_salt(), uuid])
-            #     else:
-            #         song_queue.insert(1, [effect_name, get_queue_salt(), uuid])
-            #     if len(song_queue) == 1:
-            #         song_time = 0
-            #         add_effect(effect_name)
-            #         broadcast_light = True
-            #         play_song(effect_name)
-            #         song_playing = True
-
             if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
                 print(f'Song Queue: added to queue by {uuid_to_user(msg["uuid"])}')
                 add_queue_balanced(msg['effect'], msg['uuid'])
@@ -383,20 +370,23 @@ async def init_queue_client(websocket, path):
                 print(f'Song Queue: removed from queue by {uuid_to_user(msg["uuid"])}')
                 effect_name = msg['effect']
                 salt = msg['salt']
+                # TODO share this code with light() probably
                 for i in range(len(song_queue)):
                     if song_queue[i][0] == effect_name and song_queue[i][1] == salt and (song_queue[i][2] == uuid or is_admin(uuid)):
                         song_queue.pop(i)
                         if i == 0:
+                            # andrew: oops, this is ew
+                            song_was_playing = song_playing
                             stop_song()
                             song_time = 0
                             index = curr_effect_index(effect_name)
                             if index is not False:
                                 remove_effect(index)
-                            if song_playing and len(song_queue) > 0:
+                            if song_was_playing and len(song_queue) > 0:
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
-                            broadcast_light = True
+                            broadcast_light_status = True
                         break
                 if len(song_queue) == 0:
                     song_playing = False
@@ -408,9 +398,8 @@ async def init_queue_client(websocket, path):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
                         add_effect(effect_name)
-                        broadcast_light = True
+                        broadcast_light_status = True
                         play_song(effect_name)
-                        song_playing = True
 
             elif msg['type'] == 'pause_queue' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -423,12 +412,11 @@ async def init_queue_client(websocket, path):
                         index = curr_effect_index(effect_name)
                         if index is not False:
                             remove_effect(index)
-                        song_playing = False
-                        broadcast_light = True
+                        broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
                 restart_show(abs_time=msg['time'])
-                broadcast_light = True
+                broadcast_light_status = True
 
             elif msg['type'] == 'download_song' and 'uuid' in msg:
                 uuid = msg['uuid']
@@ -449,7 +437,7 @@ async def init_queue_client(websocket, path):
                 search = msg.get('search', None)
                 print(f'Song Queue: searching youtube "{search}" from {uuid_to_user(uuid)}')
                 search_queue.append([search, websocket, False])
-            broadcast_song = True
+            broadcast_song_status = True
 
 
 def search_youtube():
@@ -507,40 +495,36 @@ def search_youtube():
 
 
 def add_queue_balanced(effect_name, uuid):
-    global song_playing, song_time, broadcast_light, broadcast_song
+    global song_playing, song_time, broadcast_light_status, broadcast_song_status
 
-    if False: # is_admin(uuid):
-        index = 1
-        while index < len(song_queue):
-            if song_queue[index][2] != uuid:
-                break
-            index += 1
-    else:
-        index = 0
-        count = 0
-        user_counts = {}
-        for entry in song_queue:
-            user_counts[entry[2]] = 0
-            if entry[2] == uuid:
-                count += 1
-        while index < len(song_queue):
-            # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL. Should be fixed now
-            # if song_queue[index][2] not in user_counts:
-            #     print('saving a crash')
-            #     user_counts[song_queue[index][2]] = 0
-            if user_counts[song_queue[index][2]] > count:
-                break
-            user_counts[song_queue[index][2]] += 1
-            index += 1
+    # TODO Eric, is this code useless now? i just commented it out
+    # if False: # is_admin(uuid):
+    #     index = 1
+    #     while index < len(song_queue):
+    #         if song_queue[index][2] != uuid:
+    #             break
+    #         index += 1
+    # else:
+    index = 0
+    count = 0
+    user_counts = {}
+    for entry in song_queue:
+        user_counts[entry[2]] = 0
+        if entry[2] == uuid:
+            count += 1
+    while index < len(song_queue):
+        if user_counts[song_queue[index][2]] > count:
+            break
+        user_counts[song_queue[index][2]] += 1
+        index += 1
     song_queue.insert(index, [effect_name, get_queue_salt(), uuid])
 
     if len(song_queue) == 1:
         song_time = 0
         add_effect(effect_name)
-        broadcast_light = True
+        broadcast_light_status = True
         play_song(effect_name)
-        song_playing = True
-        broadcast_song = True
+        broadcast_song_status = True
 
 
 def is_admin(uuid):
@@ -571,19 +555,20 @@ async def send_config():
 
 
 async def send_light_status():
-    global broadcast_light
+    global broadcast_light_status
     message = {
         'status': {
             'effects': curr_effects,
-            'rate': curr_bpm
+            'rate': curr_bpm,
+            'laser_mode': laser_mode,
         }
     }
     await broadcast(light_sockets, json.dumps(message))
-    broadcast_light = False
+    broadcast_light_status = False
 
 
 async def send_song_status():
-    global broadcast_song
+    global broadcast_song_status
     # print((str(song_queue) + '\n') * 10)
     message = {
         'queue': song_queue,
@@ -593,7 +578,27 @@ async def send_song_status():
         }
     }
     await broadcast(song_sockets, json.dumps(message))
-    broadcast_song = False
+    broadcast_song_status = False
+
+
+async def send_dev_status():
+    if not curr_effects:
+        return
+    print('sent dev status')
+
+    sub_effect_names = []
+    for effect in curr_effects:
+        sub_effect_names += get_sub_effect_names(effect[0], (beat_index / SUB_BEATS) + 1)
+    if not sub_effect_names:
+        return
+
+    message = {
+        'status': {
+            'effects': [[x, 0] for x in sub_effect_names],
+            'dev_mode': True,
+        }
+    }
+    await broadcast(dev_sockets, json.dumps(message))
 
 
 ####################################
@@ -603,10 +608,11 @@ def get_sub_effect_names(effect_name, beat):
     sub_effect_names = []
     effect_beats = effects_config[effect_name]['beats']
     for effect in effect_beats:
-        if effect[0] <= beat <= effect[0] + effect[2]:
-            sub_effect_names.append(effect[1])
-        elif sub_effect_names:
-            break
+        if type(effect[1]) == str:
+            if effect[0] <= beat <= effect[0] + effect[2]:
+                sub_effect_names.append(effect[1])
+            elif sub_effect_names:
+                break
     return sub_effect_names
 
 
@@ -617,7 +623,10 @@ laser_stage = random.randint(0, 110)
 disco_stage = random.randint(0, 100)
 disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style
+    global rekordbox_time, rekordbox_bpm, rekordbox_title, laser_stage, disco_stage, disco_style, printed_http_info
+
+    while not printed_http_info:
+        time.sleep(.01)
 
     curr_beat = (beat_index / SUB_BEATS) + 1
     terminal_size = os.get_terminal_size().columns
@@ -687,7 +696,6 @@ Beat {curr_beat:.1f}\
                 if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
                     laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
-        # print(f'{len(laser_string)}\n' * 3)
         laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
     else:
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
@@ -747,7 +755,7 @@ def uuid_to_user(uuid):
     return uuid
 
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song, broadcast_light
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
 
     download_thread = None
     search_thread = None
@@ -767,14 +775,14 @@ async def light():
                     stop_song()
                     song_queue.pop(0)
                     song_time = 0
-                    if song_playing and len(song_queue) > 0:
+                    if len(song_queue) > 0:
                         new_effect_name = song_queue[0][0]
                         add_effect(new_effect_name)
                         play_song(new_effect_name)
                     elif len(song_queue) == 0:
                         song_playing = False
-                    broadcast_song = True
-                broadcast_light = True
+                    broadcast_song_status = True
+                broadcast_light_status = True
             else:
                 i+=1
         for i in range(LIGHT_COUNT):
@@ -819,13 +827,15 @@ async def light():
             search_thread = threading.Thread(target=search_youtube, args=())
             search_thread.start()
 
-        if broadcast_light:
+        if broadcast_light_status:
             await send_light_status()
-        if broadcast_song:
+        if broadcast_song_status:
             await send_song_status()
 
-        if args.print_beat and not args.local and beat_index % SUB_BEATS == 0:
-            print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
+        if dev_sockets and beat_index % SUB_BEATS == 0:
+            await send_dev_status()
+            if args.print_beat and not args.local:
+                print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
 
         time_diff = time.time() - time_start
 
@@ -861,34 +871,40 @@ def clear_effects():
     while len(curr_effects) > 0:
         remove_effect(0)
 
-def add_effect(name):
-    global beat_index, time_start, curr_bpm
-
-    if name.startswith('g_lasers_') and not laser_mode:
-        name = 'g_' + name[9:]
-    elif name.startswith('g_') and laser_mode:
-        laser_name = 'g_lasers_' + name[2:]
+def maybe_get_laser_version(effect_name):
+    if effect_name.startswith('g_lasers_'):
+        if not laser_mode:
+            return 'g_' + effect_name[9:]
+    elif effect_name.startswith('g_') and laser_mode:
+        laser_name = 'g_lasers_' + effect_name[2:]
         print(f'Since it is an autogen effect, and laser mode is on, searching for {laser_name}\n' * 5)
         if laser_name in effects_config:
             print_green(f'Found "{laser_name}"\n' * 5)
-            name = laser_name
+            return laser_name
         else:
             print_yellow(f'Could not find laser effect, using normal effect instead\n' * 5)
+    return effect_name
 
-    if name in effects_config and 'song_path' in effects_config[name]:
-        print(f'Adding effect with song named {name}')
+def add_effect(new_effect_name):
+    global beat_index, time_start, curr_bpm
 
-    if name not in channel_lut:
-        print_green(f'late lut compiling {name}')
-        compile_lut({name: effects_config[name]})
+    new_effect_name = maybe_get_laser_version(new_effect_name)
 
-    effect = effects_config[name]
-    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(name) is not False:
+    if new_effect_name in effects_config and 'song_path' in effects_config[new_effect_name]:
+        print(f'Adding effect with song named {new_effect_name}')
+
+    if new_effect_name not in channel_lut:
+        print_green(f'late lut compiling {new_effect_name}')
+        compile_lut({new_effect_name: effects_config[new_effect_name]})
+
+    effect = effects_config[new_effect_name]
+    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(new_effect_name) is not False:
         return
 
     if 'bpm' in effect:
         clear_effects()
         time_start = time.time() + effect['delay_lights'] - song_time
+        print('effect will have time_start of:', effect['delay_lights'] - song_time)
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
@@ -899,11 +915,11 @@ def add_effect(name):
         if offset > snap * 0.5:
             offset -= snap
         offset -= beat_index
-    curr_effects.append([name, offset])
+    curr_effects.append([new_effect_name, offset])
 
 
 def play_song(effect_name, print_out=True):
-    global take_rekordbox_input
+    global take_rekordbox_input, song_playing
     take_rekordbox_input = False
     print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
@@ -918,17 +934,26 @@ def play_song(effect_name, print_out=True):
     # python server.py --local --show "shelter" --skip 215
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
     pygame.mixer.music.play(start=start_time)
-
+    song_playing = True
 
 def stop_song():
+    global song_playing
     pygame.mixer.music.stop()
+    song_playing = False
 
 ######################################
 
 def setup_gpio():
     global pca
 
-    import board
+    try:
+        import board
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        print_yellow(f'you need to add --local probably')        
+        sys.exit()
+
+    
     import busio
     import adafruit_pca9685
 
@@ -972,12 +997,14 @@ def effects_config_sort(path):
 
 
 def dfs(effect_name):
-    if effect_name in found:
-        return
-    for component in effects_config[effect_name]['beats']:
-        if type(component[1]) == str:
-            dfs(component[1])
-    effects_config_sort([effect_name])
+    if effect_name not in found:
+        if effect_name not in effects_config:
+            return effect_name
+        for component in effects_config[effect_name]['beats']:
+            if type(component[1]) == str:
+                if missing_effect := dfs(component[1]):
+                    return missing_effect
+        effects_config_sort([effect_name])
 
 
 def add_dependancies(effects_config):
@@ -989,34 +1016,43 @@ def add_dependancies(effects_config):
         graph[effect_name] = list(graph[effect_name].keys())
 
 
-def add_song_to_config(filepath):
-    filepath = pathlib.Path(str(filepath).replace('\\', '/'))
-    relative_path = filepath
-    if relative_path.is_absolute():
-        relative_path = relative_path.relative_to(this_file_directory)
-
-    if filepath.suffix in ['.mp3', '.ogg', '.wav']:
-        tags = TinyTag.get(filepath)
+allowed_song_extensions = set(['.mp3', '.ogg', '.wav'])
+def get_song_metadata_info(song_path):
+    if song_path.suffix in allowed_song_extensions:
+        tags = TinyTag.get(song_path)
         name, duration = tags.title, tags.duration
 
         if tags.samplerate != 48000:
-            print_red(f'THe song file is not 48000hz sample rate, {filepath}. This introduces weird bugs, delete the file.')
+            print_red(f'THe song file is not 48000hz sample rate, {song_path}. This introduces weird bugs, delete the file.')
             return False
 
         if name == None:
-            name = filepath.stem
+            name = song_path.stem
 
         if not duration:
-            print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow.')
-            duration = sound_helpers.get_audio_clip_length(filepath)
+            print_yellow(f'No tag found for file: "{song_path}", ffprobing, but this is slow.')
+            duration = sound_helpers.get_audio_clip_length(song_path)
+        return name, tags.artist, duration
+    else:
+        print_red(f'File type not in: {allowed_song_extensions}, {song_path}')
+
+
+def add_song_to_config(song_path):
+    song_path = pathlib.Path(str(song_path).replace('\\', '/'))
+    relative_path = song_path
+    if relative_path.is_absolute():
+        relative_path = relative_path.relative_to(this_file_directory)
+
+    if song_path.suffix in ['.mp3', '.ogg', '.wav']:
+        name, artist, duration = get_song_metadata_info(song_path)
         
         songs_config[str(relative_path.as_posix())] = {
             'name': name,
-            'artist': tags.artist,
+            'artist': artist,
             'duration': duration
         }
     else:
-        print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
+        print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
 def load_effects_config_from_disk():
@@ -1035,9 +1071,9 @@ def load_effects_config_from_disk():
 
     total_time = 0
     for name, filepath in get_all_paths(effects_dir, only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True, quiet=True):
         if name == 'compiler.py':
             continue
     
@@ -1096,6 +1132,8 @@ def set_effect_defaults(name, effect):
         effect['trigger'] = 'toggle'
     if 'profiles' not in effect:
         effect['profiles'] = []
+    if effect.get('autogen') and 'Autogen effects' not in effect['profiles']:
+        effect['profiles'].append(['Autogen effects'])
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
     if 'song_path' in effect and effect['song_path'] in songs_config:
@@ -1137,11 +1175,13 @@ def compile_all_luts_from_effects_config():
         set_effect_defaults(name, effect)
 
         # if not name.startswith('g_lasers_'):
-        effects_config_client[name] = {}
-        for key, value in effect.items():
-            if key != 'beats':
-                effects_config_client[name][key] = value
+        if effect['profiles'] or ('song_path' in effect and effect['song_path'] in songs_config):
+            effects_config_client[name] = {}
+            for key, value in effect.items():
+                if key != 'beats':
+                    effects_config_client[name][key] = value
 
+    # TODO andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():
         # eager compile all normal effects
         for effect_name, effect in effects_config.items():
@@ -1149,7 +1189,7 @@ def compile_all_luts_from_effects_config():
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - start_time:.3f}')
+    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - first_start_time:.3f}')
 
 
 
@@ -1162,7 +1202,10 @@ def compile_lut(local_effects_config):
     sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
         set_effect_defaults(name, effect)
-        dfs(name)
+        missing_effect = dfs(name)
+        if missing_effect is not None:
+            print_red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
+            sys.exit()
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
@@ -1301,6 +1344,9 @@ def compile_lut(local_effects_config):
 
 def kill_in_n_seconds(seconds):
     time.sleep(seconds)
+    import atexit
+    atexit._run_exitfuncs()
+
     if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /F'
     else:
@@ -1311,15 +1357,22 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
+    if 'multiprocessing' in sys.modules:
+        import multiprocessing
+        active_children = multiprocessing.active_children()        
+        if active_children:
+            print_yellow(f'Module multiprocessing was imported! Killing active_children processes, PIDS: {[x.pid for x in active_children]}')
+            for child in active_children:
+                print_yellow(f'killing {child.pid}')
+                child.kill()
     if not args.local:
-        x = threading.Thread(target=kill_in_n_seconds, args=(0.5,))
-        x.start()
+        threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
     if args.reload:
         observer.stop()
         observer.join()
-    exit()
+    sys.exit()
 
 #################################################
 
@@ -1359,7 +1412,12 @@ def restart_show(skip=0, abs_time=None, reload=False):
             # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
             # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
         add_effect(effect_name)
-        play_song(effect_name, print_out=False)
+        try:
+            play_song(effect_name, print_out=False)
+        except:
+            print_red('play_song errored, running stop_song + clear_effects and continuing')
+            clear_effects()
+            stop_song()
     elif reload:
         print('RELOAD REFRESHING NO EFFECT')
         compile_all_luts_from_effects_config()
@@ -1384,13 +1442,13 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
-        return
     raise Exception('Couldnt download video')
 
 
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
+    make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     try:
         # pygame.mixer.pre_init(48000, 16, 2, 4096)
         pygame.mixer.init(frequency=48000)
@@ -1409,36 +1467,57 @@ if __name__ == '__main__':
     else:
         setup_gpio()
     
-    load_effects_config_from_disk()
-
-    if args.autogen:
-        import generate_show
-
-        def gen_show_and_add_to_config(filepath, mode):
-            new_effect, _output_filepath = generate_show.generate_show(filepath, channel_lut,  effects_config, overwrite=True, mode=mode)
-            effect_name = list(new_effect.keys())[0]
-            effects_config[effect_name] = new_effect[effect_name]
-            # set_effect_defaults(effects_config[effect_name])
-            add_dependancies(new_effect)
-            return effect_name
-
-        if args.autogen == 'all':
-            print(f'{bcolors.WARNING}AUTOGENERATING ALL SHOWS IN DIRECTORY{bcolors.ENDC}')
-            for _name, song_path in get_all_paths('songs', only_files=True):
-                if args.autogen_mode == 'both':
-                    gen_show_and_add_to_config(song_path, mode=None)
-                    gen_show_and_add_to_config(song_path, mode='lasers')
+    if args.autogen is not None:
+        def gen_show_worker(song_path, mode):
+            try:
+                import generate_show
+                
+                src_bpm_offset_cache = generate_show.get_src_bpm_offset(song_path, use_boundaries=True)
+                if mode == 'all':
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=None, src_bpm_offset_cache=src_bpm_offset_cache)
+                    generate_show.generate_show(song_path, overwrite=True, mode='lasers', src_bpm_offset_cache=src_bpm_offset_cache)
                 else:
-                    gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode, src_bpm_offset_cache=src_bpm_offset_cache)
+                return results
+            except Exception as e:
+                print_red(f'{traceback.format_exc()}')
+                raise e
+
+        autogen_song_directory = 'songs'
+        all_ogg_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=['.ogg'])
+        all_ogg_song_paths = [path for _name, path in all_ogg_song_name_and_paths]
+        if args.autogen == 'all':
+            import tqdm
+            import concurrent
+
+            if is_macos():
+                import multiprocessing
+                multiprocessing.set_start_method('fork')
+            print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
+        
+            total_duration = 0
+            duration_and_song_paths = []
+            for song_path in all_ogg_song_paths:
+                _, _, duration = get_song_metadata_info(song_path)
+                duration_and_song_paths.append((duration, song_path))
+                total_duration += duration
+            all_ogg_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
+
+            # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
+            with tqdm.tqdm(total=len(all_ogg_song_paths)) as progress_bar:
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_ogg_song_paths]
+                    for future in concurrent.futures.as_completed(futures):
+                        progress_bar.update(1)
+                        time_diff = time.time() - time_start
+            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_ogg_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
+            sys.exit()
         else:
-            not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
-            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
-            
-            if args.autogen_mode == 'both':
-                args.show = gen_show_and_add_to_config(song_path, mode=None)
-                gen_show_and_add_to_config(song_path, mode='lasers')
-            else:
-                args.show = gen_show_and_add_to_config(song_path, mode=args.autogen_mode)
+            all_ogg_song_names = [name for name, _path in all_ogg_song_name_and_paths]
+            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_ogg_song_names))
+            args.show, _, _ = gen_show_worker(song_path, args.autogen_mode)
+
+    load_effects_config_from_disk()
 
     for effect_name, effect in effects_config.items():
         if 'song_path' in effect:
@@ -1448,7 +1527,8 @@ if __name__ == '__main__':
                 'bpm': effects_config[effect_name]['bpm'],
                 'song_path': effects_config[effect_name]['song_path'],
             }
-    print_cyan(f'Up through copying effects: {time.time() - first_start_time:.3f}')
+    print_cyan(f'Up through copying effects to originals: {time.time() - first_start_time:.3f}')
+
 
     def detailed_output_on_enter():
         while True:
@@ -1566,10 +1646,8 @@ if __name__ == '__main__':
             time.sleep(.05)
 
 
-    http_thread = threading.Thread(target=http_server, args=[], daemon=True)
+    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True)
     http_thread.start()
-    if args.local:
-        time.sleep(.03)
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

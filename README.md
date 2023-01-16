@@ -11,8 +11,12 @@
     * `python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
 
 ## Using the UI 
-`python light_server.py --local`
-To use the UI, the terminal output will output something like `serving at: `, just copy that link and paste into your web browser.
+To use the UI, the terminal output will output something like:
+```
+Dj interface: http://YOUR_IP:9555/dj.html
+Queue: http://YOUR_IP:9555
+```
+Just copy either into your browser, and you'll be able to control the show from there.
 
 # TODO
 * cubic bezier for custom curves
@@ -24,35 +28,32 @@ To use the UI, the terminal output will output something like `serving at: `, ju
     * chris's idea - changing some effects but not all - on non-high delta changes
 
 
-# Getting songs
-It should be pretty good about auto downloading specific songs with the --show parameter, but you can also copy on mass from the doorbell with the below commands
-
-## To get all songs from doorbell
-`scp -r pi@doorbell:/home/pi/light-show/songs .`
-
-## To push your songs TO the doorbell
-`scp -r songs pi@doorbell:/home/pi/light-show/`
-
-
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
 `python light_server.py --local --autogen shelter`
 
-## to autogenerate everything for a party
-`python light_light_server.py --local --autogen all --autogen_mode both`
+### to autogenerate everything for a party
+`python light_server.py --local --autogen`
 
 ### autogen_mode options
-* `default` - autogenerates normal
+* `both` [DEFAULT] - autogenerates both normal and laser modes
+* `normal` - autogenerates normal
 * `lasers` - autogenerates laser mode
-* `both` - autogenerates both normal and laser modes
 * `simple` - autogenerates simple RBBB 1 bar for song
 
-### copy generated shows to doorbell
-`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
-
-## download song from youtube and make show file (auto finds BPM and offset)
+# Getting songs
+### download song from youtube and make show file (auto finds BPM and offset)
 `python youtube_helpers.py --show "YOUTUBE_URL_HERE"`
 
+### To get all songs from doorbell
+It should be pretty good about auto downloading specific songs with the --show parameter (run it and see what it says), but to download all songs, run:
+`scp -r pi@doorbell:/home/pi/light-show/songs .`
+
+### To push your songs TO the doorbell
+`scp -r songs pi@doorbell:/home/pi/light-show/`
+
+#### copy generated shows to doorbell
+`scp -r effects/autogen_shows doorbell:/home/pi/light-show/effects/autogen_shows`
 
 ### youtube download on command line (don't use this)
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
@@ -100,3 +101,7 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o
+
+
+## andrews zetai timing
+* FINISHED AUTOGENERATING ALL (208) SHOWS IN DIRECTORY songs in 107.53671836853027 seconds

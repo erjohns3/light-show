@@ -131,20 +131,22 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False):
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_filepaths=None, quiet=False):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
-        print_yellow(f'{directory} does not exist, returning [] for paths')
+        if not quiet:
+            print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
     paths = []
-    directory = pathlib.Path(directory)
     for filename in os.listdir(directory):
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
         
         if filepath.is_file() or not only_files:
+            if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
+                continue
             paths.append((filename, filepath))
         if filepath.is_dir() and recursive:
             paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive)
@@ -185,8 +187,10 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
     return process.returncode, stdout.decode("utf-8"), stderr.decode("utf-8")
 
 
-def make_if_not_exist(output_dir):
+def make_if_not_exist(output_dir, quiet=False):
     if not os.path.exists(output_dir):
+        if not quiet:
+            print_yellow(f'Creating {output_dir} since it didn\'t exist')
         os.mkdir(output_dir)
     return output_dir
 
@@ -201,7 +205,7 @@ def run_command_async(full_command_arr, debug=False):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
-            print(f'{bcolors.WARNING}WARNING: the parameter "cmd" was not a str, casting and continuing{bcolors.ENDC}')
+            print_yellow(f'the parameter "cmd" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():

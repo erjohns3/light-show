@@ -1,7 +1,6 @@
 import json
 import time
-import argparse
-import sys
+import random
 
 import youtube_helpers
 from helpers import *
@@ -9,7 +8,7 @@ import generate_rekordbox_effects
 
 
 if __name__ == '__main__':
-    downloaded_songs_directory = ray_directory.joinpath('music_creation').joinpath('downloaded_songs')
+    downloaded_songs_directory = get_ray_directory().joinpath('music_creation').joinpath('downloaded_songs')
     urls_downloaded_filepath = get_temp_dir().joinpath('url_cache.json')
 
     try:
@@ -52,6 +51,6 @@ if __name__ == '__main__':
         if not already_downloaded:
             print('nothing downloaded')
 
-        seconds_to_sleep = random.randint(59, 60)
-        print(f'Sleeping for 1 minutes ({seconds_to_sleep} seconds)...')
+        seconds_to_sleep = random.randint(59, 400)
+        print(f'Sleeping for {seconds_to_sleep} seconds)...')
         time.sleep(seconds_to_sleep)

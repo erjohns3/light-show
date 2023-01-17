@@ -1002,7 +1002,8 @@ def dfs(effect_name):
             return effect_name
         for component in effects_config[effect_name]['beats']:
             if type(component[1]) == str:
-                if missing_effect := dfs(component[1]):
+                missing_effect = dfs(component[1])
+                if missing_effect:
                     return missing_effect
         effects_config_sort([effect_name])
 

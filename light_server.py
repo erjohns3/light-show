@@ -1401,6 +1401,7 @@ def restart_show(skip=0, abs_time=None, reload=False):
 
         if reload:
             print('RELOAD REFRESHING')
+            load_effects_config_from_disk()
             compile_all_luts_from_effects_config()
 
         effect = effects_config[effect_name]
@@ -1421,6 +1422,7 @@ def restart_show(skip=0, abs_time=None, reload=False):
             stop_song()
     elif reload:
         print('RELOAD REFRESHING NO EFFECT')
+        load_effects_config_from_disk()
         compile_all_luts_from_effects_config()
 
 

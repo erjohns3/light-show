@@ -90,6 +90,12 @@ effects = {
             [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000], 1],
         ],
     },
+    "Sidechain laser": {
+        "length": 1,
+        "beats": [
+            b(1, length=1, green_laser=-1000, red_laser=-1000),
+        ],
+    },
     "Sidechain motor": {
         "length": 1,
         "beats": [

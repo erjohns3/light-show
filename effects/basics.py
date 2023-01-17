@@ -230,6 +230,15 @@ effects = {
         ]
     },
 
+    "Rgb disco": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "beats": [
+            b(1, length=1, disco_rgb=[100, 100, 100]),
+        ]
+    },
+
     "Red disco pulse": {
         "length": 1,
         "trigger": "toggle",

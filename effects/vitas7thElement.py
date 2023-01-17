@@ -42,34 +42,49 @@ effects = {
 
     "v disco slow triplets": {
         "length": 4,
-        "beats": [
+        "beats": [ 
             b(1, name='Red disco', length=.33, intensity=(1,0)),  
-            b(1.66, name='Green disco', length=.33, intensity=(1,0)),  
-            b(2.33, name='Blue disco', length=.33, intensity=(1,0)),  
-            b(3.66, name='Green disco', length=.33, intensity=(1,0)),  
-            b(4.33, name='Red disco', length=.33, intensity=(1,0)),   
+            b(1.75, name='Green disco', length=.33, intensity=(1,0)),  
+            b(2.5, name='Blue disco', length=.33, intensity=(1,0)),  
+            b(3.5, name='Green disco', length=.33, intensity=(1,0)),  
+            b(4.25, name='Red disco', length=.33, intensity=(1,0)), 
         ]
     },
 
     "v bottom slow triplets": {
         "length": 4,
         "beats": [
-            b(1, name='Red bottom', length=.66, intensity=(1,0), hue_shift=0),  
-            b(1.66, name='Red bottom', length=.66, intensity=(1,0), hue_shift=0.2),  
-            b(2.33, name='Red bottom', length=.66, intensity=(1,0), hue_shift=0.4),  
-            b(3.66, name='Red bottom', length=.66, intensity=(1,0), hue_shift=0.6),  
-            b(4.33, name='Red bottom', length=.66, intensity=(1,0), hue_shift=0.8),   
+            b(1, name='Red bottom', length=.75, intensity=(1,0), hue_shift=0),  
+            b(1.75, name='Red bottom', length=.75, intensity=(1,0), hue_shift=0.2),  
+            b(2.5, name='Red bottom', length=.75, intensity=(1,0), hue_shift=0.4),  
+            b(3.5, name='Red bottom', length=.75, intensity=(1,0), hue_shift=0.6),  
+            b(4.25, name='Red bottom', length=.75, intensity=(1,0), hue_shift=0.8),   
+        ]
+    },
+
+    "v bottom slow pulse": {
+        "length": 8,
+        "beats": [
+            b(2, name='Red bottom', length=1, intensity=(1,0), hue_shift=0),  
+            b(4, name='Red bottom', length=1, intensity=(1,0), hue_shift=0.25),  
+            b(6, name='Red bottom', length=1, intensity=(1,0), hue_shift=0.5),  
+            b(8, name='Red bottom', length=1, intensity=(1,0), hue_shift=0.75),  
         ]
     },
 
     "v UV slow triplets": {
         "length": 4,
         "beats": [
-            b(1, name='UV', length=.66, intensity=(1,0)),  
-            b(1.66, name='UV', length=.66, intensity=(1,0)),  
-            b(2.33, name='UV', length=.66, intensity=(1,0)),  
-            b(3.66, name='UV', length=.66, intensity=(1,0)),  
-            b(4.33, name='UV', length=.66, intensity=(1,0)),   
+            # b(1, name='UV', length=.66, intensity=(1,0)),  
+            # b(1.66, name='UV', length=.66, intensity=(1,0)),  
+            # b(2.33, name='UV', length=.66, intensity=(1,0)),  
+            # b(3.66, name='UV', length=.66, intensity=(1,0)),  
+            # b(4.33, name='UV', length=.66, intensity=(1,0)),   
+            b(1, name='UV', length=.75, intensity=(1,0)),  
+            b(1.75, name='UV', length=.75, intensity=(1,0)),  
+            b(2.5, name='UV', length=.75, intensity=(1,0)),  
+            b(3.5, name='UV', length=.75, intensity=(1,0)),  
+            b(4.25, name='UV', length=.75, intensity=(1,0)),   
         ]
     },
 
@@ -149,7 +164,7 @@ effects = {
         "length": 16,
         "beats": [
             b(1, name='v wrist top', length=12, intensity=.5),   
-            b(1, name='v bottom slow triplets', length=12),
+            b(1, name='v bottom slow pulse', length=12),
             b(13, name='v tongue thing', length=4),  
         ]
     },
@@ -158,7 +173,7 @@ effects = {
         "length": 16,
         "beats": [
             b(1, name='v wrist top', length=12, intensity=.5),   
-            b(1, name='v bottom slow triplets', length=12),
+            b(1, name='v bottom slow pulse', length=12),
             b(13, name='v tongue thing full body', length=4),  
         ]
     },
@@ -190,25 +205,47 @@ effects = {
         ]
     },
 
-    "v laser fast swapping": {
-        "length": 32,
+    "v laser fast pulsing": {
+        "length": 2,
         "beats": [
-            b(1, name='laser motor', length=2, intensity=(0,1)), 
-            b(3, name='laser motor', length=12),   
-            b(15, name='laser motor', length=2, intensity=(1,0)),   
-            b(1, name='green laser', length=16),  
-            b(17, name='laser motor', length=2, intensity=(0,1)), 
-            b(19, name='laser motor', length=12),   
-            b(31, name='laser motor', length=2, intensity=(1,0)),   
-            b(17, name='red laser', length=16),  
-            #b(5, name='red laser disco', length=8),    
+            b(1, name='laser motor', length=1, intensity=(1, 1)), 
+            b(2, name='laser motor', length=1, intensity=(.6, .6)),   
+            b(1, name='green laser', length=2),  
+        ]
+    },
+
+    "v fast circle": {
+        "length": 0.75,
+        "beats": [
+            b(1, name='White bottom', length=.25, intensity=(1, 0)), 
+            b(1.25, name='White front', length=.25, intensity=(1,0)),   
+            b(1.5, name='White back', length=.25, intensity=(1,0)),  
+        ]
+    },
+    "v circle": {
+        "length": 1.5,
+        "beats": [
+            b(1, name='White bottom', length=.5, intensity=(1, 0)), 
+            b(1.5, name='White front', length=.5, intensity=(1,0)),   
+            b(2, name='White back', length=.5, intensity=(1,0)),  
+        ]
+    },
+    "v circle slower": {
+        "length": 3,
+        "beats": [
+            b(1, name='White bottom', length=1, intensity=(1, 0)), 
+            b(2, name='White front', length=1, intensity=(1,0)),   
+            b(3, name='White back', length=1, intensity=(1,0)),  
         ]
     },
 
     "v goblin mode": {
-        "length": 96,
+        "length": 64,
         "beats": [
-            b(1, name='v laser fast swapping', length=96),    
+            b(1, name='v laser fast pulsing', length=64),    
+            b(17, name='v fast circle', length=24),  
+            b(49, name='v circle', length=8),
+            b(57, name='v fast circle', length=8),      
         ]
     },
 
@@ -220,6 +257,35 @@ effects = {
             b(6, name='White bottom', length=1, intensity=(.7,.3)),
             b(7, name='White bottom', length=1, intensity=(.5,.1)),   
             b(8, name='White bottom', length=1, intensity=(.3,0)),   
+        ]
+    },
+
+    "v bottom sidechain pulse": {
+        "length": .5,
+        "beats": [
+            [1.1, "Sidechain bottom rbg", .1], 
+            [1.3, "Sidechain bottom rbg", .1], 
+        ],
+    },
+
+    "v intro 1": {
+        "length": 16,
+        "beats": [
+            b(1, name='v disco slow triplets', length=16), 
+            b(9, name='White bottom', length=4,intensity=(0, .6)),
+            b(13, name='White bottom', length=4,intensity=(.6, 0)),
+            b(9, name='v bottom sidechain pulse', length=8),
+        ]
+    },
+
+    "v intro 2": {
+        "length": 16,
+        "beats": [
+            b(1, name='Red disco', length=2), 
+            b(3, name='Green disco', length=2), 
+            b(5, name='Blue disco', length=2), 
+            b(7, name='Rgb disco', length=2), 
+            b(9, name='Rgb disco', length=8, intensity=(1,0)), 
         ]
     },
 
@@ -241,7 +307,8 @@ effects = {
         "delay_lights": 0.16799999999999998,
         "skip_song": 0.0,
         "beats": [
-            b(12, name='v disco slow triplets', length=64),  
+            b(12, name='v intro 1', length=32),  
+            b(44, name='v intro 2', length=32),  
             b(76, name='v ahs 1', length=64) ,
             b(140, name='v chum drum 1', length=64),
             b(204, name='v subdued singing', length=64),

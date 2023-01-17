@@ -163,14 +163,16 @@ effects = {
         ]
     },
 
-    "v chum drum 1": {
+    "v chum drum 2": {
         "length": 32,
         "beats": [
-            b(1, name='v bottom pulse', length=32),   
+            b(1, name='Seafoam bottom', length=8, intensity=(1,0)),   
+            b(9, name='v UV slow triplets', length=24),
+            b(13, name='Seafoam bottom', length=4, intensity=(0,1)),
         ]
     },
 
-    "v chum drum 2": {
+    "v chum drum 1": {
         "length": 16,
         "beats": [
             b(1, name='v rainbow fast bottom', length=8, intensity=(.25,1)),   
@@ -188,6 +190,39 @@ effects = {
         ]
     },
 
+    "v laser fast swapping": {
+        "length": 32,
+        "beats": [
+            b(1, name='laser motor', length=2, intensity=(0,1)), 
+            b(3, name='laser motor', length=12),   
+            b(15, name='laser motor', length=2, intensity=(1,0)),   
+            b(1, name='green laser', length=16),  
+            b(17, name='laser motor', length=2, intensity=(0,1)), 
+            b(19, name='laser motor', length=12),   
+            b(31, name='laser motor', length=2, intensity=(1,0)),   
+            b(17, name='red laser', length=16),  
+            #b(5, name='red laser disco', length=8),    
+        ]
+    },
+
+    "v goblin mode": {
+        "length": 96,
+        "beats": [
+            b(1, name='v laser fast swapping', length=96),    
+        ]
+    },
+
+    "v dash": {
+        "length": 8,
+        "beats": [
+            b(1, name='red laser', length=4,intensity=(1,0)),
+            b(5, name='White bottom', length=1, intensity=(1,.5)),
+            b(6, name='White bottom', length=1, intensity=(.7,.3)),
+            b(7, name='White bottom', length=1, intensity=(.5,.1)),   
+            b(8, name='White bottom', length=1, intensity=(.3,0)),   
+        ]
+    },
+
 # 1-11 intro
 # 12 - Starting beat
 #76 - Ahs ( 16 beats repeated)
@@ -196,6 +231,8 @@ effects = {
 # 268 - Ahs
 # 332 - chum drum bedrum
 # 364 - Rap?
+# 428 - dash, dash, dash
+# 436 - instrumental with symbols
 # 460 - Just instrumental (beat cuts out)
 
     "Vitas - The 7th Element": {
@@ -206,10 +243,15 @@ effects = {
         "beats": [
             b(12, name='v disco slow triplets', length=64),  
             b(76, name='v ahs 1', length=64) ,
-            b(140, name='v chum drum 2', length=64),
+            b(140, name='v chum drum 1', length=64),
             b(204, name='v subdued singing', length=64),
             b(204+32, name='v UV slow triplets', length=32),
             b(268, name='v ahs 2', length=64),
+            b(332, name='v chum drum 2', length=32),
+            b(364, name='v goblin mode', length=64),
+            b(428, name='v dash', length=8),
+            b(436, name='Rgb disco pulse', length=24),
+            b(436, name='v bottom slow triplets', length=56, intensity=(0.7, 0)),
         ]
     }
 }

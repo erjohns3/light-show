@@ -260,6 +260,16 @@ effects = {
         ]
     },
 
+    "Rgb disco pulse": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "profiles": ["Eric"],
+        "beats": [
+            b(1, length=.5, disco_rgb=[100, 100, 100]),
+        ]
+    },
+
     ##################################  colors
     "UV": {
         "length": 1,

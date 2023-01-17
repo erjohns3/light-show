@@ -14,6 +14,12 @@ effects = {
             [1, [100, 100, 100, 0, 0, 0, 0], 0.07],
         ],
     },
+    "Strobe bottom": {
+        "length": 0.2,
+        "beats": [
+            [1, [0, 0, 0, 100, 100, 100, 0], 0.07],
+        ],
+    },
     "UV Strobe": {
         "length": 0.2,
         "beats": [
@@ -118,6 +124,18 @@ effects = {
         "length": 1,
         "beats": [
             [1, [0, 0, 0, -1000, -1000, 0, 0], 1],
+        ],
+    },
+    "Sidechain bottom gb": {
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, 0, -1000, -1000, 0], 1],
+        ],
+    },
+    "Sidechain bottom rb": {
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, -1000, 0, -1000, 0], 1],
         ],
     },
     "Sidechain top bg": {

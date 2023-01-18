@@ -57,6 +57,7 @@ effects = {
     },
     "everything kick line 2": {
         "autogen": "downbeat bottom",
+        "intensity": "high",
         "length": 4,
         "beats": [
             [1, "everything kick 2", 1],

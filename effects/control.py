@@ -332,7 +332,7 @@ effects = {
 
     "Emmit Fenn  Control": {
         "bpm": 120,
-        "song_path": "songs/Emmit Fenn  Control.ogg",
+        "song_path": "songs/Emmit Fenn - Control.ogg",
         "delay_lights": 0.055,
         "skip_song": 0.0,
         "beats": [

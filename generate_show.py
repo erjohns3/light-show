@@ -5,12 +5,11 @@ import os
 import importlib
 import time
 from collections import Counter
-from multiprocessing import Queue, Process
+import multiprocessing
 from copy import deepcopy
-import colorsys
 import random
+import traceback
 
-from scipy.stats import circmean
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
 import aubio
@@ -22,25 +21,15 @@ import sound_helpers
 from helpers import *
 
 
-def eliminate(string, matches):
-    found = set()
-    for match in matches:
-        if match in found:
-            continue
-        found.add(match)
-        string = string.replace(match, '')
-    return string
 
 def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False, rip_out_char=None):
-    print(f'writing effect/show to {output_filepath}')
+    print(f'writing effect to {output_filepath}')
 
     show_name = list(dict_to_dump.keys())[0]    
     if is_windows() and 'song_path' in dict_to_dump[show_name]:
         dict_to_dump[show_name]['song_path'] = dict_to_dump[show_name]['song_path'].replace('\\\\', '/').replace('\\', '/')
     with open(output_filepath, 'w') as file:
         shows_json_str = json.dumps(dict_to_dump, indent=4)
-        # if rip_out_char is not None:
-        #     shows_json_str = shows_json_str.replace(rip_out_char, '')
         shows_json_str = shows_json_str.replace(': true', ': True')
 
         shows_json_str = shows_json_str.replace('\n            ]', ']')
@@ -51,14 +40,20 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
             final_str = 'from effects.compiler import b\n\n' + final_str
         file.writelines([final_str])
 
-def get_src_bpm_offset(song_filepath, use_boundaries):
-    queue = Queue()
-    proc = Process(target=get_src_bpm_offset_multiprocess, args=(song_filepath, use_boundaries, queue,))
-    proc.start()     # prints "[42, None, 'hello']"
-    return queue.get()
+def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
+    try:
+        queue = multiprocessing.Queue()
+        proc = multiprocessing.Process(target=get_src_bpm_offset, args=(song_filepath, use_boundaries, queue,), daemon=True)
+        proc.start()
+        results = queue.get()
+        proc.join()
+        return results
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        raise e
 
 
-def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
+def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     if is_windows():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
@@ -66,7 +61,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
     hop_s = win_s // 2          # hop size
     src = aubio.source(str(song_filepath), 0, hop_s)
     # print(src.uri, src.samplerate, src.channels, src.duration)
-    o = aubio.tempo("default", win_s, hop_s, src.samplerate)
+    o = aubio.tempo('default', win_s, hop_s, src.samplerate)
 
     pv = pvoc(win_s, hop_s)
     f = filterbank(40, win_s)
@@ -79,7 +74,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
     beats = []
     total_frames = 0
     bpms = []
-    print_green("Started aubio loop fft samples for energy")
+    print_green(f'autogen: {song_filepath.stem} - Started aubio loop fft samples for energy')
     while True:
         samples, read = src()
         is_beat = o(samples)
@@ -97,7 +92,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
             bpms.append(int(o.get_bpm()))
         total_frames += read
         if read < hop_s: break
-    print_green("Finished aubio loop")
+    print_green(f'autogen: {song_filepath.stem} - Finished aubio loop')
     energies = np.array(energies)
     # print(energies)
     common_bpms = [x for x, cnt in Counter(bpms).most_common(10) if x>80 and x<190]
@@ -140,7 +135,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
         boundary_beats, chunk_levels = get_boundary_beats(energies, beat_length, delay, total_frames / src.samplerate)
     else:
         boundary_beats, chunk_levels = 'DISABLED', []
-    print(f'Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
+    print(f'autogen: {song_filepath.stem} - Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
     if queue:
         queue.put([total_frames / src.samplerate, bpm_guess, delay, boundary_beats, chunk_levels])
     else:
@@ -150,7 +145,6 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries, queue=None):
 def get_boundary_beats(energies_in, beat_length, delay, length_s):
     song_beats = length_s/beat_length
     n_for_beat = round(len(energies_in)/song_beats)
-    print(f'n for beat: {n_for_beat}')
     n = round(n_for_beat/4) # average over beat/4
     look_size = 4*4 # look at 4 beats
     # move_size = 2 # on every beat/2
@@ -230,7 +224,7 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
             chunk_level+=summed
         chunk_levels.append(chunk_level/(end-prev))
         prev = end
-    print(chunk_levels)
+    print(f'n_for_beat: {n_for_beat}, chunk_levels: {chunk_levels}')
     min_chunk = min(chunk_levels)
     max_chunk = max(chunk_levels)
     # essentially using percentile to cap the quantity in each bucket
@@ -256,71 +250,26 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
     return matches, chunk_levels_out
 
 
-# only works to 10 decimal places
-def round_to(n, precision):
-    correction = 0.5 if n >= 0 else -0.5
-    return round(int( n/precision+correction ) * precision, 10)
+def get_top_level_effect_config():
+    all_globals = globals()
+    effects_config = {}
+    for name, path in get_all_paths('effects', only_files=True):
+        if name == 'compiler.py':
+            continue
+        module = 'effects.' + path.stem
+        all_globals[module] = importlib.import_module(module)
+        effects_config.update(all_globals[module].effects)
+    return effects_config
 
 
-new_effects_made = set()
-def make_new_effect(effects_config, effect_name, hue_shift=0, sat_shift=0, bright_shift=0):
-    hue_shift = round_to(hue_shift, 0.05)
-    sat_shift = round_to(sat_shift, 0.05)
-    bright_shift = round_to(bright_shift, 0.01)
-    
-    new_effect_name = effect_name + f' hue {hue_shift} sat {sat_shift} bright {bright_shift}'.replace('.', '_dot_')
-    if new_effect_name in new_effects_made:
-        return new_effect_name
-    new_effects_made.add(new_effect_name)
-
-    output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'generated_effects')
-    if not os.path.exists(output_directory):
-        print(f'making directory {output_directory}')
-        os.mkdir(output_directory)
-
-    output_filepath = output_directory.joinpath(new_effect_name + '.py')
-
-    effects_config[new_effect_name] = {
-        'beats': [
-            [1, effect_name, effects_config[effect_name]['length']],
-        ],
-        'hue_shift': hue_shift,
-        'sat_shift': sat_shift,
-        'bright_shift': bright_shift,
-    }
-
-
-    # effects_config[new_effect_name] = deepcopy(effects_config[effect_name])
-    # effects_config[new_effect_name]['hue_shift'] = 90
-    # del effects_config[new_effect_name]['autogen']
-    # del effects_config[new_effect_name]['cache_dirty']
-    write_effect_to_file_pretty(output_filepath, {new_effect_name: effects_config[new_effect_name]})
-    return new_effect_name
-
-
-avg_hue_cache = {}
-def get_avg_hue(channel_lut, effect_name):
-    if effect_name in avg_hue_cache:
-        return avg_hue_cache[effect_name]
-    all_hues = []
-    for compiled_channel in channel_lut[effect_name]['beats']:
-        for i in range(3):
-            rd, gr, bl = compiled_channel[i * 3:(i * 3) + 3]
-            hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, bl / 100.), max(0, gr / 100.))
-            all_hues.append(hue)
-    avg_hue_cache[effect_name] = circmean(all_hues, low=0, high=1)
-    # print(all_hues, avg_hue_cache[effect_name])
-    # exit()
-    return avg_hue_cache[effect_name]
-
-
-last_song_filepath = None
-last_song_data = None
-
-def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=True, output_directory=None, random_color=True):
+top_level_effect_config = get_top_level_effect_config()
+# print_blue(f'autogen: time taken up through get_top_level_effect_config(): {time.time() - generate_show_start_time} seconds')
+def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=True, output_directory=None, src_bpm_offset_cache=None):
     global last_song_filepath, last_song_data
 
-    start_time = time.time()
+    print_green(f'autogen: {song_filepath.stem} - Generating show...')
+
+    generate_show_start_time = time.time()
     use_boundaries = True and mode != 'simple'
     if mode == 'lasers':
         show_name = f'g_lasers_{pathlib.Path(song_filepath).stem}'
@@ -329,30 +278,20 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
     if output_directory is None:
         output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
-    if not os.path.exists(output_directory):
-        print(f'making directory {output_directory}')
-        os.mkdir(output_directory)
+    make_if_not_exist(output_directory)
 
     show_name = ''.join([x if x.isalpha() else '_' for x in show_name])
     output_filepath = output_directory.joinpath(show_name + '.py')
-    if os.path.exists(output_filepath):
+    if output_filepath.exists():
         if overwrite:
-            print(f'{bcolors.WARNING}overwrite is set to True, and {output_filepath} exists, generating and overwriting{bcolors.ENDC}')
+            pass
+            # print_yellow(f'overwrite is set to True, and {output_filepath} exists, generating and overwriting')
         else:
-            print(f'{bcolors.WARNING}overwrite is set to False, and {output_filepath} exists, so returning without generating show{bcolors.ENDC}')
+            print_yellow(f'autogen: overwrite is set to False, and {output_filepath} exists, so returning without generating show')
             return None
     
-    
-    print(f'{bcolors.OKGREEN}Generating show for "{song_filepath}"{bcolors.ENDC}')
-
-    if last_song_filepath == song_filepath:
-        song_length, bpm_guess, delay, boundary_beats, chunk_levels = last_song_data
-        print_green(f'autogen: had cached data, using...')
-    else:
-        song_length, bpm_guess, delay, boundary_beats, chunk_levels = get_src_bpm_offset(song_filepath, use_boundaries)
-        last_song_data = [song_length, bpm_guess, delay, deepcopy(boundary_beats), chunk_levels]
-        print_blue(f'autogen: time taken up through get_src_bpm_offset_multiprocess: {time.time() - start_time} seconds')
-        last_song_filepath = song_filepath
+    song_length, bpm_guess, delay, boundary_beats, chunk_levels = src_bpm_offset_cache or get_src_bpm_offset_multiprocess(song_filepath, use_boundaries)
+    print_blue(f'autogen: {song_filepath.stem} - time taken up through get_src_bpm_offset_multiprocess: {time.time() - generate_show_start_time} seconds')
 
 
     show = {
@@ -371,12 +310,8 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
         show['song_path'] = str(relative_path)
 
-
-
-    effect_files_json = get_top_level_effect_config()
-    print_blue(f'autogen: time taken up through get_top_level_effect_config(): {time.time() - start_time} seconds')
     
-    effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), effect_files_json.items()))
+    effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), top_level_effect_config.items()))
     
     effect_names = list(effects_config_filtered.keys())
     effect_types_to_name = {}
@@ -389,21 +324,28 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     scenes = [
         [8, ['downbeat top', 'downbeat bottom']],
         [8, ['downbeat top', 'downbeat bottom', 'disco']],
+        [8, ['downbeat top', 'downbeat bottom', 'disco strobe']],
         [8, ['downbeat top']],
         [8, ['downbeat top']],
+        [8, ['downbeat top', 'disco']],
         [8, ['downbeat bottom']],
         [8, ['downbeat mixed']],
         [8, ['downbeat mixed']],
+        [8, ['downbeat mixed', 'disco']],
+        [8, ['downbeat mixed', 'disco strobe']],
         [8, ['downbeat mixed', 'UV pulse']],
         [8, ['downbeat mixed', 'UV']],
         [8, ['downbeat top', 'downbeat bottom', 'UV']],
         [8, ['downbeat top', 'UV']],
         [8, ['downbeat bottom', 'UV']],
         [8, ['rainbow top', 'downbeat bottom']],
+        [8, ['rainbow top', 'disco strobe']],
         [8, ['disco']],
+        [8, ['disco strobe']],
         [2, ['filler']],
-        [1, ['filler']],
         [2, ['UV pulse']],
+        [1, ['filler']],
+        [1, ['filler', 'disco strobe']],
         [1, ['UV pulse single']],
     ]
 
@@ -433,9 +375,6 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     beat = 1  
     if mode == 'simple': # Only RBBB timing
         while beat < total_beats:
-            # effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=0)
-            # avg_hue = get_avg_hue(channel_lut, effect_name)
-            # print(f'avg hue of {effect_name}: {avg_hue}')
             show['beats'].append([beat, 'RBBB 1 bar', 4])
             beat += 4
     elif use_boundaries==True: # Based on scenes
@@ -475,7 +414,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
                         if not effect_candidates: # it's low intensity but all candidates are high
-                            effect_candidates = ['a_UV pulse']
+                            effect_candidates = ['UV pulse']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color
@@ -485,7 +424,6 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                         if effect_type != 'dimmers':
                             hue_shift=random.random()
                             bright_shift = -.2
-                            # effect_name = make_new_effect(effects_config, effect_name, hue_shift=random.random(), sat_shift=0, bright_shift=-.2)
 
                         new_prev_effects.append(effect_name)
                         the_length = length
@@ -526,37 +464,20 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         show_name: show
     }
 
-    if '.' in show_name:
-        print_red(f'Cannot generate show for {show_name} because it has a dot before the file extension')
-        return None
     write_effect_to_file_pretty(output_filepath, the_show)
-    print_blue(f'autogen: time taken to finish: {time.time() - start_time} seconds')
+    print_blue(f'autogen: {song_filepath.stem} - time taken to finish: {time.time() - generate_show_start_time} seconds')
     
     return show_name, show, output_filepath
 
-def get_top_level_effect_config():
-    all_globals = globals()
-    effects_config = {}
-    for name, path in get_all_paths('effects', only_files=True):
-        if name == 'compiler.py':
-            continue
-        module = 'effects.' + path.stem
-        all_globals[module] = importlib.import_module(module)
-        effects_config.update(all_globals[module].effects)
-    return effects_config
-
 
 if __name__ == '__main__':
-    effect_files_jsons = get_top_level_effect_config()
-
     configs_with_bpm = {}
-    for effect_name, effect in effect_files_jsons.items():
+    for effect_name, effect in top_level_effect_config.items():
         if 'bpm' in effect and 'song_path' in effect:
             configs_with_bpm[effect['song_path']] = {
                 'bpm': effect['bpm'],
                 'delay': effect['delay_lights'] + effect['skip_song'],
             }
-    
 
     guess_bpm_delay = {}
     for name, song_filepath in get_all_paths('songs', only_files=True):
@@ -570,35 +491,9 @@ if __name__ == '__main__':
             
             delay_string = f'config_delay: {config_delay}, guess_delay: {guess_delay}'
             if config_bpm == guess_bpm:
-                print(f'{bcolors.OKGREEN}BPM match: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
+                print_green(f'BPM match: {guess_bpm}, {delay_string}, {song_filepath}')
             else:
-                print(f'{bcolors.FAIL}config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}{bcolors.ENDC}')
+                print_red(f'config_bpm: {config_bpm} != guess_bpm: {guess_bpm}, {delay_string}, {song_filepath}')
         else:
-            print(f'{bcolors.OKCYAN}BPM: {guess_bpm}, no config_bpm found, {song_filepath}{bcolors.ENDC}')
+            print_cyan(f'BPM: {guess_bpm}, no config_bpm found, {song_filepath}')
 
-
-# old shit to look thru effects:
-
-# counting number of times effect is used
-# effect_usages = {}
-# for effect_name, effect in effect_files_json.items():
-#     for beats in effect['beats']:
-#         if type(beats[1]) == str:
-#             if beats[1] not in effect_usages:
-#                 effect_usages[beats[1]] = 0
-#             effect_usages[beats[1]] += 1
-
-# filtering to only ones in between 4 and 16
-# effects_config_4_16 = dict(filter(lambda x: 4 <= x[1]['length'] <= 16, effects_config.items()))
-# effect_usages_4_16 = dict(filter(lambda x: x[0] in effects_config_labeled, effect_usages.items()))
-
-
-# making probability distribution
-# effect_probabilities = {}
-# total = sum(effect_usages_4_16.values())
-# for effect_name, times_used in effect_usages_4_16.items():
-#     effect_probabilities[effect_name] = times_used / total
-
-# print('frequency of potential effects used')
-# for times_used, effect_name in sorted([(x, y) for y, x in effect_usages_4_16.items()]):
-#     print(f'times_used: {times_used}, {effect_name}')

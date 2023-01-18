@@ -12,6 +12,7 @@ import os
 import colorsys
 import random
 import traceback
+import sys
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
@@ -164,7 +165,8 @@ async def init_rekordbox_bridge_client(websocket, path):
                 if effect_to_play not in effects_config:
                     print_yellow(f'Cant play light show effect from rekordbox! Missing effect {effect_to_play}\n' * 8)
                     continue
-
+            
+            # TODO we gotta check above and all the songs
             # if rekordbox_title not in effects_config:
             #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
             #     rekordbox_title = 'g_' + rekordbox_title
@@ -285,6 +287,8 @@ def download_song(url, uuid):
     max_length_seconds = None
     if not is_admin(uuid):
         max_length_seconds = 15 * 60
+    
+    # TODO add caching here
     filepath = youtube_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
@@ -347,7 +351,6 @@ async def init_queue_client(websocket, path):
         try:
             print('Song Queue: waiting for message')
             msg_string = await websocket.recv()
-            print('Song Queue: waiting for message')
         except:
             song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
@@ -366,10 +369,12 @@ async def init_queue_client(websocket, path):
                 print(f'Song Queue: removed from queue by {uuid_to_user(msg["uuid"])}')
                 effect_name = msg['effect']
                 salt = msg['salt']
+                # TODO share this code with light() probably
                 for i in range(len(song_queue)):
                     if song_queue[i][0] == effect_name and song_queue[i][1] == salt and (song_queue[i][2] == uuid or is_admin(uuid)):
                         song_queue.pop(i)
                         if i == 0:
+                            # andrew: oops, this is ew
                             stop_song()
                             song_time = 0
                             remove_effect_name(effect_name)
@@ -486,6 +491,7 @@ def search_youtube():
 def add_queue_balanced(effect_name, uuid):
     global song_playing, song_time, broadcast_light_status, broadcast_song_status
 
+    # TODO Eric, is this code useless now? i just commented it out
     # if False: # is_admin(uuid):
     #     index = 1
     #     while index < len(song_queue):
@@ -493,7 +499,6 @@ def add_queue_balanced(effect_name, uuid):
     #             break
     #         index += 1
     # else:
-
     index = 0
     count = 0
     user_counts = {}
@@ -502,10 +507,6 @@ def add_queue_balanced(effect_name, uuid):
         if entry[2] == uuid:
             count += 1
     while index < len(song_queue):
-        # ERIC THIS CRASHED IM PUTTIGN IN A CHECK LOL. Should be fixed now
-        # if song_queue[index][2] not in user_counts:
-        #     print('saving a crash')
-        #     user_counts[song_queue[index][2]] = 0
         if user_counts[song_queue[index][2]] > count:
             break
         user_counts[song_queue[index][2]] += 1
@@ -907,6 +908,7 @@ def add_effect(new_effect_name):
     if 'bpm' in effect:
         clear_effects()
         time_start = time.time() + effect['delay_lights'] - song_time
+        print('effect will have time_start of:', effect['delay_lights'] - song_time)
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
@@ -949,7 +951,14 @@ def stop_song():
 def setup_gpio():
     global pca
 
-    import board
+    try:
+        import board
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        print_yellow(f'you need to add --local probably')        
+        sys.exit()
+
+    
     import busio
     import adafruit_pca9685
 
@@ -993,12 +1002,15 @@ def effects_config_sort(path):
 
 
 def dfs(effect_name):
-    if effect_name in found:
-        return
-    for component in effects_config[effect_name]['beats']:
-        if type(component[1]) == str:
-            dfs(component[1])
-    effects_config_sort([effect_name])
+    if effect_name not in found:
+        if effect_name not in effects_config:
+            return effect_name
+        for component in effects_config[effect_name]['beats']:
+            if type(component[1]) == str:
+                missing_effect = dfs(component[1])
+                if missing_effect:
+                    return missing_effect
+        effects_config_sort([effect_name])
 
 
 def add_dependancies(effects_config):
@@ -1010,34 +1022,43 @@ def add_dependancies(effects_config):
         graph[effect_name] = list(graph[effect_name].keys())
 
 
-def add_song_to_config(filepath):
-    filepath = pathlib.Path(str(filepath).replace('\\', '/'))
-    relative_path = filepath
-    if relative_path.is_absolute():
-        relative_path = relative_path.relative_to(this_file_directory)
-
-    if filepath.suffix in ['.mp3', '.ogg', '.wav']:
-        tags = TinyTag.get(filepath)
+allowed_song_extensions = set(['.mp3', '.ogg', '.wav'])
+def get_song_metadata_info(song_path):
+    if song_path.suffix in allowed_song_extensions:
+        tags = TinyTag.get(song_path)
         name, duration = tags.title, tags.duration
 
         if tags.samplerate != 48000:
-            print_red(f'THe song file is not 48000hz sample rate, {filepath}. This introduces weird bugs, delete the file.')
+            print_red(f'THe song file is not 48000hz sample rate, {song_path}. This introduces weird bugs, delete the file.')
             return False
 
         if name == None:
-            name = filepath.stem
+            name = song_path.stem
 
         if not duration:
-            print_yellow(f'No tag found for file: "{filepath}", ffprobing, but this is slow.')
-            duration = sound_helpers.get_audio_clip_length(filepath)
+            print_yellow(f'No tag found for file: "{song_path}", ffprobing, but this is slow.')
+            duration = sound_helpers.get_audio_clip_length(song_path)
+        return name, tags.artist, duration
+    else:
+        print_red(f'File type not in: {allowed_song_extensions}, {song_path}')
+
+
+def add_song_to_config(song_path):
+    song_path = pathlib.Path(str(song_path).replace('\\', '/'))
+    relative_path = song_path
+    if relative_path.is_absolute():
+        relative_path = relative_path.relative_to(this_file_directory)
+
+    if song_path.suffix in ['.mp3', '.ogg', '.wav']:
+        name, artist, duration = get_song_metadata_info(song_path)
         
         songs_config[str(relative_path.as_posix())] = {
             'name': name,
-            'artist': tags.artist,
+            'artist': artist,
             'duration': duration
         }
     else:
-        print_red(f'CANNOT READ FILETYPE {filepath.suffix} in {filepath}')
+        print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
 def load_effects_config_from_disk():
@@ -1056,9 +1077,9 @@ def load_effects_config_from_disk():
 
     total_time = 0
     for name, filepath in get_all_paths(effects_dir, only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True):
+                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True, quiet=True) + \
+                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True, quiet=True):
         if name == 'compiler.py':
             continue
     
@@ -1166,6 +1187,7 @@ def compile_all_luts_from_effects_config():
                 if key != 'beats':
                     effects_config_client[name][key] = value
 
+    # TODO andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():
         # eager compile all normal effects
         for effect_name, effect in effects_config.items():
@@ -1186,7 +1208,10 @@ def compile_lut(local_effects_config):
     sort_perf_timer = time.time()
     for name, effect in local_effects_config.items():
         set_effect_defaults(name, effect)
-        dfs(name)
+        missing_effect = dfs(name)
+        if missing_effect is not None:
+            print_red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
+            sys.exit()
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
@@ -1325,6 +1350,9 @@ def compile_lut(local_effects_config):
 
 def kill_in_n_seconds(seconds):
     time.sleep(seconds)
+    import atexit
+    atexit._run_exitfuncs()
+
     if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /F'
     else:
@@ -1335,15 +1363,22 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
+    if 'multiprocessing' in sys.modules:
+        import multiprocessing
+        active_children = multiprocessing.active_children()        
+        if active_children:
+            print_yellow(f'Module multiprocessing was imported! Killing active_children processes, PIDS: {[x.pid for x in active_children]}')
+            for child in active_children:
+                print_yellow(f'killing {child.pid}')
+                child.kill()
     if not args.local:
-        x = threading.Thread(target=kill_in_n_seconds, args=(0.5,))
-        x.start()
+        threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
         for i in range(len(pca.channels)):
             pca.channels[i].duty_cycle = 0
     if args.reload:
         observer.stop()
         observer.join()
-    exit()
+    sys.exit()
 
 #################################################
 
@@ -1371,6 +1406,7 @@ def restart_show(skip=0, abs_time=None, reload=False):
 
         if reload:
             print('RELOAD REFRESHING')
+            load_effects_config_from_disk()
             compile_all_luts_from_effects_config()
 
         effect = effects_config[effect_name]
@@ -1383,9 +1419,15 @@ def restart_show(skip=0, abs_time=None, reload=False):
             # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
             # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
         add_effect(effect_name)
-        play_song(effect_name, print_out=False)
+        try:
+            play_song(effect_name, print_out=False)
+        except:
+            print_red('play_song errored, running stop_song + clear_effects and continuing')
+            clear_effects()
+            stop_song()
     elif reload:
         print('RELOAD REFRESHING NO EFFECT')
+        load_effects_config_from_disk()
         compile_all_luts_from_effects_config()
 
 
@@ -1408,13 +1450,13 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
-        return
     raise Exception('Couldnt download video')
 
 
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
+    make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     try:
         # pygame.mixer.pre_init(48000, 16, 2, 4096)
         pygame.mixer.init(frequency=48000)
@@ -1434,59 +1476,53 @@ if __name__ == '__main__':
         setup_gpio()
     
     if args.autogen is not None:
-        import generate_show
-        from functools import partial
-        from concurrent.futures import ThreadPoolExecutor, as_completed, wait
-        # import tqdm
-
-
-        in_flight = set()
         def gen_show_worker(song_path, mode):
-            in_flight.add(song_path.stem)
-            if mode == 'both':
-                results = generate_show.generate_show(song_path, overwrite=True, mode=None)
-                generate_show.generate_show(song_path, overwrite=True, mode='lasers')
+            try:
+                import generate_show
                 
-            else:
-                results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
-            in_flight.remove(song_path.stem)
-            return results
-        
+                src_bpm_offset_cache = generate_show.get_src_bpm_offset(song_path, use_boundaries=True)
+                if mode == 'all':
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=None, src_bpm_offset_cache=src_bpm_offset_cache)
+                    generate_show.generate_show(song_path, overwrite=True, mode='lasers', src_bpm_offset_cache=src_bpm_offset_cache)
+                else:
+                    results = generate_show.generate_show(song_path, overwrite=True, mode=args.autogen_mode, src_bpm_offset_cache=src_bpm_offset_cache)
+                return results
+            except Exception as e:
+                print_red(f'{traceback.format_exc()}')
+                raise e
+
+        autogen_song_directory = 'songs'
+        all_ogg_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=['.ogg'])
+        all_ogg_song_paths = [path for _name, path in all_ogg_song_name_and_paths]
         if args.autogen == 'all':
-            autogen_song_directory = 'songs'
+            import tqdm
+            import concurrent
+
+            if is_macos():
+                import multiprocessing
+                multiprocessing.set_start_method('fork')
             print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
-            # for _name, song_path in get_all_paths(autogen_song_directory, only_files=True):
+        
+            total_duration = 0
+            duration_and_song_paths = []
+            for song_path in all_ogg_song_paths:
+                _, _, duration = get_song_metadata_info(song_path)
+                duration_and_song_paths.append((duration, song_path))
+                total_duration += duration
+            all_ogg_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
 
-            all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
-            progress_bar = tqdm.tqdm(total=len(all_song_paths))
-            with ThreadPoolExecutor() as executor:
-                futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_song_paths]
-
-
-                # 18 in flight light shows: {'Nice For What', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Jsan x Pandrezz  Insomnia', 'Coldplay  Paradise Official Audio', 'UH OH TOWN Original Aka Stinky Lavender Town', 'DRAM  Broccoli feat Lil Yachty Official Music Video', 'Hypnocurrency', 'Daft Punk  Get Lucky Evan Duffy Improvisation', 'Tailwind', 'Møme  Aloha Official Music Video ft Merryn Jeann', 'Kenny Price - The Shortest Song In The World', 'Toby Keith  Red Solo Cup Unedited Version', 'Short Song', 's_Drake  Massive Official Audio', 'Halogen  U Got That', 'hooked', 'Littles kids playing recorders', 'Caravan Palace  Star Scat'}
-                # 10 in flight light shows: {'porter robinson  a breath superbloom edit', 'Short Song', 'Jon Hopkins  Breathe This Air feat Purity Ring Official Video', 'Coldplay  Paradise Official Audio', 'Juvenile  Back That Thang Up ft Mannie Fresh Lil Wayne', 'Kenny Price - The Shortest Song In The World', 'Littles kids playing recorders', 's_Drake  Massive Official Audio', 'Daft Punk  Something About Us Official Video', 'YuGiOh  Season 1 Theme Song'}
-                
-                wait(futures)
-                print('donzo')
-                exit()
-                try:
-                    for future in as_completed(futures):
-                        print_bold(f'{len(in_flight)} in flight light shows: {in_flight}', flush=True)
+            # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
+            with tqdm.tqdm(total=len(all_ogg_song_paths)) as progress_bar:
+                with concurrent.futures.ProcessPoolExecutor() as executor:
+                    futures = [executor.submit(gen_show_worker, song_path, mode=args.autogen_mode) for song_path in all_ogg_song_paths]
+                    for future in concurrent.futures.as_completed(futures):
                         progress_bar.update(1)
-
-                        # os.system(f'kill -9 {os.getpid()}')
-                except:
-                    print_red(traceback.format_exc(), flush=True)
-                    os.system(f'kill -9 {os.getpid()}')
-
-                # executor.map(partial(gen_show_worker, mode=args.autogen_mode), all_song_paths)
-
-            progress_bar.close()
-            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)}) SHOWS IN DIRECTORY {autogen_song_directory} in {time.time() - time_start} seconds')
-            exit()
+                        time_diff = time.time() - time_start
+            print_green(f'FINISHED AUTOGENERATING ALL ({len(all_ogg_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
+            sys.exit()
         else:
-            not_wav = list(filter(lambda x: not x.endswith('.wav'), os.listdir('songs')))
-            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, not_wav))
+            all_ogg_song_names = [name for name, _path in all_ogg_song_name_and_paths]
+            song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_ogg_song_names))
             args.show, _, _ = gen_show_worker(song_path, args.autogen_mode)
 
     load_effects_config_from_disk()

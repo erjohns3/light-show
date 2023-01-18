@@ -245,6 +245,7 @@ def get_info_from_youtube_playlist(url, write_files=True):
 
 
 if __name__ == '__main__':
+    make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument('url', type=str)
     parser.add_argument('--show', dest='gen_show', default=None, action='store_true')

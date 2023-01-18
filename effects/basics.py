@@ -14,6 +14,12 @@ effects = {
             [1, [100, 100, 100, 0, 0, 0, 0], 0.07],
         ],
     },
+    "Strobe bottom": {
+        "length": 0.2,
+        "beats": [
+            [1, [0, 0, 0, 100, 100, 100, 0], 0.07],
+        ],
+    },
     "UV Strobe": {
         "length": 0.2,
         "beats": [
@@ -84,6 +90,12 @@ effects = {
             [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000], 1],
         ],
     },
+    "Sidechain laser": {
+        "length": 1,
+        "beats": [
+            b(1, length=1, green_laser=-1000, red_laser=-1000),
+        ],
+    },
     "Sidechain motor": {
         "length": 1,
         "beats": [
@@ -118,6 +130,18 @@ effects = {
         "length": 1,
         "beats": [
             [1, [0, 0, 0, -1000, -1000, 0, 0], 1],
+        ],
+    },
+    "Sidechain bottom gb": {
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, 0, -1000, -1000, 0], 1],
+        ],
+    },
+    "Sidechain bottom rb": {
+        "length": 1,
+        "beats": [
+            [1, [0, 0, 0, -1000, 0, -1000, 0], 1],
         ],
     },
     "Sidechain top bg": {
@@ -212,6 +236,15 @@ effects = {
         ]
     },
 
+    "Rgb disco": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "beats": [
+            b(1, length=1, disco_rgb=[100, 100, 100]),
+        ]
+    },
+
     "Red disco pulse": {
         "length": 1,
         "trigger": "toggle",
@@ -239,6 +272,16 @@ effects = {
         "profiles": ["Eric"],
         "beats": [
             b(1, length=.5, disco_rgb=[0, 0, 100]),
+        ]
+    },
+
+    "Rgb disco pulse": {
+        "length": 1,
+        "trigger": "toggle",
+        "loop": True,
+        "profiles": ["Eric"],
+        "beats": [
+            b(1, length=.5, disco_rgb=[100, 100, 100]),
         ]
     },
 

@@ -4,8 +4,8 @@
     "short_name": "DJ Lights",
     "start_url": "dj.html",
     "display": "fullscreen",
-    "background_color": "#006655",
-    "theme_color": "#006655",
+    "background_color": "#000000",
+    "theme_color": "#000000",
     "orientation": "landscape",
     "description": "DJ Lights",
     "icons": [{

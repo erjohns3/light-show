@@ -3,9 +3,9 @@
     "name": "DJ Song",
     "short_name": "DJ Songs",
     "start_url": "index.html",
-    "display": "fullscreen",
-    "background_color": "#006655",
-    "theme_color": "#006655",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
     "orientation": "portrait",
     "description": "DJ Songs"
   }

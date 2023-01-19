@@ -108,11 +108,11 @@ def run_http_server_forever():
 
 ########################################
 
-def add_effect_from_dj(effect_name, no_music=False):
+def add_effect_from_dj(effect_name):
     global song_time, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
-    if not no_music and has_song(effect_name):
+    if has_song(effect_name):
         song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
         if not os.path.exists(song_path):
             print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
@@ -131,7 +131,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 async def init_rekordbox_bridge_client(websocket, path):
-    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names
+    global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, rekordbox_title, time_start, curr_bpm, song_time, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names
     print('rekordbox made connection to new client')
     while True:
         try:
@@ -179,7 +179,8 @@ async def init_rekordbox_bridge_client(websocket, path):
             if effect_to_play is not None:
                 print_green(f'Playing light show effect from rekordbox: {effect_to_play}\n' * 8)                    
                 clear_effects()
-                add_effect_from_dj(effect_to_play, no_music=True)
+                song_time = 0
+                add_effect(effect_name)
 
         # print(f'{list(msg.keys())}\n' * 10)
         if take_rekordbox_input and 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
@@ -237,14 +238,12 @@ async def init_dj_client(websocket, path):
 
             elif msg['type'] == 'remove_effect':
                 effect_name = msg['effect']
-                if has_song(effect_name):
-                    if song_playing and len(song_queue) > 0:
-                        song_queue.pop()
-                    stop_song()
-                    broadcast_song_status = True
-                index = curr_effect_index(effect_name)
-                if index is not False:
-                    remove_effect(index)
+                # if has_song(effect_name):
+                #     if song_playing and len(song_queue) > 0:
+                #         song_queue.pop()
+                #     stop_song()
+                #     broadcast_song_status = True
+                remove_effect_name(effect_name)
 
             elif msg['type'] == 'clear_effects':
                 clear_effects()
@@ -268,11 +267,11 @@ async def init_dj_client(websocket, path):
                         compile_lut({maybe_new_effect_name: effects_config[maybe_new_effect_name]})
                     curr_effects[0][0] = maybe_new_effect_name
 
-            elif msg['type'] == 'set_bpm':
-                time_start = time.time()
-                curr_bpm = float(msg['bpm'])
-                for effect in curr_effects:
-                    effect[1] = 0
+            # elif msg['type'] == 'set_bpm':
+            #     time_start = time.time()
+            #     curr_bpm = float(msg['bpm'])
+            #     for effect in curr_effects:
+            #         effect[1] = 0
 
             broadcast_light_status = True
 
@@ -376,13 +375,10 @@ async def init_queue_client(websocket, path):
                         song_queue.pop(i)
                         if i == 0:
                             # andrew: oops, this is ew
-                            song_was_playing = song_playing
                             stop_song()
                             song_time = 0
-                            index = curr_effect_index(effect_name)
-                            if index is not False:
-                                remove_effect(index)
-                            if song_was_playing and len(song_queue) > 0:
+                            remove_effect_name(effect_name)
+                            if song_playing and len(song_queue) > 0:
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
@@ -409,9 +405,7 @@ async def init_queue_client(websocket, path):
                         effect_name = song_queue[0][0]
                         song_time += max(pygame.mixer.music.get_pos(), 0) / 1000
                         stop_song()
-                        index = curr_effect_index(effect_name)
-                        if index is not False:
-                            remove_effect(index)
+                        remove_effect_name(effect_name)
                         broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
@@ -765,26 +759,29 @@ async def light():
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
         beat_index = int(time_diff * rate)
+
+        if song_playing and not pygame.mixer.music.get_busy():
+            remove_effect_name(song_queue[0][0])
+            song_queue.pop(0)
+            song_time = 0
+            if len(song_queue) > 0:
+                new_effect_name = song_queue[0][0]
+                add_effect(new_effect_name)
+                play_song(new_effect_name)
+            elif len(song_queue) == 0:
+                song_playing = False
+            broadcast_song_status = True
+
         i = 0
         while i < len(curr_effects):
             index = beat_index + curr_effects[i][1]
             effect_name = curr_effects[i][0]
             if not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']:
-                remove_effect(i)
-                if has_song(effect_name):
-                    stop_song()
-                    song_queue.pop(0)
-                    song_time = 0
-                    if len(song_queue) > 0:
-                        new_effect_name = song_queue[0][0]
-                        add_effect(new_effect_name)
-                        play_song(new_effect_name)
-                    elif len(song_queue) == 0:
-                        song_playing = False
-                    broadcast_song_status = True
+                remove_effect_index(i)
                 broadcast_light_status = True
             else:
                 i+=1
+
         for i in range(LIGHT_COUNT):
             level = 0
             for j in range(len(curr_effects)):
@@ -858,18 +855,25 @@ async def light():
 def has_song(name):
     return 'song_path' in effects_config[name]
 
-def curr_effect_index(name):
+def get_effect_index(name):
     for i in range(len(curr_effects)):
         if curr_effects[i][0] == name:
             return i
     return False
 
-def remove_effect(index):
+def remove_effect_name(name):
+    for i in range(len(curr_effects)):
+        if curr_effects[i][0] == name:
+            curr_effects.pop(i)
+            return True
+    return False
+
+def remove_effect_index(index):
     curr_effects.pop(index)
 
 def clear_effects():
-    while len(curr_effects) > 0:
-        remove_effect(0)
+    global curr_effects
+    curr_effects = []
 
 def maybe_get_laser_version(effect_name):
     if effect_name.startswith('g_lasers_'):
@@ -898,7 +902,7 @@ def add_effect(new_effect_name):
         compile_lut({new_effect_name: effects_config[new_effect_name]})
 
     effect = effects_config[new_effect_name]
-    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and curr_effect_index(new_effect_name) is not False:
+    if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and get_effect_index(new_effect_name) is not False:
         return
 
     if 'bpm' in effect:
@@ -940,6 +944,7 @@ def stop_song():
     global song_playing
     pygame.mixer.music.stop()
     song_playing = False
+
 
 ######################################
 
@@ -1390,7 +1395,7 @@ def restart_show(skip=0, abs_time=None, reload=False):
         effect_name = curr_effects[0][0]
         if not has_song(effect_name):
             return
-        remove_effect(0)
+        remove_effect_index(0)
         
         stop_song()
         time_to_skip_to = max(0, (time.time() - time_start) + skip)
@@ -1637,7 +1642,7 @@ if __name__ == '__main__':
                 key_name = key.name
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:
-                    remove_effect(curr_effect_index(keyboard_dict[key_name]))
+                    remove_effect_name(keyboard_dict[key_name])
 
         def listen_for_keystrokes():
             with Listener(on_press=on_press, on_release=on_release) as listener:

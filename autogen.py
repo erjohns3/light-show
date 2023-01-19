@@ -34,6 +34,9 @@ def gen_show_worker(song_path, output_directory, include_song_path):
         raise e
 
 def generate_all_songs_in_directory(autogen_song_directory, output_directory=None, include_song_path=True):
+    if is_windows():
+        print_red('Ima be real, i think this shit wont work on windows, but give it a shot by commenting this out.')
+        sys.exit()
     time_start = time.time()
     import tqdm
     # import concurrent

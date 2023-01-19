@@ -1083,11 +1083,12 @@ def load_effects_config_from_disk():
                 song_name_to_show_names[song_name].append(effect_name)
                 # print(effect_name, song_name_to_show_names[song_name])
             elif effect.get('song_not_avaliable', True):
-                    if args.show:
-                        effect['song_not_avaliable'] = True
-                    else:
-                        del effect['song_path']
-                        # print_red('deleted', _effect_name)
+                if args.show:
+                    print('song not avaliable', effect_name, effect['song_path'])
+                    effect['song_not_avaliable'] = True
+                else:
+                    del effect['song_path']
+                    # print_red('deleted', _effect_name)
 
     add_dependancies(effects_config)
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
@@ -1420,6 +1421,7 @@ def try_download_video(show_name):
     url = youtube_search_result['webpage_url']
     if youtube_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
+        return
     raise Exception('Couldnt download video')
 
 
@@ -1608,6 +1610,7 @@ if __name__ == '__main__':
             args.show = fuzzy_find(args.show, only_shows)
 
             if effects_config[args.show].get('song_not_avaliable'):
+                # print(list(effects_config.keys()))
                 print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
                 input()
                 try_download_video(args.show)

@@ -36,9 +36,10 @@ def gen_show_worker(song_path, output_directory):
 def generate_all_songs_in_directory(autogen_song_directory, output_directory=None):
     time_start = time.time()
     import tqdm
-    import concurrent
+    # import concurrent
+    from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=set(['.ogg', '.mp3']))
+    all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, recursive=True, allowed_extensions=set(['.ogg', '.mp3']))
     all_song_paths = [path for _name, path in all_song_name_and_paths]
     
     if is_macos():
@@ -56,15 +57,14 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
 
     # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
     with tqdm.tqdm(total=len(all_song_paths)) as progress_bar:
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+        with ProcessPoolExecutor() as executor:
             futures = [executor.submit(gen_show_worker, song_path, output_directory) for song_path in all_song_paths]
-            for future in concurrent.futures.as_completed(futures):
+            for future in as_completed(futures):
                 if future.exception() is not None:
                     print_red(f'Exception occured in subprocess: {future.exception()}')
                 progress_bar.update(1)
     time_diff = time.time() - time_start
     print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
-    sys.exit()
 
 
 

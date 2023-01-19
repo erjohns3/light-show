@@ -1,26 +1,20 @@
+import sys
+import signal
+
+
 from helpers import *
 import youtube_helpers
 import autogen
 
 
-# import light_server
-# light_server.load_effects_config_from_disk()
-# channel_lut = light_server.get_channel_lut()
-
-def generate_rekordbox_effect(filepath):
-    effect_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
-
-    _, _, local_filepath = autogen.generate_show(filepath, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
-
-    if is_andrews_main_computer():
-        print_yellow('Skipping SCP to doorbell because on andrews main computer')
-        return
-
-    print_blue(f'Show created, scping from "{local_filepath}" to folder "{remote_folder}"')
+def ssh_to_doorbell(local_effect_path):
+    import paramiko
+    
+    print_blue(f'scping from "{local_effect_path}" to folder "{remote_folder}"')
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
 
     try:
-        youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+        youtube_helpers.scp_to_doorbell(local_effect_path, remote_folder)
     except:
         # !TODO catch the right exception here (file not found)
         print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
@@ -30,22 +24,81 @@ def generate_rekordbox_effect(filepath):
         ssh.connect(hostname=youtube_helpers.doorbell_ip,
                     port = 22,
                     username='pi')
+        # !TODO idk if this works
         stdin, stdout, stderr = ssh.exec_command('mkdir /home/pi/light-show/effects/rekordbox_effects')
-        youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+        youtube_helpers.scp_to_doorbell(local_effect_path, remote_folder)
+
+
+
+def signal_handler(sig, frame):
+    print('SIG Handler: ' + str(sig), flush=True)
+    if 'multiprocessing' in sys.modules:
+        import multiprocessing
+        active_children = multiprocessing.active_children()        
+        if active_children:
+            print_yellow(f'Module multiprocessing was imported! Killing active_children processes, PIDS: {[x.pid for x in active_children]}')
+            for child in active_children:
+                print_yellow(f'killing {child.pid}')
+                child.kill()
+    sys.exit()
+
 
 
 if __name__ == '__main__':
-    import paramiko
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     if is_andrews_main_computer():
         print_yellow('On andrews computer so using local song path')
-        rekordbox_song_directory = pathlib.Path(__file__).resolve().parent.joinpath('song')
-        exit()
+        rekordbox_song_directory = pathlib.Path(__file__).resolve().parent.joinpath('songs')
     else:
         rekordbox_song_directory = get_ray_directory().joinpath('music_creation', 'downloaded_songs')
-    for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True, recursive=True):
-        if filepath.suffix in ['.py', '.exe', '.html']:
-            continue
-        if filename.startswith('.'):
-            continue
-        generate_rekordbox_effect(filepath)
+
+    rekordbox_shows_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
+    autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory)
+
+    if is_andrews_main_computer():
+        print_yellow('Skipping SCP to doorbell because on andrews main computer')
+        exit() 
+
+    print_cyan('scping all effects to doorbell...')
+    for effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
+        ssh_to_doorbell(effect_path)
+
+
+# import light_server
+# light_server.load_effects_config_from_disk()
+# channel_lut = light_server.get_channel_lut()
+
+
+# def generate_rekordbox_effect(filepath):
+#     _, _, local_filepath = autogen.generate_show(filepath, overwrite=True, mode=None, include_song_path=False, output_directory=effect_output_directory, random_color=False)
+
+#     if is_andrews_main_computer():
+#         print_yellow('Skipping SCP to doorbell because on andrews main computer')
+#         return
+
+#     print_blue(f'Show created, scping from "{local_filepath}" to folder "{remote_folder}"')
+#     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
+
+#     try:
+#         youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+#     except:
+#         # !TODO catch the right exception here (file not found)
+#         print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
+    
+#         ssh = paramiko.client.SSHClient()
+#         ssh.load_system_host_keys()
+#         ssh.connect(hostname=youtube_helpers.doorbell_ip,
+#                     port = 22,
+#                     username='pi')
+#         stdin, stdout, stderr = ssh.exec_command('mkdir /home/pi/light-show/effects/rekordbox_effects')
+#         youtube_helpers.scp_to_doorbell(local_filepath, remote_folder)
+
+
+# for filename, filepath in get_all_paths(rekordbox_song_directory, only_files=True, recursive=True):
+#     if filepath.suffix in ['.py', '.exe', '.html']:
+#         continue
+#     if filename.startswith('.'):
+#         continue
+#     generate_rekordbox_effect(filepath)

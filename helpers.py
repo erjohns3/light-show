@@ -131,7 +131,7 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_filepaths=None, quiet=False):
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
@@ -140,12 +140,15 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
         return []
     paths = []
     for filename in os.listdir(directory):
+        # if exclude_prefixes is not None:
+        #     if any([filename.startswith(prefix) for prefix in exclude_prefixes]):
+        #         continue
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
         
         if filepath.is_file() or not only_files:
-            if allowed_filepaths is not None and filepath.suffix not in allowed_filepaths:
+            if allowed_extensions is not None and filepath.suffix not in allowed_extensions:
                 continue
             paths.append((filename, filepath))
         if filepath.is_dir() and recursive:

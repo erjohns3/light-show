@@ -18,7 +18,6 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets
-from tinytag import TinyTag
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
@@ -1456,8 +1455,9 @@ if __name__ == '__main__':
         autogen_song_directory = pathlib.Path(__file__).resolve().parent.joinpath('songs')
         if args.autogen == 'all':
             autogen.generate_all_songs_in_directory(autogen_song_directory)
+            sys.exit()
         else:
-            all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=set(['.ogg', '.mp3']))
+            all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_extensions=set(['.ogg', '.mp3']))
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))

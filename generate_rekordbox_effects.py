@@ -59,9 +59,13 @@ if __name__ == '__main__':
 
     autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
 
-    if is_andrews_main_computer():
-        print_yellow('Skipping SCP to doorbell because on andrews main computer')
+    if is_linux() and not is_andrews_main_computer():
+        print_yellow('Skipping SCP to doorbell because on doorbell')
         exit() 
+
+    # if is_andrews_main_computer():
+    #     print_yellow('Skipping SCP to doorbell because on andrews main computer')
+    #     exit() 
 
     print_cyan('scping all effects to doorbell...')
     for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):

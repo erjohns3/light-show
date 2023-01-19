@@ -140,19 +140,21 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
         return []
     paths = []
     for filename in os.listdir(directory):
-        # if exclude_prefixes is not None:
-        #     if any([filename.startswith(prefix) for prefix in exclude_prefixes]):
-        #         continue
         if exclude_names is not None and filename in exclude_names:
             continue
         filepath = pathlib.Path(directory).joinpath(filename)
         
-        if filepath.is_file() or not only_files:
+        if filepath.is_file():
             if allowed_extensions is not None and filepath.suffix not in allowed_extensions:
                 continue
             paths.append((filename, filepath))
+        # print(f'{filepath=}', filepath.is_dir())
         if filepath.is_dir() and recursive:
-            paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive)
+            # !TODO add this
+            if only_files:
+                pass
+            
+            paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive, allowed_extensions=allowed_extensions, quiet=quiet)
     return paths
 
 def is_linux_root():

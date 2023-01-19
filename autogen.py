@@ -39,9 +39,9 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
     # import concurrent
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, recursive=True, allowed_extensions=set(['.ogg', '.mp3']))
+    all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, recursive=True, allowed_extensions=set(['.ogg', '.mp3', '.wav']))
     all_song_paths = [path for _name, path in all_song_name_and_paths]
-    
+
     if is_macos():
         import multiprocessing
         multiprocessing.set_start_method('fork')
@@ -49,11 +49,25 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
 
     total_duration = 0
     duration_and_song_paths = []
-    for song_path in all_song_paths:
-        _, _, duration = sound_helpers.get_song_metadata_info(song_path)
-        duration_and_song_paths.append((duration, song_path))
-        total_duration += duration
+    print(f'Getting all song metadata info for {len(all_song_paths)} songs...')
+
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(sound_helpers.get_song_metadata_info, song_path) for song_path in all_song_paths]
+        for future in as_completed(futures):
+            if future.exception() is not None:
+                print_red(f'Exception occured in subprocess: {future.exception()}')
+                continue
+            _, _, duration, _samplerate, song_path = future.result()
+            duration_and_song_paths.append((duration, song_path))
+            total_duration += duration
+
+    # for song_path in all_song_paths:
+    #     _, _, duration, _samplerate, _song_path = sound_helpers.get_song_metadata_info(song_path)
+    #     duration_and_song_paths.append((duration, song_path))
+    #     total_duration += duration
+    #     result
     all_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
+    print(f'finished getting all metadata info for {len(all_song_paths)} songs in {time.time() - time_start} seconds')
 
     with tqdm.tqdm(total=len(all_song_paths)) as progress_bar:
         with ProcessPoolExecutor() as executor:

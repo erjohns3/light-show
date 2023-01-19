@@ -5,11 +5,19 @@ import threading
 import random
 from copy import deepcopy
 import argparse
+import signal
+import sys
 
 # !TODO replace with this (https://github.com/aaugustin/websockets)
 import websocket
 
 from helpers import *
+
+
+
+signal.signal(signal.SIGINT, signal.SIG_DFL)
+if signal.signal(signal.SIGINT, signal.SIG_DFL):
+    sys.exit()
 
 
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
@@ -21,15 +29,14 @@ args = parser.parse_args()
 
 valid_test_titles = [
     # 'Porter Robinson Madeon - Shelter (Official Video) (Short Film with A-1 Pictures Crunchyroll)',
-    'Papercut',
+    '0:Papercut',
 ]
 
+
+light_show_server = '192.168.86.55' # doorbell
 if is_andrews_main_computer():
     args.send_fake_data = True
-
-
-light_show_server = 'localhost'
-# light_show_server = '192.168.86.55' # doorbell
+    light_show_server = 'localhost'
 
 
 track_data_ready_to_send = None
@@ -79,7 +86,7 @@ def parse_string_from_rekordbox_server(string_recieved):
 
         if len(data['title']) > 3:
             # !TODO oh no look at this if buggy
-            # data['title'] = data['title'][2:].strip()
+            data['title'] = data['title'][2:]
             # data['title'] = data['title'].replace('.', '_')
 
             with lock_track_copy:

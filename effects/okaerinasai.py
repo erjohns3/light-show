@@ -16,6 +16,7 @@ effects = {
             [265, "Ghosts UV", 128],
             [394, "Blue top", 64],
         ],
+        "not_done": True,
         "delay_lights": .65,
         "skip_song": 0,
         "bpm": 176,

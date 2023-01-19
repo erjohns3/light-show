@@ -12,7 +12,7 @@ effects = {
     "dayglow slow laser": {
         "length": 1,
         "beats": [
-            b(1, name='laser motor', length=1, intensity=.2),
+            b(1, name='laser motor', length=1, intensity=.5),
             b(1, name='green laser', length=1),
         ],
     },
@@ -73,9 +73,9 @@ effects = {
     "dayglow laser breakdown": {
         "length": 32,
         "beats": [
-            b(1, name='laser motor', length=16, intensity=(.2, .4)),
+            b(1, name='laser motor', length=16, intensity=(.5, .6)),
             b(1, name='dayglow disco swap and laser sidechain', length=32),
-            b(17, name='laser motor', length=16, intensity=(.4, 1)),
+            b(17, name='laser motor', length=16, intensity=(.6, 1)),
         ],
     },
 

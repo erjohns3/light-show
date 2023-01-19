@@ -1064,7 +1064,10 @@ def load_effects_config_from_disk():
         effects_config.update(globals()[module_name].effects)
         total_time += time.time() - t1
 
-    for _effect_name, effect in effects_config.items():
+    for effect_name, effect in list(effects_config.items()):
+        if effect.get('not_done'):
+            del effects_config[effect_name]
+            continue
         if 'song_path' in effect:
             effect['song_path'] = effect['song_path'].replace('\\', '/')
 
@@ -1083,8 +1086,8 @@ def load_effects_config_from_disk():
                 song_name_to_show_names[song_name].append(effect_name)
                 # print(effect_name, song_name_to_show_names[song_name])
             elif effect.get('song_not_avaliable', True):
+                print_yellow(f'song not avaliable, effect_name: "{effect_name}", song_path "{effect["song_path"]}"')
                 if args.show:
-                    print('song not avaliable', effect_name, effect['song_path'])
                     effect['song_not_avaliable'] = True
                 else:
                     del effect['song_path']

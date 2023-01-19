@@ -13,6 +13,7 @@ effects = {
             [1, "rainbow good slow top", 32],
             [33, "love kicks", 128],
         ],
+        "not_done": True,
         "delay_lights": .08,
         "skip_song": 0,
         "bpm": 138,

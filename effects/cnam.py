@@ -38,6 +38,7 @@ effects = {
             [193, "cnam drop", 96],
         ],
         "delay_lights": .22,
+        "not_done": True,
         "skip_song": 0,
         "bpm": 120,
         "song_path": "songs/Porter Robinson x Illenium x Said the Sky Mix by C-Nam.ogg",

@@ -5,6 +5,7 @@ effects = {
         "beats": [
             b(1, name='RBBB 1 bar', length=256),
         ],
+        "not_done": True,
         "delay_lights": .285,
         "skip_song": 0,
         "bpm": 180,

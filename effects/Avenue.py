@@ -27,6 +27,7 @@ effects = {
         "song_path": "songs/Avenue.ogg",
         "delay_lights": 0.09605,
         "skip_song": 0.0,
+        "not_done": True,
         "beats": [
             [1, "avenue pulse colors", 50],
         ]

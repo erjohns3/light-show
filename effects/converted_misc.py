@@ -181,5 +181,6 @@ effects = {
         "bpm": 80,
         "song_path": "songs/神はサイコロを振らない × アユニ・D(BiSH⧸PEDRO) × n-buna from ヨルシカ「初恋」Studio Session Movie(Full Ver.).ogg",
         "profiles": ["Shows"],
+        "not_done": True,
     },
 }

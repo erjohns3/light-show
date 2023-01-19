@@ -24,16 +24,16 @@ from helpers import *
 
 
 
-def gen_show_worker(song_path, output_directory):
+def gen_show_worker(song_path, output_directory, include_song_path):
     try:
         src_bpm_offset_cache = get_src_bpm_offset(song_path, use_boundaries=True)
-        generate_show(song_path, overwrite=True, mode=None, output_directory=output_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
-        generate_show(song_path, overwrite=True, mode='lasers', output_directory=output_directory, src_bpm_offset_cache=src_bpm_offset_cache)
+        generate_show(song_path, include_song_path=include_song_path, overwrite=True, mode=None, output_directory=output_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
+        generate_show(song_path, include_song_path=include_song_path, overwrite=True, mode='lasers', output_directory=output_directory, src_bpm_offset_cache=src_bpm_offset_cache)
     except Exception as e:
         print_red(f'{traceback.format_exc()}')
         raise e
 
-def generate_all_songs_in_directory(autogen_song_directory, output_directory=None):
+def generate_all_songs_in_directory(autogen_song_directory, output_directory=None, include_song_path=True):
     time_start = time.time()
     import tqdm
     # import concurrent
@@ -55,10 +55,9 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
         total_duration += duration
     all_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
 
-    # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
     with tqdm.tqdm(total=len(all_song_paths)) as progress_bar:
         with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(gen_show_worker, song_path, output_directory) for song_path in all_song_paths]
+            futures = [executor.submit(gen_show_worker, song_path, output_directory, include_song_path) for song_path in all_song_paths]
             for future in as_completed(futures):
                 if future.exception() is not None:
                     print_red(f'Exception occured in subprocess: {future.exception()}')

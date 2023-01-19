@@ -7,11 +7,12 @@ import youtube_helpers
 import autogen
 
 
+# !TODO replace this with just the youtube_helpers
 def ssh_to_doorbell(local_effect_path):
     import paramiko
     
-    print_blue(f'scping from "{local_effect_path}" to folder "{remote_folder}"')
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
+    # print_blue(f'scping from "{local_effect_path}" to folder "{remote_folder}"')
 
     try:
         youtube_helpers.scp_to_doorbell(local_effect_path, remote_folder)
@@ -55,14 +56,14 @@ if __name__ == '__main__':
         rekordbox_song_directory = get_ray_directory().joinpath('music_creation', 'downloaded_songs')
 
     rekordbox_shows_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
-    autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory)
+    autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
 
     if is_andrews_main_computer():
         print_yellow('Skipping SCP to doorbell because on andrews main computer')
         exit() 
 
     print_cyan('scping all effects to doorbell...')
-    for effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
+    for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
         ssh_to_doorbell(effect_path)
 
 

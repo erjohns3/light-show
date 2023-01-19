@@ -20,7 +20,8 @@ parser.add_argument('--test', dest='send_fake_data', default=False, action='stor
 args = parser.parse_args()
 
 valid_test_titles = [
-    'Porter Robinson Madeon - Shelter (Official Video) (Short Film with A-1 Pictures Crunchyroll)',
+    # 'Porter Robinson Madeon - Shelter (Official Video) (Short Film with A-1 Pictures Crunchyroll)',
+    'Papercut',
 ]
 
 if is_andrews_main_computer():
@@ -63,7 +64,7 @@ def parse_string_from_rekordbox_server(string_recieved):
             print_red(f'the above data shouldnt have less than 5 elements after quytdhsdg')
             continue
         data = {
-            'title': title,
+            'title': title.strip(),
             'key': stuff[0],
             'master_time': float(stuff[1]) / 1000,
             'master_bpm': float(stuff[2]),
@@ -99,24 +100,28 @@ def rekord_box_server():
     if args.send_fake_data:
         first_message = '%title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%, %bpm%'
         parse_string_from_rekordbox_server(string_recieved=first_message)
+        never_sent = True
         while True:
             # %title% ,,, %key% ,,, %rt_master_time% ,,, %rt_master_bpm% ,,, %rt_master_total_time%  ,,, %rt_deck1_bpm% ,,, %rt_deck2_bpm%
             # ['1: ', '  ', ' 80301 ', ' 93.50 ', ' 210793  ', ' 0 ', ' 93.50']
 
-            if random.randint(1, 10) == 2:
+            if never_sent or random.randint(1, 10000) == 2:
                 print_blue('sending title switch')
                 maybe_title = random.choice(valid_test_titles)
+                never_sent = False
+                title_switch_start_time = time.time()
             else:
                 maybe_title = ''
             
             # random.randint(40, 160)
-            rt_master_time = 80301
+            rt_master_time = (time.time() - title_switch_start_time) * 1000
             rt_master_bpm = 100
             rt_master_total_time = 210793
             bpm = 100
             random_message = f'{maybe_title} quytdhsdg random_key, {rt_master_time}, {rt_master_bpm}, {rt_master_total_time}, {bpm}'
+            print(f'sending fake data: {random_message}')
             parse_string_from_rekordbox_server(string_recieved=random_message)
-            time.sleep(.5)
+            time.sleep(.01)
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("127.0.0.1", 22345))

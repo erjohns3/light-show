@@ -1,10 +1,12 @@
 import socket
-import asyncio
 import json
 import time
 import threading
 import random
+from copy import deepcopy
+import argparse
 
+# !TODO replace with this (https://github.com/aaugustin/websockets)
 import websocket
 
 from helpers import *
@@ -13,20 +15,108 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
+
+parser = argparse.ArgumentParser(description = '')
+parser.add_argument('--test', dest='send_fake_data', default=False, action='store_true')
+args = parser.parse_args()
+
+if is_andrews_main_computer():
+    args.send_fake_data = True
+
+
 light_show_server = 'localhost'
-# light_show_server = '192.168.86.55'
+# light_show_server = '192.168.86.55' # doorbell
 
 
-rt_data_ready_to_send = None
 track_data_ready_to_send = None
-def rekord_box_server():
+rt_data_ready_to_send = None
+def parse_string_from_rekordbox_server(string_recieved):
     global rt_data_ready_to_send, track_data_ready_to_send
-    REKORDBOX_HOST = "127.0.0.1"
-    REKORDBOX_PORT = 22345
 
-    current_title = ''
+    # !TODO Maybe can delete
+    if 'rt_master_time' in string_recieved:
+        print_green(f'==== INIT CONFIG ====: "{string_recieved}"')                
+        return
+
+    if random.randint(1, 500) == 500:
+        print_green(f'RANDOM SAMPLED RAW DATA: {string_recieved}')
+
+    for index, line in enumerate(string_recieved.split('\n')):
+        line = line.strip()
+        if not line:
+            continue
+        if index > 0:
+            if random.randint(1, 101) == 100:
+                print_red(f'RAW DATA HAS MULTIPLE LINES, HAVING TROUBLE KEEPING UP SKIPPING ALL BUT FIRST... raw string: {string_recieved}')
+            break
+        if 'quytdhsdg' not in line:
+            print_yellow(f'In this raw data there wasnt splitting stirng "quytdhsdg"... raw string: {string_recieved}')
+            continue
+
+        # format coming in: %title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%, %bpm% 
+        title, rest = line.split('quytdhsdg')
+        stuff = list(map(lambda x: x.strip(), rest.split(',')))
+        if len(stuff) < 5:
+            print_red(f'the above data shouldnt have less than 5 elements after quytdhsdg')
+            continue
+        data = {
+            'title': title,
+            'key': stuff[0],
+            'master_time': float(stuff[1]) / 1000,
+            'master_bpm': float(stuff[2]),
+            'master_total_time': float(stuff[3]),
+            'original_bpm': stuff[4],
+            'timestamp_at_socket': time.time(),
+            # 'deck_1_bpm': stuff[5],
+            # 'deck_2_bpm': stuff[6],
+        }
+        if data['original_bpm']:
+            data['original_bpm'] = float(data['original_bpm'])
+
+        if len(data['title']) > 3:
+            # !TODO oh no look at this if buggy
+            data['title'] = data['title'][2:].strip()
+            # data['title'] = data['title'].replace('.', '_')
+
+            with lock_track_copy:
+                track_data_ready_to_send = data
+        else:
+            with lock_rt_copy:
+                rt_data_ready_to_send = {
+                    'master_time': data['master_time'],
+                    'master_bpm': data['master_bpm'],
+                    'timestamp_at_socket': data['timestamp_at_socket'],
+                }
+        if not data:
+            print_red('DATA FROM REKORDBOX WAS EMPTY, EXITING')
+            return
+
+
+def rekord_box_server():
+    if args.send_fake_data:
+        first_message = '%title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%, %bpm%'
+        parse_string_from_rekordbox_server(string_recieved=first_message)
+        while True:
+            # %title% ,,, %key% ,,, %rt_master_time% ,,, %rt_master_bpm% ,,, %rt_master_total_time%  ,,, %rt_deck1_bpm% ,,, %rt_deck2_bpm%
+            # ['1: ', '  ', ' 80301 ', ' 93.50 ', ' 210793  ', ' 0 ', ' 93.50']
+
+            if random.randint(1, 10) == 2:
+                print_blue('sending title switch')
+                maybe_title = 'shelter'
+            else:
+                maybe_title = ''
+            
+            # random.randint(40, 160)
+            rt_master_time = 80301
+            rt_master_bpm = 100
+            rt_master_total_time = 210793
+            bpm = 100
+            random_message = f'{maybe_title} quytdhsdg random_key, {rt_master_time}, {rt_master_bpm}, {rt_master_total_time}, {bpm}'
+            parse_string_from_rekordbox_server(string_recieved=random_message)
+            time.sleep(.5)
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((REKORDBOX_HOST, REKORDBOX_PORT))
+        s.bind(("127.0.0.1", 22345))
         s.listen()
         print_green('Waiting for connection from rekordbox reading client')
         conn, addr = s.accept()    
@@ -34,62 +124,7 @@ def rekord_box_server():
             print_green(f'Connected to rekordbox reading client: {addr}')
             while True:
                 data_recieved = conn.recv(1024)
-                string_recieved = data_recieved.decode()
-                if 'rt_master_time' in string_recieved:
-                    print_green(f'==== INIT CONFIG ====: "{string_recieved}"')                
-                    continue
-
-                if random.randint(1, 500) == 500:
-                    print_green(f'RANDOM SAMPLED RAW DATA: {string_recieved}')
-
-                for index, line in enumerate(string_recieved.split('\n')):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    if index > 0:
-                        if random.randint(1, 101) == 100:
-                            print_red(f'RAW DATA HAS MULTIPLE LINES, HAVING TROUBLE KEEPING UP SKIPPING ALL BUT FIRST... raw string: {string_recieved}')
-                        break
-                    if 'quytdhsdg' not in line:
-                        print_green(f'In this raw data there wasnt quytdhsdg... raw string: {string_recieved}')
-                        continue
-
-                    # format coming in: %title% quytdhsdg %key%, %rt_master_time%, %rt_master_bpm%, %rt_master_total_time%, %bpm%             
-                    title, rest = line.split('quytdhsdg')
-                    stuff = list(map(lambda x: x.strip(), rest.split(',')))
-                    if len(stuff) < 5:
-                        print_red(f'the above data shouldnt have less than 5 elements after quytdhsdg')
-                        continue
-                    data = {
-                        'title': title,
-                        'key': stuff[0],
-                        'master_time': float(stuff[1]) / 1000,
-                        'master_bpm': float(stuff[2]),
-                        'master_total_time': float(stuff[3]),
-                        'original_bpm': stuff[4],
-                        'timestamp_at_socket': time.time(),
-                        # 'deck_1_bpm': stuff[5],
-                        # 'deck_2_bpm': stuff[6],
-                    }
-                    if data['original_bpm']:
-                        data['original_bpm'] = float(data['original_bpm'])
-
-                    if len(data['title']) > 3:
-                        data['title'] = data['title'][2:].strip()
-                        data['title'] = data['title'].replace('.', '_')
-
-                        with lock_track_copy:
-                            track_data_ready_to_send = data
-                    else:
-                        with lock_rt_copy:
-                            rt_data_ready_to_send = {
-                                'master_time': data['master_time'],
-                                'master_bpm': data['master_bpm'],
-                                'timestamp_at_socket': data['timestamp_at_socket'],
-                            }
-                    if not data:
-                        print_red('DATA FROM REKORDBOX WAS EMPTY, EXITING')
-                        break
+                parse_string_from_rekordbox_server(string_recieved=data_recieved.decode())
 threading.Thread(target=rekord_box_server).start()
 
 
@@ -120,7 +155,7 @@ def send_time_and_bpm(dict_to_send):
     send_to_light_show_server(dict_to_send)
 
 
-from copy import deepcopy
+
 lock_track_copy, lock_rt_copy = threading.Lock(), threading.Lock()
 def light_show_client_sender():
     global last_sent, rt_data_ready_to_send, track_data_ready_to_send
@@ -133,7 +168,7 @@ def light_show_client_sender():
             with lock_track_copy:
                 track_original_bpm = track_data_ready_to_send['original_bpm']
                 track_data_ready_to_send_copied = deepcopy(track_data_ready_to_send)
-                track_data_ready_to_send =  None
+                track_data_ready_to_send = None
             send_to_light_show_server(track_data_ready_to_send_copied)
         elif rt_data_ready_to_send and time.time() > (last_sent + .01):
             with lock_rt_copy:
@@ -157,13 +192,6 @@ def light_show_client_sender():
             last_sent = time.time()
         time.sleep(.08)
 threading.Thread(target=light_show_client_sender).start()
-
-
-# def send_pause_if_no_update():
-#     global last_sent
-#     if global last
-
-# threading.Thread(target=send_pause_if_no_update).start()
 
 
 
@@ -202,6 +230,39 @@ def try_make_light_show_connection():
         exit()
 
 try_make_light_show_connection()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# def send_pause_if_no_update():
+#     global last_sent
+#     if global last
+
+# threading.Thread(target=send_pause_if_no_update).start()
+
+
 
 
 

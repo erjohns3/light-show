@@ -344,13 +344,10 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         output_directory = pathlib.Path(__file__).parent.joinpath('effects', 'autogen_shows')
     make_if_not_exist(output_directory)
 
-    show_name = ''.join([x if x.isalpha() else '_' for x in show_name])
-    output_filepath = output_directory.joinpath(show_name + '.py')
+    safe_python_filepath_name = ''.join([x if x.isalpha() else '_' for x in show_name])
+    output_filepath = output_directory.joinpath(safe_python_filepath_name + '.py')
     if output_filepath.exists():
-        if overwrite:
-            pass
-            # print_yellow(f'overwrite is set to True, and {output_filepath} exists, generating and overwriting')
-        else:
+        if not overwrite:
             print_yellow(f'autogen: overwrite is set to False, and {output_filepath} exists, so returning without generating show')
             return None
     

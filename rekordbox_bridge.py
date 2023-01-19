@@ -225,6 +225,7 @@ def light_show_on_error(wsapp, error):
     connected_to_light_show_server = False
     print_red('light_show_on_error, retrying in 1 second...')
     time.sleep(1)
+    # !TODO fix the error: "dj_client.run_forever EXCEPTION: maximum recursion depth exceeded while calling a Python object", make non_recursive
     try_make_light_show_connection()
 
 

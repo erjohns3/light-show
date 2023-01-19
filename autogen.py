@@ -9,6 +9,7 @@ import multiprocessing
 from copy import deepcopy
 import random
 import traceback
+import sys
 
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
@@ -19,6 +20,53 @@ import numpy as np
 from effects.compiler import b
 import sound_helpers
 from helpers import *
+
+
+
+
+def gen_show_worker(song_path, output_directory):
+    try:
+        src_bpm_offset_cache = get_src_bpm_offset(song_path, use_boundaries=True)
+        generate_show(song_path, overwrite=True, mode=None, output_directory=output_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
+        generate_show(song_path, overwrite=True, mode='lasers', output_directory=output_directory, src_bpm_offset_cache=src_bpm_offset_cache)
+    except Exception as e:
+        print_red(f'{traceback.format_exc()}')
+        raise e
+
+def generate_all_songs_in_directory(autogen_song_directory, output_directory=None):
+    time_start = time.time()
+    import tqdm
+    import concurrent
+
+    all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_filepaths=set(['.ogg', '.mp3']))
+    all_song_paths = [path for _name, path in all_song_name_and_paths]
+    
+    if is_macos():
+        import multiprocessing
+        multiprocessing.set_start_method('fork')
+    print_yellow(f'AUTOGENERATING ALL SHOWS IN DIRECTORY {autogen_song_directory}')
+
+    total_duration = 0
+    duration_and_song_paths = []
+    for song_path in all_song_paths:
+        _, _, duration = sound_helpers.get_song_metadata_info(song_path)
+        duration_and_song_paths.append((duration, song_path))
+        total_duration += duration
+    all_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
+
+    # all_song_paths = list(map(lambda x: x[1], get_all_paths(autogen_song_directory, only_files=True)))
+    with tqdm.tqdm(total=len(all_song_paths)) as progress_bar:
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = [executor.submit(gen_show_worker, song_path, output_directory) for song_path in all_song_paths]
+            for future in concurrent.futures.as_completed(futures):
+                if future.exception() is not None:
+                    print_red(f'Exception occured in subprocess: {future.exception()}')
+                progress_bar.update(1)
+    time_diff = time.time() - time_start
+    print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
+    sys.exit()
+
+
 
 
 

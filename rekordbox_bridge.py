@@ -15,10 +15,13 @@ from helpers import *
 # docs: https://github.com/Unreal-Dan/RekordBoxSongExporter
 
 
-
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--test', dest='send_fake_data', default=False, action='store_true')
 args = parser.parse_args()
+
+valid_test_titles = [
+    'Porter Robinson Madeon - Shelter (Official Video) (Short Film with A-1 Pictures Crunchyroll)',
+]
 
 if is_andrews_main_computer():
     args.send_fake_data = True
@@ -75,7 +78,7 @@ def parse_string_from_rekordbox_server(string_recieved):
 
         if len(data['title']) > 3:
             # !TODO oh no look at this if buggy
-            data['title'] = data['title'][2:].strip()
+            # data['title'] = data['title'][2:].strip()
             # data['title'] = data['title'].replace('.', '_')
 
             with lock_track_copy:
@@ -102,7 +105,7 @@ def rekord_box_server():
 
             if random.randint(1, 10) == 2:
                 print_blue('sending title switch')
-                maybe_title = 'shelter'
+                maybe_title = random.choice(valid_test_titles)
             else:
                 maybe_title = ''
             

@@ -258,12 +258,12 @@ if __name__ == '__main__':
         exit()
 
     if args.gen_show:
-        import generate_show
+        import autogen
         print_blue('Generating show file for the downloaded file')
         relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
         output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
-        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = generate_show.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
-        generate_show.write_effect_to_file_pretty(
+        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = autogen.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
+        autogen.write_effect_to_file_pretty(
             output_filepath, 
             {
                 downloaded_filepath.stem: {

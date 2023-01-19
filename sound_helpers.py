@@ -141,3 +141,25 @@ def get_audio_clip_length(filepath):
         str(filepath)
     ])
     return float(stdout)
+
+
+allowed_song_extensions = set(['.mp3', '.ogg', '.wav'])
+def get_song_metadata_info(song_path):
+    from tinytag import TinyTag
+    if song_path.suffix in allowed_song_extensions:
+        tags = TinyTag.get(song_path)
+        name, duration = tags.title, tags.duration
+
+        if tags.samplerate != 48000:
+            print_red(f'THe song file is not 48000hz sample rate, {song_path}. This introduces weird bugs, delete the file.')
+            return False
+
+        if name == None:
+            name = song_path.stem
+
+        if not duration:
+            print_yellow(f'No tag found for file: "{song_path}", ffprobing, but this is slow.')
+            duration = get_audio_clip_length(song_path)
+        return name, tags.artist, duration
+    else:
+        print_red(f'File type not in: {allowed_song_extensions}, {song_path}')

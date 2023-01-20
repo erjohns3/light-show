@@ -216,6 +216,7 @@
             }else{
                 addEffect(this.effect);
             }
+            this.classList.add('button-item-pressed');
         }
 
         release(event){
@@ -223,6 +224,7 @@
             if(this.hold){
                 removeEffect(this.effect);
             }
+            this.classList.remove('button-item-pressed');
         }
 
         activate(){
@@ -492,8 +494,6 @@
         sendDevMode();
     }
 
-    socketInit();
-
     // window.oncontextmenu = function(event) {
     //     event.preventDefault();
     //     event.stopPropagation();
@@ -508,17 +508,23 @@
     ];
 
     var background = document.getElementById("background");
-    var flareSize = window.innerWidth * 0.6;
-    for(let i=0; i<16; i++){
-        let flare = document.createElement("div");
-        flare.classList.add('flare');
-        flare.style.width = flareSize+"px";
-        flare.style.height = flareSize+"px";
-        flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+"px";
-        flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+"px";
-        flare.style.setProperty("box-shadow", "0 "+flareSize*2+"px "+flareSize*0.5+"px " + flareColors[Math.floor(Math.random()*flareColors.length)]);
-        background.appendChild(flare);
-    }
+    var flareSize = 0;
+
+    window.onload = (event) => {
+        flareSize = window.innerWidth * 0.6;
+        for(let i=0; i<16; i++){
+            let flare = document.createElement("div");
+            flare.classList.add('flare');
+            flare.style.width = flareSize+"px";
+            flare.style.height = flareSize+"px";
+            flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+"px";
+            flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+"px";
+            flare.style.setProperty("box-shadow", "0 "+flareSize*2+"px "+flareSize*0.5+"px " + flareColors[Math.floor(Math.random()*flareColors.length)]);
+            background.appendChild(flare);
+        }
+
+        socketInit();
+    };
 
 </script>
 
@@ -687,13 +693,13 @@
         will-change: transform;
     }
 
-    button-item:active{
-        background-color: hsla(220, 100%, 50%, 0.5);
-        transform: scale(0.97);
-    }
-
     .button-item-active{
         background-color: hsla(0, 0%, 50%, 0.5);
+    }
+
+    .button-item-pressed{
+        background-color: hsla(220, 100%, 50%, 0.5);
+        transform: scale(0.97);
     }
 
     .button-symbol{

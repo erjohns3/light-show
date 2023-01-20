@@ -84,9 +84,9 @@
         }
 
         socket.onmessage = function (event) {
-            console.log("socket message");
+            // console.log("socket message");
             let msg = JSON.parse(event.data);
-            console.log('Receiving:', msg);
+            // console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -372,7 +372,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     function removeEffect(effect){
@@ -381,7 +381,7 @@
             effect: effect
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     function sendToggleLaserMode(){
@@ -389,7 +389,7 @@
             type: "toggle_laser_mode",
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     function sendUpdate(){
@@ -397,7 +397,7 @@
             type: "update_config"
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     function sendClear(){
@@ -405,7 +405,7 @@
             type: "clear_effects"
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     function sendDevMode(){
@@ -413,7 +413,7 @@
             type: "toggle_dev_mode",
         };
         socket.send(JSON.stringify(msg));
-        console.log('Sending:', msg);
+        // console.log('Sending:', msg);
     }
 
     var socket = null;
@@ -537,8 +537,6 @@
         font-family: sans-serif;
         font-size: 0;
         color: hsl(0, 0%, 80%);
-        -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
-        -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
         -webkit-user-select: none;
     }
 

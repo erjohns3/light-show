@@ -4,6 +4,9 @@
 * Install ffmpeg, and have avaliable on your path
 * `pip install -r requirements.txt`
 
+#### warning
+on linux you need to "pip install aubio", on everything else, just "pip install -r requirements.txt"
+
 ### Running locally (not on the doorbell, just on your computer)
 * example 1, start the light show "shelter" locally (terminal UI), and with arrow key support. 
     * `python light_server.py --local --keyboard --show shelter`

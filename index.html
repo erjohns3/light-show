@@ -611,20 +611,23 @@
 
 
     if (navigator.userAgent.includes('Mobi')) {
-        // seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
-
-        // Next, create a new Hammer instance for the element
         var seekInputElem = document.querySelector('.seek-input');
         var hammer = new Hammer(seekInputElem);
 
-        // Now you can add a 'pan' event listener to the hammer instance
         hammer.on('pan', function(event) {
             // this will fire when the user moves their finger on the element
             // you can use event.deltaX and event.deltaY to get the distance moved
             sliderStart(event);
         });
 
-        seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
+        hammer.on('panend', function(event) {
+            // this will fire when the user moves their finger on the element
+            // you can use event.deltaX and event.deltaY to get the distance moved
+            sliderStop(event);
+        });
+
+        // seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
+        // seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
     }
     else {
         seekInputElem.addEventListener('mousedown', sliderStart, { passive: true });

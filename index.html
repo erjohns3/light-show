@@ -71,7 +71,7 @@
 
 </body>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js">
+<script>
 
     // https://stackoverflow.com/questions/32963400/android-keyboard-shrinking-the-viewport-and-elements-using-unit-vh-in-css
     // var viewport = document.querySelector("meta[name=viewport]");
@@ -611,21 +611,6 @@
 
 
     if (navigator.userAgent.includes('Mobi')) {
-        var seekInputElem = document.querySelector('.seek-input');
-        var hammer = new Hammer(seekInputElem);
-
-        // hammer.on('pan', function(event) {
-        //     // this will fire when the user moves their finger on the element
-        //     // you can use event.deltaX and event.deltaY to get the distance moved
-        //     sliderStart(event);
-        // });
-
-        // hammer.on('panend', function(event) {
-        //     // this will fire when the user moves their finger on the element
-        //     // you can use event.deltaX and event.deltaY to get the distance moved
-        //     sliderStop(event);
-        // });
-
         seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
         seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
     }

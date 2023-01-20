@@ -262,6 +262,7 @@ effects = {
             [1, "Sidechain top g", .5, 1, 1],
             [1, "Sidechain bottom r", .5, 1, 1],
             [1, "Sidechain bottom g", .5, 1, 1],
+            b(1, name='Blue disco', length=.5),
         ],
     },
 
@@ -526,6 +527,7 @@ effects = {
         "beats": [
             # blue tinkling
             #[1, "im blue smooth top", 31],
+            b(1, name='Blue disco', length=31),
             [1, "im blue smooth fast front", 31, .2],
             [1, "im blue smooth fast back", 31, .2],
             [29, "im blue white accel bottom", 4],

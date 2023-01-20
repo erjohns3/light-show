@@ -271,6 +271,8 @@ async def init_dj_client(websocket, path):
 
 
 def download_song(url, uuid):
+    from copy import deepcopy
+
     download_start_time = time.time()
     import autogen
 
@@ -292,8 +294,13 @@ def download_song(url, uuid):
     add_song_to_config(filepath)
 
     added = False
+
+    autogen.get_src_bpm()
+ 
+ 
+    src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
-        show_name, show, _ = autogen.generate_show(filepath, mode=mode, overwrite=True)
+        show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
         if show is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return

@@ -12,7 +12,7 @@ effects = {
     "dayglow slow laser": {
         "length": 1,
         "beats": [
-            b(1, name='laser motor', length=1, intensity=.5),
+            b(1, name='laser motor', length=1, intensity=.4),
             b(1, name='green laser', length=1),
         ],
     },
@@ -21,15 +21,15 @@ effects = {
         "length": 8,
         "beats": [
             # b(1, name='Red top', length=.3, intensity=(1, .6)),
-            b(1.5, name='Red top', length=.3, intensity=(1, .6)),
-            b(2, name='Red top', length=.3, intensity=(1, .6)),
-            b(3, name='Red top', length=.3, intensity=(1, .6)),
-            b(4, name='Red top', length=.3, intensity=(1, .6)),
-            b(5, name='Green top', length=.3, intensity=(1, .6)),
-            b(6, name='Green top', length=.3, intensity=(1, .6)),
-            b(7, name='Green top', length=.3, intensity=(1, .6)),
-            b(7.5, name='Green top', length=.3, intensity=(1, .6)),
-            b(8.5, name='Blue top', length=.3, intensity=(1, .6)),
+            b(1.5, name='Red top', length=.4, intensity=(1, .25)),
+            b(2, name='Red top', length=.4, intensity=(1, .25)),
+            b(3, name='Red top', length=.4, intensity=(1, .25)),
+            b(4, name='Red top', length=.4, intensity=(1, .25)),
+            b(5, name='Green top', length=.4, intensity=(1, .25)),
+            b(6, name='Green top', length=.4, intensity=(1, .25)),
+            b(7, name='Green top', length=.4, intensity=(1, .25)),
+            b(7.5, name='Green top', length=.4, intensity=(1, .25)),
+            b(8.5, name='Blue top', length=.4, intensity=(1, .25)),
         ],
     },
 
@@ -73,9 +73,9 @@ effects = {
     "dayglow laser breakdown": {
         "length": 32,
         "beats": [
-            b(1, name='laser motor', length=16, intensity=(.5, .6)),
+            b(1, name='laser motor', length=16, intensity=(.4, .5)),
             b(1, name='dayglow disco swap and laser sidechain', length=32),
-            b(17, name='laser motor', length=16, intensity=(.6, 1)),
+            b(17, name='laser motor', length=16, intensity=(.5, 1)),
         ],
     },
 

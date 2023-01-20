@@ -166,7 +166,8 @@ effects = {
             b(1, name='v wrist top', length=12, intensity=.5),   
             b(1, name='v bottom slow pulse', length=12),
             b(13, name='v tongue thing', length=4),  
-        ]
+        ],
+        "autogen": "downbeat mixed",
     },
 
     "v ahs 2": {

@@ -9,6 +9,7 @@ effects = {
     },
     "dom chorus laser": {
         'length': 16,
+        'autogen': 'laser long',
         "beats": [
             b(1, name='laser motor', length=16),
             b(1, name='dom sidechain motor halfs', length=16),

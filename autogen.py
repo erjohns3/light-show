@@ -385,10 +385,9 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     scenes = [
         [8, ['downbeat top', 'downbeat bottom']],
         [8, ['downbeat top', 'downbeat bottom', 'disco']],
-        [8, ['downbeat top', 'downbeat bottom', 'disco strobe']],
         [8, ['downbeat top']],
         [8, ['downbeat top']],
-        [8, ['downbeat top', 'disco']],
+        [8, ['downbeat top', 'disco strobe']],
         [8, ['downbeat bottom']],
         [8, ['downbeat mixed']],
         [8, ['downbeat mixed']],
@@ -401,29 +400,34 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         [8, ['downbeat bottom', 'UV']],
         [8, ['rainbow top', 'downbeat bottom']],
         [8, ['rainbow top', 'disco strobe']],
-        [8, ['disco']],
         [8, ['disco strobe']],
         [2, ['filler']],
         [2, ['UV pulse']],
+        [2, ['disco']],
         [1, ['filler']],
         [1, ['filler', 'disco strobe']],
         [1, ['UV pulse single']],
     ]
 
     if mode == 'lasers':
-        for _ in range(5):
+        for scene in scenes:
+            if scene[0] == 8 and random(0, 1) < .2:
+                scene[1].append('laser long')
+
+        for _ in range(2):
             scenes += [
-                [8, ['laser long', 'disco strobe']],
+                [5, ['laser long', 'disco strobe']],
             ]
-        for _ in range(5):
+        for _ in range(2):
             scenes += [
-                [8, ['laser long']],
+                [5, ['laser long']],
             ]
 
         scenes += [
             [2, ['filler laser']],
             [1, ['filler laser']],
         ]
+                
 
 
     # if chunk is high intensity: at least one effect must be mid or high
@@ -444,7 +448,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         prev_scene = None
         prev_effects = []
         for iter, bound in enumerate(boundary_beats):
-            chunk_level = chunk_levels[iter] #TODO use this for filtering
+            chunk_level = chunk_levels[iter]
             length_left = bound-prev_bound
             while length_left>0:
                 new_prev_effects = []
@@ -474,8 +478,8 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                                 "intensity" in effects_config_filtered[x] and effects_config_filtered[x]["intensity"] == "high"
                                 )]
                             # effect_candidates = effect_types_to_name['UV pulse'] # DEBUG
-                        if not effect_candidates: # it's low intensity but all candidates are high
-                            effect_candidates = ['UV pulse']
+                        if not effect_candidates: # it's low intensity but all candidates are high TODO
+                            effect_candidates = ['UV pulse slow']
                         effect_name = random.choice(effect_candidates)
 
                         # shift by a random color

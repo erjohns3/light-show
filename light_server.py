@@ -377,7 +377,9 @@ async def init_queue_client(websocket, path):
                         song_queue.pop(i)
                         if i == 0:
                             # andrew: oops, this is ew
+                            song_was_playing = song_playing
                             stop_song()
+                            song_playing = song_was_playing
                             song_time = 0
                             remove_effect_name(effect_name)
                             if song_playing and len(song_queue) > 0:

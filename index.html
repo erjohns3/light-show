@@ -614,20 +614,20 @@
         var seekInputElem = document.querySelector('.seek-input');
         var hammer = new Hammer(seekInputElem);
 
-        hammer.on('pan', function(event) {
-            // this will fire when the user moves their finger on the element
-            // you can use event.deltaX and event.deltaY to get the distance moved
-            sliderStart(event);
-        });
+        // hammer.on('pan', function(event) {
+        //     // this will fire when the user moves their finger on the element
+        //     // you can use event.deltaX and event.deltaY to get the distance moved
+        //     sliderStart(event);
+        // });
 
-        hammer.on('panend', function(event) {
-            // this will fire when the user moves their finger on the element
-            // you can use event.deltaX and event.deltaY to get the distance moved
-            sliderStop(event);
-        });
+        // hammer.on('panend', function(event) {
+        //     // this will fire when the user moves their finger on the element
+        //     // you can use event.deltaX and event.deltaY to get the distance moved
+        //     sliderStop(event);
+        // });
 
-        // seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
-        // seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
+        seekInputElem.addEventListener('touchstart', sliderStart, { passive: true });
+        seekInputElem.addEventListener('touchend', sliderStop, { passive: true });
     }
     else {
         seekInputElem.addEventListener('mousedown', sliderStart, { passive: true });

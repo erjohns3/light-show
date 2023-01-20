@@ -299,9 +299,6 @@ def download_song(url, uuid):
     add_song_to_config(filepath)
 
     added = False
-
-    autogen.get_src_bpm()
- 
  
     src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:

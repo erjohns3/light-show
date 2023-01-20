@@ -199,8 +199,7 @@
             if (navigator.userAgent.includes('Mobi')) {
                 this.addEventListener('touchstart', this.press, {passive: true});
                 this.addEventListener('touchend', this.release, {passive: true});            
-            } 
-            else {
+            } else {
                 this.addEventListener('mousedown', this.press, {passive: true});
                 this.addEventListener('mouseup', this.release, {passive: true});
             }
@@ -217,7 +216,6 @@
             }else{
                 addEffect(this.effect);
             }
-            this.classList.add('pressed');
         }
 
         release(event){
@@ -225,7 +223,6 @@
             if(this.hold){
                 removeEffect(this.effect);
             }
-            this.classList.remove('pressed');
         }
 
         activate(){
@@ -692,12 +689,13 @@
         will-change: transform;
     }
 
-    .button-item-active{
+    button-item:active{
         background-color: hsla(0, 0%, 50%, 0.5);
+        transform: scale(0.97);
     }
 
-    .pressed{
-        transform: scale(0.97);
+    .button-item-active{
+        background-color: hsla(0, 0%, 50%, 0.5);
     }
 
     .button-symbol{

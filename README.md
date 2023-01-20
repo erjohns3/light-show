@@ -105,3 +105,51 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 
 ## andrews zetai timing
 * FINISHED AUTOGENERATING ALL (208) SHOWS IN DIRECTORY songs in 107.53671836853027 seconds
+
+
+
+
+
+
+
+
+aubio error on rasp pi
+
+
+finished downloading https://www.youtube.com/watch?v=NSNcGYkp8v8 to /home/pi/light-show/songs/Wallows - OK (Official Video).ogg in 27.681249618530273 seconds
+Exception in thread Thread-3:
+Traceback (most recent call last):
+  File "/usr/lib/python3.7/threading.py", line 917, in _bootstrap_inner
+    self.run()
+  File "/usr/lib/python3.7/threading.py", line 865, in run
+    self._target(*self._args, **self._kwargs)
+  File "light_server.py", line 303, in download_song
+    src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True)
+  File "/home/pi/light-show/autogen.py", line 126, in get_src_bpm_offset
+    src = aubio.source(str(song_filepath), 0, hop_s)
+RuntimeError: AUBIO ERROR: source_wavread: Failed opening /home/pi/light-show/songs/Wallows - OK (Official Video).ogg (could not find RIFF header)
+
+
+
+
+doorbell light-show$ pip install --upgrade pip
+WARNING: pip is being invoked by an old script wrapper. This will fail in a future version of pip.
+Please see https://github.com/pypa/pip/issues/5599 for advice on fixing the underlying issue.
+To avoid this problem you can invoke Python with '-m pip' instead of running pip directly.
+/usr/lib/python3/dist-packages/secretstorage/dhcrypto.py:15: CryptographyDeprecationWarning: int_from_bytes is deprecated, use int.from_bytes instead
+  from cryptography.utils import int_from_bytes
+/usr/lib/python3/dist-packages/secretstorage/util.py:19: CryptographyDeprecationWarning: int_from_bytes is deprecated, use int.from_bytes instead
+  from cryptography.utils import int_from_bytes
+Defaulting to user installation because normal site-packages is not writeable
+Looking in indexes: https://pypi.org/simple, https://www.piwheels.org/simple
+Requirement already satisfied: pip in /home/pi/.local/lib/python3.7/site-packages (22.2.2)
+Collecting pip
+  Downloading pip-22.3.1-py3-none-any.whl (2.1 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 5.5 MB/s eta 0:00:00
+Installing collected packages: pip
+  Attempting uninstall: pip
+    Found existing installation: pip 22.2.2
+    Uninstalling pip-22.2.2:
+      Successfully uninstalled pip-22.2.2
+  WARNING: The scripts pip, pip3, pip3.10 and pip3.7 are installed in '/home/pi/.local/bin' which is not on PATH.
+  Consider adding this directory to PATH or, if you prefer to suppress this warning, use --no-warn-script-location.

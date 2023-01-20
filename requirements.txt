@@ -12,4 +12,5 @@ pynput
 scipy
 pandas
 tqdm
+watchdog
 git+https://github.com/aubio/aubio.git

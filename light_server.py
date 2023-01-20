@@ -44,12 +44,12 @@ parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
-
-
+parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=False, action='store_true')
 args = parser.parse_args()
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
+effects_dir = this_file_directory.joinpath('effects')
 
 pca = None
 
@@ -1018,14 +1018,22 @@ def dfs(effect_name):
         effects_config_sort([effect_name])
 
 
-def add_dependancies(effects_config):
-    for effect_name, effect in effects_config.items():
+# def add_dependancies(effects_config):
+#     for effect_name, effect in effects_config.items():
+#         graph[effect_name] = {}
+#         for component in effect['beats']:
+#             if type(component[1]) is str:
+#                 graph[effect_name][component[1]] = True
+#         graph[effect_name] = list(graph[effect_name].keys())
+
+def add_dependancies(effect_names):
+    for effect_name in effect_names:
+        effect = effects_config[effect_name]
         graph[effect_name] = {}
         for component in effect['beats']:
             if type(component[1]) is str:
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
-
 
 
 def add_song_to_config(song_path):
@@ -1047,6 +1055,77 @@ def add_song_to_config(song_path):
         }
     else:
         print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
+
+
+# def prep_loaded_effects(loaded_effects):
+#     for effect_name, effect in list(loaded_effects.items()):
+#         if effect.get('not_done'):
+#             del loaded_effects[effect_name]
+#             continue
+#         if 'song_path' in effect:
+#             effect['song_path'] = effect['song_path'].replace('\\', '/')
+
+#     before_song_config_import = time.time()
+#     if not songs_config:
+#         for name, filepath in get_all_paths('songs', only_files=True):
+#             add_song_to_config(filepath)
+#     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
+    
+#     for effect_name, effect in loaded_effects.items():
+#         if 'song_path' in effect:
+#             if effect['song_path'] in songs_config:
+#                 song_name = pathlib.Path(effect['song_path']).stem                    
+#                 if song_name not in song_name_to_show_names:
+#                     song_name_to_show_names[song_name] = []
+#                 song_name_to_show_names[song_name].append(effect_name)
+#                 # print(effect_name, song_name_to_show_names[song_name])
+#             elif effect.get('song_not_avaliable', True):
+#                 print_yellow(f'song not avaliable, effect_name: "{effect_name}", song_path "{effect["song_path"]}"')
+#                 if args.show:
+#                     effect['song_not_avaliable'] = True
+#                 else:
+#                     del effect['song_path']
+#                     # print_red('deleted', _effect_name)
+#     add_dependancies(loaded_effects)
+
+def prep_loaded_effects(effect_names):
+    global effects_config
+    for effect_name in effect_names:
+        effect = effects_config[effect_name]
+        if effect.get('not_done'):
+            del effects_config[effect_name]
+            continue
+        if 'song_path' in effect:
+            effect['song_path'] = effect['song_path'].replace('\\', '/')
+
+    before_song_config_import = time.time()
+    if not songs_config:
+        for name, filepath in get_all_paths('songs', only_files=True):
+            add_song_to_config(filepath)
+    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
+
+    updated_effect_names = []
+    for effect_name in effect_names:
+        if effect_name not in effects_config:
+            continue
+        updated_effect_names.append(effect_name)
+        effect = effects_config[effect_name]
+        if 'song_path' in effect:
+            if effect['song_path'] in songs_config:
+                song_name = pathlib.Path(effect['song_path']).stem                    
+                if song_name not in song_name_to_show_names:
+                    song_name_to_show_names[song_name] = []
+                song_name_to_show_names[song_name].append(effect_name)
+                # print(effect_name, song_name_to_show_names[song_name])
+            elif effect.get('song_not_avaliable', True):
+                print_yellow(f'song not avaliable, effect_name: "{effect_name}", song_path "{effect["song_path"]}"')
+                if args.show:
+                    effect['song_not_avaliable'] = True
+                else:
+                    del effect['song_path']
+                    # print_red('deleted', _effect_name)
+    add_dependancies(updated_effect_names)
+
 
 
 def load_effects_config_from_disk():
@@ -1082,36 +1161,7 @@ def load_effects_config_from_disk():
         effects_config.update(globals()[module_name].effects)
         total_time += time.time() - t1
 
-    for effect_name, effect in list(effects_config.items()):
-        if effect.get('not_done'):
-            del effects_config[effect_name]
-            continue
-        if 'song_path' in effect:
-            effect['song_path'] = effect['song_path'].replace('\\', '/')
-
-    before_song_config_import = time.time()
-    if not songs_config:
-        for name, filepath in get_all_paths('songs', only_files=True):
-            add_song_to_config(filepath)
-    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
-    
-    for effect_name, effect in effects_config.items():
-        if 'song_path' in effect:
-            if effect['song_path'] in songs_config:
-                song_name = pathlib.Path(effect['song_path']).stem                    
-                if song_name not in song_name_to_show_names:
-                    song_name_to_show_names[song_name] = []
-                song_name_to_show_names[song_name].append(effect_name)
-                # print(effect_name, song_name_to_show_names[song_name])
-            elif effect.get('song_not_avaliable', True):
-                print_yellow(f'song not avaliable, effect_name: "{effect_name}", song_path "{effect["song_path"]}"')
-                if args.show:
-                    effect['song_not_avaliable'] = True
-                else:
-                    del effect['song_path']
-                    # print_red('deleted', _effect_name)
-
-    add_dependancies(effects_config)
+    prep_loaded_effects(list(effects_config.keys()))
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
 
 
@@ -1512,6 +1562,54 @@ if __name__ == '__main__':
         x = threading.Thread(target=detailed_output_on_enter)
         x.start()
 
+
+
+                # if RekordboxFilesystemHandler.last_updated > (time.time() - .05):
+                #     return
+
+    if args.load_new_rekordbox_shows_live:
+        from watchdog.observers import Observer
+        from watchdog.events import FileSystemEventHandler
+
+        class RekordboxFilesystemHandler(FileSystemEventHandler):
+            @staticmethod
+            def on_any_event(event):
+                filepath = event.src_path
+                if type(filepath) != pathlib.Path:
+                    filepath = pathlib.Path(filepath)
+
+                print_cyan(f'Filesystem event detected, new "{filepath}"')
+                if event.is_directory:
+                    return print_yellow('skipping: event.is_directory')
+                if event.event_type != 'created':
+                    return print_yellow('skipping: event.event_type != created')
+                if '__pycache__' in event.src_path:
+                    return print_yellow('skipping: __pycache__ in event.src_path')
+                if not event.src_path.endswith('.py'):
+                    return print_yellow('skipping: not event.src_path.endswith(".py")')
+
+                rekordbox_effect_dir = effects_dir.joinpath('rekordbox_effects')
+                if filepath.resolve() in rekordbox_effect_dir.parents:
+                    print_yellow(f'skipping: Not a child of {rekordbox_effect_dir}')
+
+                print(f'Loading in new light show because: "{filepath}" was created')
+                relative_path = filepath.relative_to(this_file_directory)
+                without_suffix = relative_path.parent.joinpath(relative_path.stem)
+                module_name = str(without_suffix).replace(os.sep, '.')
+                if module_name not in globals():
+                    globals()[module_name] = importlib.import_module(module_name)
+                else:
+                    print_red('Somehow this path was already in globals, doing nothing.')
+                effects_config.update(globals()[module_name].effects)
+                # prep_loaded_effects(effects_config)
+                prep_loaded_effects(list(globals()[module_name].effects.keys()))
+
+        observer = Observer()
+        observer.schedule(RekordboxFilesystemHandler(), effects_dir, recursive = True)
+        observer.start()
+        print_green(f'WATCHING {effects_dir} for rekordbox additions')
+
+
     if args.reload:
         if not args.show:
             raise Exception('you need to define --show in order to use --reload')
@@ -1539,8 +1637,9 @@ if __name__ == '__main__':
                 print_cyan(f'Time to reload: {time.time() - time_before_restart:.3f}')
 
         observer = Observer()
-        observer.schedule(FilesystemHandler(), this_file_directory, recursive = True)
+        observer.schedule(FilesystemHandler(), effects_dir, recursive = True)
         observer.start()
+        print_green(f'WATCHING {effects_dir} for all effects additions')
 
     if args.keyboard:
         from pynput.keyboard import Listener, KeyCode
@@ -1636,6 +1735,7 @@ if __name__ == '__main__':
                 print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
                 input()
                 try_download_video(args.show)
+                time.sleep(.02)
 
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:

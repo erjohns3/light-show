@@ -42,11 +42,11 @@ if __name__ == '__main__':
 
             filepath = youtube_helpers.download_youtube_url(url=url, dest_path=dest_path, codec='mp3')
             # generate_rekordbox_effects.generate_rekordbox_effect(filepath)
-            src_bpm_offset_cache = get_src_bpm_offset(filepath, use_boundaries=True)
+            src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True)
             rekordbox_effects_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
-            args.show, _, _ = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode=None, output_directory=rekordbox_effects_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
-            args.show, _, _ = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode='lasers', output_directory=rekordbox_effects_directory, src_bpm_offset_cache=src_bpm_offset_cache)
+            _, _, _ = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode=None, output_directory=rekordbox_effects_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
+            _, _, _ = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode='lasers', output_directory=rekordbox_effects_directory, src_bpm_offset_cache=src_bpm_offset_cache)
 
             urls_downloaded[url] = str(filepath)
             

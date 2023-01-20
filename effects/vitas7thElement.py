@@ -191,7 +191,9 @@ effects = {
     "v chum drum 1": {
         "length": 16,
         "beats": [
+            b(1, name='Rgb disco pulse', length=8),
             b(1, name='v rainbow fast bottom', length=8, intensity=(.25,1)),   
+            b(9, name='Rgb disco', length=8),
             b(9, name='v firebrick steps bottom', length=4),
             b(13, name='v UV slow triplets', length=4),
         ]
@@ -207,11 +209,11 @@ effects = {
     },
 
     "v laser fast pulsing": {
-        "length": 2,
+        "length": 1,
         "beats": [
             b(1, name='laser motor', length=1, intensity=(1, 1)), 
-            b(2, name='laser motor', length=1, intensity=(.6, .6)),   
-            b(1, name='green laser', length=2),  
+            b(1, name='green laser', length=1),  
+            b(1, name='Sidechain motor', length=.5),
         ]
     },
 

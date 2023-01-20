@@ -411,7 +411,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
     if mode == 'lasers':
         for scene in scenes:
-            if scene[0] == 8 and random(0, 1) < .2:
+            if scene[0] == 8 and random.random() < .2:
                 scene[1].append('laser long')
 
         for _ in range(2):

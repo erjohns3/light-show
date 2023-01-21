@@ -519,9 +519,9 @@ effects = {
         ],
     },
 
-    "Eiffel 65 - Blue (Da Ba Dee) [zA52uNzx7Y4]": {
+    "Eiffel 65 - Blue (Flume Remix) - Official Visualiser [eM5DWw3J4BI]": {
         "bpm": 135,
-        "song_path": "songs/Eiffel 65 - Blue (Da Ba Dee) [zA52uNzx7Y4].ogg",
+        "song_path": "songs/Eiffel 65 - Blue (Flume Remix) - Official Visualiser [eM5DWw3J4BI].ogg",
         "delay_lights": 0.0228,
         "skip_song": 0.0,
         "beats": [

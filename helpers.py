@@ -60,6 +60,72 @@ def get_ray_directory():
         print_red('doesnt know how contact ray_directory')
 
 
+doorbell_ip = '192.168.86.58'
+ssh_connection = None
+def maybe_open_ssh_connection_doorbell():
+    global ssh_connection
+    import paramiko
+
+    if ssh_connection is not None and ssh_connection.get_transport() and ssh_connection.get_transport().is_active:
+        return ssh_connection
+    
+    print_cyan('opening ssh_connection to doorbell')
+    ssh_connection = paramiko.client.SSHClient()
+    ssh_connection.load_system_host_keys()
+    ssh_connection.connect(hostname=doorbell_ip,
+                port = 22,
+                username='pi')
+
+
+# looks like most people use https://www.fabfile.org/ for the higher level library
+scp_connection = None
+def maybe_open_scp_connection_doorbell():
+    global scp_connection
+    from scp import SCPClient
+
+    if scp_connection is not None and scp_connection.get_transport() and scp_connection.get_transport().is_active:
+        return scp_connection
+
+    print_cyan('opening scp_connection to doorbell')    
+    maybe_open_ssh_connection_doorbell()
+    scp_connection = SCPClient(ssh_connection.get_transport())
+
+
+def close_connections_to_doorbell():
+    if scp_connection is not None and scp_connection.transport and scp_connection.transport.is_active:
+        print_cyan('closing ssh_connection')
+        scp_connection.close()
+        return
+    
+    if ssh_connection is not None and ssh_connection.get_transport() and ssh_connection.get_transport().is_active:
+        print_cyan('closing ssh_connection')
+        ssh_connection.close()
+
+
+def run_command_on_doorbell_via_ssh(command, keep_open=False):
+    print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
+
+    maybe_open_ssh_connection_doorbell()
+    _stdin, _stdout, _stderr = ssh_connection.exec_command(command)
+    if not keep_open:
+        close_connections_to_doorbell()
+    return _stdin, _stdout, _stderr
+
+
+def scp_to_doorbell(local_filepath, remote_folder, keep_open=False):
+    remote_filepath = remote_folder.joinpath(local_filepath.name)
+
+    if is_windows():
+        remote_filepath = str(remote_filepath).replace('\\\\', '/').replace('\\', '/')
+
+    print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
+    maybe_open_scp_connection_doorbell()
+    scp_connection.put(str(local_filepath), remote_filepath)
+
+    if not keep_open:
+        close_connections_to_doorbell()
+
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'

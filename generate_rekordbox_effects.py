@@ -3,31 +3,18 @@ import signal
 
 
 from helpers import *
-import youtube_helpers
 import autogen
 
 
 # !TODO replace this with just the youtube_helpers
-def ssh_to_doorbell(local_effect_path):
-    import paramiko
-    
+def ssh_to_doorbell_make_if_not_exist(local_effect_path):
     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
-    # print_blue(f'scping from "{local_effect_path}" to folder "{remote_folder}"')
-
     try:
-        youtube_helpers.scp_to_doorbell(local_effect_path, remote_folder)
+        scp_to_doorbell(local_effect_path, remote_folder, keep_open=True)
     except:
-        # !TODO catch the right exception here (file not found)
         print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
-    
-        ssh = paramiko.client.SSHClient()
-        ssh.load_system_host_keys()
-        ssh.connect(hostname=youtube_helpers.doorbell_ip,
-                    port = 22,
-                    username='pi')
-        # !TODO idk if this works
-        stdin, stdout, stderr = ssh.exec_command('mkdir /home/pi/light-show/effects/rekordbox_effects')
-        youtube_helpers.scp_to_doorbell(local_effect_path, remote_folder)
+        _stdin, _stdout, _stderr = run_command_on_doorbell_via_ssh('mkdir /home/pi/light-show/effects/rekordbox_effects', keep_open=True)
+        scp_to_doorbell(local_effect_path, remote_folder)
 
 
 
@@ -69,7 +56,9 @@ if __name__ == '__main__':
 
     print_cyan('scping all effects to doorbell...')
     for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
-        ssh_to_doorbell(effect_path)
+        ssh_to_doorbell_make_if_not_exist(effect_path)
+    
+    close_connections_to_doorbell()
 
 
 # import light_server

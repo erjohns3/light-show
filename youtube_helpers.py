@@ -10,27 +10,6 @@ import subprocess
 from helpers import *
 
 
-doorbell_ip = '192.168.86.58'
-def scp_to_doorbell(local_filepath, remote_folder):
-    # looks like most people use https://www.fabfile.org/ for the higher level library
-    import paramiko
-    from scp import SCPClient
-    
-    remote_filepath = remote_folder.joinpath(local_filepath.name)
-    
-    ssh = paramiko.client.SSHClient()
-    ssh.load_system_host_keys()
-    ssh.connect(hostname=doorbell_ip,
-                port = 22,
-                username='pi')
-
-    print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
-    scp = SCPClient(ssh.get_transport())
-    if is_windows():
-        remote_filepath = str(remote_filepath).replace('\\\\', '/').replace('\\', '/')
-    scp.put(str(local_filepath), remote_filepath)
-    scp.close()
-
 
 
 ydl_search_opts = {

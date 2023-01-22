@@ -98,10 +98,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         print(f'Couldnt download url {url} due to {e}')
         return None
 
-    # this sucks for some reason
-    # print((downloaded_filepath.stem + '\n') * 100)
     clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
-    # print((clean_filesystem_name + '\n') * 5)
     if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
         if not clean_filesystem_name:
             clean_filesystem_name = random_letters(5)

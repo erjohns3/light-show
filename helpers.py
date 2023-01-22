@@ -183,8 +183,12 @@ def print_red(*args, **kwargs):
     print(red(' '.join(args)), **kwargs)
 
 
+# !TODO straight up i think this might be right lol
 def get_clean_filesystem_string(s):
-    return ''.join(char for char in s if char.isalnum() or char in ' -_.()[],')
+    # cleaned = ''.join(char for char in s if char.isalnum() or char in ' -_.()[],')
+    # print_blue('get_clean_filesystem_string():', s, 'cleaned:', cleaned)
+    # return cleaned
+    return s
 
 def get_no_duplicate_spaces(s):
     import re

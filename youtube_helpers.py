@@ -98,16 +98,16 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         print(f'Couldnt download url {url} due to {e}')
         return None
 
-    clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
-    if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
-        if not clean_filesystem_name:
-            clean_filesystem_name = random_letters(5)
-            print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
-        clean_filesystem_name += downloaded_filepath.suffix
-        no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
-        print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
-        shutil.move(downloaded_filepath, no_special_chars_filepath)
-        return no_special_chars_filepath
+    # clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
+    # if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
+    #     if not clean_filesystem_name:
+    #         clean_filesystem_name = random_letters(5)
+    #         print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
+    #     clean_filesystem_name += downloaded_filepath.suffix
+    #     no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
+    #     print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
+    #     shutil.move(downloaded_filepath, no_special_chars_filepath)
+    #     return no_special_chars_filepath
 
     return downloaded_filepath
 

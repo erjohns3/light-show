@@ -149,9 +149,9 @@ def get_song_metadata_info(song_path):
     from tinytag import TinyTag
 
     if song_path.suffix in allowed_song_extensions:
-        song_metadata_start_time = time.time()
+        # song_metadata_start_time = time.time()
         tags = TinyTag.get(song_path)
-        print(f'get_song_metadata_info(): took {time.time() - song_metadata_start_time} seconds')
+        # print(f'get_song_metadata_info(): took {time.time() - song_metadata_start_time} seconds')
         name, duration = tags.title, tags.duration
 
         if name == None:

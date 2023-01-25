@@ -51,9 +51,14 @@ def is_andrews_laptop():
     return socket.gethostname() in ['DESKTOP-754BOFE']
 
 
+def is_doorbell():
+    import socket
+    return socket.gethostname() in ['doorbell']
+
+
 def get_ray_directory():
-    if is_windows():
-        return pathlib.Path('Y:/')
+    if is_ray():
+        return pathlib.Path('T:/')
     elif is_andrews_main_computer():
         return pathlib.Path('/mnt/ray_network_share')
     else:

@@ -230,7 +230,7 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
-def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_out=False):
+def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_out=False, stdin=None):
     import subprocess
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
@@ -242,7 +242,7 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
         if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
-    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
     stdout, stderr = process.communicate(timeout=timeout)
 
     if debug:
@@ -274,7 +274,7 @@ def get_temp_dir():
     return make_if_not_exist(pathlib.Path(__file__).parent.joinpath('temp'))
 
 
-def run_command_async(full_command_arr, debug=False):
+def run_command_async(full_command_arr, debug=False, stdin=None):
     import subprocess
 
     for index in range(len(full_command_arr)):
@@ -288,7 +288,7 @@ def run_command_async(full_command_arr, debug=False):
             full_command_arr[0] += '.exe'
 
     full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
-    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
     
     if debug:
         print(f'started process with "{full_call}"')

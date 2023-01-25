@@ -7,14 +7,14 @@ import autogen
 
 
 # !TODO replace this with just the youtube_helpers
-def ssh_to_doorbell_make_if_not_exist(local_effect_path):
-    remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
-    try:
-        scp_to_doorbell(local_effect_path, remote_folder, keep_open=True)
-    except:
-        print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
-        _stdin, _stdout, _stderr = run_command_on_doorbell_via_ssh('mkdir /home/pi/light-show/effects/rekordbox_effects', keep_open=True)
-        scp_to_doorbell(local_effect_path, remote_folder)
+# def ssh_to_doorbell_make_if_not_exist(local_effect_path):
+#     remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
+#     try:
+#         scp_to_doorbell(local_effect_path, remote_folder, keep_open=True)
+#     except:
+#         print_yellow('andrew: trying this new extra scp step on error (assuming rekord_box folder doesnt exist)')
+#         _stdin, _stdout, _stderr = run_command_on_doorbell_via_ssh('mkdir /home/pi/light-show/effects/rekordbox_effects', keep_open=True)
+#         scp_to_doorbell(local_effect_path, remote_folder)
 
 
 
@@ -55,10 +55,25 @@ if __name__ == '__main__':
     #     exit() 
 
     print_cyan('scping all effects to doorbell...')
-    for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
-        ssh_to_doorbell_make_if_not_exist(effect_path)
+    run_command_blocking([
+        'tar',
+        'czf',
+        '-',
+        'effects/autogen_shows',
+    ])
     
-    close_connections_to_doorbell()
+    # redirect to
+    run_command_blocking([
+        'ssh', 
+        '-T', 
+        'pi@192.168.86.55',
+        '"cd light-show && tar xvzf -"',
+    ])
+    
+    # for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
+    #     ssh_to_doorbell_make_if_not_exist(effect_path)
+    
+    # close_connections_to_doorbell()
 
 
 # import light_server

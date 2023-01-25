@@ -76,6 +76,24 @@ def get_ray_directory():
     else:
         print_red('doesnt know how contact ray_directory')
 
+nas_is_active_andrew = False
+def get_nas_directory():
+    global nas_is_active_andrew
+    if is_andrews_main_computer():
+        mount_path = pathlib.Path('/mnt/nas')
+        if nas_is_active_andrew:
+            return mount_path
+        _, stdout, _ = run_command_blocking([
+            'ls',
+            str(mount_path),
+        ])
+        if stdout:
+            return mount_path
+        else:
+            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
+    else:
+        print_red('doesnt know how contact nas_directory')
+
 
 doorbell_ip = '192.168.86.55'
 ssh_connection = None

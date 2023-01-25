@@ -72,7 +72,7 @@ def get_ray_directory():
         if stdout:
             return mount_path
         else:
-            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/Y /mnt/ray_network_share/"')
+            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
     else:
         print_red('doesnt know how contact ray_directory')
 

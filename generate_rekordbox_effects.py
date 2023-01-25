@@ -44,7 +44,7 @@ if __name__ == '__main__':
     rekordbox_song_directory = get_ray_directory().joinpath('music_creation', 'downloaded_songs')
     rekordbox_shows_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
-    # autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
+    autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
 
     if is_doorbell():
         print_yellow('Skipping SCP to doorbell because on doorbell')

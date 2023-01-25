@@ -60,7 +60,7 @@ def get_ray_directory():
         print_red('doesnt know how contact ray_directory')
 
 
-doorbell_ip = '192.168.86.58'
+doorbell_ip = '192.168.86.55'
 ssh_connection = None
 def maybe_open_ssh_connection_doorbell():
     global ssh_connection
@@ -83,7 +83,7 @@ def maybe_open_scp_connection_doorbell():
     global scp_connection
     from scp import SCPClient
 
-    if scp_connection is not None and scp_connection.get_transport() and scp_connection.get_transport().is_active:
+    if scp_connection is not None and scp_connection.transport and scp_connection.transport.is_active:
         return scp_connection
 
     print_cyan('opening scp_connection to doorbell')    

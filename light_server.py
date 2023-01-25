@@ -1405,6 +1405,7 @@ def kill_in_n_seconds(seconds):
 
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
+    close_connections_to_doorbell()
     if 'multiprocessing' in sys.modules:
         import multiprocessing
         active_children = multiprocessing.active_children()        

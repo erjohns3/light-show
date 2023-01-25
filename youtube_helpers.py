@@ -10,27 +10,6 @@ import subprocess
 from helpers import *
 
 
-doorbell_ip = '192.168.86.58'
-def scp_to_doorbell(local_filepath, remote_folder):
-    # looks like most people use https://www.fabfile.org/ for the higher level library
-    import paramiko
-    from scp import SCPClient
-    
-    remote_filepath = remote_folder.joinpath(local_filepath.name)
-    
-    ssh = paramiko.client.SSHClient()
-    ssh.load_system_host_keys()
-    ssh.connect(hostname=doorbell_ip,
-                port = 22,
-                username='pi')
-
-    print(f'{bcolors.OKBLUE}Moving from "{local_filepath}", to remote "{doorbell_ip}:{remote_filepath}"{bcolors.ENDC}')
-    scp = SCPClient(ssh.get_transport())
-    if is_windows():
-        remote_filepath = str(remote_filepath).replace('\\\\', '/').replace('\\', '/')
-    scp.put(str(local_filepath), remote_filepath)
-    scp.close()
-
 
 
 ydl_search_opts = {
@@ -119,19 +98,16 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         print(f'Couldnt download url {url} due to {e}')
         return None
 
-    # this sucks for some reason
-    # print((downloaded_filepath.stem + '\n') * 100)
-    clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
-    # print((clean_filesystem_name + '\n') * 5)
-    if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
-        if not clean_filesystem_name:
-            clean_filesystem_name = random_letters(5)
-            print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
-        clean_filesystem_name += downloaded_filepath.suffix
-        no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
-        print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
-        shutil.move(downloaded_filepath, no_special_chars_filepath)
-        return no_special_chars_filepath
+    # clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
+    # if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
+    #     if not clean_filesystem_name:
+    #         clean_filesystem_name = random_letters(5)
+    #         print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
+    #     clean_filesystem_name += downloaded_filepath.suffix
+    #     no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
+    #     print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
+    #     shutil.move(downloaded_filepath, no_special_chars_filepath)
+    #     return no_special_chars_filepath
 
     return downloaded_filepath
 

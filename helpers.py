@@ -56,11 +56,23 @@ def is_doorbell():
     return socket.gethostname() in ['doorbell']
 
 
+ray_is_active_andrew = False
 def get_ray_directory():
+    global ray_is_active_andrew
     if is_ray():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer():
-        return pathlib.Path('/mnt/ray_network_share')
+        mount_path = pathlib.Path('/mnt/ray_network_share')
+        if ray_is_active_andrew:
+            return mount_path
+        _, stdout, _ = run_command_blocking([
+            'ls',
+            str(mount_path),
+        ])
+        if stdout:
+            return mount_path
+        else:
+            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/Y /mnt/ray_network_share/"')
     else:
         print_red('doesnt know how contact ray_directory')
 

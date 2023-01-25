@@ -44,9 +44,9 @@ if __name__ == '__main__':
     rekordbox_song_directory = get_ray_directory().joinpath('music_creation', 'downloaded_songs')
     rekordbox_shows_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
-    autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
+    # autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=False)
 
-    if is_linux() and not is_andrews_main_computer():
+    if is_doorbell():
         print_yellow('Skipping SCP to doorbell because on doorbell')
         exit() 
 
@@ -54,21 +54,30 @@ if __name__ == '__main__':
     #     print_yellow('Skipping SCP to doorbell because on andrews main computer')
     #     exit() 
 
-    print_cyan('scping all effects to doorbell...')
-    run_command_blocking([
+    print_cyan('taring all effects...')
+    process = run_command_async([
         'tar',
         'czf',
         '-',
-        'effects/autogen_shows',
+        'effects/rekordbox_effects',
     ])
+
+    print_cyan('redirecting output to ssh...')
     
+    # run_command_blocking([
+    #     'ps -ef | grep ssh-agent'
+    # ])
+
+    # !TODO this asks for a password, but it shouldnt, idk how to fix
     # redirect to
     run_command_blocking([
-        'ssh', 
-        '-T', 
+        'ssh',
+        '-i',
+        '/home/andrew/.ssh/id_rsa',
+        # '-T'
         'pi@192.168.86.55',
-        '"cd light-show && tar xvzf -"',
-    ])
+        'cd light-show && tar xvzf -',
+    ], stdin=process.stdout)
     
     # for effect_name, effect_path in get_all_paths(rekordbox_shows_output_directory, only_files=True, allowed_extensions=['.py']):
     #     ssh_to_doorbell_make_if_not_exist(effect_path)

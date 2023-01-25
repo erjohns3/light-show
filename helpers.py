@@ -247,6 +247,8 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
         if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
+    # env = os.environ.copy()
+    # env['SSH_AUTH_SOCK'] = os.environ['SSH_AUTH_SOCK']
     process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
     stdout, stderr = process.communicate(timeout=timeout)
 

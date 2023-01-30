@@ -15,6 +15,16 @@ import traceback
 import sys
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
+# !TODO check what this is doing
+# https://wiki.libsdl.org/SDL2/FAQUsingSDL
+# os.environ['SDL_AUDIODRIVER'] = 'dsp'
+
+# also i tried
+    # sudo apt-get update
+    # sudo apt-get install alsa-utils
+    # sudo modprobe snd_bcm2835
+    # sudo apt-get install avahi-utils
+    # sudo reboot
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets

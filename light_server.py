@@ -299,7 +299,9 @@ def download_song(url, uuid):
     add_song_to_config(filepath)
 
     added = False
-    src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
+    # !TODO testing this for the audio glitch
+    # src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
+    src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
         show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
         if show is None:

@@ -95,6 +95,13 @@ def get_nas_directory():
         print_red('doesnt know how contact nas_directory')
 
 
+def print_stacktrace():
+    import traceback
+    print_red(traceback.format_exc())
+
+video_extensions = set(map(lambda x: x.lower(), ['.WEBM', '.MPG', '.MP2', '.MPEG', '.MPE', '.MPV', '.OGG', '.MP4', '.M4P', '.M4V', '.AVI', '.WMV', '.MOV', '.QT', '.FLV', '.SWF', '.AVCHD', '.mkv']))
+
+
 doorbell_ip = '192.168.86.55'
 ssh_connection = None
 def maybe_open_ssh_connection_doorbell():

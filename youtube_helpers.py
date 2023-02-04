@@ -70,7 +70,6 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
             'preferredcodec': codec,
-            'threads': 1,
         }],
         'noplaylist': True,
     }

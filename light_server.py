@@ -15,9 +15,11 @@ import traceback
 import sys
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
-# !TODO check what this is doing
+from helpers import *
+
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
-# os.environ['SDL_AUDIODRIVER'] = 'dsp'
+if is_linux():
+    os.environ['SDL_AUDIODRIVER'] = 'jack'
 
 # also i tried
     # sudo apt-get update
@@ -30,7 +32,6 @@ import pygame
 import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
-from helpers import *
 print_cyan(f'Up to custom import: {time.time() - first_start_time:.3f}')
 import sound_helpers
 import youtube_helpers
@@ -1517,6 +1518,7 @@ if __name__ == '__main__':
         # pygame.mixer.pre_init(48000, 16, 2, 4096)
         pygame.mixer.init(frequency=48000)
     except:
+        print_stacktrace()
         print_red('PYGAME COULDNT INITIALIZE, NO SOUND WILL WORK')
     print_cyan(f'Up through pygame init: {time.time() - first_start_time:.3f}')
 

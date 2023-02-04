@@ -18,8 +18,7 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 from helpers import *
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
-if is_linux():
-    os.environ['SDL_AUDIODRIVER'] = 'jack'
+# os.environ['SDL_AUDIODRIVER'] = 'jack'
 
 # also i tried
     # sudo apt-get update
@@ -311,8 +310,8 @@ def download_song(url, uuid):
 
     added = False
     # !TODO testing this for the audio glitch
-    # src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
-    src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
+    src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
+    # src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
         show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
         if show is None:

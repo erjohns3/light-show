@@ -1216,8 +1216,8 @@ def set_effect_defaults(name, effect):
     else:
         if 'loop' not in effect:
             effect['loop'] = True
-    if 'song_path' not in effect:
-        effect['profiles'].append('All Effects')
+    # if 'song_path' not in effect:
+    #     effect['profiles'].append('All Effects')
 
 
 
@@ -1235,7 +1235,10 @@ def compile_all_luts_from_effects_config():
         set_effect_defaults(name, effect)
 
         # if not name.startswith('g_lasers_'):
-        if effect['profiles'] or ('song_path' in effect and effect['song_path'] in songs_config):
+        if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
+            if 'Generated Shows' in effect['profiles']:
+                continue
+            
             effects_config_client[name] = {}
             for key, value in effect.items():
                 if key != 'beats':

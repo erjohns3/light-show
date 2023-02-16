@@ -521,7 +521,7 @@ effects = {
 
     "Eiffel 65 - Blue (Flume Remix) - Official Visualiser [eM5DWw3J4BI]": {
         "bpm": 135,
-        "song_path": "songs/Eiffel 65 - Blue (Flume Remix) - Official Visualiser [eM5DWw3J4BI].ogg",
+        "song_path": "songs/Eiffel 65  Blue Flume Remix  Official Visualiser.ogg",
         "delay_lights": 0.0228,
         "skip_song": 0.0,
         "beats": [

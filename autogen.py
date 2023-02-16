@@ -89,6 +89,11 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
 def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False, rip_out_char=None):
     print(f'writing effect to {output_filepath}')
 
+    if '.' in output_filepath.stem:
+        old_output_filepath = output_filepath
+        output_filepath = output_filepath.parent.joinpath(old_output_filepath.stem.replace('.', '_'), old_output_filepath.suffix)
+        print_yellow(f'the dot character cannot be in the output file, old file name: "{old_output_filepath.stem}". renaming the file to "{output_filepath.stem}" and writing')
+
     show_name = list(dict_to_dump.keys())[0]    
     if is_windows() and 'song_path' in dict_to_dump[show_name]:
         dict_to_dump[show_name]['song_path'] = dict_to_dump[show_name]['song_path'].replace('\\\\', '/').replace('\\', '/')

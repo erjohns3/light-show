@@ -43,7 +43,7 @@ effects = {
             [1.1, [0, 0, 255, 0, 0, 0, 0], 1, 0.08, 0.04],
         ],
     },
-    "Yellow Top to Bottom hang": {
+    "shelter Yellow Top to Bottom hang": {
         "length": 4,
         "beats": [
             [1, [114, 60, 5, 0, 25, 0, 0], .2, 0, .5],

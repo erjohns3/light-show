@@ -1194,7 +1194,7 @@ def load_effects_config_from_disk():
             if not filepath.stem.startswith('g_'):
                 for effect_name in globals()[module_name].effects:
                     if effect_name in effects_config:
-                        print_yellow(f'WARNING: effect name collision {effect_name} in module {module_name}')
+                        print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
         effects_config.update(globals()[module_name].effects)
         total_time += time.time() - t1
 

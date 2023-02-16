@@ -630,10 +630,11 @@ stage_chars = '.,-~:;=!*#$@'
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
-disco_stage = random.randint(0, 100)
+disco_speed = .15
+disco_pos = 0
 disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, laser_stage, disco_stage, disco_style, printed_http_info
+    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, disco_style, printed_http_info
 
     while not printed_http_info:
         time.sleep(.01)
@@ -711,24 +712,43 @@ Beat {curr_beat:.1f}\
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = 'default'
 
+    disco_styles = ['rgb(0,0,0)'] * 14
     if any(disco_color_values):
-        disco_string = ''
-        for i in range(14):
-            thing = (i + (disco_stage // 10))
-            if thing % 4 == 0 or thing % 6 == 0:
-                disco_string += 'o'
-            else:
-                disco_string += ' '
-        disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
+        rbg_string_formatters = ['rgb({},0,0)', 'rgb(0,{},0)', 'rgb(0,0,{})']
+        disco_chars = [' '] * 14 
+        for offset in range(3):
+            if disco_color_values[offset]:
+                curr_disco_positions = [
+                    int(disco_pos) + offset,
+                    int(disco_pos) + 5 + offset,
+                    int(disco_pos) + 10 + offset,
+                ]
+                for index in range(len(curr_disco_positions)):
+                    curr_disco_positions[index] = curr_disco_positions[index] % 14
+                    disco_chars[curr_disco_positions[index]] = 'o'
+                    disco_styles[curr_disco_positions[index]] = rbg_string_formatters[offset].format(disco_color_values[offset])
+                # disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
+
+        # disco_chars = ''
+        # for i in range(14):
+        #     thing = (i + (disco_stage // 10))
+        #     if thing % 4 == 0 or thing % 6 == 0:
+        #         disco_chars += 'o'
+        #     else:
+        #         disco_chars += ' '
+        # disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
     else:
-        disco_string = ' ' * 14
+        disco_chars = ' ' * 14
 
 
     if all_levels[12] != 0:
         laser_stage += int(max(1, laser_motor_value // 10))
         laser_stage %= 110
 
-    disco_stage = (disco_stage + 1) % 10000
+    disco_pos += disco_speed
+    if disco_pos > 14:
+        disco_pos -= 14
+    # disco_stage = (disco_stage + 1) % 10000
 
     effect_string = f'Effects: {", ".join(all_effect_names)}'
     remaining = terminal_size - len(effect_string)
@@ -744,7 +764,7 @@ Beat {curr_beat:.1f}\
     console.print(laser_string, style=laser_style, end='')
     console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
     console.print(' ', style='default', end='')
-    for char in disco_string:
+    for char, disco_style in zip(disco_chars, disco_styles):
         console.print(char, style=disco_style, end='')
     console.print(' ' * dead_space, style='default', end='')
     console.print('', end='\033[F' * 7)
@@ -1442,9 +1462,12 @@ def signal_handler(sig, frame):
 
 
 def fuzzy_find(search, collection):
-    from thefuzz import process
+    import thefuzz.process
     print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
-    return process.extractOne(search, collection)[0]
+    
+    choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
+    print_cyan(f'top 3 choices: {choices}')
+    return choices[0][0]
 
 
 def restart_show(skip=0, abs_time=None, reload=False):

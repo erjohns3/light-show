@@ -91,7 +91,7 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
 
     if '.' in output_filepath.stem:
         old_output_filepath = output_filepath
-        output_filepath = output_filepath.parent.joinpath(old_output_filepath.stem.replace('.', '_'), old_output_filepath.suffix)
+        output_filepath = output_filepath.parent.joinpath(old_output_filepath.stem.replace('.', '_') + old_output_filepath.suffix)
         print_yellow(f'the dot character cannot be in the output file, old file name: "{old_output_filepath.stem}". renaming the file to "{output_filepath.stem}" and writing')
 
     show_name = list(dict_to_dump.keys())[0]    
@@ -108,6 +108,7 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
         if write_compiler:
             final_str = 'from effects.compiler import b\n\n' + final_str
         file.writelines([final_str])
+    return output_filepath
 
 def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
     try:
@@ -534,7 +535,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         show_name: show
     }
 
-    write_effect_to_file_pretty(output_filepath, the_show)
+    output_filepath = write_effect_to_file_pretty(output_filepath, the_show)
     print_blue(f'autogen: {song_filepath.stem} - time taken to finish: {time.time() - generate_show_start_time} seconds')
     
     return show_name, show, output_filepath

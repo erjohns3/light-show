@@ -248,7 +248,7 @@ if __name__ == '__main__':
         relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
         output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
         _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = autogen.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
-        autogen.write_effect_to_file_pretty(
+        output_filepath = autogen.write_effect_to_file_pretty(
             output_filepath, 
             {
                 downloaded_filepath.stem: {
@@ -271,10 +271,10 @@ if __name__ == '__main__':
         scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
     except:
         print_stacktrace()
-        print_yellow('The above error means the scp of the song failed to the doorbell, but the song was still downloaded to the local machine and the show was made. You will have to manually scp the song file over at some point')
+        print_yellow('The above error means the scp of the song failed scping to the doorbell, but the song was still downloaded to the local machine and the show was made. You will have to manually scp the song file over at some point')
 
     if args.gen_show:
-        print_green(bold(f'\nStart editing your show here: {output_filepath}'))
+        print_green(bold(f'\nStart editing your show here: "{output_filepath}"'))
 
 
 

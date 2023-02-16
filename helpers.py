@@ -95,9 +95,19 @@ def get_nas_directory():
         print_red('doesnt know how contact nas_directory')
 
 
-def print_stacktrace():
+def is_python_32_bit():
+    import sys
+    return sys.maxsize > 2**32
+
+
+def get_stack_trace() -> str:
     import traceback
     print_red(traceback.format_exc())
+
+
+def print_stacktrace() -> None:
+    print_red(get_stack_trace())
+
 
 video_extensions = set(map(lambda x: x.lower(), ['.WEBM', '.MPG', '.MP2', '.MPEG', '.MPE', '.MPV', '.OGG', '.MP4', '.M4P', '.M4V', '.AVI', '.WMV', '.MOV', '.QT', '.FLV', '.SWF', '.AVCHD', '.mkv']))
 
@@ -268,6 +278,18 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
             
             paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive, allowed_extensions=allowed_extensions, quiet=quiet)
     return paths
+
+def start_video_in_mpv_async(video_path, volume=70):
+    print(f'start_video_in_mpv: starting "{video_path}"')
+    run_command_async([
+        'mpv', 
+        str(video_path), 
+        '--no-resume-playback',
+        '--sid=no',
+        '--title=mpv_vtuber_window',
+        '--x11-name=mpv_vtuber_window',
+        f'--volume={volume}',
+    ], debug=True)
 
 def is_linux_root():
     return is_linux() and os.geteuid() == 0

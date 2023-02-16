@@ -1190,6 +1190,10 @@ def load_effects_config_from_disk():
             importlib.reload(globals()[module_name])
         else:
             globals()[module_name] = importlib.import_module(module_name)
+        if is_andrews_main_computer():
+            for effect_name in globals()[module_name].effects:
+                if effect_name in effects_config:
+                    print_yellow(f'WARNING: effect name collision {effect_name} in module {module_name}')
         effects_config.update(globals()[module_name].effects)
         total_time += time.time() - t1
 

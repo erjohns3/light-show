@@ -1,5 +1,6 @@
 from effects.compiler import b
 
+# python light_server.py --local --keyboard --show "g_The Chainsmokers - All We Know ft. Phoebe Ryan" --delay .189
 effects = {
     "The Chainsmokers - All We Know ft. Phoebe Ryan (Virtual Riot Remix)": {
         "bpm": 175,

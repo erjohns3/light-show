@@ -589,21 +589,21 @@ effects = {
     },
 
 
-    "z_z_green disco strobe": {
+    "z_z_green disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Green disco pulse', length=8, offset=.5),
         ],
     },
-    "z_z_red disco strobe": {
+    "z_z_red disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "z_z_blue disco strobe": {
+    "z_z_blue disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -611,7 +611,7 @@ effects = {
         ],
     },
     
-    "z_z_green_red disco strobe": {
+    "z_z_green_red disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -619,7 +619,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "z_z_green_blue disco strobe": {
+    "z_z_green_blue disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -628,7 +628,7 @@ effects = {
         ],
     },
 
-    "z_z_blue_red disco strobe": {
+    "z_z_blue_red disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -636,7 +636,7 @@ effects = {
             b(1, name='Red disco pulse', length=8, offset=.5),
         ],
     },
-    "z_z_blue_green disco strobe": {
+    "z_z_blue_green disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -645,7 +645,7 @@ effects = {
         ],
     },
 
-    "z_z_red_blue disco strobe": {
+    "z_z_red_blue disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -653,7 +653,7 @@ effects = {
             b(1, name='Blue disco pulse', length=8, offset=.5),
         ],
     },
-    "z_z_red_green disco strobe": {
+    "z_z_red_green disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [
@@ -662,7 +662,7 @@ effects = {
         ],
     },
 
-    "z_z_red_green_blue disco strobe": {
+    "z_z_red_green_blue disco strobe offset": {
         "length": 8,
         "autogen": "disco strobe",
         "beats": [

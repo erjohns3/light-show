@@ -11,11 +11,11 @@ effects = {
             [4, 'Red top', 8, 1, 0],
             [4, 'Red disco', 144, 0, 1],
             [164, 'Red bottom pulse', 96],
-            [164.5, 'Red disco pulse', 96],
+            [164.5, 'Sleep Red disco pulse', 96],
             [260, 'Red top', 8, 1, 0],
             [260, 'Red disco', 128, 0, 1],
             [400, 'Red bottom pulse', 96],
-            [400.5, 'Red disco pulse', 96],
+            [400.5, 'Sleep Red disco pulse', 96],
         ]
     },
 
@@ -29,7 +29,7 @@ effects = {
         ]
     },
 
-    "Red disco pulse": {
+    "Sleep Red disco pulse": {
         "length": 1,
         "trigger": "toggle",
         "loop": True,

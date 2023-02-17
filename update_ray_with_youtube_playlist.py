@@ -1,7 +1,6 @@
 import json
 import time
 import random
-import traceback
 
 import autogen
 import youtube_helpers
@@ -42,6 +41,7 @@ if __name__ == '__main__':
                     os.mkdir(dest_path)
 
             filepath = youtube_helpers.download_youtube_url(url=url, dest_path=dest_path, codec='mp3')
+            print_green(f'Downloaded file to "{filepath}", {filepath.exists()=}')
             # generate_rekordbox_effects.generate_rekordbox_effect(filepath)
             src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True)
             rekordbox_effects_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
@@ -50,10 +50,13 @@ if __name__ == '__main__':
             _, _, effect_filepath2 = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode='lasers', output_directory=rekordbox_effects_directory, src_bpm_offset_cache=src_bpm_offset_cache)
 
             try:
-                generate_rekordbox_effects.ssh_to_doorbell(effect_filepath1)
-                generate_rekordbox_effects.ssh_to_doorbell(effect_filepath2)
+                remote_folder = pathlib.Path('/home/pi/light-show/effects/autogen_shows')
+                scp_to_doorbell(effect_filepath1, remote_folder)
+                scp_to_doorbell(effect_filepath2, remote_folder)
+                # generate_rekordbox_effects.ssh_to_doorbell(effect_filepath1)
+                # generate_rekordbox_effects.ssh_to_doorbell(effect_filepath2)
             except Exception as e:
-                print_red(f'{traceback.format_exc()}')
+                print_stacktrace()
                 print_yellow(f'Failed to ssh to doorbell, continuing...')
 
             urls_downloaded[url] = str(filepath)

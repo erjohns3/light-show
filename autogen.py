@@ -124,12 +124,29 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
-    # if is_windows():
-    #     song_filepath = sound_helpers.convert_to_wav(song_filepath)
+    if is_windows():
+        song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
-    src = aubio.source(str(song_filepath), 0, hop_s)
+    
+    try:
+        src = aubio.source(str(song_filepath), 0, hop_s)
+    except Exception as e:
+        import shutil
+        print_stacktrace()
+        print_yellow(f'failed to open {song_filepath}')
+        if not song_filepath.exists():
+            print_red(f'since file truly doesnt exist according to python raising again')
+            raise Exception('read above exception')
+
+        safe_name = [char if char.isascii() else '_' for char in song_filepath.name]
+        safe_filepath = get_temp_dir().joinpath(safe_name)
+        shutil.copy(song_filepath, safe_filepath)
+        print_yellow(f'moving "{song_filepath}" to safe path: "{safe_filepath}"')
+        song_filepath = safe_filepath
+        src = aubio.source(str(song_filepath), 0, hop_s)
+
     # print(src.uri, src.samplerate, src.channels, src.duration)
     o = aubio.tempo('default', win_s, hop_s, src.samplerate)
 

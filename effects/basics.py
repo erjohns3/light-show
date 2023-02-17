@@ -96,6 +96,12 @@ effects = {
             b(1, length=1, green_laser=-1000, red_laser=-1000),
         ],
     },
+    "Sidechain all but laser": {
+        "length": 1,
+        "beats": [
+            b(1, length=1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, disco_rgb=[-1000, -1000, -1000]),
+        ],
+    },
     "Sidechain motor": {
         "length": 1,
         "beats": [

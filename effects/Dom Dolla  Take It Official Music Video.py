@@ -61,8 +61,8 @@ effects = {
     "dom fade blue red bottom": {
         "length": 8,
         "beats": [
-            [1, "Blue bottom", .7, 1, 0],
-            [1.1, "Red bottom", .7, 0, 1],
+            b(1, name='Blue bottom', length=0.7, intensity=(1, 0)),
+            b(1.1, name='Red bottom', length=0.7, intensity=(0, 1)),
             b(1.8, name='Red bottom', length=7.2, intensity=(1, 0)),
         ],
     },

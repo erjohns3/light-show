@@ -126,8 +126,8 @@ effects = {
     "Autogen helper white top pulse 1": {
         "length": 4,
         "beats": [
-            [1, "White top", .4, 1, 0],
-            [3, "White top", .4, 1, 0],
+            [1, "White top", .4, .8, 0],
+            [3, "White top", .4, .8, 0],
         ],
     },
     "z_rainbow good top pulse 1": {

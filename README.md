@@ -22,7 +22,6 @@ Queue: http://YOUR_IP:9555
 Just copy either into your browser, and you'll be able to control the show from there.
 
 # TODO
-* join generated shows and rekordbox shows
 * check that --speed .5 follows --delay .189
 * cubic bezier for custom curves
 * label intensity of some lights and cleanup

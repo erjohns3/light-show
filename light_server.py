@@ -1256,18 +1256,19 @@ def compile_all_luts_from_effects_config():
     if args.show:
         effects_config_to_compile[args.show] = effects_config[args.show]
 
-    for name, effect in effects_config.items():
-        set_effect_defaults(name, effect)
+    for effect_name, effect in effects_config.items():
+        set_effect_defaults(effect_name, effect)
 
-        # if not name.startswith('g_lasers_'):
+        # if not effect_name.startswith('g_lasers_'):
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
-            if 'Generated Shows' in effect['profiles']:
-                continue
-            
-            effects_config_client[name] = {}
+            # !TODO adding here fixes the dj client, but it's needed for the queue
+            # if 'Generated Shows' in effect['profiles']:
+            #     continue
+
+            effects_config_client[effect_name] = {}
             for key, value in effect.items():
                 if key != 'beats':
-                    effects_config_client[name][key] = value
+                    effects_config_client[effect_name][key] = value
 
     # TODO andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():

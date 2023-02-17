@@ -95,6 +95,11 @@
             if(msg.effects){
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
+                    // !TODO this is ugly, just dont send...
+                    if (effect_name.startsWith('g_')) {
+                        continue
+                    }
+
                     if(!(effect_name in buttons)){
                         buttons[effect_name] = {};
                         // console.log(effect_name)

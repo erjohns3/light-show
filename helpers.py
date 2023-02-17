@@ -76,6 +76,23 @@ def get_ray_directory():
     else:
         print_red('doesnt know how contact ray_directory')
 
+
+def start_http_server_blocking(port, filepath_to_serve):
+    import http.server
+    import socketserver
+
+    Handler = http.server.SimpleHTTPRequestHandler
+    os.chdir(filepath_to_serve)
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
+        httpd.serve_forever()
+
+
+def start_http_server_async(port, filepath_to_serve):
+    import threading
+    threading.Thread(target=start_http_server_blocking, args=(port, filepath_to_serve,)).start()
+
+
 nas_is_active_andrew = False
 def get_nas_directory():
     global nas_is_active_andrew
@@ -93,11 +110,6 @@ def get_nas_directory():
             print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
     else:
         print_red('doesnt know how contact nas_directory')
-
-
-def is_python_32_bit():
-    import sys
-    return sys.maxsize > 2**32
 
 
 def get_stack_trace() -> str:

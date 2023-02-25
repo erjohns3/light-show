@@ -848,6 +848,7 @@ async def light():
         if download_thread is not None:
             if not download_thread.is_alive():
                 await send_config()
+                await send_song_status()
                 download_thread = None
         elif download_queue:
             url, uuid = download_queue.pop(0)

@@ -559,19 +559,19 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
-async def send_config():
-    dj_message = {
-        'effects': effects_config_dj_client,
-        'songs': songs_config,
-    }
-    await broadcast(light_sockets, json.dumps(dj_message))
-
+async def send_client_queue_config():
     queue_message = {
         'effects': effects_config_queue_client,
         'songs': songs_config,
     }
     await broadcast(song_sockets, json.dumps(queue_message))
 
+async def send_client_dj_config():
+    dj_message = {
+        'effects': effects_config_dj_client,
+        'songs': songs_config,
+    }
+    await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
     global broadcast_light_status
@@ -852,7 +852,7 @@ async def light():
 
         if download_thread is not None:
             if not download_thread.is_alive():
-                await send_config()
+                await send_client_queue_config()
                 await send_song_status()
                 download_thread = None
         elif download_queue:

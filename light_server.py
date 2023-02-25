@@ -215,7 +215,7 @@ async def init_dj_client(websocket, path):
     print('DJ Client: made connection to new client')
 
     message = {
-        'effects': effects_config_client,
+        'effects': effects_config_dj_client,
         'songs': songs_config,
         'status': {
             'effects': curr_effects,
@@ -328,10 +328,10 @@ def download_song(url, uuid):
         compile_lut({show_name: show})
         print(f'created show for: {show_name}')
 
-        effects_config_client[show_name] = {}
+        effects_config_queue_client[show_name] = {}
         for key, value in show.items():
             if key != 'beats':
-                effects_config_client[show_name][key] = value
+                effects_config_queue_client[show_name][key] = value
 
         if not added and ((mode == None and not laser_mode) or mode == 'lasers'):
             added = True
@@ -347,7 +347,7 @@ async def init_queue_client(websocket, path):
 
     # this is a lot going over the wire, should we minimize?
     message = {
-        'effects': effects_config_client,
+        'effects': effects_config_queue_client,
         'songs': songs_config,
         'queue': song_queue,
         'users': users,
@@ -560,12 +560,17 @@ async def broadcast(sockets, msg):
             print(f'socket send failed. socket: {socket}', flush=True)
 
 async def send_config():
-    message = {
-        'effects': effects_config_client,
+    dj_message = {
+        'effects': effects_config_dj_client,
         'songs': songs_config,
     }
-    await broadcast(light_sockets, json.dumps(message))
-    await broadcast(song_sockets, json.dumps(message))
+    await broadcast(light_sockets, json.dumps(dj_message))
+
+    queue_message = {
+        'effects': effects_config_queue_client,
+        'songs': songs_config,
+    }
+    await broadcast(song_sockets, json.dumps(queue_message))
 
 
 async def send_light_status():
@@ -1016,7 +1021,8 @@ def setup_gpio():
 ################################################
 
 effects_config = {}
-effects_config_client = {}
+effects_config_dj_client = {}
+effects_config_queue_client = {}
 songs_config = {}
 song_name_to_show_names = {}
 
@@ -1170,11 +1176,12 @@ def prep_loaded_effects(effect_names):
 
 
 def load_effects_config_from_disk():
-    global effects_config, effects_config_client, graph, found, song_name_to_show_names
+    global effects_config, effects_config_queue_client, effects_config_dj_client, graph, found, song_name_to_show_names
     update_config_and_lut_time = time.time()
 
     effects_config = {}
-    effects_config_client = {}
+    effects_config_dj_client = {}
+    effects_config_queue_client = {}
 
     graph = {}
     found = {}
@@ -1271,14 +1278,16 @@ def compile_all_luts_from_effects_config():
         # if not effect_name.startswith('g_lasers_'):
         # print(effect_name)
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
-            # !TODO adding here fixes the dj client, but it's needed for the queue
-            # if 'Generated Shows' in effect['profiles']:
-            #     continue
+            effects_config_clients = [effects_config_dj_client, effects_config_queue_client]
+            # commenting this is a perf test
+            if 'Generated Shows' in effect['profiles']:
+                effects_config_clients = [effects_config_queue_client]
 
-            effects_config_client[effect_name] = {}
-            for key, value in effect.items():
-                if key != 'beats':
-                    effects_config_client[effect_name][key] = value
+            for effects_config_client in effects_config_clients:
+                effects_config_client[effect_name] = {}
+                for key, value in effect.items():
+                    if key != 'beats':
+                        effects_config_client[effect_name][key] = value
 
     # TODO andrew: replace with is_doorbell()
     if is_linux() and not is_andrews_main_computer():

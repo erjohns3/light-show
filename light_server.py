@@ -335,7 +335,8 @@ def download_song(url, uuid):
 
         if not added and ((mode == None and not laser_mode) or mode == 'lasers'):
             added = True
-            if 'song_path' in effect:
+            print(f'should be adding {show.get("song_path")}\n' * 10)
+            if 'song_path' in show:
                 print(f'Auto adding "{show_name}" to queue')
                 add_queue_balanced(show_name, uuid)
 

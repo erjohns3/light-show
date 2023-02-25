@@ -102,7 +102,10 @@ printed_http_info = False
         
 PORT = 9555
 try:
-    local_ip = socket.gethostbyname(socket.gethostname())
+    info = socket.gethostbyname_ex(socket.gethostname())
+    print(info)
+    local_ip = info[2][0]
+    # local_ip = socket.gethostbyname(socket.gethostname())
 except:
     local_ip = 'cant_resolve_hostbyname'
 
@@ -1144,10 +1147,14 @@ def prep_loaded_effects(effect_names):
         effect = effects_config[effect_name]
         if 'song_path' in effect:
             if effect['song_path'] in songs_config:
-                song_name = pathlib.Path(effect['song_path']).stem                    
+                song_name = pathlib.Path(effect['song_path']).stem              
                 if song_name not in song_name_to_show_names:
                     song_name_to_show_names[song_name] = []
                 song_name_to_show_names[song_name].append(effect_name)
+                if not effect_name.startswith('g_'):
+                    if 'profiles' not in effect:
+                        effect['profiles'] = []
+                    effect['profiles'].append('Shows')
                 # print(effect_name, song_name_to_show_names[song_name])
             elif effect.get('song_not_avaliable', True):
                 print_yellow(f'song not avaliable, effect_name: "{effect_name}", song_path "{effect["song_path"]}"')
@@ -1218,7 +1225,7 @@ def set_effect_defaults(name, effect):
     if 'profiles' not in effect:
         effect['profiles'] = []
     if effect.get('autogen') and 'Autogen effects' not in effect['profiles']:
-        effect['profiles'].append(['Autogen effects'])
+        effect['profiles'].append('Autogen effects')
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
     if 'song_path' in effect and effect['song_path'] in songs_config:
@@ -1260,6 +1267,7 @@ def compile_all_luts_from_effects_config():
         set_effect_defaults(effect_name, effect)
 
         # if not effect_name.startswith('g_lasers_'):
+        # print(effect_name)
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
             # !TODO adding here fixes the dj client, but it's needed for the queue
             # if 'Generated Shows' in effect['profiles']:

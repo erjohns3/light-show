@@ -83,10 +83,18 @@
             socket.close();
         }
 
+        profilePrecedence = {
+            'Andrew': 0,
+            'Eric': 1,
+            'Colors': 10,
+            'Autogen effects': 99999,
+            'Generated Shows': 100000,
+        }
+
         socket.onmessage = function (event) {
             // console.log("socket message");
             let msg = JSON.parse(event.data);
-            // console.log('Receiving:', msg);
+            console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -96,32 +104,35 @@
                 effectsConfig = msg.effects;
                 for(let effect_name in effectsConfig){
                     // !TODO this is ugly, just dont send...
-                    if (effect_name.startsWith('g_')) {
-                        continue
-                    }
+                    // if (effect_name.startsWith('g_')) {
+                    //     continue
+                    // }
 
                     if(!(effect_name in buttons)){
                         buttons[effect_name] = {};
-                        // console.log(effect_name)
-                        for(let profile_name of effectsConfig[effect_name].profiles){
-                            if(!(profile_name in profiles)){
-                                profiles[profile_name] = new ProfileItem(profile_name);
-                                profileList.append(profiles[profile_name]);
+                        for(let profileName of effectsConfig[effect_name].profiles){
+                            if(!(profileName in profiles)){
+                                profiles[profileName] = new ProfileItem(profileName, profilePrecedence[profileName] ?? 1000);
 
-                                buttonTables[profile_name] = new ButtonTable(profile_name);
-                                buttonTableWrapper.append(buttonTables[profile_name]);
+                                buttonTables[profileName] = new ButtonTable(profileName);
+                                buttonTableWrapper.append(buttonTables[profileName]);
 
                                 if(!activeProfile){
-                                    profiles[profile_name].activate();
+                                    profiles[profileName].activate();
                                 }
                             }
-                            if(!(profile_name in buttons[effect_name])){
-                                buttons[effect_name][profile_name] = new ButtonItem(effect_name, profile_name);
-                                buttonTables[profile_name].append(buttons[effect_name][profile_name]);
-                                buttonTables[profile_name].addButton();
+                            if(!(profileName in buttons[effect_name])){
+                                buttons[effect_name][profileName] = new ButtonItem(effect_name, profileName);
+                                buttonTables[profileName].append(buttons[effect_name][profileName]);
+                                buttonTables[profileName].addButton();
                             }
                         }
                     }
+                }
+                profilesArray = Object.values(profiles);
+                profilesArray.sort((a, b) => a.prescendence - b.prescendence);
+                for (let profile of profilesArray) {
+                    profileList.append(profile);
                 }
             }
 
@@ -252,15 +263,17 @@
 
 
     class ProfileItem extends HTMLElement {
-        constructor(profile) {
+        constructor(profileName, prescendence) {
             super();
 
             this.appendChild(templateProfileItem.content.cloneNode(true));
 
-            this.profile = profile;
+            this.profileName = profileName;
+
+            this.prescendence = prescendence;
 
             this.nameElem = this.querySelector(".profile-name");
-            this.nameElem.textContent = this.profile;
+            this.nameElem.textContent = this.profileName;
 
             this.playingElem = this.querySelector(".profile-playing");
 
@@ -305,8 +318,8 @@
             if(!this.active){
                 this.classList.add('profile-item-active');
                 this.active = true;
-                buttonTables[this.profile].show();
-                activeProfile = this.profile;
+                buttonTables[this.profileName].show();
+                activeProfile = this.profileName;
             }
         }
 
@@ -314,7 +327,7 @@
             if(this.active){
                 this.classList.remove('profile-item-active');
                 this.active = false;
-                buttonTables[this.profile].hide();
+                buttonTables[this.profileName].hide();
                 activeProfile = null;
             }
         }

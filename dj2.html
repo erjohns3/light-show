@@ -12,7 +12,7 @@
 
 <body tabindex="-1">
 
-    <template id="template-button-item">
+    <template id="template-effect-button">
         <div class="button-symbol"></div>
         <div class="button-name"></div>
         <div class="button-bpm"></div>
@@ -21,7 +21,7 @@
         <div class="button-trigger"></div>
     </template>
 
-    <template id="template-profile-item">
+    <template id="template-profile-button">
         <div class="profile-name"></div>
         <div class="profile-playing"></div>
     </template>
@@ -29,9 +29,9 @@
     <div id="background">
     </div>
 
-    <div id="profile-list"></div>
+    <div id="profile-box"></div>
 
-    <div id="button-table-wrapper">
+    <div id="effects-box">
     </div>
     <div id="page-up" class="button">Up</div>
     <div id="page-label">0/0</div>
@@ -93,52 +93,68 @@
             }
 
             if(msg.effects){
-                effectsConfig = msg.effects;
-                for(let effect_name in effectsConfig){
-                    // !TODO this is ugly, just dont send...
-                    if (effect_name.startsWith('g_')) {
-                        continue
-                    }
+                if(Object.keys(effectsConfig).length === 0){
+                    effectsConfig = msg.effects;
+                    for(let effectName in effectsConfig){
+                        // !TODO this is ugly, just dont send...
+                        // if (effectName.startsWith('g_')) {
+                        //     continue
+                        // }
 
-                    if(!(effect_name in buttons)){
-                        buttons[effect_name] = {};
-                        // console.log(effect_name)
-                        for(let profile_name of effectsConfig[effect_name].profiles){
-                            if(!(profile_name in profiles)){
-                                profiles[profile_name] = new ProfileItem(profile_name);
-                                profileList.append(profiles[profile_name]);
-
-                                buttonTables[profile_name] = new ButtonTable(profile_name);
-                                buttonTableWrapper.append(buttonTables[profile_name]);
-
-                                if(!activeProfile){
-                                    profiles[profile_name].activate();
-                                }
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            if(!(profileName in profileButtons)){
+                                profileButtons[profileName] = new ProfileButton(profileName, profileOrder[profileName] ?? 1000);
+                                profileEffects[profileName] = [];
+                                effectButtonIndex[profileName] = {};
+                                profileEffectsIndex[profileName] = 0;
                             }
-                            if(!(profile_name in buttons[effect_name])){
-                                buttons[effect_name][profile_name] = new ButtonItem(effect_name, profile_name);
-                                buttonTables[profile_name].append(buttons[effect_name][profile_name]);
-                                buttonTables[profile_name].addButton();
-                            }
+                            effectButtonIndex[profileName][effectName] = profileEffects[profileName].length;
+                            profileEffects[profileName].push(effectName);
                         }
                     }
+                    profilesArray = Object.values(profileButtons);
+                    profilesArray.sort((a, b) => a.prescendence - b.prescendence);
+                    for (let profile of profilesArray) {
+                        profileBox.append(profile);
+                    }
+                    profileBox.children[0].activate();
                 }
             }
 
             if(msg.status){
-                for(let effect_arr of effectsCurr){
-                    effect_name = effect_arr[0];
-                    for(let profile_name in buttons[effect_name]){
-                        buttons[effect_name][profile_name].deactivate();
+                let effectsPrev = effectsCurr;
+                effectsCurr = {};
+                for(let effectArr of msg.status.effects){
+                    effectName = effectArr[0];
+                    effectsCurr[effectName] = true;
+                }
+                for(effectName in effectsPrev){
+                    if(effectsCurr[effectName] == null){
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            profileButtons[profileName].decreasePlaying();
+                            if(profileName == activeProfile){
+                                let index = effectButtonIndex[activeProfile][effectName];
+                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                    effectButtons[index % 25].deactivate();
+                                }
+                            }
+                        }
                     }
                 }
-                effectsCurr = msg.status.effects;
-                for(let effect_arr of effectsCurr){
-                    effect_name = effect_arr[0];
-                    for(let profile_name in buttons[effect_name]){
-                        buttons[effect_name][profile_name].activate();
+                for(let effectName in effectsCurr){
+                    if(effectsPrev[effectName] == null){
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            profileButtons[profileName].increasePlaying();
+                            if(profileName == activeProfile){
+                                let index = effectButtonIndex[activeProfile][effectName];
+                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                    effectButtons[index % 25].activate();
+                                }
+                            }
+                        }
                     }
                 }
+                
 
                 if ('laser_mode' in msg.status) {
                     if (msg.status.laser_mode){
@@ -161,46 +177,21 @@
 
     /////////////////////////////////////////////////////////////////////
 
-    class ButtonItem extends HTMLElement {
-        constructor(effect, profile) {
+    class EffectButton extends HTMLElement {
+        constructor() {
             super();
 
-            this.appendChild(templateButtonItem.content.cloneNode(true));
+            this.appendChild(templateEffectButton.content.cloneNode(true));
 
-            this.effect = effect;
-            this.profile = profile;
-
-            this.trigger = effectsConfig[this.effect].trigger;
-            this.toggle = this.trigger == "toggle";
-            this.hold = this.trigger == "hold";
-            this.add = this.trigger == "add";
-
-            this.length = effectsConfig[this.effect].length;
-            this.bpm = effectsConfig[this.effect].bpm;
-
-            if('song_path' in effectsConfig[this.effect] && effectsConfig[this.effect].song_path in songsConfig) {
-                this.querySelector(".button-name").textContent = songsConfig[effectsConfig[this.effect].song_path].name;
-                this.querySelector(".button-symbol").textContent = '♫';
-            }
-            else {
-                this.querySelector(".button-name").textContent = this.effect;
-            }
-            this.querySelector(".button-length").textContent = decimal(this.length, 2);
-            this.querySelector(".button-trigger").textContent = this.trigger;
-            if(effectsConfig[this.effect].loop){
-                this.querySelector(".button-loop").textContent = "∞";
-            }
-            if(effectsConfig[this.effect].bpm){
-                this.querySelector(".button-bpm").textContent = this.bpm + " bpm";
-            }
-
-            let index = buttonTables[this.profile].buttonCount;
-            this.style.top = (Math.floor(index / 5) * 20) + "%";
-            this.style.left = ((index % 5) * 20) + "%";
-
+            this.nameElem = this.querySelector('.button-name');
+            this.durationElem = this.querySelector('.button-length');
+            this.triggerElem = this.querySelector('.button-trigger');
+            this.bpmElem = this.querySelector('.button-bpm');
+            this.loopElem = this.querySelector('.button-loop');
+            
             this.active = false;
+            this.pressed = false;
 
-            // if (window.matchMedia("(min-width: 1024px)").matches) {
             if (navigator.userAgent.includes('Mobi')) {
                 this.addEventListener('touchstart', this.press, {passive: true});
                 this.addEventListener('touchend', this.release, {passive: true});            
@@ -210,8 +201,44 @@
             }
         }
 
+        changeEffect(effect){
+            this.release();
+            this.deactivate();
+            if(effect == null){
+                this.style.visibility = 'hidden';
+            }else{
+                this.style.visibility = 'visible';
+                this.effect = effect;
+
+                if(effectsCurr[this.effect]){
+                    this.activate();
+                }
+
+                this.trigger = effectsConfig[this.effect].trigger;
+                this.toggle = this.trigger == 'toggle';
+                this.hold = this.trigger == 'hold';
+                this.add = this.trigger == 'add';
+
+                if(effectsConfig[this.effect].loop){
+                    this.loopElem.textContent = '∞';
+                }
+                if(effectsConfig[this.effect].bpm){
+                    this.bpmElem.textContent = effectsConfig[this.effect].bpm + ' bpm';
+                }
+
+                if('song_path' in effectsConfig[this.effect] && effectsConfig[this.effect].song_path in songsConfig) {
+                    this.nameElem.textContent = songsConfig[effectsConfig[this.effect].song_path].name;
+                }else {
+                    this.nameElem.textContent = this.effect;
+                }
+                this.durationElem.textContent = decimal(effectsConfig[this.effect].length, 2);
+                this.triggerElem.textContent = this.trigger;
+            }
+        }
+
         press(event){
             // event.preventDefault();
+            this.pressed = true;
             if(this.toggle){
                 if(this.active){
                     removeEffect(this.effect);
@@ -221,48 +248,51 @@
             }else{
                 addEffect(this.effect);
             }
-            this.classList.add('button-item-pressed');
+            this.classList.add('effect-button-pressed');
         }
 
         release(event){
             // event.preventDefault();
-            if(this.hold){
-                removeEffect(this.effect);
+            if(this.pressed){
+                this.pressed = false;
+                if(this.hold){
+                    removeEffect(this.effect);
+                }
+                this.classList.remove('effect-button-pressed');
             }
-            this.classList.remove('button-item-pressed');
         }
 
         activate(){
             if(!this.active){
-                this.classList.add('button-item-active');
+                this.classList.add('effect-button-active');
                 this.active = true;
-                profiles[this.profile].increasePlaying();
             }
         }
 
         deactivate(){
             if(this.active){
-                this.classList.remove('button-item-active');
+                this.classList.remove('effect-button-active');
                 this.active = false;
-                profiles[this.profile].decreasePlaying();
             }
         }
     }
-    customElements.define('button-item', ButtonItem);
+    customElements.define('effect-button', EffectButton);
 
 
-    class ProfileItem extends HTMLElement {
-        constructor(profile) {
+    class ProfileButton extends HTMLElement {
+        constructor(profileName, prescendence) {
             super();
 
-            this.appendChild(templateProfileItem.content.cloneNode(true));
+            this.appendChild(templateProfileButton.content.cloneNode(true));
 
-            this.profile = profile;
+            this.profileName = profileName;
 
-            this.nameElem = this.querySelector(".profile-name");
-            this.nameElem.textContent = this.profile;
+            this.prescendence = prescendence;
 
-            this.playingElem = this.querySelector(".profile-playing");
+            this.nameElem = this.querySelector('.profile-name');
+            this.nameElem.textContent = this.profileName;
+
+            this.playingElem = this.querySelector('.profile-playing');
 
             this.active = false;
 
@@ -270,14 +300,14 @@
 
             this.onclick = function (event) {
                 event.preventDefault();
-                profiles[activeProfile].deactivate();
+                profileButtons[activeProfile].deactivate();
                 this.activate();
             };
         }
 
         setPlaying(){
             if(this.playing == 0){
-                this.playingElem.textContent = "";
+                this.playingElem.textContent = '';
             }else{
                 this.playingElem.textContent = this.playing;
             }
@@ -286,7 +316,7 @@
         increasePlaying(){
             this.playing++;
             if(this.playing == 0){
-                this.playingElem.textContent = "";
+                this.playingElem.textContent = '';
             }else{
                 this.playingElem.textContent = this.playing;
             }
@@ -295,7 +325,7 @@
         decreasePlaying(){
             this.playing--;
             if(this.playing == 0){
-                this.playingElem.textContent = "";
+                this.playingElem.textContent = '';
             }else{
                 this.playingElem.textContent = this.playing;
             }
@@ -303,79 +333,27 @@
 
         activate(){
             if(!this.active){
-                this.classList.add('profile-item-active');
+                this.classList.add('profile-button-active');
                 this.active = true;
-                buttonTables[this.profile].show();
-                activeProfile = this.profile;
+                activeProfile = this.profileName;
+                pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+                effectsBox.style.animation = 'activate-start 100ms ease-in';
             }
         }
 
         deactivate(){
             if(this.active){
-                this.classList.remove('profile-item-active');
+                this.classList.remove('profile-button-active');
                 this.active = false;
-                buttonTables[this.profile].hide();
                 activeProfile = null;
             }
         }
     }
-    customElements.define('profile-item', ProfileItem);
-
-
-    class ButtonTable extends HTMLElement {
-        constructor(profile) {
-            super();
-
-            this.profile = profile;
-            this.page = 0;
-            this.pageCount = 0;
-            this.buttonCount = 0;
-            this.active = false;
-        }
-
-        show(){
-            this.classList.add("button-table-active");
-            this.active = true;
-            this.label();
-        }
-
-        hide(){
-            this.classList.remove("button-table-active");
-            this.active = false;
-        }
-
-        addButton(){
-            this.buttonCount++;
-            this.pageCount = Math.ceil(this.buttonCount / 25);
-            this.label();
-        }
-
-        up(){
-            this.page = Math.max(this.page-1, 0);
-            this.scroll();
-        }
-
-        down(){
-            this.page = Math.min(this.page+1, this.pageCount-1);
-            this.scroll();
-        }
-
-        scroll(){
-            this.style.transform = "translateY(calc(" + this.page + " * (-100%)))";
-            this.label();
-        }
-
-        label(){
-            if(this.active){
-                pageLabelElem.textContent = this.page+1 + "/" + this.pageCount;
-            }
-        }
-    }
-    customElements.define('button-table', ButtonTable);
+    customElements.define('profile-button', ProfileButton);
 
     function addEffect(effect){
         let msg = {
-            type: "add_effect",
+            type: 'add_effect',
             effect: effect
         };
         socket.send(JSON.stringify(msg));
@@ -384,7 +362,7 @@
 
     function removeEffect(effect){
         let msg = {
-            type: "remove_effect",
+            type: 'remove_effect',
             effect: effect
         };
         socket.send(JSON.stringify(msg));
@@ -393,7 +371,7 @@
 
     function sendToggleLaserMode(){
         let msg = {
-            type: "toggle_laser_mode",
+            type: 'toggle_laser_mode',
         };
         socket.send(JSON.stringify(msg));
         // console.log('Sending:', msg);
@@ -401,7 +379,7 @@
 
     function sendUpdate(){
         let msg = {
-            type: "update_config"
+            type: 'update_config'
         };
         socket.send(JSON.stringify(msg));
         // console.log('Sending:', msg);
@@ -409,7 +387,7 @@
 
     function sendClear(){
         let msg = {
-            type: "clear_effects"
+            type: 'clear_effects'
         };
         socket.send(JSON.stringify(msg));
         // console.log('Sending:', msg);
@@ -417,7 +395,7 @@
 
     function sendDevMode(){
         let msg = {
-            type: "toggle_dev_mode",
+            type: 'toggle_dev_mode',
         };
         socket.send(JSON.stringify(msg));
         // console.log('Sending:', msg);
@@ -432,52 +410,102 @@
 
         let array = new Uint8Array(16);
         self.crypto.getRandomValues(array);
-        var uuid = "";
+        var uuid = '';
         for (let i = 0; i < 16; i++) {
             if (i == 4 || i == 6 || i == 8 || i == 10) {
-                uuid += "-";
+                uuid += '-';
             }
             uuid += array[i].toString(16);
         };
 
         localStorage.setItem('uuid', uuid)
-        console.log("new user: " + uuid);
+        console.log('new user: ' + uuid);
     }
-    console.log("----UUID----")
+    console.log('----UUID----')
     console.log(uuid);
+
+    var profileOrder = {
+        'Andrew': 0,
+        'Eric': 1,
+        'Colors': 10,
+        'Autogen effects': 99999,
+        'Generated Shows': 100000,
+    }
 
     var effectsConfig = {};
     var songsConfig = {};
     
-    var buttons = {};
-    var profiles = {};
-    var buttonTables = {};
+    var effectButtons = [];
+    var profileButtons = {};
 
-    var profileList = document.getElementById("profile-list");
-    var buttonTableWrapper = document.getElementById("button-table-wrapper");
+    var profileEffects = {};
 
-    var templateButtonItem = document.getElementById("template-button-item");
-    var templateProfileItem = document.getElementById("template-profile-item");
+    var effectButtonIndex = {};
 
-    var effectsCurr = [];
+    var profileBox = document.getElementById('profile-box');
+    var effectsBox = document.getElementById('effects-box');
+    effectsBox.addEventListener('animationend', (event)=>{
+        console.log(event);
+        if(event.animationName == 'activate-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'activate-end 100ms ease-out';
+        }else if(event.animationName == 'up-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'up-end 100ms ease-out';
+        }else if(event.animationName == 'down-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'down-end 100ms ease-out';
+        }
+    });
+
+    var templateEffectButton = document.getElementById('template-effect-button');
+    var templateProfileButton = document.getElementById('template-profile-button');
+
+    var effectsCurr = {};
     var activeProfile = null;
 
-    var pageUpElem = document.getElementById("page-up");
-    var pageLabelElem = document.getElementById("page-label");
-    var pageDownElem = document.getElementById("page-down");
+    for(let i=0; i<25; i++){
+        effectButtons[i] = new EffectButton();
+        effectsBox.append(effectButtons[i]);
+    }
+
+    function updateEffectButtons(){
+        for(let i=0; i<25; i++){
+            let index = i + profileEffectsIndex[activeProfile]
+            if(i < profileEffects[activeProfile].length){
+                effectButtons[i].changeEffect(profileEffects[activeProfile][index]);
+            }else{
+                effectButtons[i].changeEffect(null);
+            }
+        }
+    }
+
+    var profileEffectsIndex = {};
+
+    var pageUpElem = document.getElementById('page-up');
+    var pageLabelElem = document.getElementById('page-label');
+    var pageDownElem = document.getElementById('page-down');
 
     pageUpElem.onclick = function(){
-        buttonTables[activeProfile].up();
+        if(profileEffectsIndex[activeProfile] - 25 >= 0){
+            profileEffectsIndex[activeProfile] -= 25;
+            effectsBox.style.animation = 'up-start 100ms ease-in';
+            pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+        }
     }
 
     pageDownElem.onclick = function(){
-        buttonTables[activeProfile].down();
+        if(profileEffectsIndex[activeProfile] + 25 < profileEffects[activeProfile].length){
+            profileEffectsIndex[activeProfile] += 25;
+            effectsBox.style.animation = 'down-start 100ms ease-in';
+            pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+        }
     }
 
-    var refreshElem = document.getElementById("refresh");
-    var laserModeElem = document.getElementById("laser-mode");
-    var clearElem = document.getElementById("clear");
-    var devModeElem = document.getElementById("dev-mode");
+    var refreshElem = document.getElementById('refresh');
+    var laserModeElem = document.getElementById('laser-mode');
+    var clearElem = document.getElementById('clear');
+    var devModeElem = document.getElementById('dev-mode');
 
     function decimal(num, place) {
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
@@ -512,19 +540,19 @@
         'hsl(320, 100%, 20%)'
     ];
 
-    var background = document.getElementById("background");
+    var background = document.getElementById('background');
     var flareSize = 0;
 
     window.onload = (event) => {
         flareSize = window.innerWidth * 0.6;
         for(let i=0; i<16; i++){
-            let flare = document.createElement("div");
+            let flare = document.createElement('div');
             flare.classList.add('flare');
-            flare.style.width = flareSize+"px";
-            flare.style.height = flareSize+"px";
-            flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+"px";
-            flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+"px";
-            flare.style.setProperty("box-shadow", "0 "+flareSize*2+"px "+flareSize*0.5+"px " + flareColors[Math.floor(Math.random()*flareColors.length)]);
+            flare.style.width = flareSize+'px';
+            flare.style.height = flareSize+'px';
+            flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+'px';
+            flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+'px';
+            flare.style.setProperty('box-shadow', '0 '+flareSize*2+'px '+flareSize*0.5+'px ' + flareColors[Math.floor(Math.random()*flareColors.length)]);
             background.appendChild(flare);
         }
 
@@ -567,7 +595,7 @@
         border-radius: 100%;
     }
 
-    #profile-list{
+    #profile-box{
         position: absolute;
         width: 20vw;
         height: 70vh;
@@ -575,7 +603,7 @@
         overflow-x: hidden;
     }
 
-    profile-item{
+    profile-button{
         position: relative;
         height: 10vh;
         margin: 0.5vw;
@@ -584,12 +612,12 @@
         background-color: hsla(0, 0%, 0%, 0.5);
     }
 
-    profile-item:active{
+    profile-button:active{
         opacity: 0.5;
         transform: scale(0.97);
     }
 
-    .profile-item-active{
+    .profile-button-active{
         background-color: hsla(0, 0%, 50%, 0.5);
     }
 
@@ -613,13 +641,17 @@
         font-weight: bold;
     }
 
-    #button-table-wrapper{
+    #effects-box{
         position: absolute;
+        padding: 0.25vw;
+        box-sizing: border-box;
         top: 0;
         right: 6vw;
         width: 74vw;
         height: 100%;
         overflow: hidden;
+        animation-duration: 100ms;
+        animation-fill-mode: both;
     }
 
     #page-up{
@@ -666,43 +698,51 @@
         background-color: hsla(120, 100%, 40%, 0.5);
     }
 
-    button-table{
-        visibility: hidden;
-        opacity: 0;
-        position: absolute;
-        left: 0.5vw;
-        top: 0.5vw;
-        width: calc(100% - 0.5vw);
-        height: calc(100% - 0.5vw);
-        transition: transform 250ms, opacity 250ms linear, visibility 250ms linear;
-        will-change: transform, opacity, visibilty;
+    @keyframes activate-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(0.9) translateY(0)}
     }
 
-    .button-table-active{
-        visibility: visible;
-        opacity: 1;
+    @keyframes activate-end{
+        0% {opacity: 0; transform: scale(0.9) translateY(0)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
     }
 
-    @keyframes wipe{
-        0% {opacity: 0; display: none;}
-        90% {opacity: 0.9; display: none;}
-        100% {opacity: 1; display: block;}
+    @keyframes down-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(1) translateY(-50vh)}
     }
 
-    button-item {
-        position: absolute;
+    @keyframes down-end{
+        0% {opacity: 0; transform: scale(1) translateY(50vh)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
+    }
+
+    @keyframes up-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(1) translateY(50vh)}
+    }
+
+    @keyframes up-end{
+        0% {opacity: 0; transform: scale(1) translateY(-50vh)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
+    }
+
+    effect-button {
         width: calc(20% - 0.5vw);
         height: calc(20% - 0.5vw);
         border-radius: 0.5vw;
         background-color: hsla(0, 0%, 0%, 0.5);
         will-change: transform;
+        display: inline-block;
+        margin: 0.25vw;
     }
 
-    .button-item-active{
+    .effect-button-active{
         background-color: hsla(0, 0%, 50%, 0.5);
     }
 
-    .button-item-pressed{
+    .effect-button-pressed{
         background-color: hsla(220, 100%, 50%, 0.5);
         transform: scale(0.97);
     }

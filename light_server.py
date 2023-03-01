@@ -654,6 +654,7 @@ async def render_to_terminal(all_levels):
     while not printed_http_info:
         time.sleep(.01)
 
+
     curr_beat = (beat_index / SUB_BEATS) + 1
     terminal_size = os.get_terminal_size().columns
     dead_space = terminal_size - 15
@@ -694,7 +695,7 @@ Beat {curr_beat:.1f}\
     chars_until_end_of_line = terminal_size - size_of_current_line
     useful_info += ' ' * chars_until_end_of_line
 
-    levels_255 = list(map(lambda x: int((x / max_num) * 255), all_levels))
+    levels_255 = list(map(lambda x: int(x * 255), all_levels))
 
 
     top_front_values = levels_255[0:3]
@@ -847,7 +848,7 @@ async def light():
             level_between_0_and_1 = level_bounded / 100
             
             # gamma curve
-            # level_scaled = round(pow(level_between_0_and_1, 2.2) * 100)
+            level_scaled = round(pow(level_between_0_and_1, 2.2) * 100)
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:

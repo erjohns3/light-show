@@ -848,7 +848,7 @@ async def light():
             level_between_0_and_1 = level_bounded / 100
             
             # gamma curve
-            level_scaled = round(pow(level_between_0_and_1, 2.2) * 100)
+            # level_scaled = round(pow(level_between_0_and_1, 2.2) * 100)
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:

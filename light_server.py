@@ -1281,7 +1281,7 @@ def compile_all_luts_from_effects_config():
         # print(effect_name)
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
             effects_config_clients = [effects_config_dj_client, effects_config_queue_client]
-            # commenting this is a perf test
+            # commenting this is a perf test, comment to slow down the dj client
             if 'Generated Shows' in effect['profiles']:
                 effects_config_clients = [effects_config_queue_client]
 

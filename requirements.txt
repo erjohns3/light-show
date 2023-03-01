@@ -13,4 +13,5 @@ scipy
 pandas
 tqdm
 watchdog
+pigpio
 git+https://github.com/aubio/aubio.git

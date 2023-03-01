@@ -13,6 +13,8 @@ import colorsys
 import random
 import traceback
 import sys
+import pigpio
+
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
@@ -61,10 +63,15 @@ args = parser.parse_args()
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
-pca = None
+pi = None
+
+LED_PINS = [14, 15, 18, 23, 24, 25, 8, 7, 12, 16, 2, 3, 4, 17, 27, 22]
+
+LED_FREQ = 500
+LED_RANGE = 200000 // LED_FREQ
 
 SUB_BEATS = 24
-LIGHT_COUNT = 16
+LIGHT_COUNT = len(LED_PINS)
 
 curr_effects = []
 song_queue = []
@@ -88,7 +95,6 @@ broadcast_song_status = False
 download_queue, search_queue = [], []
 
 printed_http_info = False
-
 
 ########################################
 
@@ -837,18 +843,18 @@ async def light():
                     index = index % channel_lut[effect_name]['length']
                     level += channel_lut[effect_name]['beats'][index][i]                
 
-            level_bounded = max(0, min(0xFFFF, level * 0xFFFF / 100))
-            level_between_0_and_1 = level_bounded / 0xFFFF
+            level_bounded = max(0, min(100, level))
+            level_between_0_and_1 = level_bounded / 100
             
             # gamma curve
-            level_scaled = round(pow(level_between_0_and_1, 2.2) * 0xFFFF)
-            # level_scaled = round(level_bounded)
+            # level_scaled = round(pow(level_between_0_and_1, 2.2) * 100)
+            level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                await terminal(level_bounded, i)
+                await terminal(level_between_0_and_1, i)
             else:
-                pca.channels[i].duty_cycle = level_scaled
-
+                pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
+                # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
         if download_thread is not None:
             if not download_thread.is_alive():
@@ -996,26 +1002,21 @@ def stop_song():
 ######################################
 
 def setup_gpio():
-    global pca
-
+    global pi
     try:
-        import board
+        pi = pigpio.pi()
     except Exception as e:
         print_red(f'{traceback.format_exc()}')
         print_yellow(f'you need to add --local probably')        
         sys.exit()
 
-    
-    import busio
-    import adafruit_pca9685
+    if not pi.connected:
+        exit()
 
-    i2c = busio.I2C(board.SCL, board.SDA)
-    pca = adafruit_pca9685.PCA9685(i2c)
-
-    pca.frequency = 200
-
-    for i in range(len(pca.channels)):
-        pca.channels[i].duty_cycle = 0
+    for pin in LED_PINS:
+        pi.set_PWM_frequency(pin, LED_FREQ)
+        pi.set_PWM_range(pin, LED_RANGE)
+        pi.set_PWM_dutycycle(pin, 0)
 
 
 ################################################
@@ -1032,6 +1033,7 @@ graph = {}
 found = {}
 simple_effects = []
 complex_effects = []
+
 
 def effects_config_sort(path):
     curr = path[-1]
@@ -1476,8 +1478,8 @@ def signal_handler(sig, frame):
                 child.kill()
     if not args.local:
         threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
-        for i in range(len(pca.channels)):
-            pca.channels[i].duty_cycle = 0
+        for pin in LED_PINS:
+            pi.set_PWM_dutycycle(pin, 0)
     if args.reload:
         observer.stop()
         observer.join()

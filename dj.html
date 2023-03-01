@@ -88,7 +88,7 @@
         socket.onmessage = function (event) {
             // console.log("socket message");
             let msg = JSON.parse(event.data);
-            // console.log('Receiving:', msg);
+            console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -512,7 +512,7 @@
             pageUp();
             pageInterval = setInterval(()=>{
                 pageUp();
-            }, 150);
+            }, 200);
         }, {passive: true});
 
         pageUpElem.addEventListener('touchend', ()=>{
@@ -528,7 +528,7 @@
             pageDown();
             pageInterval = setInterval(()=>{
                 pageDown();
-            }, 150);
+            }, 200);
         }, {passive: true});
 
         pageDownElem.addEventListener('touchend', ()=>{
@@ -544,7 +544,7 @@
             pageUp();
             pageInterval = setInterval(()=>{
                 pageUp();
-            }, 150);
+            }, 250);
         }, {passive: true});
 
         pageUpElem.addEventListener('mouseup', ()=>{
@@ -556,7 +556,7 @@
             pageDown();
             pageInterval = setInterval(()=>{
                 pageDown();
-            }, 150);
+            }, 250);
         }, {passive: true});
 
         pageDownElem.addEventListener('mouseup', ()=>{

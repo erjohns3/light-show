@@ -130,16 +130,16 @@ def add_effect_from_dj(effect_name):
     global song_time, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
-    if has_song(effect_name):
-        song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
-        if not os.path.exists(song_path):
-            print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
-            return
-        if song_playing and len(song_queue) > 0:
-            song_queue.pop()
-        song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
-        play_song(effect_name)
-        broadcast_song_status = True
+    # if has_song(effect_name):
+    #     song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
+    #     if not os.path.exists(song_path):
+    #         print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
+    #         return
+    #     if song_playing and len(song_queue) > 0:
+    #         song_queue.pop()
+    #     song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
+    #     play_song(effect_name)
+    #     broadcast_song_status = True
 
 
 laser_mode = False
@@ -217,7 +217,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, song_time, broadcast_light_status, broadcast_song_status, laser_mode
+    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {

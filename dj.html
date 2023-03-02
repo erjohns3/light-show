@@ -26,9 +26,6 @@
         <div class="profile-playing"></div>
     </template>
 
-    <div id="background">
-    </div>
-
     <div id="profile-box"></div>
 
     <div id="effects-box">
@@ -40,9 +37,9 @@
     <div id="page-down" class="button">Dn</div>
 
     <div id="refresh" class="button">Refresh</div>
-    <div id="laser-mode" class="button">Laser Mode</div>
+    <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
-    <div id="dev-mode" class="button">Dev Mode</div>
+    <div id="dev-mode" class="button gray">Dev Mode</div>
 </body>
 
 <script>
@@ -125,54 +122,61 @@
             }
 
             if(msg.status){
-                let effectsPrev = effectsCurr;
-                effectsCurr = {};
-                for(let effectArr of msg.status.effects){
-                    effectName = effectArr[0];
-                    effectsCurr[effectName] = true;
-                }
-                for(effectName in effectsPrev){
-                    if(effectsCurr[effectName] == null){
-                        for(let profileName of effectsConfig[effectName].profiles){
-                            profileButtons[profileName].decreasePlaying();
-                            if(profileName == activeProfile){
-                                let index = effectButtonIndex[activeProfile][effectName];
-                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
-                                    effectButtons[activeTable][index % 25].deactivate();
+                if ('effects' in msg.status){
+                    let effectsPrev = effectsCurr;
+                    effectsCurr = {};
+                    for(let effectArr of msg.status.effects){
+                        effectName = effectArr[0];
+                        effectsCurr[effectName] = true;
+                    }
+                    for(effectName in effectsPrev){
+                        if(effectsCurr[effectName] == null && effectsConfig[effectName] != null){
+                            for(let profileName of effectsConfig[effectName].profiles){
+                                profileButtons[profileName].decreasePlaying();
+                                if(profileName == activeProfile){
+                                    let index = effectButtonIndex[activeProfile][effectName];
+                                    if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                        effectButtons[activeTable][index % 25].deactivate();
+                                    }
                                 }
                             }
                         }
                     }
-                }
-                for(let effectName in effectsCurr){
-                    if(effectsPrev[effectName] == null){
-                        for(let profileName of effectsConfig[effectName].profiles){
-                            profileButtons[profileName].increasePlaying();
-                            if(profileName == activeProfile){
-                                let index = effectButtonIndex[activeProfile][effectName];
-                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
-                                    effectButtons[activeTable][index % 25].activate();
+                    for(let effectName in effectsCurr){
+                        if(effectsPrev[effectName] == null && effectsConfig[effectName] != null){
+                            for(let profileName of effectsConfig[effectName].profiles){
+                                profileButtons[profileName].increasePlaying();
+                                if(profileName == activeProfile){
+                                    let index = effectButtonIndex[activeProfile][effectName];
+                                    if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                        effectButtons[activeTable][index % 25].activate();
+                                    }
                                 }
                             }
                         }
                     }
                 }
                 
-
                 if ('laser_mode' in msg.status) {
-                    if (msg.status.laser_mode){
-                        laserModeElem.classList.add('lighten-laser-mode')
-                    }
-                    else {
-                        laserModeElem.classList.remove('lighten-laser-mode')
+                    if(msg.status.laser_mode != laserMode){
+                        if (msg.status.laser_mode){
+                            laserModeElem.classList.remove('gray');
+                        } else {
+                            laserModeElem.classList.add('gray');
+                        }
+                        laserMode = msg.status.laser_mode;
                     }
                 }
 
-                if (msg.status.dev_mode) {
-                    devModeElem.classList.add('lighten-dev-mode')
-                }
-                else {
-                    devModeElem.classList.remove('lighten-dev-mode')
+                if ('dev_mode' in msg.status) {
+                    if(msg.status.dev_mode != devMode){
+                        if (msg.status.dev_mode) {
+                            devModeElem.classList.remove('gray');
+                        } else {
+                            devModeElem.classList.add('gray');
+                        }
+                        devMode = msg.status.dev_mode;
+                    }
                 }
             }
         }
@@ -339,8 +343,10 @@
                 activeProfile = this.profileName;
                 updateEffectButtons();
                 effectsTables[activeTable].style.animationName = 'curr-table-activate';
+                effectsTables[activeTable].style.zIndex = 2;
                 if(init){
                     effectsTables[1 - activeTable].style.animationName = 'prev-table-deactivate';
+                    effectsTables[1 - activeTable].style.zIndex = 1;
                 }
             }
         }
@@ -456,6 +462,9 @@
     var effectsCurr = {};
     var activeProfile = null;
     var activeTable = 0;
+
+    var devMode = false;
+    var laserMode = false;
 
     for(let i=0; i<2; i++){
         effectButtons[i] = [];
@@ -595,35 +604,37 @@
     //     return false;
     // };
 
-    var flareColors = [
-        'hsl(170, 100%, 20%)',
-        'hsl(220, 100%, 20%)',
+    var bokehColors = [
+        'hsl(150, 100%, 20%)',
+        'hsl(180, 100%, 20%)',
+        'hsl(210, 100%, 20%)',
+        'hsl(240, 100%, 20%)',
         'hsl(270, 100%, 20%)',
-        'hsl(320, 100%, 20%)'
+        'hsl(300, 100%, 20%)',
+        'hsl(330, 100%, 20%)'
     ];
 
-    var background = document.getElementById('background');
-    var flareSize = 0;
+    var bokehCount = 16;
+    let gradient = '';
+    for(let i=0; i<bokehCount; i++){
+        gradient += `radial-gradient(circle at ${Math.random()*100}vw ${Math.random()*100}vh, ${bokehColors[Math.floor(Math.random()*bokehColors.length)]}, transparent 50%)`;
+        if(i < bokehCount-1){
+            gradient += ', ';
+        }
+    }
+    document.body.style.background = gradient;
 
     window.onload = (event) => {
-        flareSize = window.innerWidth * 0.6;
-        for(let i=0; i<16; i++){
-            let flare = document.createElement('div');
-            flare.classList.add('flare');
-            flare.style.width = flareSize+'px';
-            flare.style.height = flareSize+'px';
-            flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+'px';
-            flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+'px';
-            flare.style.setProperty('box-shadow', '0 '+flareSize*2+'px '+flareSize*0.5+'px ' + flareColors[Math.floor(Math.random()*flareColors.length)]);
-            background.appendChild(flare);
-        }
-
         socketInit();
     };
 
 </script>
 
 <style>
+
+    html{
+        background-color: black;
+    }
 
     body {
         position: fixed;
@@ -641,28 +652,14 @@
         -webkit-user-select: none;
     }
 
-    #background{
-        position: absolute;
-        z-index: -1;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        height: 100%;
-        position: fixed;
-        background-color: black;
-    }
-
-    .flare{
-        position: absolute;
-        border-radius: 100%;
-    }
-
     #profile-box{
         position: absolute;
         width: 20vw;
         height: 70vh;
         overflow-y: auto;
         overflow-x: hidden;
+        scrollbar-color: hsla(0, 0%, 50%, 0.25) hsla(0, 0%, 0%, 0);
+        scrollbar-width: none;
     }
 
     profile-button{
@@ -721,7 +718,6 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        z-index: 0; 
         opacity: 0;
         transform: scale(0.9);
         animation-duration: 200ms;
@@ -740,7 +736,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(120, 100%, 40%, 0.5);
+        background-color: hsla(180, 100%, 40%, 0.5);
     }
 
     #page-label{
@@ -769,19 +765,19 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(120, 100%, 40%, 0.5);
+        background-color: hsla(180, 100%, 40%, 0.5);
     }
 
     @keyframes prev-table-deactivate{
-        0% {z-index: 2; opacity: 1; transform: scale(1)}
-        50% {z-index: 1; opacity: 0; transform: scale(0.9)}
-        100% {z-index: 1; opacity: 0; transform: scale(0.9)}
+        0% {opacity: 1; transform: scale(1)}
+        50% {opacity: 0; transform: scale(0.9)}
+        100% {opacity: 0; transform: scale(0.9)}
     }
 
     @keyframes curr-table-activate{
-        0% {z-index: 1; opacity: 0; transform: scale(0.9)}
-        50% {z-index: 2; opacity: 0; transform: scale(0.9)}
-        100% {z-index: 2; opacity: 1; transform: scale(1)}
+        0% {opacity: 0; transform: scale(0.9)}
+        50% {opacity: 0; transform: scale(0.9)}
+        100% {opacity: 1; transform: scale(1)}
     }
 
     @keyframes prev-table-up{
@@ -805,11 +801,11 @@
     }
 
     effect-button {
+        position: relative;
         width: calc(20% - 0.5vw);
         height: calc(20% - 0.5vw);
         border-radius: 0.5vw;
         background-color: hsla(0, 0%, 0%, 0.5);
-        will-change: transform;
         display: inline-block;
         margin: 0.25vw;
     }
@@ -892,11 +888,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(40, 100%, 40%, 0.5);
-    }
-
-    .lighten-laser-mode{
-        background-color: hsla(119, 100%, 40%, 0.5) !important;
+        background-color: hsla(210, 100%, 40%, 0.5);
     }
 
     #laser-mode{
@@ -912,9 +904,8 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(119, 100%, 20%, 0.5);
+        background-color: hsla(150, 100%, 40%, 0.5);
     }
-
 
     #clear{
         position: absolute;
@@ -928,11 +919,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(0, 100%, 40%, 0.5);
-    }
-
-    .lighten-dev-mode{
-        background-color: hsla(303, 100%, 40%, 0.5) !important;
+        background-color: hsla(330, 100%, 40%, 0.5);
     }
 
     #dev-mode{
@@ -947,7 +934,11 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        background-color: hsla(303, 100%, 14%, 0.5);
+        background-color: hsla(270, 100%, 40%, 0.5);
+    }
+
+    .gray{
+        opacity: 0.5;
     }
 
     .button:active{

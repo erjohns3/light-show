@@ -91,6 +91,7 @@ queue_salt = 0
 
 broadcast_light_status = False 
 broadcast_song_status = False
+broadcast_dev_status = False
 
 download_queue, search_queue = [], []
 
@@ -217,7 +218,7 @@ async def init_rekordbox_bridge_client(websocket, path):
 
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, laser_mode
+    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -274,6 +275,7 @@ async def init_dj_client(websocket, path):
                 else:
                     print(f'Turned dev mode on')
                     dev_sockets.append(websocket)
+                broadcast_dev_status = True
 
             elif msg['type'] == 'toggle_laser_mode':
                 laser_mode = not laser_mode
@@ -607,23 +609,33 @@ async def send_song_status():
 
 
 async def send_dev_status():
-    if not curr_effects:
-        return
-    print('sent dev status')
-
+    global broadcast_dev_status
     sub_effect_names = []
     for effect in curr_effects:
         sub_effect_names += get_sub_effect_names(effect[0], (beat_index / SUB_BEATS) + 1)
-    if not sub_effect_names:
-        return
 
     message = {
         'status': {
-            'effects': [[x, 0] for x in sub_effect_names],
+            'effects': [[x, 0] for x in sub_effect_names] + curr_effects,
             'dev_mode': True,
         }
     }
     await broadcast(dev_sockets, json.dumps(message))
+
+    if broadcast_dev_status:
+        tmp_sockets = []
+        for sock in light_sockets:
+            if sock not in dev_sockets:
+                tmp_sockets.append(sock)
+
+        message = {
+            'status': {
+                'effects': curr_effects,
+                'dev_mode': False,
+            }
+        }
+        await broadcast(tmp_sockets, json.dumps(message))
+        broadcast_dev_status = False
 
 
 ####################################
@@ -882,11 +894,11 @@ async def light():
         if broadcast_song_status:
             await send_song_status()
 
-        if dev_sockets and beat_index % SUB_BEATS == 0:
+        if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
             if args.print_beat and not args.local:
                 print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
-
+        
         time_diff = time.time() - time_start
 
         direction = 1 

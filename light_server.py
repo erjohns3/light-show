@@ -1512,6 +1512,12 @@ def fuzzy_find(search, collection):
 
 def restart_show(skip=0, abs_time=None, reload=False):
     global song_time
+    time_to_skip_to = max(0, (time.time() - time_start) + skip)
+    if abs_time is not None:
+        time_to_skip_to = abs_time
+    song_time = time_to_skip_to
+    print(f'skipping to {time_to_skip_to}')
+
     if curr_effects:
         effect_name = curr_effects[0][0]
         if not has_song(effect_name):
@@ -1519,11 +1525,6 @@ def restart_show(skip=0, abs_time=None, reload=False):
         remove_effect_index(0)
         
         stop_song()
-        time_to_skip_to = max(0, (time.time() - time_start) + skip)
-        if abs_time is not None:
-            time_to_skip_to = abs_time
-        song_time = time_to_skip_to
-        print(f'skipping to {time_to_skip_to}')
 
         if reload:
             print('RELOAD REFRESHING')

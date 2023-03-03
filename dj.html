@@ -608,11 +608,14 @@
 
     function paintBackground(){
         let background = document.getElementById('background');
-        let ctx = background.getContext("2d", { alpha: false });
-        let width = window.innerWidth;
-        let height = window.innerHeight;
+        let context = background.getContext("2d", { alpha: false });
+        let ratio = window.devicePixelRatio;
+        let width = window.innerWidth * ratio;
+        let height = window.innerHeight * ratio;
         background.width = width;
         background.height = height;
+
+        console.log(width);
 
         let size = Math.min(width, height) * 0.2;
         let bokehColor = [
@@ -630,49 +633,12 @@
             let x = (Math.random() * (width + (size*2))) - size;
             let y = (Math.random() * (height + (size*2))) - size;
             let color = bokehColor[Math.floor(Math.random()*bokehColor.length)];
-            let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
-            grd.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
-            grd.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
-            ctx.fillStyle = grd;
-            ctx.fillRect(0, 0, width, height);
+            let gradient = context.createRadialGradient(x, y, 0, x, y, size);
+            gradient.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
+            gradient.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, width, height);
         }
-
-        // bokehCount = 20;
-        // for(let i=0; i<bokehCount; i++){
-        //     let x = Math.random() * width;
-        //     let y = Math.random() * height;
-        //     let hue = bokehColor[Math.floor(Math.random()*bokehColor.length)];
-
-        //     let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
-        //     grd.addColorStop(0, `hsla(${hue}, 100%, 20%, 0.5)`);
-        //     grd.addColorStop(0.8, `hsla(${hue}, 100%, 20%, 0.5)`);
-        //     grd.addColorStop(0.9, `hsla(${hue}, 100%, 20%, 0.6)`);
-        //     grd.addColorStop(1, 'transparent');
-        //     ctx.fillStyle = grd;
-        //     ctx.fillRect(0,0,width,height);
-            
-        //     // x = 0.4 * width;
-        //     // y = 0.5 * height;
-        //     // let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
-        //     // grd.addColorStop(0, 'hsla(330, 100%, 50%, 0.5)');
-        //     // // grd.addColorStop(0.8, 'hsla(150, 100%, 50%, 0.5)');
-        //     // grd.addColorStop(0.9, 'hsla(330, 100%, 50%, 0.5)');
-        //     // grd.addColorStop(1, 'transparent');
-        //     // ctx.fillStyle = grd;
-        //     // ctx.fillRect(0,0,width,height);
-
-        //     // x = Math.random() * width;
-        //     // y = Math.random() * height;
-        //     // x = 0.6 * width;
-        //     // y = 0.5 * height;
-        //     // grd = ctx.createRadialGradient(x, y, 0, x, y, size);
-        //     // grd.addColorStop(0, 'hsla(210, 100%, 50%, 0.5)');
-        //     // // grd.addColorStop(0.8, 'hsla(150, 100%, 40%, 0.5)');
-        //     // grd.addColorStop(0.9, 'hsla(210, 100%, 50%, 0.5)');
-        //     // grd.addColorStop(1, 'transparent');
-        //     // ctx.fillStyle = grd;
-        //     // ctx.fillRect(0,0,width,height);
-        // }
     }
 
     paintBackground();

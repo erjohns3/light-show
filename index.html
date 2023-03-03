@@ -66,7 +66,15 @@
         <div id="seek-bar"></div>
         <input id="seek-input" type="range" min="0" max="1" step="any" defaultValue="0.5">
         <div id="seek-progress"></div>
-        <div id="play-control"></div>
+        <div id="play-control" class="button">
+            <svg id="play-icon" class="control-icon" viewBox="0 0 89 100">
+                <polygon points="10,10 10,90 79,50" />
+            </svg>
+            <svg id="pause-icon" class="control-icon" viewBox="0 0 100 100">
+                <line x1="15" y1="10" x2="15" y2="90"/>
+                <line x1="85" y1="10" x2="85" y2="90"/>
+            </svg>
+        </div>
     </div>
 
 </body>
@@ -202,22 +210,22 @@
                     }
                 }
 
-                if(queueConfig.length == 0){
-                    playButton.classList.add("gray");
-                }else{
-                    playButton.classList.remove("gray");
-                }
+                // if(queueConfig.length == 0){
+                //     playButton.classList.add("gray");
+                // }else{
+                //     playButton.classList.remove("gray");
+                // }
             }
 
             if(msg.status){
                 if(queuePlaying != msg.status.playing){
                     queuePlaying = msg.status.playing;
                     if(queuePlaying){
-                        playButton.classList.add("pause");
-                        playButton.classList.remove("play");
+                        pauseIcon.style.animationName = 'icon-show';
+                        playIcon.style.animationName = 'icon-hide';
                     }else{
-                        playButton.classList.add("play");
-                        playButton.classList.remove("pause");
+                        playIcon.style.animationName = 'icon-show';
+                        pauseIcon.style.animationName = 'icon-hide';
                     }
                 }
                 barAnimate = true;
@@ -532,7 +540,7 @@
 
     var queueArray = [];
     var queueKey = false;
-    var queuePlaying = null;
+    var queuePlaying = false;
     var currTime = 0;
 
     var availableTab = document.getElementById("available-tab");
@@ -639,6 +647,8 @@
     }
 
     var playButton = document.getElementById("play-control");
+    var playIcon = document.getElementById("play-icon");
+    var pauseIcon = document.getElementById("pause-icon");
     playButton.onclick = function(){
         if(queueConfig.length > 0){
             if(queuePlaying){
@@ -648,6 +658,9 @@
             }
         }
     }
+
+    playIcon.style.animationName = 'icon-show';
+    pauseIcon.style.animationName = 'icon-hide';
 
     for(let i=0; i<100; i++){
         let item = new QueueItem();
@@ -1297,17 +1310,47 @@
     }
 
     #play-control{
-        text-shadow: 0 0 0.5em;
-        top: calc(50% + 0.5vh);
-        left: 50%;
         position: absolute;
-        transform: translate(-50%, -50%);
-        border-style: solid;
+        top: 1vh;
+        left: 42vw;
+        height: 8vh;
+        width: 16vw;
     }
 
-    .play{
-        border-width: 3vh 0 3vh 6vh;
-        border-color: transparent transparent transparent hsl(120, 100%, 50%);
+    #play-icon{
+        stroke: hsl(120, 100%, 50%);
+        filter: drop-shadow(0 0 1vh hsl(120, 100%, 50%));
+    }
+
+    #pause-icon{
+        stroke: hsl(340, 100%, 50%);
+        filter: drop-shadow(0 0 1vh hsl(340, 100%, 50%));
+    }
+
+    .control-icon{
+        position: absolute;
+        display: block;
+        fill: transparent;
+        stroke-width: 1.5vh;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        animation-duration: 200ms;
+        animation-fill-mode: both;
+    }
+
+    @keyframes icon-show{
+        0% {opacity: 0}
+        50% {opacity: 0}
+        100% {opacity: 1}
+    }
+
+    @keyframes icon-hide{
+        0% {opacity: 1}
+        50% {opacity: 0}
+        100% {opacity: 0}
     }
 
     .pause{

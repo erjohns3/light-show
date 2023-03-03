@@ -26,6 +26,8 @@
         <div class="profile-playing"></div>
     </template>
 
+    <canvas id="background" width="200" height="200"></canvas>
+
     <div id="profile-box"></div>
 
     <div id="effects-box">
@@ -85,7 +87,7 @@
         socket.onmessage = function (event) {
             // console.log("socket message");
             let msg = JSON.parse(event.data);
-            console.log('Receiving:', msg);
+            // console.log('Receiving:', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;
@@ -604,25 +606,76 @@
     //     return false;
     // };
 
-    var bokehColors = [
-        'hsl(150, 100%, 20%)',
-        'hsl(180, 100%, 20%)',
-        'hsl(210, 100%, 20%)',
-        'hsl(240, 100%, 20%)',
-        'hsl(270, 100%, 20%)',
-        'hsl(300, 100%, 20%)',
-        'hsl(330, 100%, 20%)'
-    ];
+    function paintBackground(){
+        let background = document.getElementById('background');
+        let ctx = background.getContext("2d", { alpha: false });
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        background.width = width;
+        background.height = height;
 
-    var bokehCount = 16;
-    let gradient = '';
-    for(let i=0; i<bokehCount; i++){
-        gradient += `radial-gradient(circle at ${Math.random()*100}vw ${Math.random()*100}vh, ${bokehColors[Math.floor(Math.random()*bokehColors.length)]}, transparent 50%)`;
-        if(i < bokehCount-1){
-            gradient += ', ';
+        let size = Math.min(width, height) * 0.2;
+        let bokehColor = [
+            [150, 100, 30],
+            [180, 100, 30],
+            [210, 100, 30],
+            [240, 100, 30],
+            [270, 100, 30],
+            [300, 100, 30],
+            [330, 100, 30],
+        ];
+        let bokehCount = 1000;
+
+        for(let i=0; i<bokehCount; i++){
+            let x = (Math.random() * (width + (size*2))) - size;
+            let y = (Math.random() * (height + (size*2))) - size;
+            let color = bokehColor[Math.floor(Math.random()*bokehColor.length)];
+            let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
+            grd.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
+            grd.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
+            ctx.fillStyle = grd;
+            ctx.fillRect(0, 0, width, height);
         }
+
+        // bokehCount = 20;
+        // for(let i=0; i<bokehCount; i++){
+        //     let x = Math.random() * width;
+        //     let y = Math.random() * height;
+        //     let hue = bokehColor[Math.floor(Math.random()*bokehColor.length)];
+
+        //     let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
+        //     grd.addColorStop(0, `hsla(${hue}, 100%, 20%, 0.5)`);
+        //     grd.addColorStop(0.8, `hsla(${hue}, 100%, 20%, 0.5)`);
+        //     grd.addColorStop(0.9, `hsla(${hue}, 100%, 20%, 0.6)`);
+        //     grd.addColorStop(1, 'transparent');
+        //     ctx.fillStyle = grd;
+        //     ctx.fillRect(0,0,width,height);
+            
+        //     // x = 0.4 * width;
+        //     // y = 0.5 * height;
+        //     // let grd = ctx.createRadialGradient(x, y, 0, x, y, size);
+        //     // grd.addColorStop(0, 'hsla(330, 100%, 50%, 0.5)');
+        //     // // grd.addColorStop(0.8, 'hsla(150, 100%, 50%, 0.5)');
+        //     // grd.addColorStop(0.9, 'hsla(330, 100%, 50%, 0.5)');
+        //     // grd.addColorStop(1, 'transparent');
+        //     // ctx.fillStyle = grd;
+        //     // ctx.fillRect(0,0,width,height);
+
+        //     // x = Math.random() * width;
+        //     // y = Math.random() * height;
+        //     // x = 0.6 * width;
+        //     // y = 0.5 * height;
+        //     // grd = ctx.createRadialGradient(x, y, 0, x, y, size);
+        //     // grd.addColorStop(0, 'hsla(210, 100%, 50%, 0.5)');
+        //     // // grd.addColorStop(0.8, 'hsla(150, 100%, 40%, 0.5)');
+        //     // grd.addColorStop(0.9, 'hsla(210, 100%, 50%, 0.5)');
+        //     // grd.addColorStop(1, 'transparent');
+        //     // ctx.fillStyle = grd;
+        //     // ctx.fillRect(0,0,width,height);
+        // }
     }
-    document.body.style.background = gradient;
+
+    paintBackground();
 
     window.onload = (event) => {
         socketInit();
@@ -631,10 +684,6 @@
 </script>
 
 <style>
-
-    html{
-        background-color: black;
-    }
 
     body {
         position: fixed;
@@ -650,6 +699,16 @@
         font-size: 0;
         color: hsl(0, 0%, 80%);
         -webkit-user-select: none;
+        background-color: black;
+    }
+
+    #background{
+        position: fixed;
+        top: 0vw;
+        left: 0vh;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1;
     }
 
     #profile-box{
@@ -722,6 +781,7 @@
         transform: scale(0.9);
         animation-duration: 200ms;
         animation-fill-mode: both;
+        will-change: transform, opacity;
     }
 
     #page-up{

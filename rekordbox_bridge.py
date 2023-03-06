@@ -220,34 +220,37 @@ def light_show_on_close(wsapp, close_status_code, close_msg):
     global connected_to_light_show_server
     connected_to_light_show_server = False
     print_yellow(f'light_show_on_close: {close_status_code=}, {close_msg=}')
+    raise Exception('quitting to let retry')
 
 
 def light_show_on_error(wsapp, error):
     global connected_to_light_show_server
     connected_to_light_show_server = False
-    print_red('light_show_on_error, retrying in 1 second...')
-    time.sleep(1)
-    # !TODO fix the error: "dj_client.run_forever EXCEPTION: maximum recursion depth exceeded while calling a Python object", make non_recursive
-    try_make_light_show_connection()
+    print_yellow(f'light_show_on_error: {error=}')
+    raise Exception('quitting to let retry')
 
 
 def light_show_on_message(wsapp, message):
     print_blue('Got from light show server:', message)
 
 
-dj_client = None
-def try_make_light_show_connection():
-    global dj_client
-    dj_client = websocket.WebSocketApp(f"ws://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
-    try:
-        dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
-    except Exception as e:
-        # import traceback
-        # traceback.format_exc()
-        print_red(f'dj_client.run_forever EXCEPTION: {e}')
-        exit()
 
-try_make_light_show_connection()
+dj_client = None
+def run_rekordbox_bridge_forever():
+    global dj_client
+    websocket.enableTrace(False)
+    # tries to fix the infinite error: "dj_client.run_forever EXCEPTION: maximum recursion depth exceeded while calling a Python object", make non_recursive    
+    while True:
+        try:
+            dj_client = websocket.WebSocketApp(f"ws://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
+            dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
+        except Exception as e:
+            # import traceback
+            # traceback.format_exc()
+            print_red(f'dj_client.run_forever EXCEPTION: {e}. sleeping for .5 seconds and trying again')
+            time.sleep(.5)
+
+run_rekordbox_bridge_forever()
 
 
 

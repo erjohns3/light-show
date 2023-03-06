@@ -216,9 +216,11 @@ def light_show_on_open(wsapp):
     connected_to_light_show_server = True
     print_blue('Is connected to light show!')
 
-def light_show_on_close(wsapp):
+def light_show_on_close(wsapp, close_status_code, close_msg):
     global connected_to_light_show_server
     connected_to_light_show_server = False
+    print_yellow(f'light_show_on_close: {close_status_code=}, {close_msg=}')
+
 
 def light_show_on_error(wsapp, error):
     global connected_to_light_show_server

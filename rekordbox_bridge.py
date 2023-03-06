@@ -240,7 +240,7 @@ def try_make_light_show_connection():
     global dj_client
     dj_client = websocket.WebSocketApp(f"ws://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
     try:
-        dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
+        dj_client.run_forever(ping_interval=5, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
     except Exception as e:
         # import traceback
         # traceback.format_exc()

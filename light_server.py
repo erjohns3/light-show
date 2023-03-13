@@ -1675,6 +1675,7 @@ if __name__ == '__main__':
                 if filepath.resolve() in rekordbox_effect_dir.parents:
                     print_yellow(f'skipping: Not a child of {rekordbox_effect_dir}')
 
+                time.sleep(0.05)
                 print(f'Loading in new light show because: "{filepath}" was created')
                 relative_path = filepath.relative_to(this_file_directory)
                 without_suffix = relative_path.parent.joinpath(relative_path.stem)
@@ -1688,9 +1689,10 @@ if __name__ == '__main__':
                 prep_loaded_effects(list(globals()[module_name].effects.keys()))
 
         observer = Observer()
-        observer.schedule(RekordboxFilesystemHandler(), effects_dir, recursive = True)
+        dir_to_watch = effects_dir.joinpath('rekordbox_effects')
+        observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
         observer.start()
-        print_green(f'WATCHING {effects_dir} for rekordbox additions')
+        print_green(f'WATCHING {dir_to_watch} for rekordbox additions')
 
 
     if args.reload:

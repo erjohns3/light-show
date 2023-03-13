@@ -1262,7 +1262,7 @@ def set_effect_defaults(name, effect):
 
         effect['delay_lights'] = effect.get('delay_lights', 0)
         if not args.local:
-            effect['delay_lights'] += 0.1
+            effect['delay_lights'] += 0.08
         if args.delay_seconds:
             effect['delay_lights'] += args.delay_seconds
         if 'length' not in effect:

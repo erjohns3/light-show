@@ -61,29 +61,88 @@ effects = {
     "chain chorus 16 bar sidechain": {
         'length': 16,
         "beats": [
-            b(3, name='chain green laser and sidechain all else', length=.4),
+            b(3.5, name='chain green laser and sidechain all else', length=.4),
             b(11.5, name='chain green laser and sidechain all else', length=.3),
-            b(16.6, name='chain green laser and sidechain all else', length=.2),
+            b(16.7, name='chain green laser and sidechain all else', length=.2),
         ]
     },
-    "chain chorus": {
+
+
+    "chain chorus drums loop": {
+        'length': 16,
+        "beats": [
+            b(1, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(3, name='UV', length=1, intensity=(1, 0)),
+            b(4, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(6, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(7, name='UV', length=1, intensity=(1, 0)),
+            b(1 + 8, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(2.5 + 8, name='Red bottom', length=1, intensity=(1, 0)),
+            b(3 + 8, name='UV', length=1, intensity=(1, 0)),
+            b(4 + 8, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(5.5 + 8, name='Red bottom', length=1, intensity=(1, 0)),
+            b(6 + 8, name='Red bottom', length=1, intensity=(.6, 0)),
+            b(7 + 8, name='UV', length=1, intensity=(1, 0)),
+
+        ]
+    },
+    "chain chorus drums": {
+        'length': 16,
+        "beats": [
+            b(1, name='chain chorus drums loop', length=16),
+        ]
+    },
+
+    "chain chorus ending 2": {
         'length': 64,
         "beats": [
-            b(1, name='laser motor', length=32),
+            b(61, name='Red disco', length=.12),
+            b(61.5, name='Red disco', length=.12),
+            b(62, name='Red disco', length=.12),
+            b(62.5, name='Green disco', length=.12),
+            b(63, name='Blue disco', length=.12),
+            b(63.5, name='Red disco', length=.12),
+            b(63.5, name='Blue disco', length=.12),
+            b(64, name='Green disco', length=.12),
+            b(64, name='Blue disco', length=.12),
+            b(64.5, name='Red disco', length=.12),        
+            b(64.5, name='Blue disco', length=.12),        
+            b(64.5, name='Green disco', length=.12),        
+        ],
+    },
+    "chain chorus sidechain and lasers": {
+        'length': 64,
+        "beats": [
+            b(1, name='laser motor', length=64),
             b(1, name='chain chorus 16 bar sidechain', length=16),
             b(19.5, name='chain green laser and sidechain all else', length=.1),
-            # b(23.7, name='chain green laser and sidechain all else', length=.15),
-            b(26, name='chain green laser and sidechain all else', length=.4),
-            # b(33, name='chain chorus 16 bar sidechain', length=16),
 
+            # triplets
+            b(26, name='chain green laser and sidechain all else', length=.3),
+            b(26.5, name='chain green laser and sidechain all else', length=.3),
+            b(27, name='chain green laser and sidechain all else', length=.5),
+            b(29, name='chain green laser and sidechain all else', length=.3),
+            b(29.5, name='chain green laser and sidechain all else', length=.3),
+            b(30, name='chain green laser and sidechain all else', length=.5),
 
-            # ending beats
-            b(62, name='Red disco', length=.05),
-            b(62.5, name='Green disco', length=.05),
-            b(63, name='Blue disco', length=.05),
-            b(63.5, name='Red disco', length=.05),
-            b(64, name='Green disco', length=.05),
-            b(64.5, name='Red disco', length=.05),
+            # next phrase
+            b(33, name='chain chorus 16 bar sidechain', length=16),
+            b(19.5 + 32, name='chain green laser and sidechain all else', length=.1),
+
+            b(26 + 32, name='chain green laser and sidechain all else', length=.3),
+            b(27 + 32, name='chain green laser and sidechain all else', length=.3),
+        ]
+    },
+
+    "chain chorus": {
+        'length': 128,
+        "beats": [
+            b(1, name='chain chorus sidechain and lasers', length=112),
+            b(1, name='chain chorus drums', length=64, hue_shift=-.06),
+            b(61, name='chain singing', length=68),
+            b(65, name='chain chorus drums', length=64, hue_shift=.06),
+            b(65, name='chain chorus ending 2', length=64),
+
         ]
     },
 
@@ -139,18 +198,44 @@ effects = {
         ]
     },
 
+    "Chain helper white top pulse": {
+        "length": 8,
+        "beats": [
+            [3, "White top", .4, .6, 0],
+            [7, "White top", .4, .6, 0],
+        ],
+    },
+
+    "chain top pulse": {
+        "length": 8,
+        "autogen": "downbeat top",
+        "intensity": "low",
+        # "profiles": ["Andrew"],
+        "beats": [
+            [1, "Chain helper white top pulse", 8],
+            [1, "Green top", 3.7, .4, 0],
+            [1, "Red top", 2.66, 0, .6],
+            [3.66, "Red top", 3.7, .6, 0],
+            [3.66, "Blue top", 2.66, 0, .6],
+            [6.32, "Blue top", 3.7, .6, 0],
+            [6.32, "Green top", 2.66, 0, .4],
+        ],
+    },
+
+
     "The Chainsmokers - All We Know ft. Phoebe Ryan (Virtual Riot Remix)": {
         "bpm": 175,
         "song_path": "songs/The Chainsmokers - All We Know ft. Phoebe Ryan (Virtual Riot Remix).ogg",
         "delay_lights": 0.017595,
         "skip_song": 0.0,
         "beats": [
-            b(5, name='z_rainbow good top pulse 1', length=64),
-            b(69, name='z_rainbow good top pulse 2', length=64),
-            # b(132, name='laser motor', length=65),
-            # b(133, name='chain laser', length=64),
-            # b(196, name='laser motor', length=33),
-            # b(197, name='chain laser', length=32),
+            b(5, name='chain top pulse', length=64),
+            b(69, name='chain top pulse', length=48, hue_shift=.1),
+            
+            b(133, name='Red top', length=48, hue_shift=.1),
+
+            b(197, name='Blue top', length=48, hue_shift=.1),
+
             b(228, name='laser motor', length=17),
             b(229, name='chain laser', length=16),
 
@@ -159,10 +244,8 @@ effects = {
             b(245, name='chain disco strobe through', length=8),
             
             
-            b(261, name='chain chorus', length=64),
-
-            b(321, name='chain singing', length=68),
-            b(325, name='chain chorus', length=64),
+            b(261, name='chain chorus', length=128),
+            b(645, name='chain chorus', length=128),
         ]
     },
 }

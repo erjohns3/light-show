@@ -80,6 +80,7 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
                     print_red(f'Exception occured in subprocess: {future.exception()}')
                 progress_bar.update(1)
     time_diff = time.time() - time_start
+    print(f'finished getting all metadata info for {len(all_song_paths)} songs in {time.time() - time_start} seconds')
     print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
 
 

@@ -181,6 +181,20 @@ effects = {
         ],
     },
 
+    "control subtract 20 top blue": {
+        "length": .1,
+        "beats": [
+            [1, [0, 0, -20, 0, 0, 0, 0], 1],
+        ],
+    },
+
+    "control subtract 20 top red": {
+        "length": .1,
+        "beats": [
+            [1, [-20, 0, 0, 0, 0, 0, 0], 1],
+        ],
+    },
+
     "control subtract 20 bottom blue": {
         "length": .1,
         "beats": [
@@ -239,6 +253,14 @@ effects = {
         ],
     },
 
+    "control top purple pulse": {
+        "length": 1,
+        "beats": [
+            [1, "Purple top", .5, 1, 0],
+            [1.5, "Purple top", .5, 0, 1],
+        ],
+    },
+
     "control bottom purple pulse color change": {
         "length": 2,
         "beats": [
@@ -247,6 +269,17 @@ effects = {
             [1.5,  "control subtract 20 bottom red", .5, 2, 0],
             [2,  "control subtract 20 bottom blue", .5, 0, 2],
             [2.5,  "control subtract 20 bottom blue", .5, 2, 0],
+        ],
+    },
+
+    "control top purple pulse color change": {
+        "length": 2,
+        "beats": [
+            [1, "control top purple pulse", 2],
+            [1,  "control subtract 20 top red", .5, 0, 2],
+            [1.5,  "control subtract 20 top red", .5, 2, 0],
+            [2,  "control subtract 20 top blue", .5, 0, 2],
+            [2.5,  "control subtract 20 top blue", .5, 2, 0],
         ],
     },
 

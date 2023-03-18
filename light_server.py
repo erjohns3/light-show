@@ -182,7 +182,8 @@ async def init_rekordbox_bridge_client(websocket, path):
                         handmade_song_found = True
                         break
             if not handmade_song_found:
-                rekordbox_effect_names = ['g_' + rekordbox_title, 'g_' + rekordbox_title.replace(' ', '_')]
+                rekordbox_effect_names = ['g_' + rekordbox_title, 'g_' + rekordbox_title.replace(' ', '_'), rekordbox_title.replace('_', ' ')]
+                print(rekordbox_effect_names)
                 print(f'Couldnt find handmade song "{rekordbox_title}", looking for an effect named "{rekordbox_effect_name}"\n')
                 rekordbox_effect_name = None
                 for name in rekordbox_effect_names: # hack to fuzzy search kinda

@@ -183,7 +183,9 @@ async def init_rekordbox_bridge_client(websocket, path):
                         handmade_song_found = True
                         break
             if not handmade_song_found:
-                printable = set(string.printable).remove('_').remove(' ')
+                printable = set(string.printable)
+                printable.remove(' ')
+                printable.remove('_')
                 fucked = ''.join(filter(lambda x: x in printable, 'g_' + rekordbox_title))
                 rekordbox_effect_names = ['g_' + rekordbox_title, 'g_' + rekordbox_title.replace(' ', '_'), rekordbox_title.replace('_', ' ')]
                 print(rekordbox_effect_names)

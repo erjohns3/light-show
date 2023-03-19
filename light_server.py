@@ -13,6 +13,7 @@ import colorsys
 import random
 import traceback
 import sys
+import string
 import pigpio
 
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')

@@ -224,6 +224,10 @@ def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     else:
         boundary_beats, chunk_levels = 'DISABLED', []
     print(f'autogen: {song_filepath.stem} - Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
+    if is_windows():
+        src.close()
+        if song_filepath.suffix == '.wav':
+            song_filepath.unlink()
     if queue:
         queue.put([total_frames / src.samplerate, bpm_guess, delay, boundary_beats, chunk_levels])
     else:

@@ -235,7 +235,7 @@ if __name__ == '__main__':
         print_green(f'Downloading youtube video to {output_directory} and then generating show file')
     else:
         print_yellow(f'Downloading youtube video to {output_directory} and NOT generating show file (use --show if you meant to do that)')    
-    time.sleep(.75)
+    time.sleep(.1)
 
     downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:

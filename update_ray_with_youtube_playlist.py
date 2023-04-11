@@ -27,8 +27,9 @@ if __name__ == '__main__':
                 continue
             
             if already_downloaded:
-                print(f'Sleeping for {10} seconds before downloading again to prevent throttling...')
-                time.sleep(10)
+                sleep_time = 1
+                print(f'Sleeping for {sleep_time} seconds before downloading again to prevent throttling...')
+                time.sleep(sleep_time)
             already_downloaded = True
 
             cleaned_contributor_name = ''.join(filter(lambda x: x.isascii(), contributor_name)).replace(' ', '_')

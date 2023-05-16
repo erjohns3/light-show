@@ -68,6 +68,11 @@ It should be pretty good about auto downloading specific songs with the --show p
 `python light_server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
 `python light_server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
 
+# ideas for lights
+* from tokyo vent
+  * Flash  75 blue, 25 of, right to red 
+  * 1 beat before drop the flash
+
 # stretch todo
 * halloween
     * spooky lights for UI

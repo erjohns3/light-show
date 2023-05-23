@@ -43,6 +43,9 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
 
 # rubberband -D 843 deadmau5\ \&\ Kaskade\ -\ I\ Remember\ \(HQ\).ogg slowed_deadmau.ogg
 def change_speed_audio_rubberband(input_filepath, speed):
+    if type(input_filepath) != pathlib.Path:
+        input_filepath = pathlib.Path(input_filepath)
+
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_rubberband_{speed}{input_filepath.suffix}')
     if os.path.exists(output_filepath):
         return output_filepath
@@ -51,7 +54,7 @@ def change_speed_audio_rubberband(input_filepath, speed):
     run_command_blocking([
         'rubberband',
         '-t',
-        1 / speed,
+        str(1 / speed),
         str(input_filepath),
         str(output_filepath),
     ], debug=True)
@@ -76,16 +79,19 @@ def convert_to_wav(input_filepath):
     return output_filepath
 
 
-def change_speed_audio_asetrate(input_filepath, speed):
+def change_speed_audio_asetrate(input_filepath, speed, quiet=False):
     if type(input_filepath) != pathlib.Path:
         input_filepath = pathlib.Path(input_filepath)
     import tinytag
 
+    if speed == 1.0 or speed == 1:
+        return input_filepath
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_asetrate_{speed}{input_filepath.suffix}')
     if os.path.exists(output_filepath):
         return output_filepath
 
-    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using asetrate{bcolors.ENDC}"')
+    if not quiet:
+        print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using asetrate{bcolors.ENDC}"')
     run_command_blocking([
         'ffmpeg',
         '-i',
@@ -94,7 +100,7 @@ def change_speed_audio_asetrate(input_filepath, speed):
         f'asetrate={tinytag.TinyTag.get(input_filepath).samplerate * speed}',
         '-y',
         str(output_filepath),
-    ], debug=True)
+    ], debug=False)
     return output_filepath
 
 

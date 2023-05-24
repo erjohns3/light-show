@@ -42,22 +42,26 @@ async def play_sound_with_ffplay(audio_path, start_time=0, volume=100):
 
 
 # rubberband -D 843 deadmau5\ \&\ Kaskade\ -\ I\ Remember\ \(HQ\).ogg slowed_deadmau.ogg
-def change_speed_audio_rubberband(input_filepath, speed):
+def change_speed_audio_rubberband(input_filepath, speed, quiet=False):
     if type(input_filepath) != pathlib.Path:
         input_filepath = pathlib.Path(input_filepath)
+
+    if speed == 1.0 or speed == 1:
+        return input_filepath
 
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_rubberband_{speed}{input_filepath.suffix}')
     if os.path.exists(output_filepath):
         return output_filepath
 
-    print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using rubberband{bcolors.ENDC}"')
+    if not quiet:
+        print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using rubberband{bcolors.ENDC}"')
     run_command_blocking([
         'rubberband',
         '-t',
         str(1 / speed),
         str(input_filepath),
         str(output_filepath),
-    ], debug=True)
+    ], debug=not quiet)
     return output_filepath
 
 def convert_to_wav(input_filepath):
@@ -150,9 +154,28 @@ def get_audio_clip_length(filepath):
     return float(stdout)
 
 
+def change_samplerate_ffmpeg(filepath, samplerate):
+    if type(filepath) != pathlib.Path:
+        filepath = pathlib.Path(filepath)
+    
+    output_filepath = get_temp_dir().joinpath(f'{filepath.stem}_samplerate_{samplerate}{filepath.suffix}')
+    run_command_blocking([
+        'ffmpeg', 
+        '-i',
+        str(filepath), 
+        '-ar', 
+        str(samplerate),
+        str(output_filepath),
+        '-y',
+    ], debug=True)
+    return output_filepath
+
+
 allowed_song_extensions = set(['.mp3', '.ogg', '.wav'])
 def get_song_metadata_info(song_path):
     from tinytag import TinyTag
+    if type(song_path) != pathlib.Path:
+        song_path = pathlib.Path(song_path)
 
     if song_path.suffix in allowed_song_extensions:
         # song_metadata_start_time = time.time()

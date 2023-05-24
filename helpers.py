@@ -76,23 +76,6 @@ def get_ray_directory():
     else:
         print_red('doesnt know how contact ray_directory')
 
-
-def start_http_server_blocking(port, filepath_to_serve):
-    import http.server
-    import socketserver
-
-    Handler = http.server.SimpleHTTPRequestHandler
-    os.chdir(filepath_to_serve)
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
-        httpd.serve_forever()
-
-
-def start_http_server_async(port, filepath_to_serve):
-    import threading
-    threading.Thread(target=start_http_server_blocking, args=(port, filepath_to_serve,)).start()
-
-
 nas_is_active_andrew = False
 def get_nas_directory():
     global nas_is_active_andrew
@@ -114,7 +97,7 @@ def get_nas_directory():
 
 def get_stack_trace() -> str:
     import traceback
-    print_red(traceback.format_exc())
+    return traceback.format_exc()
 
 
 def print_stacktrace() -> None:
@@ -318,6 +301,9 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
         if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
+    if debug:
+        full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
+        print(f'going to run "{full_call}"')
     # env = os.environ.copy()
     # env['SSH_AUTH_SOCK'] = os.environ['SSH_AUTH_SOCK']
     process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
@@ -422,3 +408,4 @@ def seconds_to_hmsm_string(seconds) -> str:
 #     null_std_out = open('nul', 'w')
 # elif is_linux() or is_macos():
 #     null_std_out = open('/dev/null', 'w')
+

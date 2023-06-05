@@ -91,6 +91,12 @@ It should be pretty good about auto downloading specific songs with the --show p
 
 
 ## random links
+* USE REKORDBOX 6.6.4
+  * https://rekordbox.com/en/support/faq/v6/#faq-q600141
+    * direct link: https://cdn.rekordbox.com/files/20220623164635/Install_rekordbox_x64_6_6_4.zip?_ga=2.16932921.1467977363.1685931086-1211040754.1685660184
+* rekordbox hooks
+  * https://github.com/Unreal-Dan/RekordBoxSongExporter
+    * which is based on https://github.com/erikrichardlarson/unbox
 * identifying strongest beat
     * https://stackoverflow.com/questions/54718744/python-audio-analysis-find-real-time-values-of-the-strongest-beat-in-each-meter
 

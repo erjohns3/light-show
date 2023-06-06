@@ -29,14 +29,17 @@ def gen_show_worker(song_path, output_directory, include_song_path):
         src_bpm_offset_cache = get_src_bpm_offset(song_path, use_boundaries=True)
         generate_show(song_path, include_song_path=include_song_path, overwrite=True, mode=None, output_directory=output_directory, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
         generate_show(song_path, include_song_path=include_song_path, overwrite=True, mode='lasers', output_directory=output_directory, src_bpm_offset_cache=src_bpm_offset_cache)
+        # if is_windows() and song_path.exists() and song_path.suffix == '.wav':
+        #     print(f'deleting {song_path} because it is a wav file and we are on windows')
+        #     song_path.unlink()
     except Exception as e:
         print_red(f'{traceback.format_exc()}')
         raise e
 
 def generate_all_songs_in_directory(autogen_song_directory, output_directory=None, include_song_path=True):
-    if is_windows():
-        print_red('this will probably blow up your storage space on windows if you have a lot of songs, so be careful, press enter if you want to continue')
-        input()
+    # if is_windows():
+    #     print_red('this will probably blow up your storage space on windows if you have a lot of songs, so be careful, press enter if you want to continue')
+    #     input()
     time_start = time.time()
     import tqdm
     # import concurrent
@@ -64,11 +67,6 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
             duration_and_song_paths.append((duration, song_path))
             total_duration += duration
 
-    # for song_path in all_song_paths:
-    #     _, _, duration, _samplerate, _song_path = sound_helpers.get_song_metadata_info(song_path)
-    #     duration_and_song_paths.append((duration, song_path))
-    #     total_duration += duration
-    #     result
     all_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
     print(f'finished getting all metadata info for {len(all_song_paths)} songs in {time.time() - time_start} seconds')
 
@@ -395,8 +393,9 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     if include_song_path:
         relative_path = song_filepath
         if relative_path.is_absolute():
-            relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
-
+            if relative_path.is_relative_to(pathlib.Path(__file__).parent):
+                relative_path = relative_path.relative_to(pathlib.Path(__file__).parent)
+                print_blue(f'autogen: {song_filepath.stem} - relative_path: {relative_path}')                
         show['song_path'] = str(relative_path)
 
     

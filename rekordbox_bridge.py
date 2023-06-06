@@ -33,7 +33,8 @@ valid_test_titles = [
 ]
 
 
-light_show_server = '192.168.86.55' # doorbell
+# light_show_server = '192.168.86.55' # doorbell
+light_show_server = 'localhost'
 if is_andrews_main_computer():
     args.send_fake_data = True
     light_show_server = 'localhost'

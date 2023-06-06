@@ -1126,6 +1126,7 @@ def prep_loaded_effects(effect_names):
     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
 
     updated_effect_names = []
+    temp_stuff = []
     for effect_name in effect_names:
         if effect_name not in effects_config:
             continue
@@ -1133,6 +1134,9 @@ def prep_loaded_effects(effect_names):
         effect = effects_config[effect_name]
         if effect_name.startswith('g_lasers'):
             continue
+        # if effect_name.startswith('g_'):
+        #     print(f'huh {effect_name=}, {"song_path" in effect}')
+        #     temp_stuff.append(effect_name)
         if 'song_path' in effect:
             song_name = pathlib.Path(effect['song_path']).stem              
             if song_name not in song_name_to_show_names:
@@ -1149,9 +1153,10 @@ def prep_loaded_effects(effect_names):
                     print(yellow('handmade song not avaliable') + f' "{effect["song_path"]=}"')
                 if args.show:
                     effect['song_not_avaliable'] = True
-                else:
-                    del effect['song_path']
+                # else:
+                #     del effect['song_path']
                     # print_red('deleted', _effect_name)
+    print(f'{len(song_name_to_show_names)=}, {len(effect_names)=}, {len(temp_stuff)=}')
     add_dependancies(updated_effect_names)
 
 

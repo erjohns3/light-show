@@ -1662,8 +1662,8 @@ if __name__ == '__main__':
         observer = Observer()
         dir_to_watch = effects_dir.joinpath('rekordbox_effects')
         observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
+        print_cyan(f'WATCHING {dir_to_watch} for rekordbox additions')
         observer.start()
-        print_green(f'WATCHING {dir_to_watch} for rekordbox additions')
 
 
     if args.reload:

@@ -1742,7 +1742,6 @@ if __name__ == '__main__':
                 key_name = key.char
             else:
                 key_name = key.name
-            print(f'key pressed {key_name=}\n' * 10)
 
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:

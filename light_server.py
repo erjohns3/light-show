@@ -66,7 +66,7 @@ effects_dir = this_file_directory.joinpath('effects')
 
 pi = None
 
-LED_PINS = [14, 15, 18, 23, 24, 25, 8, 7, 12, 16, 2, 3, 4, 17, 27, 22]
+LED_PINS = [5, 6, 13, 19, 24, 25, 8, 7, 26, 16, 2, 3, 4, 17, 27, 22]
 
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ

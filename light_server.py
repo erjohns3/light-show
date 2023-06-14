@@ -1661,9 +1661,10 @@ if __name__ == '__main__':
 
         observer = Observer()
         dir_to_watch = effects_dir.joinpath('rekordbox_effects')
+        make_if_not_exist(dir_to_watch)
+        print_cyan(f'WATCHING {dir_to_watch} for rekordbox additions')
         observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
         observer.start()
-        print_green(f'WATCHING {dir_to_watch} for rekordbox additions')
 
 
     if args.reload:
@@ -1715,6 +1716,8 @@ if __name__ == '__main__':
             ';': lambda: restart_show(skip=skip_time),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
+            'cmd_r': lambda: restart_show(skip=-skip_time),
+            'alt_r': lambda: restart_show(skip=skip_time),
             # 'space': 'UV',
         }
         # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
@@ -1739,6 +1742,7 @@ if __name__ == '__main__':
                 key_name = key.char
             else:
                 key_name = key.name
+
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:
                     add_effect(keyboard_dict[key_name])

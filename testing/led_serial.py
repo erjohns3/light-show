@@ -5,7 +5,7 @@ import math
 
 grid_serial = serial.Serial(
     port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
-    baudrate = 4000000,
+    baudrate = 2000000,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
@@ -90,9 +90,9 @@ while True:
     for y in range(GRID_COL_LENGTH):
         power = (int)(min(255, max(0, 400 - (4000 * d))))
         for x in range(GRID_ROW_LENGTH):
-            grid[x][y][0] = power
-            grid[x][y][1] = 0
-            grid[x][y][2] = 0
+            grid[x][y][0] = 255
+            grid[x][y][1] = 102
+            grid[x][y][2] = 26
 
     time_c = time.time()*1000
 
@@ -109,6 +109,7 @@ while True:
     time_e = time.time()*1000
 
     grid_serial.write(msg)
-    # time.sleep(1)
     time_f = time.time()*1000
     print(f'A: {time_e - time_a},  E: {time_f - time_e}')
+    time.sleep(0.1)
+    

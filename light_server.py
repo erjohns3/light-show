@@ -104,7 +104,7 @@ printed_http_info = False
 
 grid_serial = serial.Serial(
     port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
-    baudrate = 4000000,
+    baudrate = 2000000,
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,

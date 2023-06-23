@@ -68,7 +68,7 @@ effects = {
             b(9, name='ll bass', length=144),
             b(36, name='ll fill', length=6),
             b(68, name='ll fill', length=6),
-            b(73, name='Blue disco', length=80),
+            b(73, name='Blue disco', length=72),
             b(84, name='ll fill', length=6),
             b(100, name='ll fill', length=6),
             b(116, name='ll fill', length=6),
@@ -86,11 +86,13 @@ effects = {
             b(265, name='ll bridge', length=48),
             b(276, name='ll fill', length=6),
             b(292, name='ll fill', length=6),
-            b(313, name='Blue disco', length=96),
+            b(313, name='Blue disco', length=32),
+            b(345, name='Blue disco pulse', length=64),
             b(372, name='ll fill', length=6),
             b(388, name='ll fill', length=6),
             b(404, name='ll fill', length=6),
             b(409, name='ll chorus', length=160),
+            b(471, name='ll clap', length=2),
             b(409, name='ll bass', length=160)
 
 

@@ -32,12 +32,18 @@ GRID_COL = range(GRID_COL_LENGTH)
 
 grid = [0] * GRID_ROW_LENGTH
 grid_random = [0] * GRID_ROW_LENGTH
+grid_sin = [0] * GRID_ROW_LENGTH
+grid_cos = [0] * GRID_ROW_LENGTH
 for x in range(GRID_ROW_LENGTH):
     grid[x] = [0] * GRID_COL_LENGTH
     grid_random[x] = [0] * GRID_COL_LENGTH
+    grid_sin[x] = [0] * GRID_COL_LENGTH
+    grid_cos[x] = [0] * GRID_COL_LENGTH
     for y in range(GRID_COL_LENGTH):
         grid[x][y] = [0, 0, 0]
         grid_random[x][y] = random.random() * math.pi * 2
+        grid_sin[x][y] = math.sin(grid_random[x][y])
+        grid_cos[x][y] = math.cos(grid_random[x][y])
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 
@@ -103,17 +109,9 @@ while True:
     # min(0.05 / ((abs((y / (GRID_COL_LENGTH - 1)) - pos) % 1) ** 2), 255)
 
     # d = abs((y / (GRID_COL_LENGTH - 1)) - pos) + abs((y / (GRID_COL_LENGTH - 1)) - pos - 1)
-    
-    
-
-    # time_c = time.time()*1000
-
-    # grid_pack()
-
-    # time_d = time.time()*1000
 
     grid_out =  grid_serial.out_waiting
-    grid_in = grid_serial.in_waiting
+    grid_in = 1 #grid_serial.in_waiting
 
     if grid_out == 0 and grid_in > 0:        
         
@@ -142,17 +140,25 @@ while True:
 
         falloff = 20
 
+        time_a = time.time()*1000
+
+        curr_time = time.time()
+        curr_sin = math.sin((curr_time * 3))
+        curr_cos = math.cos((curr_time * 3))
+
         for x in GRID_ROW:
             # grid[x][num % GRID_COL_LENGTH] = [100, 0, 0]
             for y in GRID_COL:
-                # r = math.dist((x, y), (9.5, 15.5))
-                # mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
+                r = math.dist((x, y), (9.5, 15.5))
+                mult = 0.5 * (curr_sin * grid_cos[x][y] + curr_cos * grid_sin[x][y]) + 0.5
 
-                # power = 100 - (r * falloff)
-                power = min(100, max(0, 1))
+                power = (100 - (r * falloff))
+                power = min(100, max(0, power)) + mult
                 grid[x][y] = [power, 0, 0]
 
-        grid_pack()
+        # grid_pack()
+
+        time_b = time.time()*1000
 
         # i = 2
         # while i < 1920:
@@ -164,9 +170,9 @@ while True:
         grid_serial.read(grid_in)
         grid_serial.write(bytes(grid_msg))
 
-        time_b = time.time()*1000
+        
         print(f'time: {time_b - time_a}')
-        time_a = time.time()*1000
+        
     
     # time.sleep(0.5)
     # print(f'A: {time_b - time_a}')

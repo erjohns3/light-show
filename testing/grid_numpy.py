@@ -33,24 +33,36 @@ GRID_COL = np.arange(GRID_COL_LENGTH)
 
 time_a = time.time()*1000
 
-zero = np.zeros((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
-grid = np.array(zero, np.int32)
+zero = np.ones((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
+grid = np.array(zero, np.single)
 # grid = np.array((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
+
+grid_address = np.array(zero, np.short)
+
+grid_lut = np.array([0])
 
 time_b = time.time()*1000
 
-for x in GRID_ROW:
-    for y in GRID_COL:
-        # np.put(a, , -5, mode='clip')
-        # grid[x, y, 0] = grid[x, y, 1]
-        grid.itemset((x, y, 0), 5)
-        # grid.itemset((x, y, 1), 6)
-        # grid.itemset((x, y, 2), 7)
-        
+grid[:, 0:15] = [1, 2, 3]
+
+np.nonzero(grid[:,:,0]) 
+
+indeces = np.nonzero(grid[:,:,0])
+
+pos_x = 9.5
+pos_y = 15.5
+
+r = np.sqrt(np.square(indeces[0]-pos_x) + np.square(indeces[1]-pos_y))
+
+# print(indeces)
 
 time_c = time.time()*1000
 
+# print(grid[0])
+
 print(f'init: {time_b - time_a}, zero: {time_c - time_b}')
+
+
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 

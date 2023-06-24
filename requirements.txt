@@ -15,4 +15,5 @@ tqdm
 watchdog
 pigpio
 rich
+pyserial
 git+https://github.com/aubio/aubio.git

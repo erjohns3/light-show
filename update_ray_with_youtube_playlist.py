@@ -51,7 +51,7 @@ if __name__ == '__main__':
             _, _, effect_filepath2 = autogen.generate_show(filepath, include_song_path=False, overwrite=True, mode='lasers', output_directory=rekordbox_effects_directory, src_bpm_offset_cache=src_bpm_offset_cache)
 
             try:
-                remote_folder = pathlib.Path('/home/pi/light-show/effects/autogen_shows')
+                remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
                 scp_to_doorbell(effect_filepath1, remote_folder)
                 scp_to_doorbell(effect_filepath2, remote_folder)
                 # generate_rekordbox_effects.ssh_to_doorbell(effect_filepath1)

@@ -924,7 +924,7 @@ async def light():
 
                 if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
-                    level += channel_lut[effect_name]['beats'][index][i]                
+                    level += channel_lut[effect_name]['beats'][index][i]
 
             level_bounded = max(0, min(100, level))
             level_between_0_and_1 = level_bounded / 100
@@ -946,8 +946,9 @@ async def light():
 
         # print(grid_levels)
 
-        grid_out =  grid_serial.out_waiting
-        grid_in = grid_serial.in_waiting
+        if not args.local:
+            grid_out =  grid_serial.out_waiting
+            grid_in = grid_serial.in_waiting
 
         if grid_out == 0 and grid_in > 0:
             
@@ -958,7 +959,7 @@ async def light():
                 for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
                     grid[x][y] = [grid_levels[0] * mult, grid_levels[1] * mult, grid_levels[2] * mult]
 
-            grid_pack()
+                grid_pack()
 
             grid_serial.read(grid_in)
             grid_serial.write(bytes(grid_msg))
@@ -1304,6 +1305,8 @@ def set_effect_defaults(name, effect):
         effect['sat_shift'] = 0
     if 'bright_shift' not in effect:
         effect['bright_shift'] = 0
+    if 'grid_bright_shift' not in effect:
+        effect['grid_bright_shift'] = 0
     if 'snap' not in effect:
         effect['snap'] = 1 / SUB_BEATS
     else:
@@ -1499,6 +1502,10 @@ def compile_lut(local_effects_config):
             hue_shift = component[6]
             sat_shift = component[7]
             bright_shift = component[8]
+            
+            grid_bright_shift = 0
+            if len(component) > 9:
+                grid_bright_shift = component[9]
 
             for i in range(length):
                 reference_channels = reference_beats[(i + offset) % reference_length]
@@ -1512,18 +1519,20 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-                    if hue_shift or sat_shift or bright_shift:
-                        for i in range(3):
-                            rd, gr, bl = final_channel[i * 3:(i * 3) + 3]
+                    if hue_shift or sat_shift or bright_shift or grid_bright_shift:
+                        for part in range(3):
+                            rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             # bright shift is relative to initial brightness
                             new_bright = min(1, max(0, bright + bright*bright_shift))
-                            final_channel[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            final_channel[i * 3] *= 100
-                            final_channel[i * 3 + 1] *= 100
-                            final_channel[i * 3 + 2] *= 100
+                            if (part == 0 or part == 1): # tbd
+                                new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
+                            final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+                            final_channel[part * 3] *= 100
+                            final_channel[part * 3 + 1] *= 100
+                            final_channel[part * 3 + 2] *= 100
 
     print_blue(f'Complex effects took: {time.time() - complex_effect_perf_timer:.3f} seconds')
 

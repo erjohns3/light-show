@@ -22,8 +22,6 @@ import sound_helpers
 from helpers import *
 
 
-
-
 def gen_show_worker(song_path, output_directory, include_song_path):
     try:
         src_bpm_offset_cache = get_src_bpm_offset(song_path, use_boundaries=True)
@@ -513,9 +511,10 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                         # dimmer doesn't play well with hue shifter
                         hue_shift, sat_shift, bright_shift = 0, 0, 0
                         # if random_color and effect_type != 'dimmers':
-                        if effect_type != 'dimmers':
+                        if effect_type != 'dimmers': # we never finished the dimming code
                             hue_shift=random.random()
-                            bright_shift = -.2
+                            bright_shift = -0.2
+                            grid_bright_shift = -0.3
 
                         new_prev_effects.append(effect_name)
                         the_length = length
@@ -523,7 +522,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                             the_length = length * 4
                         elif length_left >= length*2 and length==8:
                             the_length = length * 2
-                        show['beats'].append(b(beat, name=effect_name, length=the_length, hue_shift=hue_shift, sat_shift=sat_shift, bright_shift=bright_shift))
+                        show['beats'].append(b(beat, name=effect_name, length=the_length, hue_shift=hue_shift, sat_shift=sat_shift, bright_shift=bright_shift, grid_bright_shift=grid_bright_shift))
                     
                     if length_left >= length*4 and length==8:
                         beat += length*4

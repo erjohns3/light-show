@@ -1503,7 +1503,10 @@ def compile_lut(local_effects_config):
             hue_shift = component[6]
             sat_shift = component[7]
             bright_shift = component[8]
-            grid_bright_shift = component[8]
+            
+            grid_bright_shift = 0
+            if len(component) > 9:
+                grid_bright_shift = component[9]
 
             for i in range(length):
                 reference_channels = reference_beats[(i + offset) % reference_length]
@@ -1517,9 +1520,8 @@ def compile_lut(local_effects_config):
 
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
-                    if hue_shift or sat_shift or bright_shift:
+                    if hue_shift or sat_shift or bright_shift or grid_bright_shift:
                         for part in range(3):
-                            print(final_channel)
                             rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
@@ -1528,7 +1530,7 @@ def compile_lut(local_effects_config):
                             new_bright = min(1, max(0, bright + bright*bright_shift))
                             if (part == 0 or part == 1): # tbd
                                 new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
-                            final_channel[part * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+                            final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
                             final_channel[part * 3] *= 100
                             final_channel[part * 3 + 1] *= 100
                             final_channel[part * 3 + 2] *= 100

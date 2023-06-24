@@ -31,24 +31,13 @@ GRID_ROW = range(GRID_ROW_LENGTH)
 GRID_COL = range(GRID_COL_LENGTH)
 
 grid = [0] * GRID_ROW_LENGTH
+grid_random = [0] * GRID_ROW_LENGTH
 for x in range(GRID_ROW_LENGTH):
     grid[x] = [0] * GRID_COL_LENGTH
+    grid_random[x] = [0] * GRID_COL_LENGTH
     for y in range(GRID_COL_LENGTH):
         grid[x][y] = [0, 0, 0]
-
-time_a = time.time()*1000
-
-for x in GRID_ROW:
-    for y in GRID_COL:
-        # grid[x][y][0] = 5
-        # grid[x][y][1] = 6
-        r = ((x**2) + (y**2))**0.5
-        # r = math.dist((x,y), (10,16))
-        # dist = np.linalg.norm((x,y)-(10, 16))
-
-time_b = time.time()*1000
-
-print(f'zero: {time_b - time_a}')
+        grid_random[x][y] = random.random() * math.pi * 2
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 
@@ -74,20 +63,18 @@ grid_index = [
 ]
 
 def grid_pack():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
+    for x in GRID_ROW:
+        for y in GRID_COL:
             index = grid_index[x][y] * 3
-            grid_msg[index] = grid[x][y][0]
-            grid_msg[index + 1] = grid[x][y][1]
-            grid_msg[index + 2] = grid[x][y][2]
+            grid_msg[index] = round(grid[x][y][0] * 127 / 100) * 2
+            grid_msg[index + 1] = round(grid[x][y][1] * 127 / 100) * 2
+            grid_msg[index + 2] = round(grid[x][y][2] * 127 / 100) * 2
 
 
 def grid_reset():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
-            grid[x][y][0] = 0
-            grid[x][y][1] = 0
-            grid[x][y][2] = 0
+    for x in GRID_ROW:
+        for y in GRID_COL:
+            grid[x][y] = [0, 0, 0]
 
 # for x in range(GRID_ROW_LENGTH):
 #     grid_index[x] = [0]*GRID_COL_LENGTH
@@ -104,6 +91,7 @@ grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
 num = 0
 time_a = time.time()*1000
 
+
 while True:
     
     # grid_reset()
@@ -116,18 +104,9 @@ while True:
 
     # d = abs((y / (GRID_COL_LENGTH - 1)) - pos) + abs((y / (GRID_COL_LENGTH - 1)) - pos - 1)
     
-    # for x in GRID_ROW:
-    #     for y in GRID_COL:
-    #         # r = math.dist((x, y), (9.5, 15.5))
-    #         # power = random.randint(0, 127)*2
-    #         power = int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4 + random.randint(0, 1) * 2
-    #         grid[x][y] = [power, 0, 0]
+    
 
     # time_c = time.time()*1000
-
-    # for i in range(0, len(grid_msg), 3):
-    #     grid_msg[i] = 0
-    # grid_msg[(num*3)%640] = 255
 
     # grid_pack()
 
@@ -136,28 +115,59 @@ while True:
     grid_out =  grid_serial.out_waiting
     grid_in = grid_serial.in_waiting
 
-    if grid_out == 0 and grid_in > 0:
-        # print('----SEND----')
-        grid_serial.read(grid_in)
+    if grid_out == 0 and grid_in > 0:        
         
-        i = 2
-        while i < 1920:
-            # grid_msg[i] = (int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4) + (random.randint(0, 1) * 3)
-            # grid_msg[i] = 126 + (random.randint(0, 1) * 2)
-            grid_msg[i] = (num % 2) * 255
-            i += 6
+        curr_time = time.time()
+
+        # grid_reset()
+
+        # grid[0][30] = [100, 0, 0]
+        # grid[1][30] = [100, 0, 0]
+        # grid[2][30] = [100, 0, 0]
+        # grid[3][30] = [100, 0, 0]
+        # grid[4][30] = [100, 0, 0]
+        # grid[5][30] = [100, 0, 0]
+        # grid[6][30] = [100, 0, 0]
+        # grid[7][30] = [100, 0, 0]
+        # grid[8][30] = [100, 0, 0]
+        # grid[9][30] = [100, 0, 0]
+
+        # grid[1][25] = [100, 0, 0]
+
+        pos_x = 9.5
+        pos_y = 15.5
+
+        vel_x = 1
+        vel_y = 1
+
+        falloff = 20
+
+        for x in GRID_ROW:
+            # grid[x][num % GRID_COL_LENGTH] = [100, 0, 0]
+            for y in GRID_COL:
+                # r = math.dist((x, y), (9.5, 15.5))
+                # mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
+
+                # power = 100 - (r * falloff)
+                power = min(100, max(0, 1))
+                grid[x][y] = [power, 0, 0]
+
+        grid_pack()
+
+        # i = 2
+        # while i < 1920:
+        #     grid_msg[i] = (num % 2) * 255
+        #     i += 6
+
         num += 1
 
+        grid_serial.read(grid_in)
         grid_serial.write(bytes(grid_msg))
-        time_b = time.time()*1000
-        # print(f'time: {time_b - time_a}')
-        time_a = time.time()*1000
-    else:
-        pass
-        # print(f'out: {grid_out}, in: {grid_in}')
-        
 
+        time_b = time.time()*1000
+        print(f'time: {time_b - time_a}')
+        time_a = time.time()*1000
     
-    # time.sleep(0.1)
+    # time.sleep(0.5)
     # print(f'A: {time_b - time_a}')
     

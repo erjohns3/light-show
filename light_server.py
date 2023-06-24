@@ -115,11 +115,17 @@ grid_serial = serial.Serial(
 GRID_ROW_LENGTH = 20
 GRID_COL_LENGTH = 32
 
+GRID_ROW = range(GRID_ROW_LENGTH)
+GRID_COL = range(GRID_COL_LENGTH)
+
 grid = [0] * GRID_ROW_LENGTH
-for x in range(GRID_ROW_LENGTH):
+grid_random = [0] * GRID_ROW_LENGTH
+for x in GRID_ROW:
     grid[x] = [0] * GRID_COL_LENGTH
-    for y in range(GRID_COL_LENGTH):
+    grid_random[x] = [0] * GRID_COL_LENGTH
+    for y in GRID_COL:
         grid[x][y] = [0, 0, 0]
+        grid_random[x][y] = random.random() * math.pi * 2
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 
@@ -145,20 +151,17 @@ grid_index = [
 ]
 
 def grid_pack():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
+    for x in GRID_ROW:
+        for y in GRID_COL:
             index = grid_index[x][y] * 3
-            grid_msg[index] = grid[x][y][0]
-            grid_msg[index + 1] = grid[x][y][1]
-            grid_msg[index + 2] = grid[x][y][2]
-
+            grid_msg[index] = round(grid[x][y][0] * 127 / 100) * 2
+            grid_msg[index + 1] = round(grid[x][y][1] * 127 / 100) * 2
+            grid_msg[index + 2] = round(grid[x][y][2] * 127 / 100) * 2
 
 def grid_reset():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
-            grid[x][y][0] = 0
-            grid[x][y][1] = 0
-            grid[x][y][2] = 0
+    for x in GRID_ROW:
+        for y in GRID_COL:
+            grid[x][y] = [0, 0, 0]
 
 grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
 
@@ -911,7 +914,7 @@ async def light():
             else:
                 i+=1
 
-        levels = [0] * LIGHT_COUNT
+        grid_levels = [0] * LIGHT_COUNT
 
         for i in range(LIGHT_COUNT):
             level = 0
@@ -927,7 +930,7 @@ async def light():
             level_between_0_and_1 = level_bounded / 100
 
             # we need it to be an even number between 0 and 256
-            levels[i] = round(level_between_0_and_1 * 127) * 2
+            grid_levels[i] = level_bounded
             
             # gamma curve
             # level_scaled = round(pow(level_between_0_and_1, 2.2))
@@ -941,7 +944,7 @@ async def light():
 
         # grid_reset()
 
-        # print(levels)
+        # print(grid_levels)
 
         grid_out =  grid_serial.out_waiting
         grid_in = grid_serial.in_waiting
@@ -949,15 +952,12 @@ async def light():
         if grid_out == 0 and grid_in > 0:
             grid_serial.read(grid_in)
             
-            for x in range(GRID_ROW_LENGTH):
+            for x in GRID_ROW:
                 for y in range(GRID_COL_LENGTH // 2):
-                    grid[x][y][0] = levels[3]
-                    grid[x][y][1] = levels[4]
-                    grid[x][y][2] = levels[5]
+                    mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
+                    grid[x][y] = [grid_levels[3] * mult, grid_levels[4] * mult, grid_levels[5] * mult]
                 for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
-                    grid[x][y][0] = levels[0]
-                    grid[x][y][1] = levels[1]
-                    grid[x][y][2] = levels[2]
+                    grid[x][y] = [grid_levels[0] * mult, grid_levels[1] * mult, grid_levels[2] * mult]
 
             grid_pack()
 

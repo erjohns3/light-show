@@ -6,6 +6,7 @@ import signal
 import sys
 import numpy as np
 
+
 def signal_handler(sig, frame):
     print('SIG Handler: ' + str(sig), flush=True)
     sys.exit(0)
@@ -27,28 +28,29 @@ grid_serial = serial.Serial(
 GRID_ROW_LENGTH = 20
 GRID_COL_LENGTH = 32
 
-GRID_ROW = range(GRID_ROW_LENGTH)
-GRID_COL = range(GRID_COL_LENGTH)
-
-grid = [0] * GRID_ROW_LENGTH
-for x in range(GRID_ROW_LENGTH):
-    grid[x] = [0] * GRID_COL_LENGTH
-    for y in range(GRID_COL_LENGTH):
-        grid[x][y] = [0, 0, 0]
+GRID_ROW = np.arange(GRID_ROW_LENGTH)
+GRID_COL = np.arange(GRID_COL_LENGTH)
 
 time_a = time.time()*1000
 
-for x in GRID_ROW:
-    for y in GRID_COL:
-        # grid[x][y][0] = 5
-        # grid[x][y][1] = 6
-        r = ((x**2) + (y**2))**0.5
-        # r = math.dist((x,y), (10,16))
-        # dist = np.linalg.norm((x,y)-(10, 16))
+zero = np.zeros((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
+grid = np.array(zero, np.int32)
+# grid = np.array((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
 
 time_b = time.time()*1000
 
-print(f'zero: {time_b - time_a}')
+for x in GRID_ROW:
+    for y in GRID_COL:
+        # np.put(a, , -5, mode='clip')
+        # grid[x, y, 0] = grid[x, y, 1]
+        grid.itemset((x, y, 0), 5)
+        # grid.itemset((x, y, 1), 6)
+        # grid.itemset((x, y, 2), 7)
+        
+
+time_c = time.time()*1000
+
+print(f'init: {time_b - time_a}, zero: {time_c - time_b}')
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 
@@ -83,11 +85,8 @@ def grid_pack():
 
 
 def grid_reset():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
-            grid[x][y][0] = 0
-            grid[x][y][1] = 0
-            grid[x][y][2] = 0
+    global grid
+    grid = np.zeros((GRID_ROW_LENGTH, GRID_COL_LENGTH, 3))
 
 # for x in range(GRID_ROW_LENGTH):
 #     grid_index[x] = [0]*GRID_COL_LENGTH
@@ -115,13 +114,14 @@ while True:
     # min(0.05 / ((abs((y / (GRID_COL_LENGTH - 1)) - pos) % 1) ** 2), 255)
 
     # d = abs((y / (GRID_COL_LENGTH - 1)) - pos) + abs((y / (GRID_COL_LENGTH - 1)) - pos - 1)
-    
-    for x in GRID_ROW:
-        for y in GRID_COL:
-            # r = math.dist((x, y), (9.5, 15.5))
-            # power = random.randint(0, 127)*2
-            power = int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4 + random.randint(0, 1) * 2
-            grid[x][y] = [power, 0, 0]
+
+    for y in range(GRID_COL_LENGTH):
+        for x in range(GRID_ROW_LENGTH):
+            r = ((x**2) + (y**2))**0.5
+            power = int(127 * math.sin(r) + 128)
+            grid[x][y][0] = 170
+            grid[x][y][1] = 170
+            grid[x][y][2] = 170
 
     time_c = time.time()*1000
 
@@ -129,17 +129,9 @@ while True:
     #     grid_msg[i] = 0
     # grid_msg[(num*3)%640] = 255
 
-    # grid_pack()
+    grid_pack()
 
     time_d = time.time()*1000
-
-    i = 0
-    while i < 1920:
-        # grid_msg[i] = (int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4) + (random.randint(0, 1) * 3)
-        # grid_msg[i] = 126 + (random.randint(0, 1) * 2)
-        grid_msg[i] = 0 + (random.randint(0, 127) * 2)
-        i += 3
-        
 
     msg = bytes(grid_msg)
 
@@ -151,5 +143,5 @@ while True:
 
     time_f = time.time()*1000
     print(f'A: {time_e - time_a},  B: {time_c - time_b},E: {time_f - time_e}')
-    time.sleep(0.01)
+    time.sleep(1)
     

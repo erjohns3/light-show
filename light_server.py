@@ -926,7 +926,8 @@ async def light():
             level_bounded = max(0, min(100, level))
             level_between_0_and_1 = level_bounded / 100
 
-            levels[i] = round(level_between_0_and_1*255)
+            # we need it to be an even number between 0 and 256
+            levels[i] = round(level_between_0_and_1 * 127) * 2
             
             # gamma curve
             # level_scaled = round(pow(level_between_0_and_1, 2.2))

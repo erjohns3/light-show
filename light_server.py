@@ -947,22 +947,23 @@ async def light():
 
         # print(grid_levels)
 
-        grid_out =  grid_serial.out_waiting
-        grid_in = grid_serial.in_waiting
+        if not args.local:
+            grid_out =  grid_serial.out_waiting
+            grid_in = grid_serial.in_waiting
 
-        if grid_out == 0 and grid_in > 0:
-            grid_serial.read(grid_in)
-            
-            for x in GRID_ROW:
-                for y in range(GRID_COL_LENGTH // 2):
-                    mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
-                    grid[x][y] = [grid_levels[3] * mult, grid_levels[4] * mult, grid_levels[5] * mult]
-                for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
-                    grid[x][y] = [grid_levels[0] * mult, grid_levels[1] * mult, grid_levels[2] * mult]
+            if grid_out == 0 and grid_in > 0:
+                grid_serial.read(grid_in)
+                
+                for x in GRID_ROW:
+                    for y in range(GRID_COL_LENGTH // 2):
+                        mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
+                        grid[x][y] = [grid_levels[3] * mult, grid_levels[4] * mult, grid_levels[5] * mult]
+                    for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
+                        grid[x][y] = [grid_levels[0] * mult, grid_levels[1] * mult, grid_levels[2] * mult]
 
-            grid_pack()
+                grid_pack()
 
-            grid_serial.write(bytes(grid_msg))
+                grid_serial.write(bytes(grid_msg))
 
         if download_thread is not None:
             if not download_thread.is_alive():

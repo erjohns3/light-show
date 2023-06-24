@@ -102,15 +102,16 @@ printed_http_info = False
 
 ########################################
 
-grid_serial = serial.Serial(
-    port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
-    baudrate = 2000000,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    bytesize=serial.EIGHTBITS,
-    timeout=1,
-    # write_timeout=0
-)
+if not args.local:
+    grid_serial = serial.Serial(
+        port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
+        baudrate = 2000000,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=1,
+        # write_timeout=0
+    )
 
 GRID_ROW_LENGTH = 20
 GRID_COL_LENGTH = 32
@@ -924,7 +925,7 @@ async def light():
 
                 if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
-                    level += channel_lut[effect_name]['beats'][index][i]                
+                    level += channel_lut[effect_name]['beats'][index][i]
 
             level_bounded = max(0, min(100, level))
             level_between_0_and_1 = level_bounded / 100
@@ -1304,6 +1305,8 @@ def set_effect_defaults(name, effect):
         effect['sat_shift'] = 0
     if 'bright_shift' not in effect:
         effect['bright_shift'] = 0
+    if 'grid_bright_shift' not in effect:
+        effect['grid_bright_shift'] = 0
     if 'snap' not in effect:
         effect['snap'] = 1 / SUB_BEATS
     else:
@@ -1499,6 +1502,7 @@ def compile_lut(local_effects_config):
             hue_shift = component[6]
             sat_shift = component[7]
             bright_shift = component[8]
+            grid_bright_shift = component[8]
 
             for i in range(length):
                 reference_channels = reference_beats[(i + offset) % reference_length]
@@ -1513,17 +1517,20 @@ def compile_lut(local_effects_config):
                     for x in range(LIGHT_COUNT):
                         final_channel[x] += reference_channels[x] * mult
                     if hue_shift or sat_shift or bright_shift:
-                        for i in range(3):
-                            rd, gr, bl = final_channel[i * 3:(i * 3) + 3]
+                        for part in range(3):
+                            print(final_channel)
+                            rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             # bright shift is relative to initial brightness
                             new_bright = min(1, max(0, bright + bright*bright_shift))
-                            final_channel[i * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            final_channel[i * 3] *= 100
-                            final_channel[i * 3 + 1] *= 100
-                            final_channel[i * 3 + 2] *= 100
+                            if (part == 0 or part == 1): # tbd
+                                new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
+                            final_channel[part * 3:(i * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+                            final_channel[part * 3] *= 100
+                            final_channel[part * 3 + 1] *= 100
+                            final_channel[part * 3 + 2] *= 100
 
     print_blue(f'Complex effects took: {time.time() - complex_effect_perf_timer:.3f} seconds')
 

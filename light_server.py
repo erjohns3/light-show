@@ -109,7 +109,7 @@ grid_serial = serial.Serial(
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
     timeout=1,
-    write_timeout=0
+    # write_timeout=0
 )
 
 GRID_ROW_LENGTH = 20
@@ -943,19 +943,25 @@ async def light():
 
         # print(levels)
 
-        for x in range(GRID_ROW_LENGTH):
-            for y in range(GRID_COL_LENGTH // 2):
-                grid[x][y][0] = levels[3]
-                grid[x][y][1] = levels[4]
-                grid[x][y][2] = levels[5]
-            for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
-                grid[x][y][0] = levels[0]
-                grid[x][y][1] = levels[1]
-                grid[x][y][2] = levels[2]
+        grid_out =  grid_serial.out_waiting
+        grid_in = grid_serial.in_waiting
 
-        grid_pack()
+        if grid_out == 0 and grid_in > 0:
+            grid_serial.read(grid_in)
+            
+            for x in range(GRID_ROW_LENGTH):
+                for y in range(GRID_COL_LENGTH // 2):
+                    grid[x][y][0] = levels[3]
+                    grid[x][y][1] = levels[4]
+                    grid[x][y][2] = levels[5]
+                for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
+                    grid[x][y][0] = levels[0]
+                    grid[x][y][1] = levels[1]
+                    grid[x][y][2] = levels[2]
 
-        grid_serial.write(bytes(grid_msg))
+            grid_pack()
+
+            grid_serial.write(bytes(grid_msg))
 
         if download_thread is not None:
             if not download_thread.is_alive():

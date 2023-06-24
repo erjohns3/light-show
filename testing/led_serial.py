@@ -20,7 +20,7 @@ grid_serial = serial.Serial(
     parity=serial.PARITY_NONE,
     stopbits=serial.STOPBITS_ONE,
     bytesize=serial.EIGHTBITS,
-    timeout=1,
+    timeout=0,
     write_timeout=0
 )
 
@@ -101,12 +101,12 @@ def grid_reset():
 
 grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
 
-while True:
-    time_a = time.time()*1000
-    
-    grid_reset()
+num = 0
+time_a = time.time()*1000
 
-    time_b = time.time()*1000
+while True:
+    
+    # grid_reset()
 
     # period = 3
 
@@ -116,14 +116,14 @@ while True:
 
     # d = abs((y / (GRID_COL_LENGTH - 1)) - pos) + abs((y / (GRID_COL_LENGTH - 1)) - pos - 1)
     
-    for x in GRID_ROW:
-        for y in GRID_COL:
-            # r = math.dist((x, y), (9.5, 15.5))
-            # power = random.randint(0, 127)*2
-            power = int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4 + random.randint(0, 1) * 2
-            grid[x][y] = [power, 0, 0]
+    # for x in GRID_ROW:
+    #     for y in GRID_COL:
+    #         # r = math.dist((x, y), (9.5, 15.5))
+    #         # power = random.randint(0, 127)*2
+    #         power = int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4 + random.randint(0, 1) * 2
+    #         grid[x][y] = [power, 0, 0]
 
-    time_c = time.time()*1000
+    # time_c = time.time()*1000
 
     # for i in range(0, len(grid_msg), 3):
     #     grid_msg[i] = 0
@@ -131,25 +131,33 @@ while True:
 
     # grid_pack()
 
-    time_d = time.time()*1000
+    # time_d = time.time()*1000
 
-    i = 0
-    while i < 1920:
-        # grid_msg[i] = (int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4) + (random.randint(0, 1) * 3)
-        # grid_msg[i] = 126 + (random.randint(0, 1) * 2)
-        grid_msg[i] = 0 + (random.randint(0, 127) * 2)
-        i += 3
+    grid_out =  grid_serial.out_waiting
+    grid_in = grid_serial.in_waiting
+
+    if grid_out == 0 and grid_in > 0:
+        # print('----SEND----')
+        grid_serial.read(grid_in)
+        
+        i = 2
+        while i < 1920:
+            # grid_msg[i] = (int(126 * math.sin(time.time() * math.pi) + 126) // 4 * 4) + (random.randint(0, 1) * 3)
+            # grid_msg[i] = 126 + (random.randint(0, 1) * 2)
+            grid_msg[i] = (num % 2) * 255
+            i += 6
+        num += 1
+
+        grid_serial.write(bytes(grid_msg))
+        time_b = time.time()*1000
+        # print(f'time: {time_b - time_a}')
+        time_a = time.time()*1000
+    else:
+        pass
+        # print(f'out: {grid_out}, in: {grid_in}')
         
 
-    msg = bytes(grid_msg)
-
-    # print(msg)
-
-    time_e = time.time()*1000
-
-    grid_serial.write(msg)
-
-    time_f = time.time()*1000
-    print(f'A: {time_e - time_a},  B: {time_c - time_b},E: {time_f - time_e}')
-    time.sleep(0.01)
+    
+    # time.sleep(0.1)
+    # print(f'A: {time_b - time_a}')
     

@@ -2,6 +2,7 @@ import pygame
 import argparse
 import time
 
+import keyboard
 import serial
 
 from helpers import *
@@ -32,15 +33,33 @@ grid_index = [
 GRID_ROW_LENGTH = 20
 GRID_COL_LENGTH = 32
 
-grid = [0] * GRID_ROW_LENGTH
+grid = [None] * GRID_ROW_LENGTH
+for x in range(GRID_ROW_LENGTH):
+    grid[x] = [None] * GRID_COL_LENGTH
+    for y in range(GRID_COL_LENGTH):
+        grid[x][y] = [0, 0, 0]
 grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
+
+
+def print_grid_to_terminal():
+    for y in range(GRID_COL_LENGTH):
+        row = []
+        for x in range(GRID_ROW_LENGTH):
+            index = grid_index[y][x] * 3         
+            if index >= 0:
+                row.append('○')
+            else:
+                row.append(' ')
+
+
 def pack_grid():
     for x in range(GRID_ROW_LENGTH):
         for y in range(GRID_COL_LENGTH):
-            index = grid_index[x][y] * 3
-            grid_msg[index] = round(grid[x][y][0] * 127 / 100) * 2
-            grid_msg[index + 1] = round(grid[x][y][1] * 127 / 100) * 2
-            grid_msg[index + 2] = round(grid[x][y][2] * 127 / 100) * 2
+            index = grid_index[x][y] * 3            
+            if index >= 0:
+                grid_msg[index] = round(grid[x][y][0] * 127 / 100) * 2
+                grid_msg[index + 1] = round(grid[x][y][1] * 127 / 100) * 2
+                grid_msg[index + 2] = round(grid[x][y][2] * 127 / 100) * 2
 
 
 def reset_grid():
@@ -84,18 +103,49 @@ def init_controller():
     return None
 
 
+def get_joystick_direction(controller):
+    x_axis = controller.get_axis(0)
+    y_axis = controller.get_axis(1)
+    threshold = 0.5
+    if x_axis < -threshold:
+        return 'left'
+    elif x_axis > threshold:
+        return 'right'
+    elif y_axis < -threshold:
+        return 'up'
+    elif y_axis > threshold:
+        return 'down'
+    return None
+
+
+keyboard_mappings = {
+    'esc': 'quit',
+    'enter': 'enter',
+    'a': 'left',
+    'd': 'right',
+    'w': 'up',
+    's': 'down',
+}
 def read_input(controller):
-    while True:
+    if controller is None:
+        if keyboard.is_pressed('q'):
+            return 'quit'
+        for key in keyboard_mappings:
+            if keyboard.is_pressed(key):
+                return keyboard_mappings[key]
+    else:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                pygame.quit()
-                exit(1)
+                return 'quit'
 
         pygame.event.pump()
-        button_state = [controller.get_button(i) for i in range(controller.get_numbuttons())]
+        current_button_state = [controller.get_button(i) for i in range(controller.get_numbuttons())]
+        joystick_direction = get_joystick_direction(controller)
 
-        if button_state[0]: # a button
+        print(f'buttons: {current_button_state}, joystick direction: {joystick_direction}')
+        if current_button_state[0]: # a button
             return 'enter'
+        return joystick_direction
 
 
 if __name__ == "__main__":
@@ -115,10 +165,23 @@ if __name__ == "__main__":
         controller = None
 
     time_start = time.time()
-    last_time = time_start
+    fps = 1.2
+    frame = 0
     while True:
-        input_used = read_input(controller)
-        if input_used == 'enter':
+        print_cyan(f'Frame {frame}')
+        start_loop = time.time()
+        input_read = read_input(controller)
+        
+        if input_read == 'quit':
+            pygame.quit()
+            exit(1)
+        elif input_read == 'enter':
             reset_grid()
-            render(communicator)
             print_green("Grid cleared")
+            
+
+        render(communicator)
+        to_wait = 1 / fps - (time.time() - start_loop)
+        if to_wait > 0:
+            time.sleep(to_wait)
+        frame += 1

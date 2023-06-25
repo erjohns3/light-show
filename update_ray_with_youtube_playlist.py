@@ -1,3 +1,19 @@
+# !FIX ERROR
+
+# wZkR2a3FMY2dyc1lDaC0%3D
+# Querying continuation_token: 4qmFsgJfEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aEkNBWjZCMUJVT2tOUGMwVSUzRJoCIlBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0%3D
+# continuation request 5 status code: 200
+# started downloading https://www.youtube.com/watch?v=oWqvIzXQFkU
+# [youtube] Extracting URL: https://www.youtube.com/watch?v=oWqvIzXQFkU
+# [youtube] oWqvIzXQFkU: Downloading webpage
+# [youtube] oWqvIzXQFkU: Downloading android player API JSON
+# [info] oWqvIzXQFkU: Downloading 1 format(s): 251
+# ERROR: unable to download video data: HTTP Error 403: Forbidden
+# Couldnt download url https://www.youtube.com/watch?v=oWqvIzXQFkU due to ERROR: unable to download video data: HTTP Error 403: ForbiddenTraceback (most recent call last):
+#   File "T:\programming\light-show\update_ray_with_youtube_playlist.py", line 45, in <module>
+#     print_green(f'Downloaded file to "{filepath}", {filepath.exists()=}')
+
+
 import json
 import time
 import random

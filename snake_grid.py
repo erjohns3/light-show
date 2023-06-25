@@ -1,6 +1,8 @@
 import pygame
 import argparse
 import time
+import copy
+import random
 
 import keyboard
 import serial
@@ -38,21 +40,12 @@ for x in range(GRID_ROW_LENGTH):
     grid[x] = [None] * GRID_COL_LENGTH
     for y in range(GRID_COL_LENGTH):
         grid[x][y] = [0, 0, 0]
+init_grid = copy.deepcopy(grid)
 grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
 
 
-def print_grid_to_terminal():
-    for y in range(GRID_COL_LENGTH):
-        row = []
-        for x in range(GRID_ROW_LENGTH):
-            index = grid_index[y][x] * 3         
-            if index >= 0:
-                row.append('○')
-            else:
-                row.append(' ')
-
-
-def pack_grid():
+# fill grid with rgb values to 0-100
+def pack_grid_into_message():
     for x in range(GRID_ROW_LENGTH):
         for y in range(GRID_COL_LENGTH):
             index = grid_index[x][y] * 3            
@@ -80,17 +73,40 @@ def get_serial_communicator():
     )
 
 
-def render(communicator):
+class GameState:
+    def __init__(self):
+        self.player_head_pos = (GRID_COL_LENGTH // 2, GRID_ROW_LENGTH // 2)
+        self.player_body_poses = []
+        self.food_pos = random_pos(grid)
+        self.item_colors = None
+        self.frame = 0
+
+
+item_colors = {
+    'player': [0, 0, 100],
+    'empty': [100, 100, 100],
+    'food': [0, 100, 0],
+}
+def render(communicator, game_state):
     if communicator:
+        reset_grid()
         grid_out =  communicator.out_waiting
         grid_in = communicator.in_waiting
 
         if grid_out == 0 and grid_in > 0:
-            pack_grid()
+            pack_grid_into_message()
             communicator.read(grid_in)
             communicator.write(bytes(grid_msg))
     else:
-        print('would render to terminal')
+        for y in range(GRID_COL_LENGTH):
+            row = []
+            for x in range(GRID_ROW_LENGTH):
+                index = grid_index[x][y] * 3         
+                if index >= 0:
+                    row.append('○')
+                else:
+                    row.append(' ')
+            print(''.join(row))
 
 
 def init_controller():
@@ -148,6 +164,30 @@ def read_input(controller):
         return joystick_direction
 
 
+def in_bounds(pos):
+    x, y = pos
+    if x >= 0 and x < GRID_ROW_LENGTH and y >= 0 and y < GRID_COL_LENGTH:
+        return False
+    index = grid_index[x][y]
+    if index < 0:
+        return False
+    return True 
+
+
+def random_pos(grid):
+    while True:
+        x = random.randint(0, GRID_ROW_LENGTH - 1)
+        y = random.randint(0, GRID_COL_LENGTH - 1)
+        if in_bounds((x, y)):
+            return (x, y)
+
+
+directions = {
+    'left': [-1, 0],
+    'right': [1, 0],
+    'up': [0, -1],
+    'down': [0, 1],
+}
 if __name__ == "__main__":
     argparse = argparse.ArgumentParser()
     argparse.add_argument('--keyboard', action='store_true')
@@ -167,6 +207,9 @@ if __name__ == "__main__":
     time_start = time.time()
     fps = 1.2
     frame = 0
+
+    game_state = GameState()
+    
     while True:
         print_cyan(f'Frame {frame}')
         start_loop = time.time()
@@ -176,11 +219,17 @@ if __name__ == "__main__":
             pygame.quit()
             exit(1)
         elif input_read == 'enter':
-            reset_grid()
-            print_green("Grid cleared")
-            
 
-        render(communicator)
+            print_green("Grid cleared")
+        elif input_read in ['left', 'right', 'up', 'down']:
+            player_head_pos = game_state.player_head_pos
+            d = directions[input_read]
+            new_player_pos = [player_head_pos[0] + d[0], player_head_pos[1] + d[1]]
+            if in_bounds(new_player_pos):
+                game_state.player_head_pos = new_player_pos
+                print_green(f'Player moved to {new_player_pos}')
+
+        render(communicator, game_state)
         to_wait = 1 / fps - (time.time() - start_loop)
         if to_wait > 0:
             time.sleep(to_wait)

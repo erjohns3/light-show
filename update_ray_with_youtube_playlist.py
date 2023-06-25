@@ -71,6 +71,6 @@ if __name__ == '__main__':
         if not already_downloaded:
             print('nothing downloaded')
 
-        seconds_to_sleep = random.randint(59, 400)
+        seconds_to_sleep = random.randint(59, 90)
         print(f'Sleeping for {seconds_to_sleep} seconds)...')
         time.sleep(seconds_to_sleep)

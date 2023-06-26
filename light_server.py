@@ -950,14 +950,16 @@ async def light():
             grid_out =  grid_serial.out_waiting
             grid_in = grid_serial.in_waiting
 
+        curr_time = time.time()
+
         if grid_out == 0 and grid_in > 0:
             
             for x in GRID_ROW:
                 for y in range(GRID_COL_LENGTH // 2):
-                    mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
-                    grid[x][y] = [grid_levels[3] * mult, grid_levels[4] * mult, grid_levels[5] * mult]
+                    # mult = 0.5 * math.sin((time.time() * 3) + grid_random[x][y]) + 0.5
+                    grid[x][y] = [grid_levels[3], grid_levels[4], grid_levels[5]]
                 for y in range(GRID_COL_LENGTH // 2, GRID_COL_LENGTH):
-                    grid[x][y] = [grid_levels[0] * mult, grid_levels[1] * mult, grid_levels[2] * mult]
+                    grid[x][y] = [grid_levels[0], grid_levels[1], grid_levels[2]]
 
                 grid_pack()
 

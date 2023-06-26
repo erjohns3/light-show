@@ -54,7 +54,8 @@ pos_y = 15.5
 
 r = np.sqrt(np.square(indeces[0]-pos_x) + np.square(indeces[1]-pos_y))
 
-# print(indeces)
+
+print(indeces)
 
 time_c = time.time()*1000
 
@@ -62,7 +63,7 @@ time_c = time.time()*1000
 
 print(f'init: {time_b - time_a}, zero: {time_c - time_b}')
 
-
+# print(len(r))
 
 grid_index = [
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 31, -1, -1], 

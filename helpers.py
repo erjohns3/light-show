@@ -203,6 +203,17 @@ def blue(s):
 def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
+def disable_color():
+    global bcolors
+    bcolors.HEADER = ''
+    bcolors.OKBLUE = ''
+    bcolors.OKCYAN = ''
+    bcolors.OKGREEN = ''
+    bcolors.WARNING = ''
+    bcolors.FAIL = ''
+    bcolors.ENDC = ''
+    bcolors.BOLD = ''
+    bcolors.UNDERLINE = ''
 
 
 def print_yellow(*args, **kwargs):

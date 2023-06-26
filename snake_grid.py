@@ -85,10 +85,13 @@ class GameState:
         self.direction = 'left'
 
 
+104/255
+71/255
+14/255
 item_colors = {
-    'player': [100, 0, 0],
-    'empty': [100, 100, 100],
-    'food': [0, 100, 0],
+    'player': [100, 100, 100],
+    'empty': [10, 10, 10],
+    'food': [40.7, 100, 0],
 }
 item_styles = {}
 for item, color in item_colors.items():
@@ -161,6 +164,8 @@ keyboard_mappings = {
     'd': 'right',
     'w': 'up',
     's': 'down',
+    'q': 'fps_down',
+    'e': 'fps_up',
 }
 def read_input(controller):
     if controller is None:
@@ -178,9 +183,12 @@ def read_input(controller):
         current_button_state = [controller.get_button(i) for i in range(controller.get_numbuttons())]
         joystick_direction = get_joystick_direction(controller)
 
-        print(f'buttons: {current_button_state}, joystick direction: {joystick_direction}')
         if current_button_state[0]: # a button
             return 'enter'
+        if current_button_state[1]: # b button
+            return 'fps_up'
+        if current_button_state[2]: # x button
+            return 'fps_down'
         return joystick_direction
 
 
@@ -220,53 +228,64 @@ allowed_turn = {
     'up': ['left', 'right'],
     'down': ['left', 'right'],
 }
+states_per_second = 1.2
 def play_game(serial_communicator, controller):
-    time_start = time.time()
-    fps = 1.2
+    global states_per_second
+    fps = 60
+    last_state_time = 0
     frame = 0
 
     game_state = GameState()
     while True:
-        print_cyan(f'Frame {frame}')
         start_loop = time.time()
         input_read = read_input(controller)
-        
+
         if input_read == 'quit':
             pygame.quit()
             exit(1)
         elif input_read == 'enter':
             print_yellow('Resetting game')
             return
-        elif input_read in ['left', 'right', 'up', 'down'] and input_read in allowed_turn[game_state.direction]:
-            game_state.direction = input_read
+        elif input_read == 'fps_up':
+            print('fps_up', states_per_second)
+            states_per_second += 0.1
+        elif input_read == 'fps_down':
+            states_per_second -= 0.1
         
-        last_head_pos = game_state.player_head_pos
-        last_body_pos = (game_state.player_body_poses and game_state.player_body_poses[-1]) or game_state.player_head_pos
-        d = directions[game_state.direction]
-        new_player_pos = (game_state.player_head_pos[0] + d[0], game_state.player_head_pos[1] + d[1])
-        if not legal(game_state, new_player_pos):
-            print_red('player lost, resetting game')
-            return
-        
-        game_state.player_head_pos = new_player_pos
-        print_green(f'Player moved to {new_player_pos}')
+        if (time.time() - last_state_time) > 1 / states_per_second:
+            print_cyan(f'State frame {frame}')
+            if input_read in ['left', 'right', 'up', 'down'] and input_read in allowed_turn[game_state.direction]:
+                print(f'updated direction to {input_read}')
+                game_state.direction = input_read
+            print(input_read, allowed_turn[game_state.direction])
 
-        if game_state.player_body_poses:
-            game_state.player_body_poses.pop()
-            game_state.player_body_poses.appendleft(last_head_pos)
+            last_head_pos = game_state.player_head_pos
+            last_body_pos = (game_state.player_body_poses and game_state.player_body_poses[-1]) or game_state.player_head_pos
+            d = directions[game_state.direction]
+            new_player_pos = (game_state.player_head_pos[0] + d[0], game_state.player_head_pos[1] + d[1])
+            if not legal(game_state, new_player_pos):
+                print_red('player lost, resetting game')
+                return
 
-        if game_state.player_head_pos == game_state.food_pos:
-            game_state.player_body_poses.append(last_body_pos)
-            print_green(f'Player ate food at {game_state.food_pos}')
-            game_state.food_pos = random_pos()
-        
+            game_state.player_head_pos = new_player_pos
+            print_green(f'Player moved to {new_player_pos}')
 
-        render(serial_communicator, game_state)
+            if game_state.player_body_poses:
+                game_state.player_body_poses.pop()
+                game_state.player_body_poses.appendleft(last_head_pos)
+
+            if game_state.player_head_pos == game_state.food_pos:
+                game_state.player_body_poses.append(last_body_pos)
+                print_green(f'Player ate food at {game_state.food_pos}')
+                game_state.food_pos = random_pos()
+
+            render(serial_communicator, game_state)
+            last_state_time = time.time()
+
         to_wait = 1 / fps - (time.time() - start_loop)
         if to_wait > 0:
             time.sleep(to_wait)
         frame += 1
-
 
 
 if __name__ == "__main__":
@@ -277,6 +296,7 @@ if __name__ == "__main__":
 
     serial_communicator = None
     if not args.local:
+        disable_color()
         serial_communicator = get_serial_communicator()
 
     controller = init_controller()

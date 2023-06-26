@@ -85,13 +85,10 @@ class GameState:
         self.direction = 'left'
 
 
-104/255
-71/255
-14/255
 item_colors = {
     'player': [100, 100, 100],
     'empty': [10, 10, 10],
-    'food': [40.7, 100, 0],
+    'food': [40.7, 28, 5.4],
 }
 item_styles = {}
 for item, color in item_colors.items():

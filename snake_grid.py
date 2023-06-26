@@ -1,8 +1,11 @@
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import argparse
 import time
 import copy
 import random
+import collections
 
 import keyboard
 import serial
@@ -76,37 +79,54 @@ def get_serial_communicator():
 class GameState:
     def __init__(self):
         self.player_head_pos = (GRID_COL_LENGTH // 2, GRID_ROW_LENGTH // 2)
-        self.player_body_poses = []
-        self.food_pos = random_pos(grid)
-        self.item_colors = None
+        self.player_body_poses = collections.deque()
+        self.food_pos = random_pos()
         self.frame = 0
+        self.direction = 'left'
 
 
 item_colors = {
-    'player': [0, 0, 100],
+    'player': [100, 0, 0],
     'empty': [100, 100, 100],
     'food': [0, 100, 0],
 }
-def render(communicator, game_state):
-    if communicator:
+item_styles = {}
+for item, color in item_colors.items():
+    color_scaled = [round(c * 2.55) for c in color]
+    item_styles[item] = f'rgb({color_scaled[0]},{color_scaled[1]},{color_scaled[2]})'
+
+console = None
+character = '○'
+def render(serial_communicator, game_state):
+    if serial_communicator:
         reset_grid()
-        grid_out =  communicator.out_waiting
-        grid_in = communicator.in_waiting
+        grid_out =  serial_communicator.out_waiting
+        grid_in = serial_communicator.in_waiting
 
         if grid_out == 0 and grid_in > 0:
             pack_grid_into_message()
-            communicator.read(grid_in)
-            communicator.write(bytes(grid_msg))
+            serial_communicator.read(grid_in)
+            serial_communicator.write(bytes(grid_msg))
     else:
+        global console
+        if console is None:
+            from rich.console import Console
+            console = Console()
         for y in range(GRID_COL_LENGTH):
-            row = []
             for x in range(GRID_ROW_LENGTH):
-                index = grid_index[x][y] * 3         
+                index = grid_index[x][y] * 3
                 if index >= 0:
-                    row.append('○')
+                    style = item_styles['empty']
+                    if game_state.player_head_pos == (x, y):
+                        style = item_styles['player']
+                    elif (x, y) in game_state.player_body_poses:
+                        style = item_styles['player']
+                    elif game_state.food_pos == (x, y):
+                        style = item_styles['food']
+                    console.print(character, style=style, end='')
                 else:
-                    row.append(' ')
-            print(''.join(row))
+                    console.print(' ', end='')
+            console.print()
 
 
 def init_controller():
@@ -166,15 +186,21 @@ def read_input(controller):
 
 def in_bounds(pos):
     x, y = pos
-    if x >= 0 and x < GRID_ROW_LENGTH and y >= 0 and y < GRID_COL_LENGTH:
+    if x < 0 or x >= GRID_ROW_LENGTH or y < 0 or y >= GRID_COL_LENGTH:
         return False
     index = grid_index[x][y]
     if index < 0:
         return False
-    return True 
+    return True
 
 
-def random_pos(grid):
+def legal(game_state, pos):
+    if in_bounds(pos) and pos not in game_state.player_body_poses:
+        return True
+    return False
+
+
+def random_pos():
     while True:
         x = random.randint(0, GRID_ROW_LENGTH - 1)
         y = random.randint(0, GRID_COL_LENGTH - 1)
@@ -188,28 +214,18 @@ directions = {
     'up': [0, -1],
     'down': [0, 1],
 }
-if __name__ == "__main__":
-    argparse = argparse.ArgumentParser()
-    argparse.add_argument('--keyboard', action='store_true')
-    argparse.add_argument('--local', action='store_true')    
-    args = argparse.parse_args()
-
-    communicator = None
-    if not args.local:
-        communicator = get_serial_communicator()
-
-    controller = init_controller()
-    if controller is None:
-        print_red("No controller found, using keyboard")
-    if args.keyboard:
-        controller = None
-
+allowed_turn = {
+    'left': ['up', 'down'],
+    'right': ['up', 'down'],
+    'up': ['left', 'right'],
+    'down': ['left', 'right'],
+}
+def play_game(serial_communicator, controller):
     time_start = time.time()
     fps = 1.2
     frame = 0
 
     game_state = GameState()
-    
     while True:
         print_cyan(f'Frame {frame}')
         start_loop = time.time()
@@ -219,18 +235,55 @@ if __name__ == "__main__":
             pygame.quit()
             exit(1)
         elif input_read == 'enter':
+            print_yellow('Resetting game')
+            return
+        elif input_read in ['left', 'right', 'up', 'down'] and input_read in allowed_turn[game_state.direction]:
+            game_state.direction = input_read
+        
+        last_head_pos = game_state.player_head_pos
+        last_body_pos = (game_state.player_body_poses and game_state.player_body_poses[-1]) or game_state.player_head_pos
+        d = directions[game_state.direction]
+        new_player_pos = (game_state.player_head_pos[0] + d[0], game_state.player_head_pos[1] + d[1])
+        if not legal(game_state, new_player_pos):
+            print_red('player lost, resetting game')
+            return
+        
+        game_state.player_head_pos = new_player_pos
+        print_green(f'Player moved to {new_player_pos}')
 
-            print_green("Grid cleared")
-        elif input_read in ['left', 'right', 'up', 'down']:
-            player_head_pos = game_state.player_head_pos
-            d = directions[input_read]
-            new_player_pos = [player_head_pos[0] + d[0], player_head_pos[1] + d[1]]
-            if in_bounds(new_player_pos):
-                game_state.player_head_pos = new_player_pos
-                print_green(f'Player moved to {new_player_pos}')
+        if game_state.player_body_poses:
+            game_state.player_body_poses.pop()
+            game_state.player_body_poses.appendleft(last_head_pos)
 
-        render(communicator, game_state)
+        if game_state.player_head_pos == game_state.food_pos:
+            game_state.player_body_poses.append(last_body_pos)
+            print_green(f'Player ate food at {game_state.food_pos}')
+            game_state.food_pos = random_pos()
+        
+
+        render(serial_communicator, game_state)
         to_wait = 1 / fps - (time.time() - start_loop)
         if to_wait > 0:
             time.sleep(to_wait)
         frame += 1
+
+
+
+if __name__ == "__main__":
+    argparse = argparse.ArgumentParser()
+    argparse.add_argument('--keyboard', action='store_true')
+    argparse.add_argument('--local', action='store_true')    
+    args = argparse.parse_args()
+
+    serial_communicator = None
+    if not args.local:
+        serial_communicator = get_serial_communicator()
+
+    controller = init_controller()
+    if controller is None:
+        print_red("No controller found, using keyboard")
+    if args.keyboard:
+        controller = None
+
+    while True:
+        play_game(serial_communicator, controller)

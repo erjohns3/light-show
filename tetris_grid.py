@@ -238,6 +238,16 @@ keyboard_mappings = {
     'q': 'fps_down',
     'e': 'fps_up',
 }
+joy_button_mapping = {
+    3: 'quit',
+    0: 'enter',
+    1: 'fps_up',
+    2: 'fps_down',
+    11: 'left',
+    12: 'right',
+    13: 'up',
+    14: 'down',
+}
 def read_input(controller):
     if controller is None:
         global last_key_pressed
@@ -250,15 +260,9 @@ def read_input(controller):
             if event.type == pygame.QUIT:
                 return 'quit'
             if event.type == pygame.JOYBUTTONDOWN:
-                button_index = event.button
-                if button_index == 3: 
-                    return 'quit'
-                if button_index == 0: # a button
-                    return 'enter'
-                if button_index == 1: # b button
-                    return 'fps_up'
-                if button_index == 2: # x button
-                    return 'fps_down'
+                if event.button in joy_button_mapping:
+                    return joy_button_mapping[event.button]
+        
         pygame.event.pump()
         joystick_direction = get_joystick_direction(controller)
         return joystick_direction

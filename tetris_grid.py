@@ -293,6 +293,14 @@ def is_anchor_safe(game_state, p_anchor):
     return True
 
 
+def clear_row(game_state, row):
+    for col in range(GRID_ROW_LENGTH):
+        game_state.board[row][col] = None
+    for row2 in range(row, 0, -1):
+        game_state.board[row2] = game_state.board[row2 - 1]
+    game_state.board[0] = [None] * GRID_ROW_LENGTH
+
+
 directions = {
     'left': [-1, 0],
     'right': [1, 0],
@@ -363,18 +371,11 @@ def play_game(serial_communicator, controller):
                     game_state.p_name = None
                     game_state.p_anchor = None
                     game_state.p_rotation = None
-                    graphics_changed = True
 
-                    # check for full rows
-                    print('would check for full rows now')
                     for row in range(GRID_COL_LENGTH):
-                        pass
-                        # if None not in game_state.board[row]:
-                        #     for col in range(GRID_ROW_LENGTH):
-                        #         game_state.board[row][col] = None
-                        #     for row2 in range(row, 0, -1):
-                        #         game_state.board[row2] = game_state.board[row2 - 1]
-                        #     game_state.board[0] = [None] * GRID_ROW_LENGTH
+                        if None not in game_state.board[row]:
+                            clear_row(game_state, row)                            
+                    graphics_changed = True
 
             if graphics_changed:
                 render(serial_communicator, game_state)

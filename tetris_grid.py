@@ -155,10 +155,10 @@ def render(serial_communicator, game_state):
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
     if serial_communicator:
         for x in range(TETRIS_WIDTH):
-            x += TETRIS_X_OFFSET
+            g_x = x + TETRIS_X_OFFSET
             for y in range(TETRIS_HEIGHT):
-                y += TETRIS_Y_OFFSET
-                index = grid_index[x][y] * 3
+                g_y = y + TETRIS_Y_OFFSET
+                index = grid_index[g_x][g_y] * 3
                 if index >= 0:
                     if (x, y) in active_poses:
                         grid[x][y] = item_colors['active_piece']

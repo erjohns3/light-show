@@ -317,7 +317,7 @@ directions = {
 states_per_second = 4
 def play_game(serial_communicator, controller):
     global states_per_second
-    fps = 40
+    fps = 60
     last_state_time = 0
     frame = 0
 

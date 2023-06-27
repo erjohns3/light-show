@@ -418,5 +418,5 @@ if __name__ == "__main__":
     if args.keyboard:
         controller = None
 
-    # while True:
-    play_game(serial_communicator, controller)
+    while True:
+        play_game(serial_communicator, controller)

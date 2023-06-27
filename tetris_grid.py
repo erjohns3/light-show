@@ -223,8 +223,6 @@ def on_key_event(event):
     global last_key_pressed
     last_key_pressed = event.name
     # print(f"Key {event.name} was {'pressed' if event.event_type == keyboard.KEY_DOWN else 'released'}")
-keyboard.on_press(on_key_event)
-keyboard.on_release(on_key_event)
 
 keyboard_mappings = {
     'esc': 'quit',
@@ -407,8 +405,13 @@ if __name__ == "__main__":
     argparse.add_argument('--local', action='store_true')
     args = argparse.parse_args()
 
+
+
     serial_communicator = None
-    if not args.local:
+    if args.local:
+        keyboard.on_press(on_key_event)
+        keyboard.on_release(on_key_event)
+    else:
         disable_color()
         serial_communicator = get_serial_communicator()
 

@@ -37,7 +37,7 @@ grid_index = [
 ]
 
 GRID_ROW_LENGTH = 20
-GRID_COL_LENGTH = 32
+GRID_COL_LENGTH = 30
 
 grid = [None] * GRID_ROW_LENGTH
 for x in range(GRID_ROW_LENGTH):
@@ -73,6 +73,7 @@ def get_serial_communicator():
         timeout=0,
         write_timeout=0
     )
+# https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest?cb=20060626173148
 pieces = {
     'line': [
         [(0, 1), (1, 1), (2, 1), (3, 1)],
@@ -130,16 +131,17 @@ class GameState:
 
 item_colors = {
     'active_piece': [0, 100, 0],
-    'dead_square': [0, 15, 0],
+    'dead_square': [0, 0, 100],
     'flash': [100, 100, 100],
     'empty': [.8, 0, 0],
 }
-item_styles = {}
-for item, color in item_colors.items():
-    color_scaled = [round(c * 2.55) for c in color]
-    item_styles[item] = f'rgb({color_scaled[0]},{color_scaled[1]},{color_scaled[2]})'
 
-console = None
+item_colors_keyboard = {
+    'active_piece': blue('▓'),
+    'dead_square': red('▓'),
+    'flash': green('▓'),
+    'empty': '○',
+}
 character = '○'
 def render(serial_communicator, game_state):
     active_poses = set()
@@ -164,25 +166,19 @@ def render(serial_communicator, game_state):
             pack_grid_into_message()
             serial_communicator.read(grid_in)
             serial_communicator.write(bytes(grid_msg))
-    else:
-        global console
-        if console is None:
-            from rich.console import Console
-            console = Console()
-    
+    else:    
         for y in range(GRID_COL_LENGTH):
+            row = []
             for x in range(GRID_ROW_LENGTH):
                 index = grid_index[x][y] * 3
                 if index >= 0:
-                    style = item_styles['empty']
                     if (x, y) in active_poses:
-                        style = item_styles['active_piece']
+                        row.append(item_colors_keyboard['active_piece'])
                     elif game_state.board[x][y] is not None:
-                        style = item_styles['dead_square']
-                    console.print(character, style=style, end='')
-                else:
-                    console.print(' ', end='')
-            console.print()
+                        row.append(item_colors_keyboard['dead_square'])
+                    else:
+                        row.append(item_colors_keyboard['empty'])
+            print(''.join(row))
 
 
 def init_controller():
@@ -220,7 +216,7 @@ last_key_pressed = None
 def on_key_event(event):
     global last_key_pressed
     last_key_pressed = event.name
-    print(f"Key {event.name} was {'pressed' if event.event_type == keyboard.KEY_DOWN else 'released'}")
+    # print(f"Key {event.name} was {'pressed' if event.event_type == keyboard.KEY_DOWN else 'released'}")
 keyboard.on_press(on_key_event)
 keyboard.on_release(on_key_event)
 
@@ -229,10 +225,12 @@ keyboard_mappings = {
     'enter': 'enter',
     'a': 'left',
     'd': 'right',
-    'left': 'left',
-    'right': 'right',
     'w': 'up',
     's': 'down',
+    'left': 'left',
+    'right': 'right',
+    'up': 'up',
+    'down': 'down',
     'q': 'fps_down',
     'e': 'fps_up',
 }
@@ -240,8 +238,9 @@ def read_input(controller):
     if controller is None:
         global last_key_pressed
         if last_key_pressed in keyboard_mappings:
-            return keyboard_mappings[last_key_pressed]
-        last_key_pressed = None
+            temp = last_key_pressed
+            last_key_pressed = None
+            return keyboard_mappings[temp]
     else:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -301,10 +300,8 @@ directions = {
     'down': [0, 1],
 }
 states_per_second = 4
-pending_action = None
-to_blank = None
 def play_game(serial_communicator, controller):
-    global states_per_second, pending_action
+    global states_per_second
     fps = 40
     last_state_time = 0
     frame = 0
@@ -330,7 +327,7 @@ def play_game(serial_communicator, controller):
             states_per_second += 0.5
         elif input_read == 'fps_down':
             states_per_second -= 0.5
-        if input_read in ['left', 'right', 'up', 'down']:
+        if game_state.p_name is not None and input_read in ['left', 'right', 'up', 'down']:
             if input_read in ['left', 'right']:
                 new_p_anchor = add_points(game_state.p_anchor, directions[input_read])
                 if is_anchor_safe(game_state, new_p_anchor):
@@ -339,6 +336,11 @@ def play_game(serial_communicator, controller):
             elif input_read == 'up':
                 game_state.p_rotation = (game_state.p_rotation + 1) % 4
                 graphics_changed = True
+            elif input_read == 'down':
+                new_p_anchor = add_points(game_state.p_anchor, directions['down'])
+                if is_anchor_safe(game_state, new_p_anchor):
+                    game_state.p_anchor = new_p_anchor
+                    graphics_changed = True
 
         if (time.time() - last_state_time) > 1 / states_per_second:
             print_cyan(f'State frame {frame}')

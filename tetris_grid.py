@@ -36,20 +36,26 @@ grid_index = [
     [639, 638, 637, 636, 635, 634, 633, 632, 631, 630, 629, 628, 627, 626, 625, 624, 623, 622, 621, 620, 619, 618, 617, 616, 615, 614, 613, 612, 611, 610, 609, 608]
 ]
 
-GRID_ROW_LENGTH = 20
-GRID_COL_LENGTH = 30
+GRID_WIDTH = 20
+GRID_HEIGHT = 32
 
-grid = [None] * GRID_ROW_LENGTH
-for x in range(GRID_ROW_LENGTH):
-    grid[x] = [None] * GRID_COL_LENGTH
-    for y in range(GRID_COL_LENGTH):
+TETRIS_X_OFFSET = 2
+TETRIS_Y_OFFSET = 4
+TETRIS_WIDTH = 10
+TETRIS_HEIGHT = 20
+
+
+grid = [None] * GRID_WIDTH
+for x in range(GRID_WIDTH):
+    grid[x] = [None] * GRID_HEIGHT
+    for y in range(GRID_HEIGHT):
         grid[x][y] = [0, 0, 0]
 init_grid = copy.deepcopy(grid)
-grid_msg = [0] * (GRID_COL_LENGTH * GRID_ROW_LENGTH * 3)
+grid_msg = [0] * (GRID_HEIGHT * GRID_WIDTH * 3)
 
 def pack_grid_into_message():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
             index = grid_index[x][y] * 3
             if index >= 0:
                 grid_msg[index] = round(grid[x][y][0] * 127 / 100) * 2
@@ -58,8 +64,8 @@ def pack_grid_into_message():
 
 
 def reset_grid():
-    for x in range(GRID_ROW_LENGTH):
-        for y in range(GRID_COL_LENGTH):
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
             grid[x][y] = [0, 0, 0]
 
 
@@ -123,7 +129,7 @@ class GameState:
         self.p_name = None
         self.p_anchor = None
         self.p_rotation = None
-        self.board = [[None for y in range(GRID_COL_LENGTH)] for x in range(GRID_ROW_LENGTH)]
+        self.board = [[None for y in range(TETRIS_HEIGHT)] for x in range(TETRIS_WIDTH)]
 
     def __repr__(self):
         return f'GameState({self.p_name}, {self.p_anchor}, {self.p_rotation})'
@@ -148,8 +154,10 @@ def render(serial_communicator, game_state):
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
     if serial_communicator:
-        for x in range(GRID_ROW_LENGTH):
-            for y in range(GRID_COL_LENGTH):
+        for x in range(TETRIS_WIDTH):
+            x += TETRIS_X_OFFSET
+            for y in range(TETRIS_HEIGHT):
+                y += TETRIS_Y_OFFSET
                 index = grid_index[x][y] * 3
                 if index >= 0:
                     if (x, y) in active_poses:
@@ -167,17 +175,15 @@ def render(serial_communicator, game_state):
             serial_communicator.read(grid_in)
             serial_communicator.write(bytes(grid_msg))
     else:    
-        for y in range(GRID_COL_LENGTH):
+        for y in range(TETRIS_HEIGHT):
             row = []
-            for x in range(GRID_ROW_LENGTH):
-                index = grid_index[x][y] * 3
-                if index >= 0:
-                    if (x, y) in active_poses:
-                        row.append(item_colors_keyboard['active_piece'])
-                    elif game_state.board[x][y] is not None:
-                        row.append(item_colors_keyboard['dead_square'])
-                    else:
-                        row.append(item_colors_keyboard['empty'])
+            for x in range(TETRIS_WIDTH):
+                if (x, y) in active_poses:
+                    row.append(item_colors_keyboard['active_piece'])
+                elif game_state.board[x][y] is not None:
+                    row.append(item_colors_keyboard['dead_square'])
+                else:
+                    row.append(item_colors_keyboard['empty'])
             print(''.join(row))
 
 
@@ -262,10 +268,7 @@ def read_input(controller):
 
 def in_bounds(pos):
     x, y = pos
-    if x < 0 or x >= GRID_ROW_LENGTH or y < 0 or y >= GRID_COL_LENGTH:
-        return False
-    index = grid_index[x][y]
-    if index < 0:
+    if x < 0 or x >= TETRIS_WIDTH or y < 0 or y >= TETRIS_HEIGHT:
         return False
     return True
 
@@ -293,12 +296,14 @@ def is_anchor_safe(game_state, p_anchor):
     return True
 
 
-def clear_row(game_state, row):
-    for col in range(GRID_ROW_LENGTH):
-        game_state.board[row][col] = None
-    for row2 in range(row, 0, -1):
-        game_state.board[row2] = game_state.board[row2 - 1]
-    game_state.board[0] = [None] * GRID_ROW_LENGTH
+def clear_y(game_state, y):
+    for x2 in range(TETRIS_WIDTH):
+        game_state.board[x2][y] = None
+    for x2 in range(TETRIS_WIDTH):
+        for y2 in range(y, 0, -1):
+            game_state.board[x2][y2] = game_state.board[x2][y2 - 1]
+    for x2 in range(TETRIS_WIDTH):
+        game_state.board[x2][0] = None
 
 
 directions = {
@@ -354,10 +359,12 @@ def play_game(serial_communicator, controller):
             print_cyan(f'State frame {frame}')
             if game_state.p_name is None:
                 game_state.p_name = random.choice(list(pieces.keys()))
-                game_state.p_anchor = [GRID_ROW_LENGTH // 2, 0]
+                game_state.p_anchor = [(TETRIS_WIDTH // 2) - 2, 0]
                 game_state.p_rotation = 0
                 for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
                     if not is_avail(game_state, pos):
+                        print('pos', pos, 'not avail')
+                        render(serial_communicator, game_state)
                         print_red('Game over!')
                         return
             else:
@@ -372,9 +379,14 @@ def play_game(serial_communicator, controller):
                     game_state.p_anchor = None
                     game_state.p_rotation = None
 
-                    for row in range(GRID_COL_LENGTH):
-                        if None not in game_state.board[row]:
-                            clear_row(game_state, row)                            
+                    for y in range(TETRIS_HEIGHT):
+                        clear = True
+                        for x in range(TETRIS_WIDTH):
+                            if game_state.board[x][y] is None:
+                                clear = False
+                                break
+                        if clear:
+                            clear_y(game_state, y)
                     graphics_changed = True
 
             if graphics_changed:

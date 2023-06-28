@@ -39,8 +39,8 @@ grid_index = [
 GRID_WIDTH = 20
 GRID_HEIGHT = 32
 
-TETRIS_X_OFFSET = 2
-TETRIS_Y_OFFSET = 4
+TETRIS_X_OFFSET = 3
+TETRIS_Y_OFFSET = 1
 TETRIS_WIDTH = 10
 TETRIS_HEIGHT = 20
 
@@ -137,9 +137,10 @@ class GameState:
 
 item_colors = {
     'active_piece': [0, 100, 0],
-    'dead_square': [0, 0, 100],
+    'dead_square': [0, 5, 0],
     'flash': [100, 100, 100],
-    'empty': [.8, 0, 0],
+    'empty': [0, 0, .8],
+    'out_of_bounds': [.8, 0, 0],
 }
 
 item_colors_keyboard = {
@@ -154,18 +155,29 @@ def render(serial_communicator, game_state):
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
     if serial_communicator:
+        already_filled = set()
         for x in range(TETRIS_WIDTH):
             g_x = x + TETRIS_X_OFFSET
             for y in range(TETRIS_HEIGHT):
                 g_y = y + TETRIS_Y_OFFSET
                 index = grid_index[g_x][g_y] * 3
+                already_filled.add((g_x, g_y))
                 if index >= 0:
                     if (x, y) in active_poses:
-                        grid[x][y] = item_colors['active_piece']
+                        grid[g_x][g_y] = item_colors['active_piece']
                     elif game_state.board[x][y] is not None:
-                        grid[x][y] = item_colors['dead_square']
+                        grid[g_x][g_y] = item_colors['dead_square']
                     else:
-                        grid[x][y] = item_colors['empty']
+                        grid[g_x][g_y] = item_colors['empty']
+        for x in range(GRID_WIDTH):
+            for y in range(GRID_HEIGHT):
+                if (x, y) not in already_filled:
+                    print(f'should fill {x=}, {y=}')
+                    index = grid_index[x][y] * 3
+                    if index >= 0:
+                        grid[x][y] = item_colors['out_of_bounds']
+
+        
 
         grid_out =  serial_communicator.out_waiting
         grid_in = serial_communicator.in_waiting
@@ -243,8 +255,8 @@ joy_button_mapping = {
     0: 'enter',
     1: 'fps_up',
     2: 'fps_down',
-    11: 'left',
-    12: 'right',
+    11: 'right',
+    12: 'left',
     13: 'up',
     14: 'down',
 }

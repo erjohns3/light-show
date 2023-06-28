@@ -172,7 +172,6 @@ def render(serial_communicator, game_state):
         for x in range(GRID_WIDTH):
             for y in range(GRID_HEIGHT):
                 if (x, y) not in already_filled:
-                    print(f'should fill {x=}, {y=}')
                     index = grid_index[x][y] * 3
                     if index >= 0:
                         grid[x][y] = item_colors['out_of_bounds']

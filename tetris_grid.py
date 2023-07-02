@@ -360,7 +360,9 @@ def play_game(serial_communicator, controller):
                     game_state.p_anchor = new_p_anchor
                     graphics_changed = True
             elif input_read == 'up':
-                game_state.p_rotation = (game_state.p_rotation + 1) % 4
+                game_state.p_rotation = game_state.p_rotation - 1
+                if game_state.p_rotation < 0:
+                    game_state.p_rotation = 3
                 graphics_changed = True
             elif input_read == 'down':
                 new_p_anchor = add_points(game_state.p_anchor, directions['down'])

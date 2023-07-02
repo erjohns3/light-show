@@ -83,7 +83,7 @@ effects = {
             b(1, name='Blue top', length=0.5)
         ]
     },
-    "dom windy melody": {
+    "ll dom windy melody": {
         "length": 2,
         "beats": [
             b(1, name='dom fade blue red bottom', length=5, hue_shift=.1),
@@ -103,7 +103,7 @@ effects = {
             b(12, name='Orange top', length=2),
             b(22, name='uv boi intro kick', length=30),
             b(23, name='uv boi intro w beats', length=29),
-            b(51, name='dom windy melody', length=63),
+            b(51, name='ll dom windy melody', length=63),
             b(85, name='uv boi buildup', length=14),
             b(101, name='uv boi buildup', length=14),
             b(117, name='uv boi ratatat', length=2),

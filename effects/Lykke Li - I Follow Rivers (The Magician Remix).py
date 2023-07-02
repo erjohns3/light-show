@@ -17,7 +17,7 @@ effects = {
             b(3.75, name='Blue top', length=2.75, sat_shift=-.25, intensity=(1, 0))
         ]
     },
-    "dom sidechain motor halfs": {
+    "ll dom sidechain motor halfs": {
         'length': 1,
         "beats": [
             b(1.15, name='Sidechain motor', length=.85),
@@ -28,7 +28,7 @@ effects = {
         'autogen': 'laser long',
         "beats": [
             b(1, name='laser motor', length=8),
-            b(1, name='dom sidechain motor halfs', length=8),
+            b(1, name='ll dom sidechain motor halfs', length=8),
             b(1, name='green laser', length=8),
         ]
     },
@@ -37,7 +37,7 @@ effects = {
         'autogen': 'laser long',
         "beats": [
             b(1, name='laser motor', length=8),
-            b(1, name='dom sidechain motor halfs', length=8),
+            b(1, name='ll dom sidechain motor halfs', length=8),
             b(1, name='red laser', length=8),
         ]
     },

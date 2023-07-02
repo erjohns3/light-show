@@ -139,8 +139,8 @@ item_colors = {
     'active_piece': [0, 100, 0],
     'dead_square': [0, 5, 0],
     'flash': [100, 100, 100],
-    'empty': [0, 0, .8],
-    'out_of_bounds': [.8, 0, 0],
+    'empty': [.8, 0, 0],
+    'out_of_bounds': [0, 0, 0],
 }
 
 item_colors_keyboard = {

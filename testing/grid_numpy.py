@@ -3,7 +3,19 @@ import serial
 import random
 import math
 import numpy as np
+from pynput import keyboard
 
+
+def on_press(key):
+    print(key)
+
+
+
+def on_release(key):
+    pass
+
+listener = pynput.keyboard.Listener(on_press=on_press, on_release=on_release)
+listener.start()
 
 grid_serial = serial.Serial(
     port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
@@ -34,13 +46,13 @@ def grid_pack():
 def grid_reset():
     grid.fill(0)
 
-time_a = time.time()*1000
-
-grid[:][:GRID_COL_LENGTH // 2] = [2,2,2]
-grid[:][GRID_COL_LENGTH // 2:] = [4,4,4]
-
 time_b = time.time()*1000
 
 print(grid)
 
 print(f'time: {time_b - time_a}')
+
+while True:
+
+    time.sleep(1)
+

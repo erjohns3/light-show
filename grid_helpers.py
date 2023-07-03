@@ -54,10 +54,22 @@ def load_image_to_grid(image_filepath):
 
 
 webp_cache = {}
-import webp
 def load_next_webp_image_to_grid(filepath, rotate_90=False):
     if filepath not in webp_cache:
-        webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
+        whole_webp = Image.open(filepath)
+        final_arr = []
+        try:
+            while True:
+                img_bytes = whole_webp._get_next()
+                final_arr.append(Image.frombytes(whole_webp.mode, whole_webp.size, img_bytes[0]))
+        except OSError as e:
+            pass
+        except Exception as e:
+            print_stacktrace()
+            exit()
+        webp_cache[filepath] = [0, final_arr]
+        # import webp
+        # webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
         for index in range(len(webp_cache[filepath][1])):
             webp_cache[filepath][1][index] = resize_PIL_image(webp_cache[filepath][1][index], rotate_90=rotate_90)
 

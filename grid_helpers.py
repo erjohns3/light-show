@@ -48,9 +48,9 @@ def resize_PIL_image(pil_image, rotate_90=False):
     return np.transpose(pil_image, (1, 0, 2))
 
 
-def load_image_to_grid(image_filepath):
+def load_image_to_grid(image_filepath, rotate_90=False):
     image = Image.open(image_filepath)
-    grid[:] = resize_PIL_image(image)
+    grid[:] = resize_PIL_image(image, rotate_90=rotate_90)
 
 
 webp_cache = {}
@@ -67,24 +67,30 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
         except Exception as e:
             print_stacktrace()
             exit()
-        webp_cache[filepath] = [0, final_arr]
+        webp_cache[filepath] = [0, 0, final_arr]
         # import webp
         # webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
-        for index in range(len(webp_cache[filepath][1])):
-            webp_cache[filepath][1][index] = resize_PIL_image(webp_cache[filepath][1][index], rotate_90=rotate_90)
+        for index in range(len(webp_cache[filepath][2])):
+            webp_cache[filepath][2][index] = resize_PIL_image(webp_cache[filepath][2][index], rotate_90=rotate_90)
 
     index = webp_cache[filepath][0]
-    webp_images = webp_cache[filepath][1]
+    slower = webp_cache[filepath][1]
+    webp_images = webp_cache[filepath][2]
 
     grid[:] = webp_images[index]
-    webp_cache[filepath][0] = (index + 1) % len(webp_images)
+    
+    if slower > 6:
+        webp_cache[filepath][0] = (index + 1) % len(webp_images)
+        webp_cache[filepath][1] = 0
+    else:
+        webp_cache[filepath][1] += 1
 
 
-def fill_grid_from_filepath(filepath):    
+def fill_grid_from_filepath(filepath, rotate_90=False):    
     if filepath.suffix == '.webp':
-        load_next_webp_image_to_grid(filepath)
+        load_next_webp_image_to_grid(filepath, rotate_90=rotate_90)
     elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
-        load_image_to_grid(filepath)
+        load_image_to_grid(filepath, rotate_90=rotate_90)
 
 
 def render_grid(terminal=False, skip_all=False):

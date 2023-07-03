@@ -875,10 +875,11 @@ async def light():
 
                 grid_info = channel_lut[effect_name].get('grid_info', None)
                 if grid_info is not None:
-                    for start_b, end_b, filename in grid_info:
+                    for start_b, end_b, filename, rotate_90 in grid_info:
+                        filename = filename[1:]
                         if start_b <= index < end_b:
                             curr_grid_filepath = this_file_directory.joinpath('temp', filename)
-                            fill_grid_func = grid_helpers.fill_grid_from_filepath
+                            fill_grid_func = lambda x: grid_helpers.fill_grid_from_filepath(x, rotate_90=rotate_90)
                             break
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
@@ -1112,9 +1113,6 @@ def effects_config_sort(path):
                 raise Exception(f'Cycle Found: {curr} -> {node}')
             effects_config_sort(path + [node])
     if is_image_path(curr) or len(graph[curr]) == 0 and curr:
-        # if is_image_path(curr):
-        #     print(curr)
-        #     exit()
         simple_effects.append(curr)
     elif curr:
         complex_effects.append(curr)
@@ -1365,9 +1363,11 @@ def compile_lut(local_effects_config):
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
         if is_image_path(effect_name):
+            rotate_90 = bool(int(effect_name[0]))
             channel_lut[effect_name] = {
                 'length': round(effect['length'] * SUB_BEATS),
                 'grid_filename': effect_name,
+                'grid_rotate_90': rotate_90,
             }
             print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name}, {list(effect.keys())=}')
             continue
@@ -1478,7 +1478,8 @@ def compile_lut(local_effects_config):
                     [
                         start_beat,
                         start_beat + length,
-                        copy.deepcopy(channel_lut[reference_name]['grid_filename']),
+                        channel_lut[reference_name]['grid_filename'],
+                        channel_lut[reference_name]['grid_rotate_90'],
                     ],
                 )            
             if 'beats' not in channel_lut[reference_name]:

@@ -68,6 +68,14 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
     webp_cache[filepath][0] = (index + 1) % len(webp_images)
 
 
+def fill_grid_from_filepath(filepath):
+    
+    if filepath.suffix == '.webp':
+        load_next_webp_image_to_grid(filepath)
+    elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
+        load_image_to_grid(filepath)
+
+
 def render_grid(terminal=False, skip_all=False):
     if skip_all:
         return

@@ -82,10 +82,6 @@ def test_grid_random():
         grid[x][y][2] = random.randint(0, 255)
 
 
-fill_grid_func = 'lights'
-if args.test_fill_grid_func:
-    fill_grid_func = test_grid_func
-
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
@@ -834,12 +830,15 @@ grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, fill_grid_func
 
     download_thread = None
     search_thread = None
 
     while True:
+        fill_grid_func = 'lights'
+        if args.test_fill_grid_func:
+            fill_grid_func = test_grid_func
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -874,7 +873,14 @@ async def light():
                 effect_name = curr_effects[j][0]
                 index = beat_index + curr_effects[j][1]
 
-                if index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
+                grid_info = channel_lut[effect_name].get('grid_info', None)
+                if grid_info is not None:
+                    for start_b, end_b, filename in grid_info:
+                        if start_b <= index < end_b:
+                            curr_grid_filepath = this_file_directory.joinpath('temp', filename)
+                            fill_grid_func = grid_helpers.fill_grid_from_filepath
+                            break
+                if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
                     level += channel_lut[effect_name]['beats'][index][i]
 
@@ -896,14 +902,20 @@ async def light():
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
 
+            
+        
         # this is the code that gets the top front levels and puts them on the grid
         if fill_grid_func == 'lights':
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
             grid_helpers.render_grid(terminal=args.local and console, skip_all=True)
         elif hasattr(fill_grid_func, '__call__'):
-            fill_grid_func()
+            if curr_grid_filepath is not None:
+                fill_grid_func(curr_grid_filepath)
+            else:
+                fill_grid_func()
             grid_helpers.render_grid(terminal=args.local and console)
+            
 
 
         if download_thread is not None:
@@ -1085,17 +1097,21 @@ simple_effects = []
 complex_effects = []
 
 
+def is_image_path(path):
+    return path.endswith('.jpg') or path.endswith('.png') or path.endswith('.webp')
+
 def effects_config_sort(path):
     curr = path[-1]
     if curr in found:
         return
     found[curr] = True
     
-    for node in graph[curr]:
-        if node in path:
-            raise Exception(f'Cycle Found: {curr} -> {node}')
-        effects_config_sort(path + [node])
-    if len(graph[curr]) == 0 and curr:
+    if not is_image_path(curr):
+        for node in graph[curr]:
+            if node in path:
+                raise Exception(f'Cycle Found: {curr} -> {node}')
+            effects_config_sort(path + [node])
+    if is_image_path(curr) or len(graph[curr]) == 0 and curr:
         simple_effects.append(curr)
     elif curr:
         complex_effects.append(curr)
@@ -1103,6 +1119,9 @@ def effects_config_sort(path):
 
 def dfs(effect_name):
     if effect_name not in found:
+        if is_image_path(effect_name):
+            return
+
         if effect_name not in effects_config:
             return effect_name
         for component in effects_config[effect_name]['beats']:
@@ -1342,13 +1361,20 @@ def compile_lut(local_effects_config):
     
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
+        if is_image_path(effect_name):
+            channel_lut[effect_name] = {
+                'length': round(effect['length'] * SUB_BEATS),
+                'grid_filename': effect_name,
+            }
+            print(f'SINMPLE EFFECT BEAT IMAGE THING {effect_name}')
+            continue
+        
         effect = effects_config[effect_name]
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
             'beats': [x[:] for x in [[0] * LIGHT_COUNT] * round(effect['length'] * SUB_BEATS)],
-            # 'beats': numpy.zeros((round(effect['length'] * SUB_BEATS), LIGHT_COUNT)),
         }
         for component in effect['beats']:
             start_beat = round((component[0] - 1) * SUB_BEATS)
@@ -1428,16 +1454,35 @@ def compile_lut(local_effects_config):
             'beats': [x[:] for x in [[0] * LIGHT_COUNT] * round(effect['length'] * SUB_BEATS)],
             # 'beats': numpy.zeros((round(effect['length'] * SUB_BEATS), LIGHT_COUNT)),
         }
+        curr_channel = channel_lut[effect_name]
         beats = channel_lut[effect_name]['beats']
 
-
+        import copy
         for component in effect['beats']:
             start_beat = round((component[0] - 1) * SUB_BEATS)
             reference_name = component[1]
+            if reference_name not in channel_lut:
+                print_red(f'complex effect {effect_name} references effect {reference_name} which does not exist')
+                sys.exit()
+
+            length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
+
+            ref_channel = channel_lut[reference_name]
+            if 'grid_filename' in ref_channel:
+                if 'grid_info' not in curr_channel:
+                    curr_channel['grid_info'] = []
+                curr_channel['grid_info'].append(
+                    [
+                        start_beat,
+                        start_beat + length,
+                        copy.deepcopy(channel_lut[reference_name]['grid_filename']),
+                    ],
+                )            
+            if 'beats' not in channel_lut[reference_name]:
+                continue
             reference_beats = channel_lut[reference_name]['beats']
             reference_length = channel_lut[reference_name]['length']
 
-            length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
             start_mult = component[3]
             end_mult = component[4]
             offset = round(component[5] * SUB_BEATS)

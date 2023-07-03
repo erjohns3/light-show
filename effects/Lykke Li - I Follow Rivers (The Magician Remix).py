@@ -93,7 +93,9 @@ effects = {
         "delay_lights": 0.0252,
         "skip_song": 0.0,
         "beats": [
-            b(1, grid_filename='dog.jpg', length=8),
+            # b(1, grid_filename='dog.jpg', length=16),
+            # b(1, grid_filename='bart.png', length=16),
+            b(1, grid_filename='shocked_pikachu.png', grid_rotate_90=True, length=16),
             b(9, name='ll bass', length=144),
             b(36, grid_filename='nyan.webp', grid_rotate_90=True, length=60),
             b(36, name='ll fill', length=6),

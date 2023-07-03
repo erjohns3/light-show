@@ -203,6 +203,7 @@ def blue(s):
 def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
+
 def disable_color():
     global bcolors
     bcolors.HEADER = ''

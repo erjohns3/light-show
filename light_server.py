@@ -59,8 +59,32 @@ parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
+parser.add_argument('--test', dest='test_fill_grid_func', default=False, action='store_true')
 args = parser.parse_args()
 
+
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+def test_grid_func():
+    # image_filepath = this_file_directory.joinpath('temp', 'smiley.jpg')
+    # image_filepath = this_file_directory.joinpath('temp', 'red_square.png')
+    # image_filepath = this_file_directory.joinpath('temp', 'dog.jpg')
+    # grid_helpers.load_image_to_grid(image_filepath)
+
+    # filepath = this_file_directory.joinpath('temp', 'nyan.webp')
+    filepath = this_file_directory.joinpath('temp', 'tiger.webp')
+    grid_helpers.load_next_webp_image_to_grid(filepath, rotate_90=True)
+
+
+def test_grid_random():
+    for x, y in grid_helpers.grid_coords():
+        grid[x][y][0] = random.randint(0, 255)
+        grid[x][y][1] = random.randint(0, 255)
+        grid[x][y][2] = random.randint(0, 255)
+
+
+fill_grid_func = 'lights'
+if args.test_fill_grid_func:
+    fill_grid_func = test_grid_func
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
@@ -809,7 +833,6 @@ def uuid_to_user(uuid):
 grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
-grid_render_func = 'lights'
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
 
@@ -866,7 +889,7 @@ async def light():
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                if grid_render_func == 'lights':
+                if fill_grid_func == 'lights':
                     await terminal(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
@@ -874,12 +897,13 @@ async def light():
 
 
         # this is the code that gets the top front levels and puts them on the grid
-        if grid_render_func == 'lights':
+        if fill_grid_func == 'lights':
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-            grid_helpers.render_grid(terminal=args.local, skip_all=True)
-        elif type(grid_render_func) == function:
-            grid_render_func()
+            grid_helpers.render_grid(terminal=args.local and console, skip_all=True)
+        elif hasattr(fill_grid_func, '__call__'):
+            fill_grid_func()
+            grid_helpers.render_grid(terminal=args.local and console)
 
 
         if download_thread is not None:

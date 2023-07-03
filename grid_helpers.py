@@ -24,15 +24,63 @@ def get_grid_width():
 def get_grid_height():
     return GRID_HEIGHT
 
+def grid_coords():
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            yield (x, y)
+
 def get_grid():
     return grid
+
+
+from PIL import Image
+
+def resize_PIL_image(pil_image, rotate_90=False):
+    if rotate_90:
+        pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH))
+    else:
+        pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT))
+    pil_image = pil_image.convert('RGB')
+    pil_image = np.array(pil_image)
+    pil_image = pil_image.astype(np.uint8)
+    if rotate_90:
+        return pil_image
+    return np.transpose(pil_image, (1, 0, 2))
+
+
+def load_image_to_grid(image_filepath):
+    image = Image.open(image_filepath)
+    grid[:] = resize_PIL_image(image)
+
+
+webp_cache = {}
+import webp
+def load_next_webp_image_to_grid(filepath, rotate_90=False):
+    if filepath not in webp_cache:
+        webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
+        for index in range(len(webp_cache[filepath][1])):
+            webp_cache[filepath][1][index] = resize_PIL_image(webp_cache[filepath][1][index], rotate_90=rotate_90)
+
+    index = webp_cache[filepath][0]
+    webp_images = webp_cache[filepath][1]
+
+    grid[:] = webp_images[index]
+    webp_cache[filepath][0] = (index + 1) % len(webp_images)
+
 
 def render_grid(terminal=False, skip_all=False):
     if skip_all:
         return
     
     if terminal:
-        print('would render grid to terminal')
+        for y in range(GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                item = list(map(int, grid[x][y]))
+                rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
+                character = '▆'
+                terminal.print(character, style=rgb_style, end='')
+            print('')
+        terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:
         grid_out =  grid_serial.out_waiting
         grid_in = grid_serial.in_waiting
@@ -41,6 +89,12 @@ def render_grid(terminal=False, skip_all=False):
             get_grid_serial().read(grid_in)
             get_grid_serial().write(grid_pack())
 
+def get_grid_index():
+    return grid_index
+
+def grid_in_bounds(pos):
+    index = grid_index[pos[0]][pos[1]] * 3
+    return index >= 0
 
 def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()

@@ -1112,6 +1112,9 @@ def effects_config_sort(path):
                 raise Exception(f'Cycle Found: {curr} -> {node}')
             effects_config_sort(path + [node])
     if is_image_path(curr) or len(graph[curr]) == 0 and curr:
+        # if is_image_path(curr):
+        #     print(curr)
+        #     exit()
         simple_effects.append(curr)
     elif curr:
         complex_effects.append(curr)
@@ -1366,7 +1369,7 @@ def compile_lut(local_effects_config):
                 'length': round(effect['length'] * SUB_BEATS),
                 'grid_filename': effect_name,
             }
-            print(f'SINMPLE EFFECT BEAT IMAGE THING {effect_name}')
+            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name}, {list(effect.keys())=}')
             continue
         
         effect = effects_config[effect_name]

@@ -88,7 +88,7 @@ def fill_grid_from_filepath(filepath):
 
 
 def render_grid(terminal=False, skip_all=False):
-    if skip_all:
+    if terminal and skip_all:
         return
     
     if terminal:

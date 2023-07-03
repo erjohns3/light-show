@@ -12,7 +12,7 @@
 
 
 following_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_filename=None):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_filename=None, rotate_grid_90=None):
     global following_beat
 
     if length is None:
@@ -35,8 +35,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         disco_rgb = [0, 0, 0]
 
     if grid_filename is not None:
-        print('compiler', grid_filename)
-        return [start_beat, grid_filename, length]
+        return [start_beat, grid_filename, length, rotate_grid_90]
 
     if name is None:
         if top_rgb is None:

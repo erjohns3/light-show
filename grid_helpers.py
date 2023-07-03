@@ -41,7 +41,7 @@ def resize_PIL_image(pil_image, rotate_90=False):
     else:
         pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT))
     pil_image = pil_image.convert('RGB')
-    pil_image = np.array(pil_image)
+    pil_image = np.array(pil_image) / 2.55
     pil_image = pil_image.astype(np.uint8)
     if rotate_90:
         return pil_image
@@ -80,8 +80,7 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
     webp_cache[filepath][0] = (index + 1) % len(webp_images)
 
 
-def fill_grid_from_filepath(filepath):
-    
+def fill_grid_from_filepath(filepath):    
     if filepath.suffix == '.webp':
         load_next_webp_image_to_grid(filepath)
     elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
@@ -102,8 +101,8 @@ def render_grid(terminal=False, skip_all=False):
             print('')
         terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:
-        grid_out =  grid_serial.out_waiting
-        grid_in = grid_serial.in_waiting
+        grid_out =  get_grid_serial().out_waiting
+        grid_in = get_grid_serial().in_waiting
 
         if grid_out == 0 and grid_in > 0:
             get_grid_serial().read(grid_in)

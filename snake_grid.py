@@ -14,7 +14,7 @@ import grid_helpers
 from helpers import *
 
 
-class GameState:
+class SnakeGameState:
     def __init__(self):
         self.player_head_pos = (grid_helpers.get_grid_width() // 2, grid_helpers.get_grid_height() // 2)
         self.player_body_poses = collections.deque()
@@ -149,7 +149,7 @@ def play_game(controller):
     last_state_time = 0
     frame = 0
 
-    game_state = GameState()
+    game_state = SnakeGameState()
     while True:
         start_loop = time.time()
         input_read = read_input(controller)

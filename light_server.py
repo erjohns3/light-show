@@ -875,11 +875,11 @@ async def light():
 
                 grid_info = channel_lut[effect_name].get('grid_info', None)
                 if grid_info is not None:
-                    for start_b, end_b, filename, rotate_90 in grid_info:
-                        filename = filename[1:]
+                    for start_b, end_b, grid_info in grid_info:
                         if start_b <= index < end_b:
-                            curr_grid_filepath = this_file_directory.joinpath('images', filename)
-                            fill_grid_func = lambda x: grid_helpers.fill_grid_from_filepath(x, rotate_90=rotate_90)
+                            # curr_grid_filepath = this_file_directory.joinpath('images', grid_info.filename)
+                            # fill_grid_func = lambda x: grid_helpers.fill_grid_from_filepath(x, rotate_90=grid_info.rotate_90)
+                            fill_grid_func = grid_info.grid_function
                             break
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
@@ -910,10 +910,7 @@ async def light():
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
             grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=True)
         elif hasattr(fill_grid_func, '__call__'):
-            if curr_grid_filepath is not None:
-                fill_grid_func(curr_grid_filepath)
-            else:
-                fill_grid_func()
+            fill_grid_func()
             grid_helpers.render_grid(terminal=args.local and console)
             
 
@@ -1362,15 +1359,16 @@ def compile_lut(local_effects_config):
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
-    for effect_name in simple_effects:
-        if isinstance(effect_name, GridInfo):
-            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name}, {list(effect.keys())=}')
-            channel_lut[effect_name] = {
+    for effect_name_or_grid_info in simple_effects:
+        if isinstance(effect_name_or_grid_info, GridInfo):
+            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name_or_grid_info}, {list(effect.keys())=}')
+            channel_lut[effect_name_or_grid_info] = {
                 'length': round(effect['length'] * SUB_BEATS),
-                'grid_info': effect_name,
+                'grid_info': effect_name_or_grid_info,
             }
             continue
         
+        effect_name = effect_name_or_grid_info
         effect = effects_config[effect_name]
 
         channel_lut[effect_name] = {
@@ -1469,15 +1467,14 @@ def compile_lut(local_effects_config):
             length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
 
             ref_channel = channel_lut[reference_name]
-            if 'grid_filename' in ref_channel:
+            if 'grid_info' in ref_channel:
                 if 'grid_info' not in curr_channel:
                     curr_channel['grid_info'] = []
                 curr_channel['grid_info'].append(
                     [
                         start_beat,
                         start_beat + length,
-                        channel_lut[reference_name]['grid_filename'],
-                        channel_lut[reference_name]['grid_rotate_90'],
+                        channel_lut[reference_name]['grid_info'],
                     ],
                 )            
             if 'beats' not in channel_lut[reference_name]:

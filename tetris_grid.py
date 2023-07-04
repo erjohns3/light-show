@@ -4,11 +4,10 @@ os.environ["SDL_VIDEODRIVER"] = "dummy"
 import pygame
 import argparse
 import time
-import copy
 import random
 
 import keyboard
-import serial
+from rich.console import Console
 
 from helpers import *
 import grid_helpers
@@ -94,41 +93,29 @@ item_colors_keyboard = {
     'empty': '○',
 }
 character = '○'
-def render(serial_communicator, game_state):
+def render(game_state):
     active_poses = set()
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
-    if serial_communicator:
-        already_filled = set()
-        for x in range(TETRIS_WIDTH):
-            g_x = x + TETRIS_X_OFFSET
-            for y in range(TETRIS_HEIGHT):
-                g_y = y + TETRIS_Y_OFFSET
-                already_filled.add((g_x, g_y))
-                if grid_helpers.grid_in_bounds((g_x, g_y)):
-                    if (x, y) in active_poses:
-                        grid[g_x][g_y] = item_colors['active_piece']
-                    elif game_state.board[x][y] is not None:
-                        grid[g_x][g_y] = item_colors['dead_square']
-                    else:
-                        grid[g_x][g_y] = item_colors['empty']
-        for x in range(GRID_WIDTH):
-            for y in range(GRID_HEIGHT):
-                if (x, y) not in already_filled:
-                    if grid_helpers.grid_in_bounds((x, y)):
-                        grid[x][y] = item_colors['out_of_bounds']
-        grid_helpers.render_grid(terminal=args.local)    
-    else:    
+    already_filled = set()
+    for x in range(TETRIS_WIDTH):
+        g_x = x + TETRIS_X_OFFSET
         for y in range(TETRIS_HEIGHT):
-            row = []
-            for x in range(TETRIS_WIDTH):
+            g_y = y + TETRIS_Y_OFFSET
+            already_filled.add((g_x, g_y))
+            if grid_helpers.grid_in_bounds((g_x, g_y)):
                 if (x, y) in active_poses:
-                    row.append(item_colors_keyboard['active_piece'])
+                    grid[g_x][g_y] = item_colors['active_piece']
                 elif game_state.board[x][y] is not None:
-                    row.append(item_colors_keyboard['dead_square'])
+                    grid[g_x][g_y] = item_colors['dead_square']
                 else:
-                    row.append(item_colors_keyboard['empty'])
-            print(''.join(row))
+                    grid[g_x][g_y] = item_colors['empty']
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            if (x, y) not in already_filled:
+                if grid_helpers.grid_in_bounds((x, y)):
+                    grid[x][y] = item_colors['out_of_bounds']
+    grid_helpers.render_grid(terminal=args.local and console)
 
 
 def init_controller():
@@ -273,9 +260,7 @@ def play_game(serial_communicator, controller):
 
         if input_read == 'quit':
             if not args.local:
-                reset_grid()
-                pack_grid_into_message()
-                serial_communicator.write(bytes(grid_msg))
+                grid_helpers.grid_reset_and_write()
             pygame.quit()
             exit(1)
         elif input_read == 'enter':
@@ -312,7 +297,7 @@ def play_game(serial_communicator, controller):
                 for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
                     if not is_avail(game_state, pos):
                         print('pos', pos, 'not avail')
-                        render(serial_communicator, game_state)
+                        render(game_state)
                         print_red('Game over!')
                         return
             else:
@@ -338,7 +323,7 @@ def play_game(serial_communicator, controller):
                     graphics_changed = True
 
             if graphics_changed:
-                render(serial_communicator, game_state)
+                render(game_state)
             if frame == 1:
                 exit()
             last_state_time = time.time()
@@ -359,11 +344,12 @@ if __name__ == "__main__":
 
     serial_communicator = None
     if args.local:
+        console = Console()
         keyboard.on_press(on_key_event)
         keyboard.on_release(on_key_event)
     else:
         disable_color()
-        serial_communicator = get_serial_communicator()
+        serial_communicator = grid_helpers.get_grid_serial()
 
     controller = init_controller()
     if controller is None:
@@ -373,3 +359,18 @@ if __name__ == "__main__":
 
     while True:
         play_game(serial_communicator, controller)
+
+
+
+
+# else:    
+#     for y in range(TETRIS_HEIGHT):
+#         row = []
+#         for x in range(TETRIS_WIDTH):
+#             if (x, y) in active_poses:
+#                 row.append(item_colors_keyboard['active_piece'])
+#             elif game_state.board[x][y] is not None:
+#                 row.append(item_colors_keyboard['dead_square'])
+#             else:
+#                 row.append(item_colors_keyboard['empty'])
+#         print(''.join(row))

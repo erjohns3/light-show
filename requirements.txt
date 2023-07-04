@@ -18,4 +18,5 @@ pigpio
 rich
 pyserial
 pillow
+keyboard
 git+https://github.com/aubio/aubio.git

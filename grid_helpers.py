@@ -88,7 +88,7 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
         webp_cache[filepath][1] += 1
 
 
-def fill_grid_from_filepath(filepath, rotate_90=False):    
+def fill_grid_from_image_filepath(filepath, rotate_90=False):    
     if filepath.suffix == '.webp':
         load_next_webp_image_to_grid(filepath, rotate_90=rotate_90)
     elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
@@ -120,7 +120,13 @@ def get_grid_index():
     return grid_index
 
 def grid_in_bounds(pos):
-    index = grid_index[pos[0]][pos[1]] * 3
+    # !TODO it seems like for now grid_pack sends all 640 (1920 RGB) over, even thought there are 3 spots that are empty, ask eric later
+    # print(len(grid_index), GRID_HEIGHT * GRID_WIDTH * 3)
+    x, y = pos
+    if x < 0 or y < 0 or x >= GRID_WIDTH or y >= GRID_HEIGHT:
+        return False
+    return True
+    index = grid_index[x][y] * 3
     return index >= 0
 
 def grid_pack():
@@ -129,6 +135,10 @@ def grid_pack():
 def grid_reset():
     grid.fill(0)
 
+
+def grid_reset_and_write():
+    grid.fill(0)
+    render_grid()
 
 
 # indeces = np.nonzero(grid[:,:,0])

@@ -10,17 +10,26 @@
 # red laser: 0 - 100
 # laser motor: 0 - 100
 
+import pathlib
 
+import grid_helpers
 
 class GridInfo:
     def __init__(self):
+        self.grid_function = None
         self.filename = None
         self.rotate_90 = False
 
 
+def fill_grid_from_image_filepath_wrapper(grid_info):
+    image_filepath = directory_above_this_file.joinpath('images', grid_info.filename)
+    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
 
+
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+directory_above_this_file = this_file_directory.parent.resolve()
 following_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_filename=None, grid_rotate_90=None):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, grid_rotate_90=None):
     global following_beat
 
     if length is None:
@@ -42,12 +51,16 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
 
+
+    grid_info = GridInfo()
     if grid_filename is not None:
-        grid_info = GridInfo()
         grid_info.filename = grid_filename
         grid_info.rotate_90 = grid_rotate_90
-        return [start_beat, grid_info, length]
+        grid_function = lambda: fill_grid_from_image_filepath_wrapper(grid_info)
 
+    if grid_function is not None:
+        grid_info.grid_function = grid_function
+        return [start_beat, grid_info, length]
 
     if name is None:
         if top_rgb is None:

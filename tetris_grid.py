@@ -226,6 +226,10 @@ def clear_y(game_state, y):
         game_state.board[x2][0] = None
 
 
+def tetris_game_for_grid():
+    pass
+
+
 directions = {
     'left': [-1, 0],
     'right': [1, 0],

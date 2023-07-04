@@ -11,6 +11,14 @@
 # laser motor: 0 - 100
 
 
+
+class GridInfo:
+    def __init__(self):
+        self.filename = None
+        self.rotate_90 = False
+
+
+
 following_beat = None
 def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_filename=None, grid_rotate_90=None):
     global following_beat
@@ -35,10 +43,10 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         disco_rgb = [0, 0, 0]
 
     if grid_filename is not None:
-        if grid_rotate_90:
-            return [start_beat, '1' + grid_filename, length]
-        else:
-            return [start_beat, '0' + grid_filename, length]
+        grid_info = GridInfo()
+        grid_info.filename = grid_filename
+        grid_info.rotate_90 = grid_rotate_90
+        return [start_beat, grid_info, length]
 
 
     if name is None:

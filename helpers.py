@@ -31,6 +31,10 @@ def is_marias_computer():
     return socket.gethostname() in ['DESKTOP-IKO6828']
 
 
+def is_image_path(path):
+    return path.endswith('.jpg') or path.endswith('.png') or path.endswith('.webp')
+
+
 def is_ray():
     import socket
     return socket.gethostname() in ['ray']

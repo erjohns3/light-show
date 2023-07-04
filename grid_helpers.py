@@ -1,7 +1,9 @@
-from helpers import *
-
+from PIL import Image
 import numpy as np
 import serial
+
+from helpers import *
+
 
 grid_serial = None
 
@@ -33,7 +35,6 @@ def get_grid():
     return grid
 
 
-from PIL import Image
 
 def resize_PIL_image(pil_image, rotate_90=False):
     if rotate_90:
@@ -65,8 +66,9 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
         except OSError as e:
             pass
         except Exception as e:
+            print_red('couldnt load webp, not loading grid')
             print_stacktrace()
-            exit()
+            return
         webp_cache[filepath] = [0, 0, final_arr]
         # import webp
         # webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
@@ -93,8 +95,8 @@ def fill_grid_from_filepath(filepath, rotate_90=False):
         load_image_to_grid(filepath, rotate_90=rotate_90)
 
 
-def render_grid(terminal=False, skip_all=False):
-    if terminal and skip_all:
+def render_grid(terminal=False, skip_if_terminal=False):
+    if terminal and skip_if_terminal:
         return
     
     if terminal:

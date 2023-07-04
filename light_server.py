@@ -14,11 +14,11 @@ import random
 import traceback
 import sys
 import pigpio
-import numpy as np
 
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
+from effects.compiler import GridInfo
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
 # os.environ['SDL_AUDIODRIVER'] = 'jack'
@@ -65,13 +65,13 @@ args = parser.parse_args()
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 def test_grid_func():
-    # image_filepath = this_file_directory.joinpath('temp', 'smiley.jpg')
-    # image_filepath = this_file_directory.joinpath('temp', 'red_square.png')
-    # image_filepath = this_file_directory.joinpath('temp', 'dog.jpg')
+    # image_filepath = this_file_directory.joinpath('images', 'smiley.jpg')
+    # image_filepath = this_file_directory.joinpath('images', 'red_square.png')
+    # image_filepath = this_file_directory.joinpath('images', 'dog.jpg')
     # grid_helpers.load_image_to_grid(image_filepath)
 
-    # filepath = this_file_directory.joinpath('temp', 'nyan.webp')
-    filepath = this_file_directory.joinpath('temp', 'tiger.webp')
+    # filepath = this_file_directory.joinpath('images', 'nyan.webp')
+    filepath = this_file_directory.joinpath('images', 'tiger.webp')
     grid_helpers.load_next_webp_image_to_grid(filepath, rotate_90=True)
 
 
@@ -878,7 +878,7 @@ async def light():
                     for start_b, end_b, filename, rotate_90 in grid_info:
                         filename = filename[1:]
                         if start_b <= index < end_b:
-                            curr_grid_filepath = this_file_directory.joinpath('temp', filename)
+                            curr_grid_filepath = this_file_directory.joinpath('images', filename)
                             fill_grid_func = lambda x: grid_helpers.fill_grid_from_filepath(x, rotate_90=rotate_90)
                             break
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
@@ -904,12 +904,11 @@ async def light():
 
 
             
-        
         # this is the code that gets the top front levels and puts them on the grid
         if fill_grid_func == 'lights':
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-            grid_helpers.render_grid(terminal=args.local and console, skip_all=True)
+            grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=True)
         elif hasattr(fill_grid_func, '__call__'):
             if curr_grid_filepath is not None:
                 fill_grid_func(curr_grid_filepath)
@@ -1098,31 +1097,33 @@ simple_effects = []
 complex_effects = []
 
 
-def is_image_path(path):
-    return path.endswith('.jpg') or path.endswith('.png') or path.endswith('.webp')
-
-def effects_config_sort(path):
-    curr = path[-1]
-    if curr in found:
-        return
-    found[curr] = True
+def effects_config_sort(all_nodes):
+    curr_node = all_nodes[-1]
     
-    if not is_image_path(curr):
-        for node in graph[curr]:
-            if node in path:
-                raise Exception(f'Cycle Found: {curr} -> {node}')
-            effects_config_sort(path + [node])
-    if is_image_path(curr) or len(graph[curr]) == 0 and curr:
-        simple_effects.append(curr)
-    elif curr:
-        complex_effects.append(curr)
+    if curr_node in found:
+        return
+    
+    print(curr_node)
+    if isinstance(curr_node, GridInfo):
+        simple_effects.append(curr_node)
+        return
+
+    for needed_node in graph[curr_node]:
+        if needed_node in all_nodes:
+            raise Exception(f'Cycle Found: {curr_node} -> {needed_node}')
+        effects_config_sort(all_nodes + [needed_node])
+    
+    if curr_node:
+        if len(graph[curr_node]) == 0:
+            simple_effects.append(curr_node)
+        else:
+            complex_effects.append(curr_node)
+        # !todo verify if this speeds up everything a ridiculous amount, i think it does... lol
+        found[curr_node] = True
 
 
 def dfs(effect_name):
     if effect_name not in found:
-        if is_image_path(effect_name):
-            return
-
         if effect_name not in effects_config:
             return effect_name
         for component in effects_config[effect_name]['beats']:
@@ -1138,7 +1139,7 @@ def add_dependancies(effect_names):
         effect = effects_config[effect_name]
         graph[effect_name] = {}
         for component in effect['beats']:
-            if type(component[1]) is str:
+            if type(component[1]) is str or isinstance(component[1], GridInfo):
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
@@ -1362,14 +1363,12 @@ def compile_lut(local_effects_config):
     
     simple_effect_perf_timer = time.time()
     for effect_name in simple_effects:
-        if is_image_path(effect_name):
-            rotate_90 = bool(int(effect_name[0]))
+        if isinstance(effect_name, GridInfo):
+            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name}, {list(effect.keys())=}')
             channel_lut[effect_name] = {
                 'length': round(effect['length'] * SUB_BEATS),
-                'grid_filename': effect_name,
-                'grid_rotate_90': rotate_90,
+                'grid_info': effect_name,
             }
-            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name}, {list(effect.keys())=}')
             continue
         
         effect = effects_config[effect_name]
@@ -1455,7 +1454,6 @@ def compile_lut(local_effects_config):
             'length': round(effect['length'] * SUB_BEATS),
             'loop': effect['loop'],
             'beats': [x[:] for x in [[0] * LIGHT_COUNT] * round(effect['length'] * SUB_BEATS)],
-            # 'beats': numpy.zeros((round(effect['length'] * SUB_BEATS), LIGHT_COUNT)),
         }
         curr_channel = channel_lut[effect_name]
         beats = channel_lut[effect_name]['beats']

@@ -122,6 +122,8 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 * FINISHED AUTOGENERATING ALL (208) SHOWS IN DIRECTORY songs in 107.53671836853027 seconds
 
 
+## compress png on linux
+pngquant --quality=65-80 image.png
 
 
 

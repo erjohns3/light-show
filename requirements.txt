@@ -17,4 +17,5 @@ watchdog
 pigpio
 rich
 pyserial
+pillow
 git+https://github.com/aubio/aubio.git

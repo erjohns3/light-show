@@ -39,6 +39,7 @@ def resize_PIL_image(pil_image, rotate_90=False):
     else:
         pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
     pil_image = pil_image.convert('RGB')
+    # this is because we are working with 0-100 in the grid, not 0-255
     pil_image = np.array(pil_image) / 2.55
     pil_image = pil_image.astype(np.uint8)
     if rotate_90:

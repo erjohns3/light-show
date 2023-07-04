@@ -125,6 +125,9 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 ## compress png on linux
 pngquant --quality=65-80 image.png
 
+## benchmark
+* python -m cProfile -s tottime light_server.py --local | tac
+
 
 
 

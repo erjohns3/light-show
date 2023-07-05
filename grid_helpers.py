@@ -1,3 +1,4 @@
+import PIL
 from PIL import Image, ImageSequence
 import numpy as np
 import serial
@@ -40,93 +41,9 @@ def get_grid():
     return grid
 
 
-def resize_PIL_image(pil_image, rotate_90=False):
-    if rotate_90:
-        pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH), Image.LANCZOS)
-    else:
-        pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
-    
-    # we should write a cache for this to autoconvert with dialogue box if so
-    if pil_image.mode != 'RGB':
-        print_yellow(f'converting {pil_image.mode} to RGB')
-        pil_image = pil_image.convert('RGB')
-    
-    # this is because we are working with 0-100 in the grid, not 0-255
-    pil_image = np.array(pil_image) / 2.55
-    pil_image = pil_image.astype(np.uint8)
-    if rotate_90:
-        return pil_image
-    return np.transpose(pil_image, (1, 0, 2))
-
-
-def load_image_to_grid(image_filepath, rotate_90=False):
-    image = Image.open(image_filepath)
-    grid[:] = resize_PIL_image(image, rotate_90=rotate_90)
-
-
-animation_cache = {}
-def try_load_into_animation_cache(filepath, rotate_90=False):
-    with Image.open(filepath) as animation_file:
-        try:
-            # print(f'loading animation {filepath}, {animation_file.n_frames} frames, {animation_file.mode} mode, {animation_file.fps} fps')
-            print(f'loading animation {filepath}, {animation_file.info=}')
-        except:
-            print_stacktrace()
-            print(dir(animation_file))
-            print_yellow(f'problem printing animation info for {filepath}')
-
-        final_arr = []
-        try:
-            for frame in ImageSequence.Iterator(animation_file):
-                if frame.mode != "RGB":
-                    frame = frame.convert("RGB")
-                final_arr.append(frame)
-        except Exception as e:
-            print_red('couldnt load animation')
-            print_stacktrace()
-            return False
-        animation_cache[filepath] = [0, final_arr]
-        for index in range(len(animation_cache[filepath][1])):
-            animation_cache[filepath][1][index] = resize_PIL_image(animation_cache[filepath][1][index], rotate_90=rotate_90)
-        return True
-
-
-def load_animation_to_grid(filepath, rotate_90=False):
-    if filepath not in animation_cache:
-        if not try_load_into_animation_cache(filepath, rotate_90=rotate_90):
-            return
-    index = animation_cache[filepath][0]
-    animation_frames = animation_cache[filepath][1]
-    grid[:] = animation_frames[index]
-
-
-def increment_animation_frame(filepath):
-    if filepath not in animation_cache:
-        print(f'filepath {filepath} not in animation cache')
-        return
-    index = animation_cache[filepath][0]
-    animation_frames = animation_cache[filepath][1]
-    animation_cache[filepath][0] = (index + 1) % len(animation_frames)
-    # print(f'{index=}\n' * 8)
-
-
-def fill_grid_from_image_filepath(filepath, rotate_90=False):    
-    if filepath.suffix.lower() in ['.webp', '.gif']:
-        load_animation_to_grid(filepath, rotate_90=rotate_90)
-    elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
-        load_image_to_grid(filepath, rotate_90=rotate_90)
-    else:
-        print_red(f'file extension {filepath.suffix.lower()} not supported')
-        return
-
-
-called_num = 0
 @profile
 def render_grid(terminal=False, skip_if_terminal=False):
     if terminal:
-        global called_num
-        called_num += 1
-        print(f'{called_num=}')
         if skip_if_terminal:
             return
         for y in range(GRID_HEIGHT):
@@ -168,9 +85,6 @@ def grid_reset_and_write():
     grid.fill(0)
     render_grid()
 
-
-# indeces = np.nonzero(grid[:,:,0])
-
 def get_grid_serial():
     global grid_serial
     if grid_serial is None: 
@@ -184,3 +98,113 @@ def get_grid_serial():
             write_timeout=0
         )
     return grid_serial
+
+
+
+# ====== image stuff ======
+def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
+    if rotate_90:
+        pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH), Image.LANCZOS)
+    else:
+        pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
+    
+    # we should write a cache for this to autoconvert with dialogue box if so
+    if pil_image.mode != 'RGB':
+        print_yellow(f'converting {pil_image.mode} to RGB')
+        pil_image = pil_image.convert('RGB')
+    
+    # this is because we are working with 0-100 in the grid, not 0-255
+    pil_image = np.array(pil_image) / 2.55
+    pil_image = pil_image.astype(np.uint8)
+
+    if rotate_90:
+        return pil_image
+    return np.transpose(pil_image, (1, 0, 2))
+
+
+static_image_cache = {}
+def load_image_to_grid(image_filepath, rotate_90=False):
+    if image_filepath not in static_image_cache:
+        with Image.open(image_filepath) as image_file:
+            static_image_cache[image_filepath] = PIL_image_to_numpy_arr(image_file, rotate_90=rotate_90)
+    grid[:] = static_image_cache[image_filepath]
+
+
+animation_cache = {}
+def try_load_into_animation_cache(filepath, rotate_90=False):
+    with Image.open(filepath) as animation_file:
+        if not animation_file.is_animated:
+            print_red(f'file {filepath} is not animated, and yet was called load_into_animation, not loading')
+            return
+        print(f'loading animation {filepath}, {animation_file.info=}')
+        all_frames = []
+        for frame in ImageSequence.Iterator(animation_file):
+            # also do the RGB cache here...
+            if frame.mode != "RGB":
+                frame = frame.convert("RGB")
+            all_frames.append(frame)
+
+        # for some reason pillow doesn't calculate the duration for webp's until AFTER you unroll the frames
+        total_duration = 0
+        for index in range(len(all_frames)):
+            frame = all_frames[index]
+            duration_ms = frame.info.get("duration", None)
+            if duration_ms is None:
+                print_red(f'frame {frame} for {filepath} has no duration, weird... look at this')
+                exit()
+            duration = duration_ms / 1000
+            total_duration += duration
+
+            all_frames[index] = [PIL_image_to_numpy_arr(frame, rotate_90=rotate_90), duration]
+
+        animation_cache[filepath] = [0, all_frames, total_duration]
+        return True
+
+
+def load_animation_to_grid(filepath, rotate_90=False):
+    if filepath not in animation_cache:
+        if not try_load_into_animation_cache(filepath, rotate_90=rotate_90):
+            return
+    index = animation_cache[filepath][0]
+    frames = animation_cache[filepath][1]
+    grid[:] = frames[index][0]
+
+
+def increment_animation_frame(filepath):
+    if filepath not in animation_cache:
+        print(f'filepath {filepath} not in animation cache')
+        return
+    index = animation_cache[filepath][0]
+    frames = animation_cache[filepath][1]
+    animation_cache[filepath][0] = (index + 1) % len(frames)
+
+# !TODO this is linear, could make log(n) if someone writes a BST 
+def seek_to_animation_time(filepath, time_to_seek):
+    if filepath not in animation_cache:
+        print(f'filepath {filepath} not in animation cache')
+        return
+    total_duration = animation_cache[filepath][2]
+    time_to_seek = time_to_seek % total_duration
+    frames = animation_cache[filepath][1]
+    time_so_far = 0
+    for index, (_frame, duration) in enumerate(frames):
+        time_so_far += duration
+        if time_so_far > time_to_seek:
+            animation_cache[filepath][0] = index
+            return
+
+
+def is_animated(filepath):
+    if filepath not in animation_cache:
+        return False
+    return True
+
+
+def fill_grid_from_image_filepath(filepath, rotate_90=False):    
+    if filepath.suffix.lower() in ['.webp', '.gif']:
+        load_animation_to_grid(filepath, rotate_90=rotate_90)
+    elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
+        load_image_to_grid(filepath, rotate_90=rotate_90)
+    else:
+        print_red(f'file extension {filepath.suffix.lower()} not supported')
+        return

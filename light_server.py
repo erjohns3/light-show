@@ -662,7 +662,10 @@ async def render_to_terminal(all_levels):
 
 
     curr_beat = (beat_index / SUB_BEATS) + 1
-    terminal_size = os.get_terminal_size().columns
+    try:
+        terminal_size = os.get_terminal_size().columns
+    except:
+        terminal_size = 45
     dead_space = terminal_size - 15
 
     show_specific = ''
@@ -852,6 +855,10 @@ async def light():
             if grid_info is not None:
                 for start_b, end_b, grid_info in grid_info:
                     if start_b <= index < end_b:
+                        grid_info.start_sub_beat = start_b
+                        grid_info.end_sub_beat = end_b
+                        grid_info.curr_sub_beat = index - start_b
+                        grid_info.bpm = curr_bpm
                         grid_infos_for_this_sub_beat.append(grid_info)
                         skip_top_front_grid_fill = skip_top_front_grid_fill or getattr(grid_info, 'skip_top_front_grid_fill', False)
                         break
@@ -884,14 +891,19 @@ async def light():
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
-
         
         if skip_top_front_grid_fill:
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
         for grid_info in grid_infos_for_this_sub_beat:
-            grid_info.grid_function(grid_info)
+            try:
+                grid_info.grid_function(grid_info)
+            except Exception as e:
+                print_stacktrace()
+                print_yellow(f'TRIED TO CALL {grid_info=}, but it DIDNT work, stacktrace above')
+                return False
+
         grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
 
         if download_thread is not None:
@@ -1085,7 +1097,6 @@ def effects_config_sort(all_nodes):
         return
     
     if isinstance(curr_node, GridInfo):
-        all_grid_infos.append(curr_node)
         simple_effects.append(curr_node)
         return
 
@@ -1121,6 +1132,11 @@ def add_dependancies(effect_names):
         graph[effect_name] = {}
         for component in effect['beats']:
             if type(component[1]) is str or isinstance(component[1], GridInfo):
+                if isinstance(component[1], GridInfo):
+                    # component[1].start_beat = component[0]
+                    # component[1].beat_length = component[2]
+                    all_grid_infos.append(component[1])
+
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 

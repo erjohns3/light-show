@@ -33,7 +33,8 @@ def fill_grid_from_image_filepath(grid_info):
 
 
 grid_info = GridInfo()
-grid_info.filename = 'ricardo.gif'
+# grid_info.filename = 'ricardo.gif'
+grid_info.filename = 'nyan.webp'
 grid_info.rotate_90 = False
 
 from light_server import SUB_BEATS
@@ -47,7 +48,6 @@ while True:
         time.sleep(time_to_sleep)
 
 
-# as fast as possible
 # while True:
 #     fill_grid_from_image_filepath(grid_info)
 

@@ -14,6 +14,7 @@ import pathlib
 
 import grid_helpers
 
+
 class GridInfo:
     def __init__(self):
         self.grid_function = None
@@ -22,19 +23,32 @@ class GridInfo:
     def reset(self):
         pass
 
+    def all_attr_values(self):
+        building = []
+        for attr, value in self.__dict__.items():
+            building.append(f'{attr}: {value}')
+        print(', '.join(building))
+
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()
-wait_frame = 0
 def fill_grid_from_image_filepath(grid_info):
-    global wait_frame
-    image_filepath = directory_above_this_file.joinpath('images', grid_info.filename)
-    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
-    if image_filepath.suffix.lower() in ['.gif', '.webp']:
-        wait_frame += 1
-        if wait_frame > 3:
-            wait_frame = 0
-            grid_helpers.increment_animation_frame(image_filepath)
+    from light_server import SUB_BEATS
+    # print(f'GridInfo: {grid_info.all_attr_values()}')
+
+    bpm = grid_info.bpm
+    start_beat = grid_info.start_sub_beat / SUB_BEATS
+    end_beat = grid_info.end_sub_beat / SUB_BEATS
+    curr_beat = grid_info.curr_sub_beat / SUB_BEATS
+
+    time_in_pattern = curr_beat * (60 / bpm)
+    # print(f'{start_beat=}, {end_beat=}, {curr_beat=}, {bpm=}, {time_in_pattern=}')
+
+    filepath = directory_above_this_file.joinpath('images', grid_info.filename)
+    grid_helpers.fill_grid_from_image_filepath(filepath, rotate_90=grid_info.rotate_90)
+    if grid_helpers.is_animated(filepath):
+        grid_helpers.seek_to_animation_time(filepath, time_in_pattern)
+        # grid_helpers.increment_animation_frame(filepath)
 
 
 

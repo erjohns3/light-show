@@ -23,11 +23,16 @@ class GridInfo:
         pass
 
 
+wait_frame = 0
 def fill_grid_from_image_filepath(grid_info):
+    global wait_frame
     image_filepath = directory_above_this_file.joinpath('images', grid_info.filename)
     grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
     if image_filepath.suffix.lower() in ['.gif', '.webp']:
-        grid_helpers.increment_animation_frame(image_filepath)
+        wait_frame += 1
+        if wait_frame > 3:
+            wait_frame = 0
+            grid_helpers.increment_animation_frame(image_filepath)
 
 
 

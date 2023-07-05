@@ -59,27 +59,7 @@ parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
-parser.add_argument('--test', dest='test_fill_grid_func', default=False, action='store_true')
 args = parser.parse_args()
-
-
-this_file_directory = pathlib.Path(__file__).parent.resolve()
-def test_grid_func():
-    # image_filepath = this_file_directory.joinpath('images', 'smiley.jpg')
-    # image_filepath = this_file_directory.joinpath('images', 'red_square.png')
-    # image_filepath = this_file_directory.joinpath('images', 'dog.jpg')
-    # grid_helpers.load_image_to_grid(image_filepath)
-
-    # filepath = this_file_directory.joinpath('images', 'nyan.webp')
-    filepath = this_file_directory.joinpath('images', 'tiger.webp')
-    grid_helpers.load_next_webp_image_to_grid(filepath, rotate_90=True)
-
-
-def test_grid_random():
-    for x, y in grid_helpers.grid_coords():
-        grid[x][y][0] = random.randint(0, 255)
-        grid[x][y][1] = random.randint(0, 255)
-        grid[x][y][2] = random.randint(0, 255)
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
@@ -836,9 +816,8 @@ async def light():
     search_thread = None
 
     while True:
-        fill_grid_func = 'lights'
-        if args.test_fill_grid_func:
-            fill_grid_func = test_grid_func
+        fill_grid_func = None
+        skip_top_front_fill = False
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -866,6 +845,18 @@ async def light():
             else:
                 i+=1
 
+
+        for effect_tuple in curr_effects:
+            effect_name = effect_tuple[0]
+            index = beat_index + effect_tuple[1]
+            grid_info = channel_lut[effect_name].get('grid_info', None)
+            if grid_info is not None:
+                for start_b, end_b, grid_info in grid_info:
+                    if start_b <= index < end_b:
+                        fill_grid_func = grid_info.grid_function
+                        skip_top_front_fill = skip_top_front_fill or getattr(grid_info, 'skip_top_front_fill', False)
+                        break
+
         grid_levels = [0] * LIGHT_COUNT
         for i in range(LIGHT_COUNT):
             level = 0
@@ -873,14 +864,6 @@ async def light():
                 effect_name = curr_effects[j][0]
                 index = beat_index + curr_effects[j][1]
 
-                grid_info = channel_lut[effect_name].get('grid_info', None)
-                if grid_info is not None:
-                    for start_b, end_b, grid_info in grid_info:
-                        if start_b <= index < end_b:
-                            # curr_grid_filepath = this_file_directory.joinpath('images', grid_info.filename)
-                            # fill_grid_func = lambda x: grid_helpers.fill_grid_from_filepath(x, rotate_90=grid_info.rotate_90)
-                            fill_grid_func = grid_info.grid_function
-                            break
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
                     level += channel_lut[effect_name]['beats'][index][i]
@@ -896,22 +879,31 @@ async def light():
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                if fill_grid_func == 'lights':
+                if fill_grid_func is None:
                     await terminal(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
 
-            
-        # this is the code that gets the top front levels and puts them on the grid
-        if fill_grid_func == 'lights':
+        if skip_top_front_fill:
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-            grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=True)
-        elif hasattr(fill_grid_func, '__call__'):
+        
+        if fill_grid_func is not None:
             fill_grid_func()
-            grid_helpers.render_grid(terminal=args.local and console)
+        grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=fill_grid_func is None)
+
+
+
+        # # this is the code that gets the top front levels and puts them on the grid
+        # if fill_grid_func == 'lights':
+        #     grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+        #     grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+        #     grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=True)
+        # elif hasattr(fill_grid_func, '__call__'):
+        #     fill_grid_func()
+        #     grid_helpers.render_grid(terminal=args.local and console)
             
 
 
@@ -1914,23 +1906,3 @@ if __name__ == '__main__':
         await dj_socket_server.wait_closed() and queue_socket_server.wait_closed() and rekordbox_bridge_server.wait_closed()
 
     asyncio.run(start_async())
-
-
-
-
-
-        # if msg['type'] == 'add_effect':
-        #     add_effect_from_dj(msg['effect'])
-
-        # 'key': stuff[0],
-        # 'master_total_time': stuff[3],
-
-            # TODO we gotta check above and all the songs
-            # if rekordbox_title not in effects_config:
-            #     print(f'Couldnt find handmade {rekordbox_title}\n' * 8)
-            #     rekordbox_title = 'g_' + rekordbox_title
-            #     if rekordbox_title not in effects_config:
-            #         print_yellow(f'Cant play light show effect from rekordbox! Missing effect {rekordbox_title}\n' * 8)
-            #         continue
-            # else:
-            #     print(f'FOUND handmade {rekordbox_title}\n' * 8)

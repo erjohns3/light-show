@@ -102,8 +102,7 @@ def render_grid(terminal=False, skip_if_terminal=False):
             for x in range(GRID_WIDTH):
                 item = list(map(int, grid[x][y]))
                 rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
-                character = '▆'
-                terminal.print(character, style=rgb_style, end='')
+                terminal.print('▆', style=rgb_style, end='')
             print('')
         terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:

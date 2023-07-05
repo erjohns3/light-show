@@ -26,6 +26,7 @@ def fill_grid_from_image_filepath_wrapper(grid_info):
     grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
 
 
+
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()
 following_beat = None

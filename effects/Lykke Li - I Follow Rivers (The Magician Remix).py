@@ -96,7 +96,7 @@ effects = {
         "skip_song": 0.0,
         "beats": [
             # b(1, grid_filename='shocked_pikachu.png', grid_rotate_90=True, length=16),
-            b(1, grid_filename='ricardo.jpg', grid_rotate_90=True, length=16),
+            b(1, grid_filename='ricardo.gif', grid_rotate_90=True, length=16),
             # b(1, grid_function=lambda: print('hello'), length=16),
             # b(1, grid_function=lambda x: print('hello'), length=16),
             b(9, name='ll bass', length=144),

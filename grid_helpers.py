@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image, ImageSequence
 import numpy as np
 import serial
 
@@ -58,43 +58,46 @@ def load_image_to_grid(image_filepath, rotate_90=False):
     grid[:] = resize_PIL_image(image, rotate_90=rotate_90)
 
 
-webp_cache = {}
-def load_next_webp_image_to_grid(filepath, rotate_90=False, wait_extra_sub_beats=0):
-    if filepath not in webp_cache:
-        whole_webp = Image.open(filepath)
+animation_cache = {}
+def try_load_into_animation_cache(filepath, rotate_90=False):
+    with Image.open(filepath) as whole_gif:
         final_arr = []
         try:
-            while True:
-                img_bytes = whole_webp._get_next()
-                final_arr.append(Image.frombytes(whole_webp.mode, whole_webp.size, img_bytes[0]))
-        except OSError as e:
-            pass
+            for frame in ImageSequence.Iterator(whole_gif):
+                if frame.mode != "RGB":
+                    frame = frame.convert("RGB")
+                final_arr.append(frame)
         except Exception as e:
-            print_red('couldnt load webp, not loading grid')
+            print_red('couldnt load animation')
             print_stacktrace()
-            return
-        webp_cache[filepath] = [0, 0, final_arr]
-        # import webp
-        # webp_cache[filepath] = [0, webp.load_images(filepath, 'RGB', fps=10)]
-        for index in range(len(webp_cache[filepath][2])):
-            webp_cache[filepath][2][index] = resize_PIL_image(webp_cache[filepath][2][index], rotate_90=rotate_90)
+            return False
+        animation_cache[filepath] = [0, 0, final_arr]
+        for index in range(len(animation_cache[filepath][2])):
+            animation_cache[filepath][2][index] = resize_PIL_image(animation_cache[filepath][2][index], rotate_90=rotate_90)
+        return True
 
-    index = webp_cache[filepath][0]
-    slower = webp_cache[filepath][1]
-    webp_images = webp_cache[filepath][2]
+
+def load_next_animation_to_grid(filepath, rotate_90=False, wait_extra_sub_beats=0):
+    if filepath not in animation_cache:
+        if not try_load_into_animation_cache(filepath, rotate_90=rotate_90):
+            return
+
+    index = animation_cache[filepath][0]
+    slower = animation_cache[filepath][1]
+    webp_images = animation_cache[filepath][2]
 
     grid[:] = webp_images[index]
     
     if slower > wait_extra_sub_beats:
-        webp_cache[filepath][0] = (index + 1) % len(webp_images)
-        webp_cache[filepath][1] = 0
+        animation_cache[filepath][0] = (index + 1) % len(webp_images)
+        animation_cache[filepath][1] = 0
     else:
-        webp_cache[filepath][1] += 1
+        animation_cache[filepath][1] += 1
 
 
 def fill_grid_from_image_filepath(filepath, rotate_90=False, wait_extra_sub_beats=0):    
-    if filepath.suffix == '.webp':
-        load_next_webp_image_to_grid(filepath, rotate_90=rotate_90, wait_extra_sub_beats=wait_extra_sub_beats)
+    if filepath.suffix in ['.webp', '.gif']:
+        load_next_animation_to_grid(filepath, rotate_90=rotate_90, wait_extra_sub_beats=wait_extra_sub_beats)
     elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
         load_image_to_grid(filepath, rotate_90=rotate_90)
 

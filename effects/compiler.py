@@ -18,16 +18,16 @@ class GridInfo:
     def __init__(self):
         self.grid_function = None
         self.skip_top_front_fill = False
-        self.filename = None
-        self.rotate_90 = False
 
     def reset(self):
         pass
 
 
-def fill_grid_from_image_filepath_wrapper(grid_info):
+def fill_grid_from_image_filepath(grid_info):
     image_filepath = directory_above_this_file.joinpath('images', grid_info.filename)
-    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90, wait_extra_sub_beats=2)
+    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
+    if image_filepath.suffix.lower() in ['.gif', '.webp']:
+        grid_helpers.increment_animation_frame(image_filepath)
 
 
 
@@ -61,7 +61,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     if grid_filename is not None:
         grid_info.filename = grid_filename
         grid_info.rotate_90 = grid_rotate_90
-        grid_function = lambda: fill_grid_from_image_filepath_wrapper(grid_info)
+        grid_function = lambda: fill_grid_from_image_filepath(grid_info)
 
     if grid_function is not None:
         grid_info.grid_function = grid_function

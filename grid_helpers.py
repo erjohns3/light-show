@@ -71,48 +71,58 @@ def try_load_into_animation_cache(filepath, rotate_90=False):
             print_red('couldnt load animation')
             print_stacktrace()
             return False
-        animation_cache[filepath] = [0, 0, final_arr]
-        for index in range(len(animation_cache[filepath][2])):
-            animation_cache[filepath][2][index] = resize_PIL_image(animation_cache[filepath][2][index], rotate_90=rotate_90)
+        animation_cache[filepath] = [0, final_arr]
+        for index in range(len(animation_cache[filepath][1])):
+            animation_cache[filepath][1][index] = resize_PIL_image(animation_cache[filepath][1][index], rotate_90=rotate_90)
         return True
 
 
-def load_next_animation_to_grid(filepath, rotate_90=False, wait_extra_sub_beats=0):
+def load_animation_to_grid(filepath, rotate_90=False):
     if filepath not in animation_cache:
         if not try_load_into_animation_cache(filepath, rotate_90=rotate_90):
             return
-
     index = animation_cache[filepath][0]
-    slower = animation_cache[filepath][1]
-    webp_images = animation_cache[filepath][2]
-
-    grid[:] = webp_images[index]
-    
-    if slower > wait_extra_sub_beats:
-        animation_cache[filepath][0] = (index + 1) % len(webp_images)
-        animation_cache[filepath][1] = 0
-    else:
-        animation_cache[filepath][1] += 1
+    animation_frames = animation_cache[filepath][1]
+    grid[:] = animation_frames[index]
 
 
-def fill_grid_from_image_filepath(filepath, rotate_90=False, wait_extra_sub_beats=0):    
-    if filepath.suffix in ['.webp', '.gif']:
-        load_next_animation_to_grid(filepath, rotate_90=rotate_90, wait_extra_sub_beats=wait_extra_sub_beats)
-    elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
+def increment_animation_frame(filepath):
+    if filepath not in animation_cache:
+        print(f'filepath {filepath} not in animation cache')
+        return
+    index = animation_cache[filepath][0]
+    animation_frames = animation_cache[filepath][1]
+    animation_cache[filepath][0] = (index + 1) % len(animation_frames)
+    # print(f'{index=}\n' * 8)
+
+
+def fill_grid_from_image_filepath(filepath, rotate_90=False):    
+    if filepath.suffix.lower() in ['.webp', '.gif']:
+        load_animation_to_grid(filepath, rotate_90=rotate_90)
+    elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
         load_image_to_grid(filepath, rotate_90=rotate_90)
-
+    else:
+        print_red(f'file extension {filepath.suffix.lower()} not supported')
+        return
 
 def render_grid(terminal=False, skip_if_terminal=False):
     if terminal and skip_if_terminal:
         return
     
     if terminal:
+        import rich
         for y in range(GRID_HEIGHT):
+            row_string = []
             for x in range(GRID_WIDTH):
-                item = list(map(int, grid[x][y]))
+                time_to_end = ''
+                if x == GRID_WIDTH - 1:
+                    time_to_end = '\n'
+                item = tuple(map(int, grid[x][y]))
+                # rgb_style = rich.style.Style(rgb=item)
                 rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
-                terminal.print('▆', style=rgb_style, end='')
-            print('')
+                terminal.print('▆', style=rgb_style, end=time_to_end)
+                # row_string.append(terminal.render('▆', style=rgb_style))
+            # print(''.join(row_string))
         terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:
         grid_out =  get_grid_serial().out_waiting

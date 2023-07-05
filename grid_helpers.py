@@ -33,6 +33,12 @@ def grid_coords():
 def get_grid():
     return grid
 
+
+color_divider = 1
+def colors_to_0_100(self):
+    global color_divider
+    color_divider = 2.55
+
 def resize_PIL_image(pil_image, rotate_90=False):
     if rotate_90:
         pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH), Image.LANCZOS)
@@ -40,7 +46,7 @@ def resize_PIL_image(pil_image, rotate_90=False):
         pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
     pil_image = pil_image.convert('RGB')
     # this is because we are working with 0-100 in the grid, not 0-255
-    pil_image = np.array(pil_image) / 2.55
+    pil_image = np.array(pil_image) / color_divider
     pil_image = pil_image.astype(np.uint8)
     if rotate_90:
         return pil_image

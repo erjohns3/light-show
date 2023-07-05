@@ -1638,6 +1638,7 @@ if __name__ == '__main__':
         console = Console()
     else:
         setup_gpio()
+        grid_helpers.colors_to_0_100()
     
     if args.autogen is not None:
         import autogen

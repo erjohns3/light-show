@@ -107,12 +107,12 @@ def fill_grid_from_image_filepath(filepath, rotate_90=False):
         return
 
 
-if is_windows():
-    import ctypes
-    def enable_ansi_escape_sequences():
-        kernel32 = ctypes.windll.kernel32
-        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-    enable_ansi_escape_sequences()
+# if is_windows():
+#     import ctypes
+#     def enable_ansi_escape_sequences():
+#         kernel32 = ctypes.windll.kernel32
+#         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+#     enable_ansi_escape_sequences()
 def render_grid(terminal=False, skip_if_terminal=False):
     if terminal:
         if skip_if_terminal:

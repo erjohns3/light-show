@@ -810,14 +810,13 @@ grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, fill_grid_func
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
 
     download_thread = None
     search_thread = None
-
     while True:
-        fill_grid_func = None
-        skip_top_front_fill = False
+        grid_infos_for_this_sub_beat = []
+        skip_top_front_grid_fill = False
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -853,8 +852,8 @@ async def light():
             if grid_info is not None:
                 for start_b, end_b, grid_info in grid_info:
                     if start_b <= index < end_b:
-                        fill_grid_func = grid_info.grid_function
-                        skip_top_front_fill = skip_top_front_fill or getattr(grid_info, 'skip_top_front_fill', False)
+                        grid_infos_for_this_sub_beat.append(grid_info)
+                        skip_top_front_grid_fill = skip_top_front_grid_fill or getattr(grid_info, 'skip_top_front_grid_fill', False)
                         break
 
         grid_levels = [0] * LIGHT_COUNT
@@ -879,20 +878,21 @@ async def light():
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                if fill_grid_func is None:
+                if not grid_infos_for_this_sub_beat:
                     await terminal(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
 
-        if skip_top_front_fill:
+        
+        if skip_top_front_grid_fill:
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
-        if fill_grid_func is not None:
-            fill_grid_func()
-        grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=fill_grid_func is None)
+        for grid_info in grid_infos_for_this_sub_beat:
+            grid_info.grid_function(grid_info)
+        grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
 
         if download_thread is not None:
             if not download_thread.is_alive():

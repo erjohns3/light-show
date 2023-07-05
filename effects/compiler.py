@@ -17,12 +17,14 @@ import grid_helpers
 class GridInfo:
     def __init__(self):
         self.grid_function = None
-        self.skip_top_front_fill = False
+        self.skip_top_front_grid_fill = False
 
     def reset(self):
         pass
 
 
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+directory_above_this_file = this_file_directory.parent.resolve()
 wait_frame = 0
 def fill_grid_from_image_filepath(grid_info):
     global wait_frame
@@ -36,8 +38,7 @@ def fill_grid_from_image_filepath(grid_info):
 
 
 
-this_file_directory = pathlib.Path(__file__).parent.resolve()
-directory_above_this_file = this_file_directory.parent.resolve()
+
 following_beat = None
 def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, grid_rotate_90=None):
     global following_beat
@@ -66,7 +67,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     if grid_filename is not None:
         grid_info.filename = grid_filename
         grid_info.rotate_90 = grid_rotate_90
-        grid_function = lambda: fill_grid_from_image_filepath(grid_info)
+        grid_function = fill_grid_from_image_filepath
 
     if grid_function is not None:
         grid_info.grid_function = grid_function

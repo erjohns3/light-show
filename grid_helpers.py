@@ -61,6 +61,7 @@ def load_image_to_grid(image_filepath, rotate_90=False):
 animation_cache = {}
 def try_load_into_animation_cache(filepath, rotate_90=False):
     with Image.open(filepath) as whole_gif:
+        print(f'loading animation {filepath}')
         final_arr = []
         try:
             for frame in ImageSequence.Iterator(whole_gif):
@@ -105,25 +106,40 @@ def fill_grid_from_image_filepath(filepath, rotate_90=False):
         print_red(f'file extension {filepath.suffix.lower()} not supported')
         return
 
+
+if is_windows():
+    import ctypes
+    def enable_ansi_escape_sequences():
+        kernel32 = ctypes.windll.kernel32
+        kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+    enable_ansi_escape_sequences()
 def render_grid(terminal=False, skip_if_terminal=False):
     if terminal and skip_if_terminal:
         return
     
     if terminal:
-        import rich
         for y in range(GRID_HEIGHT):
-            row_string = []
+            row_parts = []
             for x in range(GRID_WIDTH):
-                time_to_end = ''
-                if x == GRID_WIDTH - 1:
-                    time_to_end = '\n'
                 item = tuple(map(int, grid[x][y]))
-                # rgb_style = rich.style.Style(rgb=item)
-                rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
-                terminal.print('▆', style=rgb_style, end=time_to_end)
-                # row_string.append(terminal.render('▆', style=rgb_style))
-            # print(''.join(row_string))
-        terminal.print('', end='\033[F' * GRID_HEIGHT)
+                character = '▆'
+                rgb_style = f'38;2;{item[0]};{item[1]};{item[2]}'
+                the_string = f'\033[{rgb_style}m{character}\033[0m'
+                row_parts.append(the_string)
+            print(''.join(row_parts))
+        print('\033[F' * GRID_HEIGHT, end='')
+
+        # older slow way with rich
+        # for y in range(GRID_HEIGHT):
+        #     row_string = []
+        #     for x in range(GRID_WIDTH):
+        #         time_to_end = ''
+        #         if x == GRID_WIDTH - 1:
+        #             time_to_end = '\n'
+        #         item = tuple(map(int, grid[x][y]))
+        #         rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
+        #         terminal.print('▆', style=rgb_style, end=time_to_end)
+        # terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:
         grid_out =  get_grid_serial().out_waiting
         grid_in = get_grid_serial().in_waiting

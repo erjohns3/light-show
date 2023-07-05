@@ -127,6 +127,8 @@ pngquant --quality=65-80 image.png
 
 ## benchmark
 * python -m cProfile -s tottime light_server.py --local | tac
+* kernprof -lv light_server.py
+  * line by line
 
 
 

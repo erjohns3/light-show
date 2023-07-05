@@ -35,7 +35,7 @@ def get_grid():
 
 
 color_divider = 1
-def colors_to_0_100(self):
+def colors_to_0_100():
     global color_divider
     color_divider = 2.55
 

@@ -27,7 +27,6 @@ def fill_grid_from_image_filepath(grid_info):
         if wait_frame > 3:
             wait_frame = 0
             grid_helpers.increment_animation_frame(image_filepath)
-    
     grid_helpers.render_grid(terminal=console)
 
 
@@ -36,3 +35,16 @@ while True:
     grid_info.filename = 'ricardo.gif'
     grid_info.rotate_90 = False
     fill_grid_from_image_filepath(grid_info)
+
+
+# older slow way with rich
+# for y in range(GRID_HEIGHT):
+#     row_string = []
+#     for x in range(GRID_WIDTH):
+#         time_to_end = ''
+#         if x == GRID_WIDTH - 1:
+#             time_to_end = '\n'
+#         item = tuple(map(int, grid[x][y]))
+#         rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
+#         terminal.print('▆', style=rgb_style, end=time_to_end)
+# terminal.print('', end='\033[F' * GRID_HEIGHT)

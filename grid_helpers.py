@@ -114,32 +114,16 @@ if is_windows():
         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
     enable_ansi_escape_sequences()
 def render_grid(terminal=False, skip_if_terminal=False):
-    if terminal and skip_if_terminal:
-        return
-    
     if terminal:
+        if skip_if_terminal:
+            return
         for y in range(GRID_HEIGHT):
             row_parts = []
             for x in range(GRID_WIDTH):
-                item = tuple(map(int, grid[x][y]))
-                character = '▆'
-                rgb_style = f'38;2;{item[0]};{item[1]};{item[2]}'
-                the_string = f'\033[{rgb_style}m{character}\033[0m'
-                row_parts.append(the_string)
+                rgb = tuple(map(int, grid[x][y]))
+                row_parts.append(rgb_ansi('▆', rgb))
             print(''.join(row_parts))
         print('\033[F' * GRID_HEIGHT, end='')
-
-        # older slow way with rich
-        # for y in range(GRID_HEIGHT):
-        #     row_string = []
-        #     for x in range(GRID_WIDTH):
-        #         time_to_end = ''
-        #         if x == GRID_WIDTH - 1:
-        #             time_to_end = '\n'
-        #         item = tuple(map(int, grid[x][y]))
-        #         rgb_style = f'rgb({item[0]},{item[1]},{item[2]})'
-        #         terminal.print('▆', style=rgb_style, end=time_to_end)
-        # terminal.print('', end='\033[F' * GRID_HEIGHT)
     else:
         grid_out =  get_grid_serial().out_waiting
         grid_in = get_grid_serial().in_waiting

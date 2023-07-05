@@ -208,6 +208,12 @@ def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
 
+# I think this is called "true color" which is 24 bit color
+def rgb_ansi(text, rgb_tuple):
+    rgb_style = f'38;2;{rgb_tuple[0]};{rgb_tuple[1]};{rgb_tuple[2]}'
+    return f'\033[{rgb_style}m{text}\033[0m'
+
+
 def disable_color():
     global bcolors
     bcolors.HEADER = ''

@@ -894,19 +894,6 @@ async def light():
             fill_grid_func()
         grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=fill_grid_func is None)
 
-
-
-        # # this is the code that gets the top front levels and puts them on the grid
-        # if fill_grid_func == 'lights':
-        #     grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-        #     grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-        #     grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=True)
-        # elif hasattr(fill_grid_func, '__call__'):
-        #     fill_grid_func()
-        #     grid_helpers.render_grid(terminal=args.local and console)
-            
-
-
         if download_thread is not None:
             if not download_thread.is_alive():
                 await send_client_queue_config()
@@ -1086,14 +1073,19 @@ simple_effects = []
 complex_effects = []
 
 
+all_grid_infos = []
+def reset_all_grid_infos():
+    for grid_info in all_grid_infos:
+        grid_info.reset()
+
 def effects_config_sort(all_nodes):
     curr_node = all_nodes[-1]
     
     if curr_node in found:
         return
     
-    print(curr_node)
     if isinstance(curr_node, GridInfo):
+        all_grid_infos.append(curr_node)
         simple_effects.append(curr_node)
         return
 
@@ -1353,7 +1345,6 @@ def compile_lut(local_effects_config):
     simple_effect_perf_timer = time.time()
     for effect_name_or_grid_info in simple_effects:
         if isinstance(effect_name_or_grid_info, GridInfo):
-            print(f'SIMPLE EFFECT BEAT IMAGE THING {effect_name_or_grid_info}, {list(effect.keys())=}')
             channel_lut[effect_name_or_grid_info] = {
                 'length': round(effect['length'] * SUB_BEATS),
                 'grid_info': effect_name_or_grid_info,

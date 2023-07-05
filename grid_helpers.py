@@ -53,7 +53,7 @@ def load_image_to_grid(image_filepath, rotate_90=False):
 
 
 webp_cache = {}
-def load_next_webp_image_to_grid(filepath, rotate_90=False):
+def load_next_webp_image_to_grid(filepath, rotate_90=False, wait_extra_sub_beats=0):
     if filepath not in webp_cache:
         whole_webp = Image.open(filepath)
         final_arr = []
@@ -79,16 +79,16 @@ def load_next_webp_image_to_grid(filepath, rotate_90=False):
 
     grid[:] = webp_images[index]
     
-    if slower > 6:
+    if slower > wait_extra_sub_beats:
         webp_cache[filepath][0] = (index + 1) % len(webp_images)
         webp_cache[filepath][1] = 0
     else:
         webp_cache[filepath][1] += 1
 
 
-def fill_grid_from_image_filepath(filepath, rotate_90=False):    
+def fill_grid_from_image_filepath(filepath, rotate_90=False, wait_extra_sub_beats=0):    
     if filepath.suffix == '.webp':
-        load_next_webp_image_to_grid(filepath, rotate_90=rotate_90)
+        load_next_webp_image_to_grid(filepath, rotate_90=rotate_90, wait_extra_sub_beats=wait_extra_sub_beats)
     elif filepath.suffix in ['.jpg', '.jpeg', '.png']:
         load_image_to_grid(filepath, rotate_90=rotate_90)
 

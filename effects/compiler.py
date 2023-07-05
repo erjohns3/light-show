@@ -17,13 +17,17 @@ import grid_helpers
 class GridInfo:
     def __init__(self):
         self.grid_function = None
+        self.skip_top_front_fill = False
         self.filename = None
         self.rotate_90 = False
+
+    def reset(self):
+        pass
 
 
 def fill_grid_from_image_filepath_wrapper(grid_info):
     image_filepath = directory_above_this_file.joinpath('images', grid_info.filename)
-    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90, wait_extra_sub_beats=2)
 
 
 

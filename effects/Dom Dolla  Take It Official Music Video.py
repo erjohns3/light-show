@@ -67,7 +67,7 @@ effects = {
         ],
     },
     "dom windy melody": {
-        "length": 2,
+        "length": 16,
         "beats": [
             b(1, name='dom fade blue red bottom', length=5, hue_shift=.1),
             b(6, name='Red bottom', length=1, hue_shift=.35, sat_shift=-.2),

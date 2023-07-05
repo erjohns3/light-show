@@ -34,3 +34,4 @@ old/test_names.py
 old_songs/
 ray_songs/
 temp.txt
+*.lprof

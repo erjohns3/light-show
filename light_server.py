@@ -653,14 +653,15 @@ purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
-disco_style = 'rgb(0,0,0)'
+# disco_style = 'rgb(0,0,0)'
 async def render_to_terminal(all_levels):
     global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, disco_style, printed_http_info
 
     while not printed_http_info:
         time.sleep(.01)
 
-
+    rows_to_print = []
+    character = '▆'
     curr_beat = (beat_index / SUB_BEATS) + 1
     try:
         terminal_size = os.get_terminal_size().columns
@@ -707,61 +708,47 @@ Beat {curr_beat:.1f}\
     levels_255 = list(map(lambda x: int(x * 255), all_levels))
 
 
-    top_front_values = levels_255[0:3]
-    top_back_values = levels_255[3:6]
-    bottom_values = levels_255[6:9]
+    top_front_rgb = levels_255[0:3]
+    top_back_rgb = levels_255[3:6]
+    bottom_rgb = levels_255[6:9]
     uv_value = levels_255[9]
-    laser_color_values = levels_255[10:12]
+    laser_color_rgb = levels_255[10:12]
     laser_motor_value = levels_255[12] / 2.55
-    disco_color_values = levels_255[13:16]
+    disco_color_rgb = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
+ 
 
-    uv_style = f'rgb({purple_scaled[0]},{purple_scaled[1]},{purple_scaled[2]})'    
-    top_front_rgb_style = f'rgb({top_front_values[0]},{top_front_values[1]},{top_front_values[2]})'
-    top_back_rgb_style = f'rgb({top_back_values[0]},{top_back_values[1]},{top_back_values[2]})'
-    bottom_rgb_style = f'rgb({bottom_values[0]},{bottom_values[1]},{bottom_values[2]})'
+    # print(f'{top_front_rgb=}, {top_back_rgb=}, {bottom_rgb=}, {uv_value=}, {laser_color_rgb=}, {laser_motor_value=}')
+    # print(f'{laser_color_rgb=}, {laser_motor_value=}')
+    
+    # if any(laser_color_rgb):
+    #     line_length = terminal_size - 1
+    #     laser_arr = list(f'{" " * line_length}\n' * 3)
+    #     for i in range(3):
+    #         for j in range(terminal_size - 1):
+    #             if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
+    #                 laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
+    #     laser_string = ''.join(laser_arr)
+    #     laser_style = f'rgb({laser_color_rgb[1]},{laser_color_rgb[0]},0)'
+    # else:
+    #     laser_string = f'{" " * (terminal_size - 1)}\n' * 3
+    #     laser_style = 'default'
 
-    # print(f'{top_front_values=}, {top_back_values=}, {bottom_values=}, {uv_value=}, {laser_color_values=}, {laser_motor_value=}')
-    # print(f'{laser_color_values=}, {laser_motor_value=}')
-    if any(laser_color_values):
-        line_length = terminal_size - 1
-        laser_arr = list(f'{" " * line_length}\n' * 3)
-        for i in range(3):
-            for j in range(terminal_size - 1):
-                if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
-                    laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
-        laser_string = ''.join(laser_arr)
-        laser_style = f'rgb({laser_color_values[1]},{laser_color_values[0]},0)'
-    else:
-        laser_string = f'{" " * (terminal_size - 1)}\n' * 3
-        laser_style = 'default'
-
-    disco_styles = ['rgb(0,0,0)'] * 14
-    if any(disco_color_values):
-        rbg_string_formatters = ['rgb({},0,0)', 'rgb(0,{},0)', 'rgb(0,0,{})']
+    disco_styles = [[0, 0, 0] for x in range(14)]
+    if any(disco_color_rgb):
         disco_chars = [' '] * 14 
-        for offset in range(3):
-            if disco_color_values[offset]:
+        for rgb_index in range(3):
+            if disco_color_rgb[rgb_index]:
                 curr_disco_positions = [
-                    int(disco_pos) + offset,
-                    int(disco_pos) + 5 + offset,
-                    int(disco_pos) + 10 + offset,
+                    int(disco_pos) + rgb_index,
+                    int(disco_pos) + 5 + rgb_index,
+                    int(disco_pos) + 10 + rgb_index,
                 ]
                 for index in range(len(curr_disco_positions)):
                     curr_disco_positions[index] = curr_disco_positions[index] % 14
                     disco_chars[curr_disco_positions[index]] = 'o'
-                    disco_styles[curr_disco_positions[index]] = rbg_string_formatters[offset].format(disco_color_values[offset])
-                # disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
-
-        # disco_chars = ''
-        # for i in range(14):
-        #     thing = (i + (disco_stage // 10))
-        #     if thing % 4 == 0 or thing % 6 == 0:
-        #         disco_chars += 'o'
-        #     else:
-        #         disco_chars += ' '
-        # disco_style = f'rgb({disco_color_values[0]},{disco_color_values[1]},{disco_color_values[2]})'
+                    disco_styles[curr_disco_positions[index]][rgb_index] = disco_color_rgb[rgb_index]
     else:
         disco_chars = ' ' * 14
 
@@ -773,26 +760,61 @@ Beat {curr_beat:.1f}\
     disco_pos += disco_speed
     if disco_pos > 14:
         disco_pos -= 14
-    # disco_stage = (disco_stage + 1) % 10000
 
-    effect_string = f'Effects: {", ".join(all_effect_names)}'
-    remaining = terminal_size - len(effect_string)
-    console.print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
-    console.print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
+    
+    
+    # !TODO need to handle the overflow / wrapping correctly
+    # effect_string = f'Effects: {", ".join(all_effect_names)}'
+    # remaining = terminal_size - len(effect_string)
+    # print(effect_string + (' ' * max(0, remaining)), no_wrap=True, overflow='ellipsis', end='\n')
+    # print(useful_info, no_wrap=True, overflow='ellipsis', end='\n')
 
-    character = '▆'
-    console.print(' ' + character * 2, style=uv_style, end='')
-    console.print(character * 5, style=top_front_rgb_style, end='')
-    console.print(character * 5, style=top_back_rgb_style, end='')
-    console.print(character * 2 + (' ' * dead_space), style=uv_style, end='')
-    console.print('\n', style=top_back_rgb_style, end='')
-    console.print(laser_string, style=laser_style, end='')
-    console.print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
-    console.print(' ', style='default', end='')
-    for char, disco_style in zip(disco_chars, disco_styles):
-        console.print(char, style=disco_style, end='')
-    console.print(' ' * dead_space, style='default', end='')
-    console.print('', end='\033[F' * 7)
+    
+    top_light_row = [
+        ' ' + rgb_ansi(character * 2, purple_scaled),
+        rgb_ansi(character * 5, top_front_rgb),
+        rgb_ansi(character * 5, top_back_rgb),
+        rgb_ansi(character * 2, purple_scaled),
+    ]
+    bottom_light_row = [
+        ' ' + rgb_ansi(character * 14, bottom_rgb),
+    ]
+    # laser_row = [
+    #     ' ' + rgb_ansi(laser_string, laser_style),
+    # ]
+    disco_row = [
+        ' ' + ''.join([rgb_ansi(char, style) for char, style in zip(disco_chars, disco_styles)]),
+    ]
+
+    rows_to_print = [
+        top_light_row,
+        # laser_row,
+        [' ' for x in range(14)],
+        [' ' for x in range(14)],
+        [' ' for x in range(14)],
+        [' ' for x in range(14)],
+        bottom_light_row,
+        disco_row,
+    ]
+
+    # print(' ' + character * 2, style=uv_style, end='')
+    # print(character * 5, style=top_front_rgb_style, end='')
+    # print(character * 5, style=top_back_rgb_style, end='')
+    # print(character * 2 + (' ' * dead_space), style=uv_style, end='')
+    # print('\n', style=top_back_rgb_style, end='')
+    # print(laser_string, style=laser_style, end='')
+    # print(' ' + character * 14 + (' ' * dead_space), style=bottom_rgb_style, end='')
+    # print(' ', style='default', end='')
+    # for char, disco_style in zip(disco_chars, disco_styles):
+    #     print(char, style=disco_style, end='')
+    # print(' ' * dead_space, style='default', end='')
+
+
+    for row in rows_to_print:
+        print(''.join(row))
+
+
+    print('', end='\033[F' * len(rows_to_print))
 
 
 all_levels = [0] * LIGHT_COUNT

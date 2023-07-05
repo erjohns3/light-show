@@ -83,14 +83,22 @@ effects = {
             b(1, name='Blue top', length=0.5)
         ]
     },
+    "ll dom fade blue red bottom": {
+        "length": 8,
+        "beats": [
+            b(1, name='Blue bottom', length=0.7, intensity=(1, 0)),
+            b(1.1, name='Red bottom', length=0.7, intensity=(0, 1)),
+            b(1.8, name='Red bottom', length=7.2, intensity=(1, 0)),
+        ],
+    },
     "ll dom windy melody": {
         "length": 2,
         "beats": [
-            b(1, name='dom fade blue red bottom', length=5, hue_shift=.1),
+            b(1, name='ll dom fade blue red bottom', length=5, hue_shift=.1),
             b(6, name='Red bottom', length=1, hue_shift=.35, sat_shift=-.2),
             b(7, name='Red bottom', length=1, hue_shift=.60, sat_shift=-.5),
             b(8, name='Red bottom', length=1, hue_shift=.45, sat_shift=-.2),
-            b(9, name='dom fade blue red bottom', length=8, hue_shift=.45),
+            b(9, name='ll dom fade blue red bottom', length=8, hue_shift=.45),
         ],
     },
     "UV boi فوق بنفسجي - Show You (ft. MTNS)": {

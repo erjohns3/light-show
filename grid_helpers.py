@@ -5,6 +5,12 @@ import serial
 from helpers import *
 
 
+try:
+    profile
+except NameError:
+    profile = lambda x: x
+
+
 grid_serial = None
 
 
@@ -34,19 +40,19 @@ def get_grid():
     return grid
 
 
-color_divider = 1
-def colors_to_0_100():
-    global color_divider
-    color_divider = 2.55
-
 def resize_PIL_image(pil_image, rotate_90=False):
     if rotate_90:
         pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH), Image.LANCZOS)
     else:
         pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
-    pil_image = pil_image.convert('RGB')
+    
+    # we should write a cache for this to autoconvert with dialogue box if so
+    if pil_image.mode != 'RGB':
+        print_yellow(f'converting {pil_image.mode} to RGB')
+        pil_image = pil_image.convert('RGB')
+    
     # this is because we are working with 0-100 in the grid, not 0-255
-    pil_image = np.array(pil_image) / color_divider
+    pil_image = np.array(pil_image) / 2.55
     pil_image = pil_image.astype(np.uint8)
     if rotate_90:
         return pil_image
@@ -60,11 +66,18 @@ def load_image_to_grid(image_filepath, rotate_90=False):
 
 animation_cache = {}
 def try_load_into_animation_cache(filepath, rotate_90=False):
-    with Image.open(filepath) as whole_gif:
-        print(f'loading animation {filepath}')
+    with Image.open(filepath) as animation_file:
+        try:
+            # print(f'loading animation {filepath}, {animation_file.n_frames} frames, {animation_file.mode} mode, {animation_file.fps} fps')
+            print(f'loading animation {filepath}, {animation_file.info=}')
+        except:
+            print_stacktrace()
+            print(dir(animation_file))
+            print_yellow(f'problem printing animation info for {filepath}')
+
         final_arr = []
         try:
-            for frame in ImageSequence.Iterator(whole_gif):
+            for frame in ImageSequence.Iterator(animation_file):
                 if frame.mode != "RGB":
                     frame = frame.convert("RGB")
                 final_arr.append(frame)
@@ -107,20 +120,19 @@ def fill_grid_from_image_filepath(filepath, rotate_90=False):
         return
 
 
-# if is_windows():
-#     import ctypes
-#     def enable_ansi_escape_sequences():
-#         kernel32 = ctypes.windll.kernel32
-#         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
-#     enable_ansi_escape_sequences()
+called_num = 0
+@profile
 def render_grid(terminal=False, skip_if_terminal=False):
     if terminal:
+        global called_num
+        called_num += 1
+        print(f'{called_num=}')
         if skip_if_terminal:
             return
         for y in range(GRID_HEIGHT):
             row_parts = []
             for x in range(GRID_WIDTH):
-                rgb = tuple(map(int, grid[x][y]))
+                rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
                 row_parts.append(rgb_ansi('▆', rgb))
             print(''.join(row_parts))
         print('\033[F' * GRID_HEIGHT, end='')

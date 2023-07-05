@@ -1,5 +1,6 @@
 import pathlib
 import sys
+import time
 
 from rich.console import Console
 from rich.style import Style
@@ -14,7 +15,8 @@ from helpers import *
 
 
 
-# python -m cProfile -s tottime test_rich_console.py --local | tac
+# python -m cProfile -s tottime testing/test_rich_console.py
+# kernprof -lv testing/test_rich_console.py
 console = Console()
 
 wait_frame = 0
@@ -24,18 +26,45 @@ def fill_grid_from_image_filepath(grid_info):
     grid_helpers.fill_grid_from_image_filepath(image_filepath, rotate_90=grid_info.rotate_90)
     if image_filepath.suffix.lower() in ['.gif', '.webp']:
         wait_frame += 1
-        if wait_frame > 3:
+        if wait_frame > 0:
             wait_frame = 0
             grid_helpers.increment_animation_frame(image_filepath)
     grid_helpers.render_grid(terminal=console)
 
 
-while True:
-    grid_info = GridInfo()
-    grid_info.filename = 'ricardo.gif'
-    grid_info.rotate_90 = False
-    fill_grid_from_image_filepath(grid_info)
+grid_info = GridInfo()
+grid_info.filename = 'ricardo.gif'
+grid_info.rotate_90 = False
 
+from light_server import SUB_BEATS
+while True:
+    time_before = time.time()
+    fill_grid_from_image_filepath(grid_info)
+    time_after = time.time()
+    time_elapsed = time_after - time_before
+    time_to_sleep = (1 / SUB_BEATS) - time_elapsed
+    if time_to_sleep > 0:
+        time.sleep(time_to_sleep)
+
+
+# as fast as possible
+# while True:
+#     fill_grid_from_image_filepath(grid_info)
+
+
+
+
+
+
+
+
+# if windows has trouble
+# if is_windows():
+#     import ctypes
+#     def enable_ansi_escape_sequences():
+#         kernel32 = ctypes.windll.kernel32
+#         kernel32.SetConsoleMode(kernel32.GetStdHandle(-11), 7)
+#     enable_ansi_escape_sequences()
 
 # older slow way with rich
 # for y in range(GRID_HEIGHT):

@@ -317,6 +317,9 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     font_name = 'sitka-small.ttf'
     font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
+    # defaults to source=Twemoji
+    # another option is source=MicrosoftEmojiSource
+    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
     with Pilmoji(image) as pilmoji:
         # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
         # text_width, text_height = pilmoji_drawer.textsize(text, font)

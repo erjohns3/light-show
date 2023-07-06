@@ -23,16 +23,16 @@ lyrics = {
 #     'upgrade': 'upgrade\n       it',
 # }
 
-lyrics = {
-    'buy': '🛒',
-    'use': 'use',
-    'break': '🔨',
-    'fix': '🔧',
-    'trash': '🗑',
-    'change': 'change',
-    'mail': '📬',
-    'upgrade': 'upgrade',
-}
+# lyrics = {
+#     'buy': '🛒',
+#     'use': 'use',
+#     'break': '🔨',
+#     'fix': '🔧',
+#     'trash': '🗑',
+#     'change': 'change',
+#     'mail': '📬',
+#     'upgrade': 'upgrade',
+# }
 
 effects = {
     "Daft Punk - Technologic (Official Video)": {
@@ -46,14 +46,14 @@ effects = {
             b(8, grid_text='😭', font_size=11, length=4),
 
             # b(16, name='RBBB 1 bar', length=8),
-            b(16, grid_text=lyrics['buy'], font_size=13, rotate_90=True, length=4),
-            b(20, grid_text=lyrics['use'], font_size=13, rotate_90=True, length=4),
-            b(24, grid_text=lyrics['break'], font_size=13, rotate_90=True, length=4),
-            b(28, grid_text=lyrics['fix'], font_size=13, rotate_90=True, length=4),
-            b(32, grid_text=lyrics['trash'], font_size=13, rotate_90=True, length=4),
-            b(36, grid_text=lyrics['change'], font_size=13, rotate_90=True, length=4),
-            b(40, grid_text=lyrics['mail'], font_size=13, rotate_90=True, length=4),
-            b(44, grid_text=lyrics['upgrade'], font_size=13, rotate_90=True, length=4),
+            b(16, grid_text=lyrics['buy'], font_size=4, rotate_90=False, length=4),
+            b(20, grid_text=lyrics['buy'], font_size=5, rotate_90=False, length=4),
+            b(24, grid_text=lyrics['buy'], font_size=6, rotate_90=False, length=4),
+            b(28, grid_text=lyrics['buy'], font_size=7, rotate_90=False, length=4),
+            b(32, grid_text=lyrics['buy'], font_size=8, rotate_90=False, length=4),
+            b(36, grid_text=lyrics['buy'], font_size=9, rotate_90=False, length=4),
+            b(40, grid_text=lyrics['buy'], font_size=10, rotate_90=False, length=4),
+            b(44, grid_text=lyrics['buy'], font_size=11, rotate_90=False, length=4),
 
             b(48, grid_text='😭', rotate_90=True, font_size=5, length=4),
             b(52, grid_text='😭', rotate_90=True, font_size=6, length=4),

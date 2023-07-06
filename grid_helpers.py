@@ -290,16 +290,10 @@ def get_cached_converted_filepath(filename, rotate_90=False):
 
 
 def get_font_path(font_filename):
-    if is_andrews_main_computer():
-        if this_file_directory.joinpath('fonts').exists:
-            base_font_folder = this_file_directory.joinpath('fonts')
-        else:
-            base_font_folder = get_ray_directory().joinpath('random', 'fonts')
-    elif is_linux() and not is_andrews_main_computer():
-        base_font_folder = this_file_directory.joinpath('fonts')
-    else:
-        base_font_folder = get_ray_directory().joinpath('random', 'fonts')
-    return base_font_folder.joinpath(font_filename)
+    local_font_directory = this_file_directory.joinpath('fonts')
+    if local_font_directory.exists() and local_font_directory.joinpath(font_filename).exists():
+        return local_font_directory.joinpath(font_filename)
+    get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
 
 
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
@@ -319,8 +313,8 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     # font_name = 'Noto-Medium.ttf'
     # font_name = 'arial.ttf'
     # font_name = 'ariblk.ttf'
-    # font_name = 'sitka-small.ttf'
-    font_name = 'verdana.ttf'
+    font_name = 'sitka-small.ttf'
+    # font_name = 'verdana.ttf'
     font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
     # defaults to source=Twemoji

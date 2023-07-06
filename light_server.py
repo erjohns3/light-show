@@ -718,9 +718,6 @@ Beat {curr_beat:.1f}\
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
-
-    # print(f'{top_front_rgb=}, {top_back_rgb=}, {bottom_rgb=}, {uv_value=}, {laser_color_rgb=}, {laser_motor_value=}')
-    # print(f'{laser_color_rgb=}, {laser_motor_value=}')
     
     if any(laser_color_rgb):
         line_length = terminal_size - 1
@@ -767,32 +764,34 @@ Beat {curr_beat:.1f}\
         rgb_ansi(character * 5, top_front_rgb),
         rgb_ansi(character * 5, top_back_rgb),
         rgb_ansi(character * 2, purple_scaled),
+        terminal_buffer,
     ]
     bottom_light_row = [
         ' ' + rgb_ansi(character * 14, bottom_rgb),
+        terminal_buffer,
     ]
     laser_row = [
         ' ' + rgb_ansi(laser_string, laser_style),
+        terminal_buffer,
     ]
     disco_row = [
         ' ' + ''.join([rgb_ansi(char, style) for char, style in zip(disco_chars, disco_styles)]),
+        terminal_buffer,
     ]
 
     rows_to_print = [
-        top_light_row,
-        laser_row,
-        # [' ' for x in range(14)],
-        # [' ' for x in range(14)],
-        # [' ' for x in range(14)],
-        bottom_light_row,
-        disco_row,
+        ''.join(top_light_row)[:terminal_size],
+        ''.join(laser_row)[:terminal_size*3],
+        ''.join(bottom_light_row)[:terminal_size],
+        ''.join(disco_row)[:terminal_size],
     ]
 
-    for row in rows_to_print:
-        print(''.join(row))
-
-    # print('', end='\033[F' * len(rows_to_print))
-    print('', end='\033[F' * 9)
+    for index, row in enumerate(rows_to_print):
+        ender = '\n'
+        if index == len(rows_to_print) - 1:
+            ender = ''
+        print(row, end=ender)
+    sys.stdout.write('\033[F' * 7)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -904,7 +903,7 @@ async def light():
                 print_yellow(f'TRIED TO CALL {grid_info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render_grid(terminal=args.local and console, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
+        grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
 
         if download_thread is not None:
             if not download_thread.is_alive():
@@ -1649,10 +1648,7 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM, signal_handler)
 
     args.volume = args.volume / 100
-    if args.local:
-        from rich.console import Console
-        console = Console()
-    else:
+    if not args.local:
         setup_gpio()
     
     if args.autogen is not None:

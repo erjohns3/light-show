@@ -8,7 +8,6 @@ import random
 import collections
 
 import keyboard
-from rich.console import Console
 
 import grid_helpers
 from helpers import *
@@ -43,7 +42,7 @@ def render(game_state):
                 grid[g_x][g_y] = item_colors['food']
             else:
                 grid[g_x][g_y] = item_colors['empty']
-    grid_helpers.render_grid(terminal=args.local and console)
+    grid_helpers.render_grid(terminal=args.local)
 
 
 def init_controller():
@@ -213,9 +212,7 @@ if __name__ == "__main__":
     argparse.add_argument('--local', action='store_true')
     args = argparse.parse_args()
 
-    if args.local:
-        console = Console()
-    else:
+    if not args.local:
         disable_color()
 
     controller = init_controller()

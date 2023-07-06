@@ -7,7 +7,6 @@ import time
 import random
 
 import keyboard
-from rich.console import Console
 
 from helpers import *
 import grid_helpers
@@ -102,7 +101,7 @@ def fill_grid(game_state):
                 grid[g_x][g_y] = block_colors['dead_square']
             else:
                 grid[g_x][g_y] = block_colors['empty']
-    grid_helpers.render_grid(terminal=args.local and console)
+    grid_helpers.render_grid(terminal=args.local)
 
 
 def try_get_gamepad_controller():
@@ -333,7 +332,6 @@ if __name__ == "__main__":
 
     serial_communicator = None
     if args.local:
-        console = Console()
         # !TODO find alternative that works for linux
         keyboard.on_press(on_key_event)
         keyboard.on_release(on_key_event)

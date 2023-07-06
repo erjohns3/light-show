@@ -64,6 +64,8 @@ effects = {
             b(72, grid_text='😭', rotate_90=True, font_size=11, length=4),
             b(76, grid_text='😭', rotate_90=True, font_size=12, length=4),
             b(80, grid_text='😭', rotate_90=True, font_size=13, length=4),
+            b(84, grid_text='😭', rotate_90=True, font_size=14, length=4),
+            b(88, grid_text='😭', rotate_90=True, font_size=15, length=4),
 
         ]
     }

@@ -895,7 +895,7 @@ async def light():
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
         
-        if skip_top_front_grid_fill:
+        if not skip_top_front_grid_fill:
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         

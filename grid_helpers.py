@@ -150,12 +150,18 @@ def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
     
     # this is because we are working with 0-100 in the grid, not 0-255
-    pil_image = np.array(pil_image) / 2.55
-    pil_image = pil_image.astype(np.uint8)
+    np_arr = np.array(pil_image) / 2.55
+
+    # https://www.desmos.com/calculator
+    # iterate through numpy array and run ln(x) * 22
+    np_arr = np.power(np_arr, 2.2) * .004
+    # np_arr = np.log(np_arr) * 22
+
+    np_arr = np_arr.astype(np.uint8)
 
     if rotate_90:
-        return pil_image
-    return np.transpose(pil_image, (1, 0, 2))
+        return np_arr
+    return np.transpose(np_arr, (1, 0, 2))
 
 
 resize_cache_dir = get_temp_dir().joinpath('image_resize_cache')

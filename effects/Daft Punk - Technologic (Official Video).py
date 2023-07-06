@@ -46,14 +46,25 @@ effects = {
             b(8, grid_text='😭', font_size=11, length=4),
 
             # b(16, name='RBBB 1 bar', length=8),
-            b(16, grid_text=lyrics['buy'], font_size=13, length=.8),
-            b(17, grid_text=lyrics['use'], font_size=13, length=.8),
-            b(18, grid_text=lyrics['break'], font_size=13, length=.8),
-            b(19, grid_text=lyrics['fix'], font_size=13, length=.8),
-            b(20, grid_text=lyrics['trash'], font_size=13, length=.8),
-            b(21, grid_text=lyrics['change'], font_size=13, length=.8),
-            b(22, grid_text=lyrics['mail'], font_size=13, length=.8),
-            b(23, grid_text=lyrics['upgrade'], font_size=13, length=.8),
+            b(16, grid_text=lyrics['buy'], font_size=13, rotate_90=True, length=4),
+            b(20, grid_text=lyrics['use'], font_size=13, rotate_90=True, length=4),
+            b(24, grid_text=lyrics['break'], font_size=13, rotate_90=True, length=4),
+            b(28, grid_text=lyrics['fix'], font_size=13, rotate_90=True, length=4),
+            b(32, grid_text=lyrics['trash'], font_size=13, rotate_90=True, length=4),
+            b(36, grid_text=lyrics['change'], font_size=13, rotate_90=True, length=4),
+            b(40, grid_text=lyrics['mail'], font_size=13, rotate_90=True, length=4),
+            b(44, grid_text=lyrics['upgrade'], font_size=13, rotate_90=True, length=4),
+
+            b(48, grid_text='😭', font_size=5, length=4),
+            b(52, grid_text='😭', font_size=6, length=4),
+            b(56, grid_text='😭', font_size=7, length=4),
+            b(60, grid_text='😭', font_size=8, length=4),
+            b(64, grid_text='😭', font_size=9, length=4),
+            b(68, grid_text='😭', font_size=10, length=4),
+            b(72, grid_text='😭', font_size=11, length=4),
+            b(76, grid_text='😭', font_size=12, length=4),
+            b(80, grid_text='😭', font_size=13, length=4),
+
         ]
     }
 }

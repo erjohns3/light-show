@@ -300,7 +300,7 @@ def get_font_path(font_filename):
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     hash_filename = hash(text)
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-    if output_filepath.exists():
+    if False and output_filepath.exists():
         return output_filepath
 
     if not rotate_90:
@@ -315,17 +315,17 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     # font_name = 'arial.ttf'
     # font_name = 'ariblk.ttf'
     font_name = 'sitka-small.ttf'
-    font = ImageFont.truetype(str(font_name()), font_size)
+    font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
     with Pilmoji(image) as pilmoji:
         # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
         # text_width, text_height = pilmoji_drawer.textsize(text, font)
-        draw = ImageDraw.Draw(image)
-        text_width, text_height = draw.textsize(text, font)
+        # draw = ImageDraw.Draw(image)
+        # text_width, text_height = draw.textsize(text, font)
 
-        x = (width - text_width) // 2
-        y = (height - text_height) // 2
-        pilmoji.text((x, y), text, (255, 255, 255), font)
+        # x = (width - text_width) // 2
+        # y = (height - text_height) // 2
+        pilmoji.text((0, 0), text, (255, 255, 255), font)
 
 
     if not rotate_90:

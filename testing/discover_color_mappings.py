@@ -59,15 +59,17 @@ def load_output_mappings(filepath):
         initial_mapping_read = {}
     
     output_mappings = {}
-    for letter, sub_map in initial_mapping_read.items():
+    for letter, sub_map_arr in initial_mapping_read.items():
         rgb_index = letter_to_rgb_index[letter]
-        real = sub_map['real_color']
-        term = sub_map['term_color']
-        make_real = [0, 0, 0] 
-        make_term = [0, 0, 0]
-        make_real[rgb_index] = real
-        make_term[rgb_index] = term
-        output_mappings[tuple(make_real)] = tuple(make_term)
+        
+        for sub_map in sub_map_arr:
+            real = sub_map['real_color']
+            term = sub_map['term_color']
+            make_real = [0, 0, 0] 
+            make_term = [0, 0, 0]
+            make_real[rgb_index] = real
+            make_term[rgb_index] = term
+            output_mappings[tuple(make_real)] = tuple(make_term)
     return output_mappings
 
 
@@ -78,10 +80,12 @@ def write_output_mappings(filepath):
         for rgb_index, value in enumerate(real_color):
             if value:
                 break
-        to_dump[rgb_index_to_letter[rgb_index]] = {
+        if rgb_index_to_letter[rgb_index] not in to_dump:
+            to_dump[rgb_index_to_letter[rgb_index]] = []
+        to_dump[rgb_index_to_letter[rgb_index]].append({
             'real_color': real_color[rgb_index],
             'term_color': term_color[rgb_index],
-        }
+        })
 
     with open(filepath, 'w') as file:
         final_str = json.dumps(to_dump, indent=4)

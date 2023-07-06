@@ -30,6 +30,9 @@ effects = {
         "delay_lights": 0.25275000000000003,
         "skip_song": 0,
         "beats": [
+            b(1, grid_filename='ricardo.gif', rotate_90=False, length=7),
+            b(8, grid_text='😭', rotate_90=True, length=4),
+
             # b(16, name='RBBB 1 bar', length=8),
             b(16, grid_text=lyrics['buy'], font_size=8, length=.8),
             b(17, grid_text=lyrics['use'], font_size=8, length=.8),

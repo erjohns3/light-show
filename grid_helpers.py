@@ -293,7 +293,7 @@ def get_font_path(font_filename):
     local_font_directory = this_file_directory.joinpath('fonts')
     if local_font_directory.exists() and local_font_directory.joinpath(font_filename).exists():
         return local_font_directory.joinpath(font_filename)
-    get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
+    return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
 
 
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):

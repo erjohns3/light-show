@@ -298,7 +298,7 @@ def get_font_path(font_filename):
 
 
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
-    hash_filename = hash(text)
+    hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
     if False and output_filepath.exists():
         return output_filepath

@@ -55,15 +55,15 @@ effects = {
             b(40, grid_text=lyrics['mail'], font_size=13, rotate_90=True, length=4),
             b(44, grid_text=lyrics['upgrade'], font_size=13, rotate_90=True, length=4),
 
-            b(48, grid_text='😭', font_size=5, length=4),
-            b(52, grid_text='😭', font_size=6, length=4),
-            b(56, grid_text='😭', font_size=7, length=4),
-            b(60, grid_text='😭', font_size=8, length=4),
-            b(64, grid_text='😭', font_size=9, length=4),
-            b(68, grid_text='😭', font_size=10, length=4),
-            b(72, grid_text='😭', font_size=11, length=4),
-            b(76, grid_text='😭', font_size=12, length=4),
-            b(80, grid_text='😭', font_size=13, length=4),
+            b(48, grid_text='😭', rotate_90=True, font_size=5, length=4),
+            b(52, grid_text='😭', rotate_90=True, font_size=6, length=4),
+            b(56, grid_text='😭', rotate_90=True, font_size=7, length=4),
+            b(60, grid_text='😭', rotate_90=True, font_size=8, length=4),
+            b(64, grid_text='😭', rotate_90=True, font_size=9, length=4),
+            b(68, grid_text='😭', rotate_90=True, font_size=10, length=4),
+            b(72, grid_text='😭', rotate_90=True, font_size=11, length=4),
+            b(76, grid_text='😭', rotate_90=True, font_size=12, length=4),
+            b(80, grid_text='😭', rotate_90=True, font_size=13, length=4),
 
         ]
     }

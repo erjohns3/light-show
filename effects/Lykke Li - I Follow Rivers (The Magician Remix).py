@@ -96,7 +96,7 @@ effects = {
         "skip_song": 0.0,
         "beats": [
             # b(1, grid_filename='dog.jpg', grid_rotate_90=False, length=16),
-            # b(1, grid_filename='ricardo.gif', grid_rotate_90=False, length=24),
+            b(1, grid_filename='ricardo.gif', grid_rotate_90=False, length=24),
             # b(1, grid_filename='nyan.webp', grid_rotate_90=True, length=8),
             # b(1, grid_function=lambda grid_info: print('hello'), length=16),
 

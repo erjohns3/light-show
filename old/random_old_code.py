@@ -157,6 +157,12 @@
     #                 disco_styles[curr_disco_positions[index]][rgb_index] = disco_color_rgb[rgb_index]
 
 
+            # duration_ms = frame.info.get("duration", None)
+            # if duration_ms is None:
+            #     print_red(f'frame {frame} for {filepath} has no duration, weird... {frame.info=}')
+            #     exit()
+
+
         # if args.autogen == 'all':
         #     import tqdm
         #     from functools import partial

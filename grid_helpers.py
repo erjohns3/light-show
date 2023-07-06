@@ -102,16 +102,41 @@ def get_grid_serial():
 
 
 # ====== image stuff ======
-def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
+
+@profile
+def resize_PIL_image(pil_image, rotate_90=False):
+    desired_width = GRID_WIDTH
+    desired_height = GRID_HEIGHT
     if rotate_90:
-        pil_image = pil_image.resize((GRID_HEIGHT, GRID_WIDTH), Image.LANCZOS)
-    else:
-        pil_image = pil_image.resize((GRID_WIDTH, GRID_HEIGHT), Image.LANCZOS)
+        desired_width = GRID_HEIGHT
+        desired_height = GRID_WIDTH
     
-    # we should write a cache for this to autoconvert with dialogue box if so
+    # rely on cache here
+    if pil_image.size[0] != desired_width or pil_image.size[1] != desired_height:
+        print_yellow(f'resizeing image, this should only happen once, if you see it multiple runs theres something wrong')
+        pil_image = pil_image.resize((desired_width, desired_height), Image.LANCZOS)
+    
+    return pil_image
+
+
+@profile
+def recolor_PIL_image(pil_image):
     if pil_image.mode != 'RGB':
-        print_yellow(f'converting {pil_image.mode} to RGB')
+        print_yellow(f'recoloring image, this should only happen once, if you see it multiple runs theres something wrong')
         pil_image = pil_image.convert('RGB')
+    return pil_image
+
+
+@profile
+def resize_and_color_PIL_image(pil_image, rotate_90=False):
+    pil_image = resize_PIL_image(pil_image, rotate_90=rotate_90)
+    pil_image = recolor_PIL_image(pil_image)
+    return pil_image
+
+
+@profile
+def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
+    pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
     
     # this is because we are working with 0-100 in the grid, not 0-255
     pil_image = np.array(pil_image) / 2.55
@@ -122,6 +147,9 @@ def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     return np.transpose(pil_image, (1, 0, 2))
 
 
+resize_cache_dir = get_temp_dir().joinpath('image_resize_cache')
+make_if_not_exist(resize_cache_dir)
+
 static_image_cache = {}
 def load_image_to_grid(image_filepath, rotate_90=False):
     if image_filepath not in static_image_cache:
@@ -131,40 +159,30 @@ def load_image_to_grid(image_filepath, rotate_90=False):
 
 
 animation_cache = {}
+@profile
 def try_load_into_animation_cache(filepath, rotate_90=False):
     with Image.open(filepath) as animation_file:
+        print(f'loading animation {filepath.name}, {animation_file.info=}')
         if not animation_file.is_animated:
-            print_red(f'file {filepath} is not animated, and yet was called load_into_animation, not loading')
-            return
-        print(f'loading animation {filepath}, {animation_file.info=}')
+            raise Exception(f'file {filepath} is not animated, and yet was called load_into_animation, not loading')
+
+        total_duration = 0
         all_frames = []
         for frame in ImageSequence.Iterator(animation_file):
-            # also do the RGB cache here...
-            if frame.mode != "RGB":
-                frame = frame.convert("RGB")
-            all_frames.append(frame)
+            frame.load() # for webps you need to call load for it to calculate the duration
 
-        # for some reason pillow doesn't calculate the duration for webp's until AFTER you unroll the frames
-        total_duration = 0
-        for index in range(len(all_frames)):
-            frame = all_frames[index]
-            duration_ms = frame.info.get("duration", None)
-            if duration_ms is None:
-                print_red(f'frame {frame} for {filepath} has no duration, weird... look at this')
-                exit()
-            duration = duration_ms / 1000
+            duration = frame.info["duration"] / 1000
             total_duration += duration
 
-            all_frames[index] = [PIL_image_to_numpy_arr(frame, rotate_90=rotate_90), duration]
-
+            all_frames.append([PIL_image_to_numpy_arr(frame, rotate_90=rotate_90), duration])
         animation_cache[filepath] = [0, all_frames, total_duration]
-        return True
+        print(f'loaded animation {filepath.name}, {total_duration=}, {len(all_frames)=}, shape {all_frames[0][0].shape}')
+        # exit()
 
 
 def load_animation_to_grid(filepath, rotate_90=False):
     if filepath not in animation_cache:
-        if not try_load_into_animation_cache(filepath, rotate_90=rotate_90):
-            return
+        try_load_into_animation_cache(filepath, rotate_90=rotate_90)
     index = animation_cache[filepath][0]
     frames = animation_cache[filepath][1]
     grid[:] = frames[index][0]
@@ -177,6 +195,31 @@ def increment_animation_frame(filepath):
     index = animation_cache[filepath][0]
     frames = animation_cache[filepath][1]
     animation_cache[filepath][0] = (index + 1) % len(frames)
+
+
+def get_png_path(filepath):
+    filepath = filepath.with_suffix('.png')
+    if not filepath.exists():
+        with Image.open(filepath) as pil_image:
+            pil_image.save(filepath, format='png')
+        print(f'new png file created {filepath}')
+    return filepath
+
+
+def save_resize_and_color_image(source_path, destination_path, rotate_90=False):
+    with Image.open(source_path) as pil_image:
+        if getattr(pil_image, 'is_animated', None):
+            converted_frames = []
+            for frame in ImageSequence.Iterator(pil_image):
+                frame.load()
+                converted_frames.append(resize_and_color_PIL_image(frame, rotate_90=rotate_90))
+                # !TODO i have a hunch that the webp (nyan.webp) at least is getting lost compresesion if i recolor it because RGB might by lossy, only RGBA is lossless
+                # converted_frames.append(resize_PIL_image(frame, rotate_90=rotate_90))
+            return converted_frames[0].save(destination_path, save_all=True, append_images=converted_frames[1:], quality=100)
+
+    with Image.open(source_path) as static_pil_image:
+        resize_and_color_PIL_image(static_pil_image, rotate_90=rotate_90).save(destination_path, format=destination_path.suffix[1:].lower(), quality=100)
+
 
 # !TODO this is linear, could make log(n) if someone writes a BST 
 def seek_to_animation_time(filepath, time_to_seek):
@@ -191,6 +234,7 @@ def seek_to_animation_time(filepath, time_to_seek):
         time_so_far += duration
         if time_so_far > time_to_seek:
             animation_cache[filepath][0] = index
+            # print(f'seeking to {time_to_seek} in {filepath}, {index=}, {time_so_far=}, {duration=}')
             return
 
 
@@ -200,11 +244,27 @@ def is_animated(filepath):
     return True
 
 
-def fill_grid_from_image_filepath(filepath, rotate_90=False):    
+def fill_grid_from_image_filepath(filepath, rotate_90=False):
     if filepath.suffix.lower() in ['.webp', '.gif']:
         load_animation_to_grid(filepath, rotate_90=rotate_90)
     elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
         load_image_to_grid(filepath, rotate_90=rotate_90)
     else:
-        print_red(f'file extension {filepath.suffix.lower()} not supported')
-        return
+        print_red(f'file suffix {filepath.suffix} not supported')
+
+
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+run_once = set()
+def get_cached_converted_filepath(filename, rotate_90=False):
+    filepath = this_file_directory.joinpath('images', filename)
+    cache_filepath = resize_cache_dir.joinpath(f'{rotate_90}_' + filepath.name)
+
+    # jpgs have horrible artifacts, so we convert them to pngs, note we will have to do this for mpegs too, and maybe webps
+    if cache_filepath.suffix.lower() in ['.jpg', '.jpeg']:
+        cache_filepath = cache_filepath.with_suffix('.png')
+
+    if (False and filepath not in run_once) or not cache_filepath.exists():
+        save_resize_and_color_image(source_path=filepath, destination_path=cache_filepath, rotate_90=rotate_90)
+        print(f'cached {filepath} to {cache_filepath}')
+        run_once.add(filepath)
+    return cache_filepath

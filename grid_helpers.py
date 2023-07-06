@@ -1,5 +1,6 @@
 import PIL
-from PIL import Image, ImageSequence
+from PIL import Image, ImageSequence, ImageFont, ImageDraw
+from pilmoji import Pilmoji
 import numpy as np
 import serial
 
@@ -288,22 +289,13 @@ def get_cached_converted_filepath(filename, rotate_90=False):
     return cache_filepath
 
 
-from PIL import Image, ImageDraw, ImageFont
-def random_pilmoji_havent_worked():
-    from pilmoji import Pilmoji
+def get_font_path(font_filename):
+    if is_linux() and not is_andrews_main_computer():
+        base_font_folder = this_file_directory.joinpath('fonts')
+    else:
+        base_font_folder = get_ray_directory().joinpath('fonts')
+    return base_font_folder.joinpath(font_filename)
 
-    im = Image.new('RGB', (1024, 768))
-
-    drawer = Pilmoji(im)
-
-    FONT_PATH = './NotoSansSC-Regular.otf'
-    font_size = 30
-    font = ImageFont.truetype(FONT_PATH, size=font_size)
-
-    text = "Hello, world! 👋 Here are some emojis: 🎨 🌊 😎"
-    drawer((10, 10), text, font=font)
-
-    im.show()
 
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     hash_filename = hash(text)
@@ -311,7 +303,6 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     if output_filepath.exists():
         return output_filepath
 
-    from pilmoji import Pilmoji
     if not rotate_90:
         width, height = 32, 20
     else:
@@ -324,11 +315,10 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     # font_name = 'arial.ttf'
     # font_name = 'ariblk.ttf'
     font_name = 'sitka-small.ttf'
-    filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
-    font = ImageFont.truetype(str(filepath_font), font_size)
+    font = ImageFont.truetype(str(font_name()), font_size)
 
     with Pilmoji(image) as pilmoji:
-        # !TODO get a better method for this
+        # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
         # text_width, text_height = pilmoji_drawer.textsize(text, font)
         draw = ImageDraw.Draw(image)
         text_width, text_height = draw.textsize(text, font)

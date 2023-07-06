@@ -98,23 +98,56 @@ def lock_into_output_mapping():
     output_mappings[real_color] = term_color
     print(f'mapped {real_color} to {term_color} ({rgb_ansi(character, term_color)})')
 
+    for rgb_index, value in enumerate(real_color):
+        if value:
+            break
+    {
+        0: make_red,
+        1: make_green,
+        2: make_blue,
+    }[rgb_index]()
 
-def make_terminal_darker():
+
+def make_grid_darker(n = 1):
+    global real_color, term_color
+    real_color = list(real_color)
+    for index, value in enumerate(real_color):
+        if value:
+            real_color[index] = max(1, value - n)
+    real_color = tuple(real_color)
+    reprint_terminal()
+    term_color = find_right_below(real_color)
+    reprint_real_grid()
+
+
+def make_grid_lighter(n = 1):
+    global real_color, term_color
+    real_color = list(real_color)
+    for index, value in enumerate(real_color):
+        if value:
+            real_color[index] = min(100, value + n)
+    real_color = tuple(real_color)
+    term_color = find_right_below(real_color)
+    reprint_terminal()
+    reprint_real_grid()
+
+
+def make_terminal_darker(n = 1):
     global term_color
     term_color = list(term_color)
     for index, value in enumerate(term_color):
         if value:
-            term_color[index] = max(0, value - 1)
+            term_color[index] = max(1, value - n)
     term_color = tuple(term_color)
     reprint_terminal()
 
 
-def make_terminal_lighter():
+def make_terminal_lighter(n = 1):
     global term_color
     term_color = list(term_color)
     for index, value in enumerate(term_color):
         if value:
-            term_color[index] = max(0, value + 1)
+            term_color[index] = min(100, value + n)
     term_color = tuple(term_color)
     reprint_terminal()
 
@@ -128,24 +161,34 @@ def find_first_missing(rgb):
         if tuple(new) not in output_mappings:
             return tuple(new)
 
+def find_right_below(rgb):
+    for rgb_index, value in enumerate(rgb):
+        if value:
+            break
+    for i in range(1, 100):
+        new = list(rgb)
+        new[rgb_index] = i
+        if tuple(new) in output_mappings:
+            return output_mappings[tuple(new)]
+
 def make_red():
     global real_color, term_color
     real_color = find_first_missing((1, 0, 0))
-    term_color = real_color
+    term_color = find_right_below(real_color)
     print(f'make_red called, starting with {real_color=}, {term_color=}')
     reprint_terminal_and_real_grid()
 
 def make_green():
     global real_color, term_color
     real_color = find_first_missing((0, 1, 0))
-    term_color = real_color
+    term_color = find_right_below(real_color)
     print(f'make_green called, starting with {real_color=}, {term_color=}')
     reprint_terminal_and_real_grid()
 
 def make_blue():
     global real_color, term_color
     real_color = find_first_missing((0, 0, 1))
-    term_color = real_color
+    term_color = find_right_below(real_color)
     print(f'make_blue called, starting with {real_color=}, {term_color=}')
     reprint_terminal_and_real_grid()
 
@@ -165,18 +208,7 @@ def blast_toggle():
     reprint_real_grid()
 
 output_mapping_filepath = 'output_mappings_anderew.json'
-keyboard_dict = {
-    'p': lambda: write_output_mappings(output_mapping_filepath),
-    'space': lock_into_output_mapping,
-    'a': make_terminal_darker,
-    'd': make_terminal_lighter,
-    'm': blast_toggle,
-    'left': lambda: [make_terminal_darker() for _ in range(8)],
-    'right': lambda: [make_terminal_lighter() for _ in range(8)],
-    'r': make_red,
-    'g': make_green,
-    'b': make_blue,
-}
+
 
 output_mappings = load_output_mappings(output_mapping_filepath)
 
@@ -199,14 +231,31 @@ def reprint_real_grid():
     for _ in range(20):
         grid_helpers.render_grid()    
         time.sleep(.03)
+    print(f'Real color is {real_color}')
 
 
 def reprint_terminal_and_real_grid():
     reprint_terminal()    
     reprint_real_grid()
 
-# reprint_terminal_and_real_grid()
 
+keyboard_dict = {
+    'p': lambda: write_output_mappings(output_mapping_filepath),
+    'space': lock_into_output_mapping,
+    'left': make_terminal_darker,
+    'right': make_terminal_lighter,
+    'q': lambda: make_grid_darker(8),
+    'e': lambda: make_grid_lighter(8),
+    'a': make_grid_darker,
+    'd': make_grid_lighter,
+    'm': blast_toggle,
+    'w': reprint_real_grid,
+    'down': lambda: make_terminal_darker(8),
+    'up': lambda: make_terminal_lighter(8),
+    'r': make_red,
+    'g': make_green,
+    'b': make_blue,
+}
 listen_keyboard(
     on_press=on_press,
     on_release=on_release,

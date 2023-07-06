@@ -1847,6 +1847,7 @@ if __name__ == '__main__':
                 if type(keyboard_dict[key_name]) == str:
                     remove_effect_name(keyboard_dict[key_name])
 
+
         def listen_for_keystrokes():
             with Listener(on_press=on_press, on_release=on_release) as listener:
                 listener.join()

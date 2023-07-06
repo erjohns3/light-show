@@ -5,6 +5,8 @@ import pygame
 import argparse
 import time
 import random
+import signal
+import sys
 
 import keyboard
 
@@ -19,6 +21,14 @@ TETRIS_X_OFFSET = 3
 TETRIS_Y_OFFSET = 1
 TETRIS_WIDTH = 10
 TETRIS_HEIGHT = 20
+
+
+def signal_handler(sig, frame):
+    print('SIG Handler: ' + str(sig), flush=True)
+    grid_helpers.grid_reset_and_write()
+    sys.exit()
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 
 

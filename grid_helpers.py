@@ -42,7 +42,7 @@ def get_grid():
 
 
 @profile
-def render_grid(terminal=False, skip_if_terminal=False):
+def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True):
     if terminal:
         if skip_if_terminal:
             return
@@ -52,9 +52,10 @@ def render_grid(terminal=False, skip_if_terminal=False):
                 rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
                 row_parts.append(rgb_ansi('▆', rgb))
             print(''.join(row_parts))
-        print('\033[F' * GRID_HEIGHT, end='')
+        if reset_terminal:
+            print('\033[F' * GRID_HEIGHT, end='')
     else:
-        grid_out =  get_grid_serial().out_waiting
+        grid_out = get_grid_serial().out_waiting
         grid_in = get_grid_serial().in_waiting
 
         if grid_out == 0 and grid_in > 0:
@@ -77,12 +78,22 @@ def grid_in_bounds(pos):
 def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
 
+def grid_fill(to_fill):
+    if type(to_fill) in [float, int]:
+        return grid.fill(0)
+    for x, y in grid_coords():
+        for rgb_index, value in enumerate(to_fill):
+            grid[x][y][rgb_index] = value
+
+def grid_fill_and_write(to_fill):
+    grid_fill(to_fill)
+    render_grid()
+
 def grid_reset():
     grid.fill(0)
 
-
 def grid_reset_and_write():
-    grid.fill(0)
+    grid_reset()
     render_grid()
 
 def get_grid_serial():

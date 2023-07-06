@@ -657,7 +657,6 @@ purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
-@profile
 async def render_to_terminal(all_levels):
     global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, printed_http_info
 
@@ -710,7 +709,8 @@ Beat {curr_beat:.1f}\
     to_fill = terminal_size - len(effect_string)
 
     # the first character is to stop any rouge ansi codes 
-    print('\033[0m' + effect_string + (' ' * to_fill))
+    effect_print = ''.join([effect_string, (' ' * to_fill)])
+    print(effect_print)
 
     to_fill = terminal_size - len(useful_info)
     print(useful_info + (' ' * to_fill))
@@ -733,7 +733,7 @@ Beat {curr_beat:.1f}\
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(15):
-                if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
+                if j > 1 and (j + i + (laser_stage // 9)) % 4 == 0:
                     laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
         laser_style = [laser_color_rgb[1], laser_color_rgb[0], 0]

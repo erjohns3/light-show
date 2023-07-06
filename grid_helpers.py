@@ -328,7 +328,7 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
 
         # x = (width - text_width) // 2
         # y = (height - text_height) // 2
-        pilmoji.text((0, 0), text, (255, 255, 255), font)
+        pilmoji.text((0, 4), text, (255, 255, 255), font)
 
 
     if not rotate_90:

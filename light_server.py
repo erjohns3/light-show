@@ -1048,6 +1048,7 @@ def play_song(effect_name, print_out=True):
     if print_out:
         print(f'{bcolors.OKBLUE}Starting music "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume{bcolors.ENDC}')
 
+
     pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path(song_path))
 

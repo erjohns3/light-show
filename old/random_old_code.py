@@ -142,7 +142,19 @@
                 # executor.map(partial(gen_show_worker, mode=args.autogen_mode), all_song_paths)
 
 
-
+    # if any(disco_color_rgb):
+    #     disco_chars = [' '] * 14 
+    #     for rgb_index in range(3):
+    #         if disco_color_rgb[rgb_index]:
+    #             curr_disco_positions = [
+    #                 int(disco_pos) + rgb_index,
+    #                 int(disco_pos) + 5 + rgb_index,
+    #                 int(disco_pos) + 10 + rgb_index,
+    #             ]
+    #             for index in range(len(curr_disco_positions)):
+    #                 curr_disco_positions[index] = curr_disco_positions[index] % 14
+    #                 disco_chars[curr_disco_positions[index]] = 'o'
+    #                 disco_styles[curr_disco_positions[index]][rgb_index] = disco_color_rgb[rgb_index]
 
 
         # if args.autogen == 'all':

@@ -126,8 +126,8 @@ ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 pngquant --quality=65-80 image.png
 
 ## benchmark
-* python -m cProfile -s tottime light_server.py --local | tac
-* kernprof -lv light_server.py
+* python -m cProfile -s tottime light_server.py --local --show "dom dolla" --volume 0 > testing/temp.txt
+* kernprof -lv light_server.py --local --show "dom dolla" --volume 0 --skip 100
   * line by line
 
 

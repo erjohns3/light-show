@@ -29,6 +29,10 @@ from effects.compiler import GridInfo
     # sudo modprobe snd_bcm2835
     # sudo apt-get install avahi-utils
     # sudo reboot
+try:
+    profile
+except NameError:
+    profile = lambda x: x
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 import websockets
@@ -653,9 +657,9 @@ purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
-# disco_style = 'rgb(0,0,0)'
+@profile
 async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, disco_style, printed_http_info
+    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, printed_http_info
 
     while not printed_http_info:
         time.sleep(.01)
@@ -667,7 +671,8 @@ async def render_to_terminal(all_levels):
         terminal_size = os.get_terminal_size().columns
     except:
         terminal_size = 45
-    terminal_buffer = ' ' * terminal_size
+    # terminal_buffer = ' ' * terminal_size
+    line_length = terminal_size - 1
 
     show_specific = ''
     all_effect_names = []
@@ -699,11 +704,16 @@ async def render_to_terminal(all_levels):
 BPM {curr_bpm:.1f}, \
 Beat {curr_beat:.1f}\
 """
-    useful_info += f'{show_specific}' + terminal_buffer
+    useful_info += f'{show_specific}'
 
-    effect_string = f'Effects: {", ".join(all_effect_names)}' + terminal_buffer
-    print(effect_string[:terminal_size])
-    print(useful_info[:terminal_size])
+    effect_string = f'Effects: {", ".join(all_effect_names)}'
+    to_fill = terminal_size - len(effect_string)
+
+    # the first character is to stop any rouge ansi codes 
+    print('\033[0m' + effect_string + (' ' * to_fill))
+
+    to_fill = terminal_size - len(useful_info)
+    print(useful_info + (' ' * to_fill))
 
     levels_255 = list(map(lambda x: int(x * 255), all_levels))
 
@@ -720,10 +730,9 @@ Beat {curr_beat:.1f}\
  
     
     if any(laser_color_rgb):
-        line_length = terminal_size - 1
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
-            for j in range(terminal_size - 1):
+            for j in range(15):
                 if j > 1 and j < 15 and (j + i + (laser_stage // 9)) % 4 == 0:
                     laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
         laser_string = ''.join(laser_arr)
@@ -732,23 +741,17 @@ Beat {curr_beat:.1f}\
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = [0, 0, 0]
 
-    disco_styles = [[0, 0, 0] for x in range(14)]
     if any(disco_color_rgb):
         disco_chars = [' '] * 14 
         for rgb_index in range(3):
             if disco_color_rgb[rgb_index]:
-                curr_disco_positions = [
-                    int(disco_pos) + rgb_index,
-                    int(disco_pos) + 5 + rgb_index,
-                    int(disco_pos) + 10 + rgb_index,
-                ]
-                for index in range(len(curr_disco_positions)):
-                    curr_disco_positions[index] = curr_disco_positions[index] % 14
-                    disco_chars[curr_disco_positions[index]] = 'o'
-                    disco_styles[curr_disco_positions[index]][rgb_index] = disco_color_rgb[rgb_index]
+                style_for_color = [0, 0, 0]
+                style_for_color[rgb_index] = disco_color_rgb[rgb_index]
+                for pos_offset in [0, 5, 10]:
+                    position = (int(disco_pos) + pos_offset + rgb_index) % 14
+                    disco_chars[position] = rgb_ansi('o', style_for_color)
     else:
         disco_chars = ' ' * 14
-
 
     if all_levels[12] != 0:
         laser_stage += int(max(1, laser_motor_value // 10))
@@ -764,26 +767,27 @@ Beat {curr_beat:.1f}\
         rgb_ansi(character * 5, top_front_rgb),
         rgb_ansi(character * 5, top_back_rgb),
         rgb_ansi(character * 2, purple_scaled),
-        terminal_buffer,
+        # terminal_buffer,
     ]
     bottom_light_row = [
         ' ' + rgb_ansi(character * 14, bottom_rgb),
-        terminal_buffer,
+        # terminal_buffer,
     ]
     laser_row = [
         ' ' + rgb_ansi(laser_string, laser_style),
-        terminal_buffer,
+        # terminal_buffer,
     ]
     disco_row = [
-        ' ' + ''.join([rgb_ansi(char, style) for char, style in zip(disco_chars, disco_styles)]),
-        terminal_buffer,
+        ' ' + ''.join([char for char in disco_chars]),
+        # terminal_buffer,
     ]
 
+    # actually i bet this really doesn't work because of invisible ansi characters... and cutting off doesnt work because they have length, we need to just keep track
     rows_to_print = [
-        ''.join(top_light_row)[:terminal_size],
-        ''.join(laser_row)[:terminal_size*3],
-        ''.join(bottom_light_row)[:terminal_size],
-        ''.join(disco_row)[:terminal_size],
+        ''.join(top_light_row),
+        ''.join(laser_row),
+        ''.join(bottom_light_row),
+        ''.join(disco_row),
     ]
 
     for index, row in enumerate(rows_to_print):
@@ -791,7 +795,7 @@ Beat {curr_beat:.1f}\
         if index == len(rows_to_print) - 1:
             ender = ''
         print(row, end=ender)
-    sys.stdout.write('\033[F' * 7)
+    sys.stdout.write('\033[F' * 8)
 
 
 all_levels = [0] * LIGHT_COUNT
@@ -1561,9 +1565,9 @@ def signal_handler(sig, frame):
 def fuzzy_find(search, collection):
     import thefuzz.process
     print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
-    
+    before_fuzz = time.time()
     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
-    print_cyan(f'top 3 choices: {choices}')
+    print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
     return choices[0][0]
 
 

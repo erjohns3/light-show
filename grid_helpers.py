@@ -293,7 +293,7 @@ def get_font_path(font_filename):
     if is_linux() and not is_andrews_main_computer():
         base_font_folder = this_file_directory.joinpath('fonts')
     else:
-        base_font_folder = get_ray_directory().joinpath('fonts')
+        base_font_folder = get_ray_directory().joinpath('random', 'fonts')
     return base_font_folder.joinpath(font_filename)
 
 

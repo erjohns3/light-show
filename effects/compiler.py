@@ -41,20 +41,23 @@ def fill_grid_from_image_filepath(grid_info):
     end_beat = grid_info.end_sub_beat / SUB_BEATS
     curr_beat = grid_info.curr_sub_beat / SUB_BEATS
 
-    time_in_pattern = curr_beat * (60 / bpm)
-    # print(f'{start_beat=}, {end_beat=}, {curr_beat=}, {bpm=}, {time_in_pattern=}')
+    relative_beat = curr_beat - start_beat
+
+    time_in_pattern = relative_beat * (60 / bpm)
 
     cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename)
-    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
-        # grid_helpers.increment_animation_frame(cached_filepath)
+    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)
 
 
+def fill_grid_from_text(grid_info):
+    filepath = grid_helpers.create_image_from_text_pilmoji(grid_info.text, font_size=grid_info.font_size, rotate_90=grid_info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(filepath)
 
 
 following_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, grid_rotate_90=None):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, rotate_90=None, grid_text=None, font_size=12):
     global following_beat
 
     if length is None:
@@ -80,8 +83,14 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     grid_info = GridInfo()
     if grid_filename is not None:
         grid_info.filename = grid_filename
-        grid_info.rotate_90 = grid_rotate_90
+        grid_info.rotate_90 = rotate_90
         grid_function = fill_grid_from_image_filepath
+
+    if grid_text is not None:
+        grid_info.text = grid_text
+        grid_info.font_size = font_size
+        grid_info.rotate_90 = rotate_90
+        grid_function = fill_grid_from_text
 
     if grid_function is not None:
         grid_info.grid_function = grid_function

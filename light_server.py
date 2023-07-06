@@ -657,11 +657,13 @@ purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
+last_called_grid_render = False
 async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, printed_http_info
+    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, printed_http_info, last_called_grid_render
 
     while not printed_http_info:
         time.sleep(.01)
+
 
     rows_to_print = []
     character = '▆'
@@ -670,6 +672,13 @@ async def render_to_terminal(all_levels):
         terminal_size = os.get_terminal_size().columns
     except:
         terminal_size = 45
+
+    if last_called_grid_render:        
+        full_clear = ' ' * terminal_size + '\n'
+        print(full_clear * 26, end='')
+        last_called_grid_render = False
+
+
     # terminal_buffer = ' ' * terminal_size
     line_length = terminal_size - 1
 
@@ -816,7 +825,7 @@ grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
 
     download_thread = None
     search_thread = None
@@ -908,6 +917,8 @@ async def light():
                 return False
 
         grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
+        if args.local and bool(grid_infos_for_this_sub_beat):
+            last_called_grid_render = True
 
         if download_thread is not None:
             if not download_thread.is_alive():

@@ -65,6 +65,7 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True):
 def get_grid_index():
     return grid_index
 
+
 def grid_in_bounds(pos):
     # !TODO it seems like for now grid_pack sends all 640 (1920 RGB) over, even thought there are 3 spots that are empty, ask eric later
     # print(len(grid_index), GRID_HEIGHT * GRID_WIDTH * 3)
@@ -285,3 +286,95 @@ def get_cached_converted_filepath(filename, rotate_90=False):
         print(f'cached {filepath} to {cache_filepath}')
         run_once.add(filepath)
     return cache_filepath
+
+
+from PIL import Image, ImageDraw, ImageFont
+def random_pilmoji_havent_worked():
+    from pilmoji import Pilmoji
+
+    im = Image.new('RGB', (1024, 768))
+
+    drawer = Pilmoji(im)
+
+    FONT_PATH = './NotoSansSC-Regular.otf'
+    font_size = 30
+    font = ImageFont.truetype(FONT_PATH, size=font_size)
+
+    text = "Hello, world! 👋 Here are some emojis: 🎨 🌊 😎"
+    drawer((10, 10), text, font=font)
+
+    im.show()
+
+def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
+    hash_filename = hash(text)
+    output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
+    if output_filepath.exists():
+        return output_filepath
+
+    from pilmoji import Pilmoji
+    if not rotate_90:
+        width, height = 32, 20
+    else:
+        width, height = 20, 32
+    image = Image.new('RGB', (width, height), 'black')
+    
+    # C:\Windows\Fonts
+    # font_name = 'NotoEmoji-Medium.ttf'
+    # font_name = 'Noto-Medium.ttf'
+    # font_name = 'arial.ttf'
+    # font_name = 'ariblk.ttf'
+    font_name = 'sitka-small.ttf'
+    filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
+    font = ImageFont.truetype(str(filepath_font), font_size)
+
+    with Pilmoji(image) as pilmoji:
+        # !TODO get a better method for this
+        # text_width, text_height = pilmoji_drawer.textsize(text, font)
+        draw = ImageDraw.Draw(image)
+        text_width, text_height = draw.textsize(text, font)
+
+        x = (width - text_width) // 2
+        y = (height - text_height) // 2
+        pilmoji.text((x, y), text, (255, 255, 255), font)
+
+
+    if not rotate_90:
+        image = image.rotate(90, expand=True)
+
+    image.save(output_filepath)
+    return output_filepath
+
+
+def create_image_from_text(text, rotate_90=False):
+    if not rotate_90:
+        width, height = 32, 20
+    else:
+        width, height = 20, 32
+    image = Image.new('RGB', (width, height), 'black')
+
+    draw = ImageDraw.Draw(image)
+    
+    # font_name = 'NotoEmoji-Medium.ttf'
+    font_name = 'NotoColorEmoji-Regular.ttf'
+    filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
+    font = ImageFont.truetype(str(filepath_font), 20)
+
+    # text_width, text_height = draw.textsize(text, font)
+    # text_width, text_height = draw.textsize(text, font, 'white')
+    text_width, text_height = draw.textsize(text, font)
+
+    x = (width - text_width) // 2
+    y = (height - text_height) // 2
+
+    # draw.text((x, y), text, font=font)
+    draw.text((x, y), text, font=font, embedded_color=True) 
+
+
+    if not rotate_90:
+        image = image.rotate(90, expand=True)
+
+    hash_filename = hash(text)
+    filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
+    image.save(filepath)
+    return filepath
+

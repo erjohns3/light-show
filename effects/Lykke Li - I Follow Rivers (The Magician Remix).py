@@ -80,27 +80,35 @@ effects = {
             b(5, name='Blue disco pulse', length=2),
             b(6.5, name='Blue disco pulse', length=1),
             b(7.5, name='Blue disco pulse', length=1)
-    
         ]
     },
     "bridge disco" : {
         "length": 10,
         "beats": [
-            
         ]
     },
+    "bridge disco" : {
+        "length": 10,
+        "beats": [
+        ]
+    },
+
     "Lykke Li - I Follow Rivers (The Magician Remix)": {
         "bpm": 122,
         "song_path": "songs/Lykke Li - I Follow Rivers (The Magician Remix).ogg",
         "delay_lights": 0.0252,
         "skip_song": 0.0,
         "beats": [
-            # b(1, grid_filename='dog.jpg', grid_rotate_90=False, length=16),
-            b(1, grid_filename='ricardo.gif', grid_rotate_90=False, length=24),
-            # b(1, grid_filename='nyan.webp', grid_rotate_90=True, length=8),
+            # b(1, grid_filename='dog.jpg', rotate_90=False, length=16),
+            # b(1, grid_filename='ricardo.gif', rotate_90=False, length=24),
+            b(1, grid_text='😭', rotate_90=True, length=240),
+            # b(1, grid_filename='nyan.webp', rotate_90=True, length=8),
             # b(1, grid_function=lambda grid_info: print('hello'), length=16),
 
+            # b(1, grid_text='buy\n  it', font_size=8, length=8),
+
             # b(9, name='ll bass', length=144),
+
             b(36, name='ll fill', length=6),
             b(68, name='ll fill', length=6),
             b(73, name='verse disco', length=72),

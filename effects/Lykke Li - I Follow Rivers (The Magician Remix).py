@@ -100,7 +100,7 @@ effects = {
             # b(1, grid_filename='nyan.webp', grid_rotate_90=True, length=8),
             # b(1, grid_function=lambda grid_info: print('hello'), length=16),
 
-            b(9, name='ll bass', length=144),
+            # b(9, name='ll bass', length=144),
             b(36, name='ll fill', length=6),
             b(68, name='ll fill', length=6),
             b(73, name='verse disco', length=72),

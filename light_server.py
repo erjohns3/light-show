@@ -1552,6 +1552,7 @@ def signal_handler(sig, frame):
                 child.kill()
     if not args.local:
         threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
+        grid_helpers.grid_reset_and_write()
         for pin in LED_PINS:
             pi.set_PWM_dutycycle(pin, 0)
     if args.reload:

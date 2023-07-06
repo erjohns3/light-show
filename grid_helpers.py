@@ -122,7 +122,7 @@ def resize_PIL_image(pil_image, rotate_90=False):
 @profile
 def recolor_PIL_image(pil_image):
     if pil_image.mode != 'RGB':
-        print_yellow(f'recoloring image, this should only happen once, if you see it multiple runs theres something wrong')
+        print_yellow(f'was {pil_image.mode=}, but recoloring image to RGB, this should only happen once, if you see it multiple runs theres something wrong')
         pil_image = pil_image.convert('RGB')
     return pil_image
 

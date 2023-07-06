@@ -290,7 +290,12 @@ def get_cached_converted_filepath(filename, rotate_90=False):
 
 
 def get_font_path(font_filename):
-    if is_linux() and not is_andrews_main_computer():
+    if is_andrews_main_computer():
+        if this_file_directory.joinpath('fonts').exists:
+            base_font_folder = this_file_directory.joinpath('fonts')
+        else:
+            base_font_folder = get_ray_directory().joinpath('random', 'fonts')
+    elif is_linux() and not is_andrews_main_computer():
         base_font_folder = this_file_directory.joinpath('fonts')
     else:
         base_font_folder = get_ray_directory().joinpath('random', 'fonts')

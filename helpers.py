@@ -77,6 +77,7 @@ def get_ray_directory():
             return mount_path
         else:
             print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
+            exit()
     else:
         print_red('doesnt know how contact ray_directory')
 
@@ -95,6 +96,7 @@ def get_nas_directory():
             return mount_path
         else:
             print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
+            exit()
     else:
         print_red('doesnt know how contact nas_directory')
 

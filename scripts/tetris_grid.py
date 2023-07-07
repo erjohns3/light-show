@@ -7,8 +7,9 @@ import time
 import random
 import signal
 import sys
+import threading
 
-import keyboard
+from pynput.keyboard import Listener, KeyCode
 
 import script_helpers
 script_helpers.make_directory_above_importable()
@@ -161,11 +162,47 @@ def get_joystick_direction(controller):
     return None
 
 
+if is_linux() and not is_doorbell():
+    _return_code, stdout, _stderr = run_command_blocking([
+        'xdotool',
+        'getactivewindow',
+    ])
+    process_window_id = int(stdout.strip())
+
+def window_focus():
+    if is_linux():
+        return_code, stdout, _stderr = run_command_blocking([
+            'xdotool',
+            'getwindowfocus',
+        ])
+        if return_code != 0:
+            return False
+        other = int(stdout.strip())
+        return process_window_id == other
+    return True
+
 last_key_pressed = None
-def on_key_event(event):
+def on_press(key):
+    if not window_focus():
+        return
+
+    if type(key) == KeyCode:
+        key_name = key.char
+    else:
+        key_name = key.name
+
     global last_key_pressed
-    last_key_pressed = event.name
-    # print(f"Key {event.name} was {'pressed' if event.event_type == keyboard.KEY_DOWN else 'released'}")
+    last_key_pressed = key_name
+    # print(f"Key {key.name} was {'pressed' if key.key_type == keyboard.KEY_DOWN else 'released'}")
+
+def on_release(key):
+    pass
+
+def listen_for_keystrokes():
+    with Listener(on_press=on_press, on_release=on_release) as listener:
+        listener.join()
+
+
 
 keyboard_mappings = {
     'esc': 'quit',
@@ -262,7 +299,7 @@ directions = {
     'down': [0, 1],
 }
 states_per_second = 4
-def play_game(serial_communicator, controller):
+def play_game(controller):
     global states_per_second
     fps = 60
     last_state_time = 0
@@ -358,10 +395,6 @@ if __name__ == "__main__":
 
     serial_communicator = None
     if args.local:
-        # !TODO find alternative that works for linux
-        keyboard.on_press(on_key_event)
-        keyboard.on_release(on_key_event)
-
         # !TODO long term I really should just be rendering to terminal whats visible on grid
         block_colors = {
             'active_piece': [0, 100, 0],
@@ -372,13 +405,13 @@ if __name__ == "__main__":
         }
     else:
         disable_color()
-        serial_communicator = grid_helpers.get_grid_serial()
 
     controller = try_get_gamepad_controller()
     if controller is None:
         print_red('No controller found, using keyboard')
+        threading.Thread(target=listen_for_keystrokes, args=[], daemon=True).start()
     if args.keyboard:
         controller = None
 
     while True:
-        play_game(serial_communicator, controller)
+        play_game(controller)

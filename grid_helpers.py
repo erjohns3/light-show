@@ -101,15 +101,22 @@ def grid_reset_and_write():
 def get_grid_serial():
     global grid_serial
     if grid_serial is None: 
-        grid_serial = serial.Serial(
-            port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
-            baudrate = 2000000,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=0,
-            write_timeout=0
-        )
+        try:
+            grid_serial = serial.Serial(
+                port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
+                baudrate = 2000000,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_ONE,
+                bytesize=serial.EIGHTBITS,
+                timeout=0,
+                write_timeout=0
+            )
+        except Exception as e:
+            if is_doorbell():
+                raise e
+            print_stacktrace()
+            raise Exception('You probably need to add --local to your command line to make work, real exception printed above')
+
     return grid_serial
 
 

@@ -112,7 +112,6 @@ def fill_grid_and_render(game_state):
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
 
-
     for g_x, g_y in grid_helpers.grid_coords():
         x = (g_x // 2) - TETRIS_X_OFFSET
         y = (g_y // 2) + TETRIS_Y_OFFSET
@@ -125,7 +124,6 @@ def fill_grid_and_render(game_state):
                 grid[g_x][g_y] = block_colors['dead_square']
             else:
                 grid[g_x][g_y] = block_colors['empty']
-
     grid_helpers.render_grid(terminal=args.local)
 
 

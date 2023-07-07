@@ -17,10 +17,21 @@ grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
 
-TETRIS_X_OFFSET = 3
-TETRIS_Y_OFFSET = 1
+# TETRIS_X_OFFSET = 3
+# TETRIS_Y_OFFSET = 1
+
+# GRID_BLOCK_SIZE = 1
+# TETRIS_WIDTH = 10
+# TETRIS_HEIGHT = 20
+
+
+TETRIS_X_OFFSET = 0
+TETRIS_Y_OFFSET = 0
+
+GRID_BLOCK_SIZE = 2
 TETRIS_WIDTH = 10
-TETRIS_HEIGHT = 20
+TETRIS_HEIGHT = 15
+
 
 
 def signal_handler(sig, frame):
@@ -96,12 +107,15 @@ block_colors = {
     'empty': [.8, 0, 0],
     'out_of_bounds': [0, 0, 0],
 }
-def fill_grid(game_state):
+def fill_grid_and_render(game_state):
     active_poses = set()
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
+
+
     for g_x, g_y in grid_helpers.grid_coords():
-        x, y = g_x - TETRIS_X_OFFSET, g_y + TETRIS_Y_OFFSET
+        x = (g_x // 2) - TETRIS_X_OFFSET
+        y = (g_y // 2) + TETRIS_Y_OFFSET
         if grid_helpers.grid_in_bounds((g_x, g_y)):
             if x < 0 or x >= TETRIS_WIDTH or y < 0 or y >= TETRIS_HEIGHT:
                 grid[g_x][g_y] = block_colors['out_of_bounds']
@@ -111,6 +125,7 @@ def fill_grid(game_state):
                 grid[g_x][g_y] = block_colors['dead_square']
             else:
                 grid[g_x][g_y] = block_colors['empty']
+
     grid_helpers.render_grid(terminal=args.local)
 
 
@@ -297,7 +312,7 @@ def play_game(serial_communicator, controller):
                 for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
                     if not is_avail(game_state, pos):
                         print('pos', pos, 'not avail')
-                        fill_grid(game_state)
+                        fill_grid_and_render(game_state)
                         print_red('Game over!')
                         return
             else:
@@ -323,7 +338,7 @@ def play_game(serial_communicator, controller):
                     graphics_changed = True
 
             if graphics_changed:
-                fill_grid(game_state)
+                fill_grid_and_render(game_state)
             if frame == 1:
                 exit()
             last_state_time = time.time()

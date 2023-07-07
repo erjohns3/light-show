@@ -128,7 +128,7 @@ def fill_grid_and_render(game_state):
                 grid[g_x][g_y] = block_colors['dead_square']
             else:
                 grid[g_x][g_y] = block_colors['empty']
-    grid_helpers.render_grid(terminal=args.local)
+    grid_helpers.render_grid(terminal=args.local, rotate_terminal=args.rotate_terminal)
 
 
 def try_get_gamepad_controller():
@@ -391,6 +391,7 @@ if __name__ == "__main__":
     argparse = argparse.ArgumentParser()
     argparse.add_argument('--keyboard', action='store_true')
     argparse.add_argument('--local', action='store_true')
+    argparse.add_argument('--rotate', dest='rotate_terminal', action='store_true')
     args = argparse.parse_args()
 
     serial_communicator = None

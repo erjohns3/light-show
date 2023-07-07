@@ -43,18 +43,28 @@ def get_grid():
 
 
 @profile
-def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True):
+def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:
         if skip_if_terminal:
             return
-        for y in range(GRID_HEIGHT):
-            row_parts = []
+        if rotate_terminal:
             for x in range(GRID_WIDTH):
-                rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
-                row_parts.append(rgb_ansi('▆', rgb))
-            print(''.join(row_parts))
-        if reset_terminal:
-            print('\033[F' * GRID_HEIGHT, end='')
+                column_parts = []
+                for y in range(GRID_HEIGHT):
+                    rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
+                    column_parts.append(rgb_ansi('▆', rgb))
+                print(''.join(column_parts))
+            if reset_terminal:
+                print('\033[F' * GRID_WIDTH, end='')
+        else:
+            for y in range(GRID_HEIGHT):
+                row_parts = []
+                for x in range(GRID_WIDTH):
+                    rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
+                    row_parts.append(rgb_ansi('▆', rgb))
+                print(''.join(row_parts))
+            if reset_terminal:
+                print('\033[F' * GRID_HEIGHT, end='')
     else:
         grid_out = get_grid_serial().out_waiting
         grid_in = get_grid_serial().in_waiting

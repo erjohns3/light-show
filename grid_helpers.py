@@ -296,10 +296,12 @@ def get_font_path(font_filename):
     return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
 
 
+run_once_text_image = set()
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-    if False and output_filepath.exists():
+    if hash_filename in run_once_text_image and output_filepath.exists():
+        run_once_text_image.append(hash_filename)
         return output_filepath
 
     if not rotate_90:
@@ -334,40 +336,44 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     if not rotate_90:
         image = image.rotate(90, expand=True)
 
-    image.save(output_filepath)
+    image.save(output_filepath, format='png')
+    print(f'saved "{text}" to image {output_filepath}')
     return output_filepath
 
 
-def create_image_from_text(text, rotate_90=False):
-    if not rotate_90:
-        width, height = 32, 20
-    else:
-        width, height = 20, 32
-    image = Image.new('RGB', (width, height), 'black')
 
-    draw = ImageDraw.Draw(image)
+
+
+
+# def create_image_from_text(text, rotate_90=False):
+#     if not rotate_90:
+#         width, height = 32, 20
+#     else:
+#         width, height = 20, 32
+#     image = Image.new('RGB', (width, height), 'black')
+
+#     draw = ImageDraw.Draw(image)
     
-    # font_name = 'NotoEmoji-Medium.ttf'
-    font_name = 'NotoColorEmoji-Regular.ttf'
-    filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
-    font = ImageFont.truetype(str(filepath_font), 20)
+#     # font_name = 'NotoEmoji-Medium.ttf'
+#     font_name = 'NotoColorEmoji-Regular.ttf'
+#     filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
+#     font = ImageFont.truetype(str(filepath_font), 20)
 
-    # text_width, text_height = draw.textsize(text, font)
-    # text_width, text_height = draw.textsize(text, font, 'white')
-    text_width, text_height = draw.textsize(text, font)
+#     # text_width, text_height = draw.textsize(text, font)
+#     # text_width, text_height = draw.textsize(text, font, 'white')
+#     text_width, text_height = draw.textsize(text, font)
 
-    x = (width - text_width) // 2
-    y = (height - text_height) // 2
+#     x = (width - text_width) // 2
+#     y = (height - text_height) // 2
 
-    # draw.text((x, y), text, font=font)
-    draw.text((x, y), text, font=font, embedded_color=True) 
+#     # draw.text((x, y), text, font=font)
+#     draw.text((x, y), text, font=font, embedded_color=True) 
 
 
-    if not rotate_90:
-        image = image.rotate(90, expand=True)
+#     if not rotate_90:
+#         image = image.rotate(90, expand=True)
 
-    hash_filename = hash(text)
-    filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-    image.save(filepath)
-    return filepath
-
+#     hash_filename = hash(text)
+#     filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
+#     image.save(filepath)
+#     return filepath

@@ -3,7 +3,10 @@ import sys
 import pathlib
 from tinytag import TinyTag
 
-song_dir = pathlib.Path('songs')
+
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+directory_above_this_file = this_file_directory.parent.resolve()
+song_dir = directory_above_this_file.joinpath('songs')
 
 if len(sys.argv) == 2:
     filename = sys.argv[1]

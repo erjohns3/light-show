@@ -311,12 +311,13 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     image = Image.new('RGB', (width, height), 'black')
     
     # C:\Windows\Fonts
-    # font_name = 'NotoEmoji-Medium.ttf'
     # font_name = 'Noto-Medium.ttf'
     # font_name = 'arial.ttf'
     # font_name = 'ariblk.ttf'
-    font_name = 'sitka-small.ttf'
     # font_name = 'verdana.ttf'
+    # font_name = 'sitka-small.ttf'
+    # font_name = 'dogicapixel.ttf'
+    font_name = 'dogicapixel.otf'
     font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
     # defaults to source=Twemoji

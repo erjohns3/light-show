@@ -858,7 +858,6 @@ async def light():
             else:
                 i+=1
 
-
         for effect_tuple in curr_effects:
             effect_name = effect_tuple[0]
             index = beat_index + effect_tuple[1]

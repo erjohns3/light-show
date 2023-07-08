@@ -68,6 +68,7 @@ def fill_grid_from_text(grid_info):
     grid_helpers.fill_grid_from_image_filepath(filepath)
 
 
+
 following_beat = None
 def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, rotate_90=None, grid_text=None, font_size=12):
     global following_beat

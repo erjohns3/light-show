@@ -1,4 +1,5 @@
 from effects.compiler import b
+import grid_helpers
 
 lyrics = {
     'buy': 'buy',
@@ -34,6 +35,12 @@ lyrics = {
 #     'upgrade': 'upgrade',
 # }
 
+grid = grid_helpers.get_grid()
+def grid_line_go(grid_info):
+    if getattr(grid_info, 'y', None) is None:
+        grid_info.y = 0
+    pass
+
 
 effects = {
     'tech effect testing sub': {
@@ -57,7 +64,7 @@ effects = {
         'delay_lights': 0.25275000000000003,
         'skip_song': 0,
         'beats': [
-            # b(1, grid_text='😭', length=2),
+            b(1, grid_function=grid_line_go, length=2),
             # b(5, grid_filename='ricardo.gif', length=2),
             b(16, name='tech effect testing', length=15),
             # b(1, grid_filename='ricardo.gif', rotate_90=False, length=7),

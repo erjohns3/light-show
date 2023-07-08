@@ -10,8 +10,6 @@ import sys
 import threading
 import pathlib
 
-from pynput.keyboard import Listener, KeyCode
-
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
@@ -184,6 +182,7 @@ def window_focus():
 
 last_key_pressed = None
 def on_press(key):
+    from pynput.keyboard import KeyCode
     if not window_focus():
         return
 
@@ -200,6 +199,7 @@ def on_release(key):
     pass
 
 def listen_for_keystrokes():
+    from pynput.keyboard import Listener
     with Listener(on_press=on_press, on_release=on_release) as listener:
         listener.join()
 

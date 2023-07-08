@@ -1342,7 +1342,7 @@ def compile_all_luts_from_effects_config():
                         effects_config_client[effect_name][key] = value
 
     # TODO andrew: replace with is_doorbell()
-    if is_linux() and not is_andrews_main_computer():
+    if False and is_doorbell():
         # eager compile all normal effects
         for effect_name, effect in effects_config.items():
             if 'bpm' not in effect:
@@ -1502,6 +1502,7 @@ def compile_lut(local_effects_config):
                 else:
                     for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
                         ref_grid_info_length = ref_end_beat - ref_start_beat
+                        print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_grid_info)}')
                         for calced_start_beat in range(start_beat + ref_start_beat, start_beat + length, reference_length):
                             print_green(f'  grid_info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_grid_info_length=}, and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
                             calced_end_beat = min(calced_start_beat + ref_grid_info_length, start_beat + length)
@@ -1894,10 +1895,10 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
         compile_all_luts_from_effects_config()
-        debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
-        debug_channel_lut_grid_info('tech effect testing')
-        debug_channel_lut_grid_info('tech effect testing sub')
-        exit()
+        # debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
+        # debug_channel_lut_grid_info('tech effect testing')
+        # debug_channel_lut_grid_info('tech effect testing sub')
+        # exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)

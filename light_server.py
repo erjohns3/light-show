@@ -1,6 +1,7 @@
 import time
 first_start_time = time.time()
 import socket
+import atexit
 import threading
 import json
 import signal
@@ -53,7 +54,6 @@ parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
-parser.add_argument('--reload', dest='reload', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--invert', dest='invert', default=False, action='store_true')
@@ -63,6 +63,7 @@ parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
+parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 args = parser.parse_args()
 
 
@@ -316,18 +317,16 @@ def download_song(url, uuid):
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
+    # !TODO i think we need to prep_loaded_effects here, we are getting saved by the rekordbox watcher?
 
     added = False
-    # !TODO testing this for the audio glitch
     src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
-    # src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
         show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
         if show is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return
 
-        print(f'passing filepath: {filepath}')
         effects_config[show_name] = show
         add_dependancies({show_name: show})
 
@@ -916,7 +915,7 @@ async def light():
                 print_yellow(f'TRIED TO CALL {grid_info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat))
+        grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local and bool(grid_infos_for_this_sub_beat):
             last_called_grid_render = True
 
@@ -1111,8 +1110,9 @@ def effects_config_sort(all_nodes):
     if curr_node in found:
         return
     
+    found[curr_node] = True
     if isinstance(curr_node, GridInfo):
-        simple_effects.append(curr_node)
+        complex_effects.append(curr_node)
         return
 
     for needed_node in graph[curr_node]:
@@ -1125,8 +1125,7 @@ def effects_config_sort(all_nodes):
             simple_effects.append(curr_node)
         else:
             complex_effects.append(curr_node)
-        # !todo verify if this speeds up everything a ridiculous amount, i think it does... lol
-        found[curr_node] = True
+        
 
 
 def dfs(effect_name):
@@ -1151,7 +1150,6 @@ def add_dependancies(effect_names):
                     # component[1].start_beat = component[0]
                     # component[1].beat_length = component[2]
                     all_grid_infos.append(component[1])
-
                 graph[effect_name][component[1]] = True
         graph[effect_name] = list(graph[effect_name].keys())
 
@@ -1203,9 +1201,6 @@ def prep_loaded_effects(effect_names):
         effect = effects_config[effect_name]
         if effect_name.startswith('g_lasers'):
             continue
-        # if effect_name.startswith('g_'):
-        #     print(f'huh {effect_name=}, {"song_path" in effect}')
-        #     temp_stuff.append(effect_name)
         if 'song_path' in effect:
             song_name = pathlib.Path(effect['song_path']).stem              
             if song_name not in song_name_to_show_names:
@@ -1321,7 +1316,7 @@ def set_effect_defaults(name, effect):
 
 def compile_all_luts_from_effects_config():
     global channel_lut
-    start_time = time.time()
+    compile_all_luts_start_time = time.time()
 
     channel_lut = {}
 
@@ -1354,8 +1349,41 @@ def compile_all_luts_from_effects_config():
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - first_start_time:.3f}')
+    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - compile_all_luts_start_time:.3f}')
 
+
+def set_complex_effect_defaults(effect):
+    for component in effect['beats']:
+        start_beat = component[0] - 1
+        reference_effect_name = component[1]
+        if isinstance(reference_effect_name, GridInfo):
+            return
+        
+        if len(component) == 2:
+            if effects_config[reference_effect_name]['loop']:
+                component.append(effect['length'] - start_beat)
+            else:
+                component.append(effects_config[reference_effect_name]['length'])
+        if len(component) == 3:
+            component.append(1)
+        if len(component) == 4:
+            component.append(component[-1])
+        if len(component) == 5:
+            component.append(0)
+        if len(component) == 6:
+            component.append(0)
+        if len(component) == 7:
+            component.append(0)
+        if len(component) == 8:
+            component.append(0)
+
+
+def calculate_complex_effect_length(effect):
+    calced_effect_length = 0
+    for component in effect['beats']:
+        start_beat = component[0] - 1
+        calced_effect_length = max(calced_effect_length, start_beat + component[2])
+    return calced_effect_length
 
 
 def compile_lut(local_effects_config):
@@ -1369,20 +1397,11 @@ def compile_lut(local_effects_config):
         set_effect_defaults(name, effect)
         missing_effect = dfs(name)
         if missing_effect is not None:
-            print_red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
-            sys.exit()
+            raise Exception(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
-    for effect_name_or_grid_info in simple_effects:
-        if isinstance(effect_name_or_grid_info, GridInfo):
-            channel_lut[effect_name_or_grid_info] = {
-                'length': round(effect['length'] * SUB_BEATS),
-                'grid_info': effect_name_or_grid_info,
-            }
-            continue
-        
-        effect_name = effect_name_or_grid_info
+    for effect_name in simple_effects:        
         effect = effects_config[effect_name]
 
         channel_lut[effect_name] = {
@@ -1432,35 +1451,21 @@ def compile_lut(local_effects_config):
     print_blue(f'Simple effects took: {time.time() - simple_effect_perf_timer:.3f} seconds')
 
     complex_effect_perf_timer = time.time()
-    for effect_name in complex_effects:
+    for effect_name_or_grid_info in complex_effects:
+        if isinstance(effect_name_or_grid_info, GridInfo):
+            channel_lut[effect_name_or_grid_info] = {
+                'length': round(effect['length'] * SUB_BEATS),
+                'grid_info': effect_name_or_grid_info,
+            }
+            continue
+
+        effect_name = effect_name_or_grid_info
         effect = effects_config[effect_name]
 
-        # if length isn't specified, generate a length
-        calced_effect_length = 0
-        for component in effect['beats']:
-            start_beat = component[0] - 1
-            name = component[1]
-            if len(component) == 2:
-                if effects_config[name]['loop']:
-                    component.append(effect['length'] - start_beat)
-                else:
-                    component.append(effects_config[name]['length'])
-            if len(component) == 3:
-                component.append(1)
-            if len(component) == 4:
-                component.append(component[-1])
-            if len(component) == 5:
-                component.append(0)
-            if len(component) == 6:
-                component.append(0)
-            if len(component) == 7:
-                component.append(0)
-            if len(component) == 8:
-                component.append(0)
-            calced_effect_length = max(calced_effect_length, start_beat + component[2])
+        set_complex_effect_defaults(effect)
 
         if 'length' not in effect:
-            effect['length'] = calced_effect_length
+            effect['length'] = calculate_complex_effect_length(effect)
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
@@ -1470,31 +1475,48 @@ def compile_lut(local_effects_config):
         curr_channel = channel_lut[effect_name]
         beats = channel_lut[effect_name]['beats']
 
-        import copy
         for component in effect['beats']:
             start_beat = round((component[0] - 1) * SUB_BEATS)
             reference_name = component[1]
             if reference_name not in channel_lut:
-                print_red(f'complex effect {effect_name} references effect {reference_name} which does not exist')
-                sys.exit()
+                raise Exception(f'complex effect {effect_name} references effect {reference_name} which does not exist')
 
             length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
 
-            ref_channel = channel_lut[reference_name]
-            if 'grid_info' in ref_channel:
+            reference_channel = channel_lut[reference_name]
+            reference_length = channel_lut[reference_name]['length']
+            if 'grid_info' in reference_channel:
                 if 'grid_info' not in curr_channel:
                     curr_channel['grid_info'] = []
-                curr_channel['grid_info'].append(
-                    [
-                        start_beat,
-                        start_beat + length,
-                        channel_lut[reference_name]['grid_info'],
-                    ],
-                )            
+                ref_channel_all_grid_infos = reference_channel['grid_info']
+                print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+                
+                if isinstance(ref_channel_all_grid_infos, GridInfo):
+                    curr_channel['grid_info'].append(
+                        [
+                            start_beat,
+                            start_beat + length,
+                            ref_channel_all_grid_infos,
+                        ],
+                    )
+                else:
+                    for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
+                        ref_grid_info_length = ref_end_beat - ref_start_beat
+                        for calced_start_beat in range(start_beat + ref_start_beat, start_beat + length, reference_length):
+                            print_green(f'  grid_info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_grid_info_length=}, and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+                            calced_end_beat = min(calced_start_beat + ref_grid_info_length, start_beat + length)
+                            curr_channel['grid_info'].append(
+                                [
+                                    calced_start_beat,
+                                    calced_end_beat,
+                                    ref_grid_info,
+                                ],
+                            )
+                            print(f'added {curr_channel["grid_info"][-1]}')
+
             if 'beats' not in channel_lut[reference_name]:
                 continue
             reference_beats = channel_lut[reference_name]['beats']
-            reference_length = channel_lut[reference_name]['length']
 
             start_mult = component[3]
             end_mult = component[4]
@@ -1540,7 +1562,6 @@ def compile_lut(local_effects_config):
 
 def kill_in_n_seconds(seconds):
     time.sleep(seconds)
-    import atexit
     atexit._run_exitfuncs()
 
     if is_windows():
@@ -1552,7 +1573,7 @@ def kill_in_n_seconds(seconds):
 
 
 def signal_handler(sig, frame):
-    print('SIG Handler: ' + str(sig), flush=True)
+    print('SIG Handler inside light_server.py: ' + str(sig), flush=True)
     close_connections_to_doorbell()
     if 'multiprocessing' in sys.modules:
         import multiprocessing
@@ -1567,9 +1588,6 @@ def signal_handler(sig, frame):
         grid_helpers.grid_reset_and_write()
         for pin in LED_PINS:
             pi.set_PWM_dutycycle(pin, 0)
-    if args.reload:
-        observer.stop()
-        observer.join()
     sys.exit()
 
 #################################################
@@ -1584,7 +1602,7 @@ def fuzzy_find(search, collection):
     return choices[0][0]
 
 
-def restart_show(skip=0, abs_time=None, reload=False):
+def restart_show(skip=0, abs_time=None):
     global song_time
     time_to_skip_to = max(0, (time.time() - time_start) + skip)
     if abs_time is not None:
@@ -1600,20 +1618,8 @@ def restart_show(skip=0, abs_time=None, reload=False):
         
         stop_song()
 
-        if reload:
-            print('RELOAD REFRESHING')
-            load_effects_config_from_disk()
-            compile_all_luts_from_effects_config()
-
         effect = effects_config[effect_name]
 
-        if args.reload:
-            effect['bpm'] = originals[effect_name]['bpm']
-            effect['song_path'] = originals[effect_name]['song_path']
-
-            # song time controls these now, maybe just for autogen?
-            # effect['skip_song'] = originals[effect_name]['skip_song'] + time_to_skip_to
-            # effect['delay_lights'] = originals[effect_name]['delay_lights'] - time_to_skip_to
         add_effect(effect_name)
         try:
             play_song(effect_name, print_out=False)
@@ -1621,10 +1627,6 @@ def restart_show(skip=0, abs_time=None, reload=False):
             print_red('play_song errored, running stop_song + clear_effects and continuing')
             clear_effects()
             stop_song()
-    elif reload:
-        print('RELOAD REFRESHING NO EFFECT')
-        load_effects_config_from_disk()
-        compile_all_luts_from_effects_config()
 
 
 #################################################
@@ -1648,6 +1650,22 @@ def try_download_video(show_name):
         print('downloaded video, continuing to try to recover')
         return
     raise Exception('Couldnt download video')
+
+
+def debug_channel_lut_grid_info(effect_name):
+    if effect_name not in effects_config:
+        print_red(f'Couldnt find effect {effect_name}')
+        return
+    channel = channel_lut[effect_name]
+
+    if 'grid_info' not in channel:
+        print_red('No grid_info found')
+        return
+    all_grid_infos = channel['grid_info']
+
+    print_blue(f'{effect_name=}, number of grid_infos: {len(all_grid_infos)}')
+    for grid_info in all_grid_infos:
+        print_cyan(f'  grid_info: {grid_info}')
 
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
@@ -1711,13 +1729,7 @@ if __name__ == '__main__':
             print(f'beat: {curr_beat:2f}, current_effects playing: {all_effect_names}')
 
     if args.enter:
-        x = threading.Thread(target=detailed_output_on_enter)
-        x.start()
-
-
-
-                # if RekordboxFilesystemHandler.last_updated > (time.time() - .05):
-                #     return
+        x = threading.Thread(target=detailed_output_on_enter).start()
 
     if args.load_new_rekordbox_shows_live:
         from watchdog.observers import Observer
@@ -1754,7 +1766,6 @@ if __name__ == '__main__':
                 else:
                     print_red('Somehow this path was already in globals, doing nothing.')
                 effects_config.update(globals()[module_name].effects)
-                # prep_loaded_effects(effects_config)
                 prep_loaded_effects(list(globals()[module_name].effects.keys()))
 
         observer = Observer()
@@ -1763,38 +1774,6 @@ if __name__ == '__main__':
         print_cyan(f'WATCHING {dir_to_watch} for rekordbox additions')
         observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
         observer.start()
-
-
-    if args.reload:
-        if not args.show:
-            raise Exception('you need to define --show in order to use --reload')
-        from watchdog.observers import Observer
-        from watchdog.events import FileSystemEventHandler
-
-        class FilesystemHandler(FileSystemEventHandler):
-            last_updated = 0
-
-            @staticmethod
-            def on_any_event(event):
-                global downloaded
-                if event.is_directory or event.event_type not in ['modified', 'created'] or '__pycache__' in event.src_path or not event.src_path.endswith('.py'):
-                    return None
-                if FilesystemHandler.last_updated > (time.time() - .05):
-                    return
-                time_before_restart = time.time()
-                print(f'Reloading json because: "{event.src_path}" was modified')
-                FilesystemHandler.last_updated = time.time()            
-                
-                if args.skip_show_seconds and not args.jump_back:
-                    restart_show(reload=True, abs_time=args.skip_show_seconds)
-                else:
-                    restart_show(reload=True, skip=-args.jump_back)
-                print_cyan(f'Time to reload: {time.time() - time_before_restart:.3f}')
-
-        observer = Observer()
-        observer.schedule(FilesystemHandler(), effects_dir, recursive = True)
-        observer.start()
-        print_green(f'WATCHING {effects_dir} for all effects additions')
 
     if args.keyboard:
         from pynput.keyboard import Listener, KeyCode
@@ -1915,6 +1894,11 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
         compile_all_luts_from_effects_config()
+        debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
+        debug_channel_lut_grid_info('tech effect testing')
+        debug_channel_lut_grid_info('tech effect testing sub')
+        exit()
+
         if args.show:
             print_blue('Found in CLI:', args.show)
             song_queue.append([args.show, get_queue_salt(), 'CLI'])

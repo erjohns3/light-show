@@ -20,12 +20,9 @@ grid = grid_helpers.get_grid()
 
 
 def signal_handler(sig, frame):
-    print('SIG Handler: ' + str(sig), flush=True)
+    print('SIG Handler inside discover_color_mappings.py: ' + str(sig), flush=True)
     grid_helpers.grid_reset_and_write()
     sys.exit()
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
 
 
 def on_press(key):
@@ -259,6 +256,10 @@ keyboard_dict = {
     'g': make_green,
     'b': make_blue,
 }
+
+if __name__ == '__main__':
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 listen_keyboard(
     on_press=on_press,
     on_release=on_release,

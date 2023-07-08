@@ -15,6 +15,9 @@ import pathlib
 import grid_helpers
 
 
+useful_attrs = set([
+    'text',
+])
 class GridInfo:
     def __init__(self):
         self.grid_function = None
@@ -27,7 +30,16 @@ class GridInfo:
         building = []
         for attr, value in self.__dict__.items():
             building.append(f'{attr}: {value}')
-        print(', '.join(building))
+        return ', '.join(building)
+    
+    def __repr__(self):
+        building = []
+        for attr, value in self.__dict__.items():
+            if attr not in useful_attrs:
+                continue
+            building.append(f'{attr}: {value}')
+        
+        return f'GridInfo: {", ".join(building)}'
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()

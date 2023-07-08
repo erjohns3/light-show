@@ -97,16 +97,16 @@ def grid_fill(to_fill):
         for rgb_index, value in enumerate(to_fill):
             grid[x][y][rgb_index] = value
 
-def grid_fill_and_write(to_fill):
+def grid_fill_and_write(to_fill, terminal=False):
     grid_fill(to_fill)
-    render_grid()
+    render_grid(terminal=terminal)
 
 def grid_reset():
     grid.fill(0)
 
-def grid_reset_and_write():
+def grid_reset_and_write(terminal=False):
     grid_reset()
-    render_grid()
+    render_grid(terminal=terminal)
 
 def get_grid_serial():
     global grid_serial
@@ -318,7 +318,6 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
     hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
     if hash_filename in run_once_text_image and output_filepath.exists():
-        run_once_text_image.append(hash_filename)
         return output_filepath
 
     if not rotate_90:
@@ -356,9 +355,8 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
 
     image.save(output_filepath, format='png')
     print(f'saved "{text}" to image {output_filepath}')
+    run_once_text_image.add(hash_filename)
     return output_filepath
-
-
 
 
 

@@ -1,6 +1,6 @@
 from effects.compiler import b
 import grid_helpers
-import tetris_grid
+from scripts import tetris_grid
 
 effects = {
     "ll bass" : {

@@ -8,9 +8,13 @@ import random
 import signal
 import sys
 import threading
+import pathlib
 
 from pynput.keyboard import Listener, KeyCode
 
+
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory))
 import script_helpers
 script_helpers.make_directory_above_importable()
 
@@ -39,13 +43,10 @@ TETRIS_HEIGHT = 15
 
 
 def signal_handler(sig, frame):
-    print('SIG Handler: ' + str(sig), flush=True)
-    grid_helpers.grid_reset_and_write()
+    print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
+    if not args.local:
+        grid_helpers.grid_reset_and_write()
     sys.exit()
-signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler)
-
-
 
 
 # https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest?cb=20060626173148
@@ -393,6 +394,9 @@ if __name__ == "__main__":
     argparse.add_argument('--local', action='store_true')
     argparse.add_argument('--rotate', dest='rotate_terminal', action='store_true')
     args = argparse.parse_args()
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
 
     serial_communicator = None
     if args.local:

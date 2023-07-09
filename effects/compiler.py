@@ -21,7 +21,7 @@ useful_attrs = set([
 class GridInfo:
     def __init__(self):
         self.grid_function = None
-        self.skip_top_front_grid_fill = False
+        self.grid_skip_top_fill = False
 
     def reset(self):
         pass
@@ -39,7 +39,7 @@ class GridInfo:
                 continue
             building.append(f'{attr}: {value}')
         
-        return f'GridInfo: {", ".join(building)}'
+        return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
@@ -70,7 +70,7 @@ def fill_grid_from_text(grid_info):
 
 
 following_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, rotate_90=None, grid_text=None, font_size=12, grid_skip_top_fill=False, grid_setup_function=None):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, rotate_90=None, grid_text=None, font_size=12, **grid_kwargs):
     global following_beat
 
     if length is None:
@@ -107,9 +107,9 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
 
     if grid_function is not None:
         grid_info.grid_function = grid_function
-        grid_info.skip_top_front_grid_fill = grid_skip_top_fill
-        if grid_setup_function is not None:
-            grid_setup_function(grid_info)
+        if grid_kwargs:
+            for key, value in grid_kwargs.items():
+                setattr(grid_info, key, value)
         return [start_beat, grid_info, length]
 
     if name is None:

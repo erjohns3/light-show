@@ -4,24 +4,27 @@ import grid_helpers
 
 
 grid = grid_helpers.get_grid()
-def tech_move_up(grid_info):
+def move_grid(grid_info):
     if grid_info.curr_sub_beat % 1 == 0:
-        grid_helpers.grid_move([0, 3])
+        grid_helpers.grid_move(grid_info.vector)
 
 
-def tech_spawn_white_row(grid_info):
-    print('SHOULD SPAWN\n' * 800)
+def spawn_row(grid_info):
     for x in range(grid_helpers.GRID_WIDTH):
-        grid[x][0] = (100, 100, 100)
-    exit()
+        grid[x][0] = grid_info.color
+
+colors = {
+    'white': (100, 100, 100),
+    'pink': (100, 0, 100),
+}
 
 effects = {
     '5 hours intro': {
         'length': 79,
         'beats': [
-            b(1, grid_function=tech_spawn_white_row, length=0.1),
-            b(1, grid_function=tech_move_up, grid_skip_top_fill=True, length=79),
-            b(2, grid_function=tech_spawn_white_row, length=0.1),
+            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=79),
+            b(1, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(2, grid_function=spawn_row, color=colors['pink'], length=0.01),
         ]
     },
 

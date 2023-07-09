@@ -830,7 +830,7 @@ async def light():
     search_thread = None
     while True:
         grid_infos_for_this_sub_beat = []
-        skip_top_front_grid_fill = False
+        grid_skip_top_fill = False
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -861,17 +861,17 @@ async def light():
         for effect_tuple in curr_effects:
             effect_name = effect_tuple[0]
             index = beat_index + effect_tuple[1]
-            grid_info = channel_lut[effect_name].get('grid_info', None)
-            if grid_info is not None:
-                for start_b, end_b, grid_info in grid_info:
+            grid_info_arr = channel_lut[effect_name].get('grid_info', None)
+            if grid_info_arr is not None:
+                # print(f'Looking at {len(grid_info_arr)} grid_info_arrs for {effect_name}')
+                for start_b, end_b, grid_info in grid_info_arr:
                     if start_b <= index <= end_b:
                         grid_info.start_sub_beat = start_b
                         grid_info.end_sub_beat = end_b
                         grid_info.curr_sub_beat = index - start_b
                         grid_info.bpm = curr_bpm
                         grid_infos_for_this_sub_beat.append(grid_info)
-                        skip_top_front_grid_fill = skip_top_front_grid_fill or getattr(grid_info, 'skip_top_front_grid_fill', False)
-                        break
+                        grid_skip_top_fill = grid_skip_top_fill or getattr(grid_info, 'grid_skip_top_fill', False)
 
         grid_levels = [0] * LIGHT_COUNT
         for i in range(LIGHT_COUNT):
@@ -902,7 +902,7 @@ async def light():
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
         
-        if not skip_top_front_grid_fill:
+        if not grid_skip_top_fill:
             grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
@@ -1897,6 +1897,7 @@ if __name__ == '__main__':
         # debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
         # debug_channel_lut_grid_info('tech effect testing')
         # debug_channel_lut_grid_info('tech effect testing sub')
+        debug_channel_lut_grid_info('5 hours intro')
         # exit()
 
         if args.show:

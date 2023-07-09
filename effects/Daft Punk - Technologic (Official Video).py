@@ -37,29 +37,45 @@ lyrics = {
 
 
 
+def increase_dim_offset(grid_info, dimension):
+    if dimension == 'x':
+        grid_info.offset_x = (grid_info.offset_x + 1) % grid_helpers.GRID_WIDTH
+    elif dimension == 'y':
+        grid_info.offset_y = (grid_info.offset_y + 1) % grid_helpers.GRID_HEIGHT
+
+
+
 grid = grid_helpers.get_grid()
-GRID_HEIGHT, GRID_WIDTH = grid_helpers.get_grid_height(), grid_helpers.get_grid_width()
-def grid_line_go_y(grid_info):
-    if getattr(grid_info, 'y', None) is None or grid_info.curr_sub_beat == grid_info.start_sub_beat:
-        grid_info.y = 0
-        grid_info.color = (30, 0, 0)
-
-    if grid_info.curr_sub_beat % 1 == 0:
-        grid_helpers.grid_reset()        
-        for x in range(GRID_WIDTH):
-            grid[x][grid_info.y] = grid_info.color
-        grid_info.y = (grid_info.y + 1) % GRID_HEIGHT
-    
-def grid_line_go_x(grid_info):
-    if getattr(grid_info, 'x', None) is None or grid_info.curr_sub_beat == grid_info.start_sub_beat:
+def grid_line_go(grid_info):
+    if grid_info.curr_sub_beat == grid_info.start_sub_beat:
         grid_info.x = 0
-        grid_info.color = (0, 30, 0)
-
+        grid_info.y = 0
     if grid_info.curr_sub_beat % 1 == 0:
         grid_helpers.grid_reset()        
-        for y in range(GRID_HEIGHT):
-            grid[grid_info.x][y] = grid_info.color
-        grid_info.x = (grid_info.x + 1) % GRID_WIDTH
+        for x in range(grid_info.width):
+            for y in range(grid_info.height):
+                grid[x + grid_info.x][y + grid_info.y] = grid_info.color
+        grid_info.x = (grid_info.x + grid_info.change[0]) % grid_helpers.GRID_WIDTH
+        grid_info.y = (grid_info.y + grid_info.change[1]) % grid_helpers.GRID_HEIGHT
+
+
+def tech_left(grid_info):
+    grid_info.x = 0
+    grid_info.y = 0
+    grid_info.color = (0, 30, 0)
+    grid_info.width = grid_helpers.GRID_WIDTH
+    grid_info.height = 1
+    grid_info.change = [1, 0]
+
+
+def tech_up(grid_info):
+    grid_info.x = 0
+    grid_info.y = 0
+    grid_info.color = (30, 0, 0)
+    grid_info.width = 1
+    grid_info.height = grid_helpers.GRID_HEIGHT
+    grid_info.change = [0, 1]
+    
 
 
 effects = {
@@ -72,8 +88,8 @@ effects = {
     'battling_lines': {
         'length': 4,
         'beats': [
-            b(1, grid_function=grid_line_go_y, grid_skip_top_fill=True, length=2),
-            b(3, grid_function=grid_line_go_x, grid_skip_top_fill=True, length=2),
+            b(1, grid_function=grid_line_go, grid_setup_function=tech_left, grid_skip_top_fill=True, length=2),
+            b(3, grid_function=grid_line_go, grid_setup_function=tech_up, grid_skip_top_fill=True, length=2),
         ]
     },
 

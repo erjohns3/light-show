@@ -13,18 +13,23 @@ def spawn_row(grid_info):
     for x in range(grid_helpers.GRID_WIDTH):
         grid[x][0] = grid_info.color
 
+
+
 colors = {
     'white': (100, 100, 100),
     'pink': (100, 0, 100),
 }
-
 effects = {
     '5 hours intro': {
         'length': 79,
         'beats': [
-            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=79),
             b(1, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(2, grid_function=spawn_row, color=colors['pink'], length=0.01),
+            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=79),
+            b(4, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(6.75, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(9.5, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(12, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(14.5, grid_function=spawn_row, color=colors['white'], length=0.01),
         ]
     },
 

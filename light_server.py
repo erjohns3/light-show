@@ -864,7 +864,7 @@ async def light():
             grid_info = channel_lut[effect_name].get('grid_info', None)
             if grid_info is not None:
                 for start_b, end_b, grid_info in grid_info:
-                    if start_b <= index < end_b:
+                    if start_b <= index <= end_b:
                         grid_info.start_sub_beat = start_b
                         grid_info.end_sub_beat = end_b
                         grid_info.curr_sub_beat = index - start_b

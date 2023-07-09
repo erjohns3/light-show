@@ -42,6 +42,27 @@ def get_grid():
     return grid
 
 
+def copy_grid():
+    return np.array(grid)
+
+
+def grid_move(vector):
+    arr = copy_grid()
+    opp_vector = (vector[0] * -1, vector[1] * -1)
+    for x in range(GRID_WIDTH):
+        o_x = (x + opp_vector[0]) % GRID_WIDTH
+        for y in range(GRID_HEIGHT):
+            o_y = (y + opp_vector[1]) % GRID_HEIGHT 
+            grid[x][y] = arr[o_x][o_y]
+
+
+
+
+def set_grid(new_grid):
+    global grid
+    grid = new_grid
+
+
 @profile
 def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:

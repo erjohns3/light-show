@@ -36,46 +36,39 @@ lyrics = {
 # }
 
 
-
-def increase_dim_offset(grid_info, dimension):
-    if dimension == 'x':
-        grid_info.offset_x = (grid_info.offset_x + 1) % grid_helpers.GRID_WIDTH
-    elif dimension == 'y':
-        grid_info.offset_y = (grid_info.offset_y + 1) % grid_helpers.GRID_HEIGHT
-
-
-
 grid = grid_helpers.get_grid()
-def grid_line_go(grid_info):
-    if grid_info.curr_sub_beat == grid_info.start_sub_beat:
-        grid_info.x = 0
-        grid_info.y = 0
+def tech_move_left(grid_info):
     if grid_info.curr_sub_beat % 1 == 0:
-        grid_helpers.grid_reset()        
-        for x in range(grid_info.width):
-            for y in range(grid_info.height):
-                grid[x + grid_info.x][y + grid_info.y] = grid_info.color
-        grid_info.x = (grid_info.x + grid_info.change[0]) % grid_helpers.GRID_WIDTH
-        grid_info.y = (grid_info.y + grid_info.change[1]) % grid_helpers.GRID_HEIGHT
+        grid_helpers.grid_move([3, 1])
+
+def tech_move_up(grid_info):
+    if grid_info.curr_sub_beat % 1 == 0:
+        grid_helpers.grid_move([1, 3])
 
 
-def tech_left(grid_info):
-    grid_info.x = 0
-    grid_info.y = 0
-    grid_info.color = (0, 30, 0)
-    grid_info.width = grid_helpers.GRID_WIDTH
-    grid_info.height = 1
-    grid_info.change = [1, 0]
+def tech_green_row(grid_info):
+    grid_helpers.grid_reset()
+    for x in range(grid_helpers.GRID_WIDTH):
+        grid[x][0] = (0, 100, 0)
+
+import random
+def tech_random_row(grid_info):
+    grid_helpers.grid_reset()
+    for x in range(grid_helpers.GRID_WIDTH):
+        grid[x][0][random.randint(0, 2)] = 100
+
+def tech_random_col(grid_info):
+    grid_helpers.grid_reset()
+    for y in range(grid_helpers.GRID_HEIGHT):
+        grid[0][y][random.randint(0, 2)] = 100
 
 
-def tech_up(grid_info):
-    grid_info.x = 0
-    grid_info.y = 0
-    grid_info.color = (30, 0, 0)
-    grid_info.width = 1
-    grid_info.height = grid_helpers.GRID_HEIGHT
-    grid_info.change = [0, 1]
-    
+
+
+def tech_red_col(grid_info):
+    grid_helpers.grid_reset()
+    for y in range(grid_helpers.GRID_HEIGHT):
+        grid[0][y] = (100, 0, 0)
 
 
 effects = {
@@ -88,8 +81,10 @@ effects = {
     'battling_lines': {
         'length': 4,
         'beats': [
-            b(1, grid_function=grid_line_go, grid_setup_function=tech_left, grid_skip_top_fill=True, length=2),
-            b(3, grid_function=grid_line_go, grid_setup_function=tech_up, grid_skip_top_fill=True, length=2),
+            b(1, grid_function=tech_random_row, grid_skip_top_fill=True, length=0.1),
+            b(1, grid_function=tech_move_left, grid_skip_top_fill=True, length=2),
+            b(3, grid_function=tech_random_col, grid_skip_top_fill=True, length=0.1),
+            b(3, grid_function=tech_move_up, grid_skip_top_fill=True, length=2),
         ]
     },
 

@@ -5,7 +5,9 @@ import grid_helpers
 
 grid = grid_helpers.get_grid()
 def move_grid(grid_info):
-    if grid_info.curr_sub_beat % 1 == 0:
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
         grid_helpers.grid_move(grid_info.vector)
 
 
@@ -49,12 +51,24 @@ effects = {
         ]
     },
 
+
+    'wipe sad': {
+        'length': 8,
+        'beats': [
+            b(1, grid_text='DIE', font_size=14, length=.01),
+            # b(1, grid_filename='dog.jpg', length=.01),
+            b(1, grid_function=move_grid, vector=(0, -1), grid_skip_top_fill=True, beat_divide=6, length=64),        
+        ]
+    },
+
+
     "Deorro - Five Hours (Static Video) [LE7ELS]": {
         "bpm": 128,
         "song_path": "songs/Deorro - Five Hours (Static Video) [LE7ELS].ogg",
         "delay_lights": 0.37665,
         "skip_song": 0.0,
         "beats": [ 
+            # b(1, name='wipe sad', length=79),
             b(1, name='5 hours intro', length=79),
             b(79, name='RBBB 1 bar', length=30, bright_shift=-.8),
             b(113, name='5 hours main chorus', length=64),

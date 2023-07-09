@@ -1897,7 +1897,7 @@ if __name__ == '__main__':
         # debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
         # debug_channel_lut_grid_info('tech effect testing')
         # debug_channel_lut_grid_info('tech effect testing sub')
-        debug_channel_lut_grid_info('5 hours intro')
+        # debug_channel_lut_grid_info('5 hours intro')
         # exit()
 
         if args.show:

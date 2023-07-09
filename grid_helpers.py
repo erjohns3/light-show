@@ -349,7 +349,7 @@ def get_font_path(font_filename):
 
 
 run_once_text_image = set()
-def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
+def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_color=(255, 255, 255)):
     hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
     if hash_filename in run_once_text_image and output_filepath.exists():
@@ -382,7 +382,7 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False):
 
         # x = (width - text_width) // 2
         # y = (height - text_height) // 2
-        pilmoji.text((0, 4), text, (255, 255, 255), font)
+        pilmoji.text((0, 4), text, text_color, font)
 
 
     if not rotate_90:

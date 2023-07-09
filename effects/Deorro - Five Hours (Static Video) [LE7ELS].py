@@ -16,17 +16,21 @@ def spawn_row(grid_info):
 
 
 colors = {
-    'white': (100, 100, 100),
+    'white': (100, 0, 100),
     'pink': (100, 0, 100),
+    'green': (0, 100, 0),
+    'red': (100, 0, 0),
+    'blue': (0, 0, 100),
 }
 effects = {
     '5 hours intro': {
         'length': 79,
         'beats': [
             b(1, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=79),
+            b(1, grid_function=move_grid, vector=(0, 1), grid_skip_top_fill=True, length=6),
             b(4, grid_function=spawn_row, color=colors['white'], length=0.01),
             b(6.75, grid_function=spawn_row, color=colors['white'], length=0.01),
+            b(7, grid_function=move_grid, vector=(0, 2), grid_skip_top_fill=True, length=73),
             b(9.5, grid_function=spawn_row, color=colors['white'], length=0.01),
             b(12, grid_function=spawn_row, color=colors['white'], length=0.01),
             b(14.5, grid_function=spawn_row, color=colors['white'], length=0.01),
@@ -34,6 +38,16 @@ effects = {
     },
 
 
+    '5 hours main chorus': {
+        'length': 64,
+        'beats': [
+            b(1.5, grid_function=spawn_row, color=colors['pink'], length=0.01),
+            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=64),
+            b(2.5, grid_function=spawn_row, color=colors['pink'], length=0.01),
+            b(3.5, grid_function=spawn_row, color=colors['blue'], length=0.01),
+            b(4.5, grid_function=spawn_row, color=colors['green'], length=0.01),
+        ]
+    },
 
     "Deorro - Five Hours (Static Video) [LE7ELS]": {
         "bpm": 128,
@@ -42,8 +56,8 @@ effects = {
         "skip_song": 0.0,
         "beats": [ 
             b(1, name='5 hours intro', length=79),
-            b(79, name='RBBB 1 bar', length=1000),
-            b(113, name='RBBB 1 bar', length=1000),
+            b(79, name='RBBB 1 bar', length=30, bright_shift=-.8),
+            b(113, name='5 hours main chorus', length=64),
         ]
     }
 }

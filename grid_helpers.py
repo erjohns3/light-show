@@ -48,14 +48,28 @@ def copy_grid():
 
 def grid_move(vector):
     arr = copy_grid()
+    grid_reset()
+    opp_vector = (vector[0] * -1, vector[1] * -1)
+    for x in range(GRID_WIDTH):
+        o_x = (x + opp_vector[0])
+        if o_x < 0 or o_x >= GRID_WIDTH:
+            continue
+        for y in range(GRID_HEIGHT):
+            o_y = (y + opp_vector[1])
+            if o_y < 0 or o_y >= GRID_HEIGHT:
+                continue
+            grid[x][y] = arr[o_x][o_y]
+
+
+def grid_move_wrap(vector):
+    arr = copy_grid()
+    grid_reset()
     opp_vector = (vector[0] * -1, vector[1] * -1)
     for x in range(GRID_WIDTH):
         o_x = (x + opp_vector[0]) % GRID_WIDTH
         for y in range(GRID_HEIGHT):
             o_y = (y + opp_vector[1]) % GRID_HEIGHT 
             grid[x][y] = arr[o_x][o_y]
-
-
 
 
 def set_grid(new_grid):

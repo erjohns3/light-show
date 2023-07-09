@@ -53,11 +53,11 @@ effects = {
 
 
     'wipe sad': {
-        'length': 8,
+        'length': 16,
         'beats': [
-            b(1, grid_text='😭', font_size=14, length=.01),
-            # b(1, grid_filename='dog.jpg', length=.01),
-            b(1, grid_function=move_grid, vector=(0, -1), grid_skip_top_fill=True, beat_divide=6, length=64),        
+            # b(1, grid_text='D:', font_size=13, length=.01),
+            b(1, grid_filename='nyan.webp', grid_rotate=True, length=16),
+            # b(1, grid_function=move_grid, vector=(0, -1), grid_skip_top_fill=True, beat_divide=12, length=64),        
         ]
     },
 

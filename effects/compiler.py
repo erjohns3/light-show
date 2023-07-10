@@ -67,7 +67,7 @@ def grid_visualizer(grid_info):
     spectogram_at_time = spectogram[grid_info.curr_sub_beat]
     for y in range(grid_helpers.GRID_HEIGHT):
         for x in range(spectogram_at_time[y]):
-            grid_helpers.grid[x][y] = grid_helpers.color
+            grid_helpers.grid[x][y] = grid_info.color
 
 
 

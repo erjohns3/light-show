@@ -827,7 +827,7 @@ def print_current_beat():
     print(f'Beat: {curr_beat:.1f}\n' * 25)
 
 
-@profile
+# @profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
 
@@ -1112,6 +1112,7 @@ def effects_config_sort(all_nodes):
     
     found[curr_node] = True
     if isinstance(curr_node, GridInfo):
+        all_grid_infos.append(curr_node)
         complex_effects.append(curr_node)
         return
 
@@ -1139,19 +1140,18 @@ def dfs(effect_name):
                     return missing_effect
         effects_config_sort([effect_name])
 
-
+@profile
 def add_dependancies(effect_names):
     for effect_name in effect_names:
         effect = effects_config[effect_name]
-        graph[effect_name] = {}
-        for component in effect['beats']:
-            if type(component[1]) is str or isinstance(component[1], GridInfo):
-                if isinstance(component[1], GridInfo):
-                    # component[1].start_beat = component[0]
-                    # component[1].beat_length = component[2]
-                    all_grid_infos.append(component[1])
-                graph[effect_name][component[1]] = True
-        graph[effect_name] = list(graph[effect_name].keys())
+
+        # this is optimized from below
+        graph[effect_name] = list({component[1] for component in effect['beats'] if not isinstance(component[1], list)})
+        
+        # for component in effect['beats']:
+        #     if not isinstance(component[1], list):
+        #         graph[effect_name].add(component[1])
+        # graph[effect_name] = list(graph[effect_name])
 
 
 def add_song_to_config(song_path):
@@ -1900,7 +1900,6 @@ if __name__ == '__main__':
         # debug_channel_lut_grid_info('tech effect testing')
         # debug_channel_lut_grid_info('tech effect testing sub')
         # debug_channel_lut_grid_info('5 hours intro')
-        # exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)
@@ -1908,6 +1907,7 @@ if __name__ == '__main__':
             add_effect(args.show)
             play_song(args.show)
 
+        # exit()
         asyncio.create_task(light())
 
         print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')

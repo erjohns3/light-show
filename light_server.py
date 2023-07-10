@@ -102,8 +102,6 @@ broadcast_dev_status = False
 
 download_queue, search_queue = [], []
 
-printed_http_info = False
-
 ########################################
         
 PORT = 9555
@@ -116,11 +114,9 @@ except:
     local_ip = 'cant_resolve_hostbyname'
 
 def run_http_server_forever():
-    global printed_http_info
     import http.server
     httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
     print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
-    printed_http_info = True
     httpd.serve_forever()
 
 
@@ -649,37 +645,27 @@ def get_sub_effect_names(effect_name, beat):
                 break
     return sub_effect_names
 
+# outside
+# last_called_grid_render = False
 
-stage_chars = '.,-~:;=!*#$@'
-max_num = pow(2, 16) - 1
-purple = [153, 50, 204]
-laser_stage = random.randint(0, 110)
-disco_speed = .15
-disco_pos = 0
-last_called_grid_render = False
-async def render_to_terminal(all_levels):
-    global rekordbox_time, rekordbox_bpm, laser_stage, disco_pos, printed_http_info, last_called_grid_render
+# wherever clear
+# global last_called_grid_render 
+# if last_called_grid_render:
+#     full_clear = ' ' * terminal_size + '\n'
+#     print(full_clear * 26, end='')
+#     last_called_grid_render = False
 
-    while not printed_http_info:
-        time.sleep(.01)
+# in light
+# if args.local and bool(grid_infos_for_this_sub_beat):
+#     last_called_grid_render = True
 
 
-    rows_to_print = []
-    character = '▆'
+def print_info_terminal_lines():
     curr_beat = (beat_index / SUB_BEATS) + 1
     try:
         terminal_size = os.get_terminal_size().columns
     except:
         terminal_size = 45
-
-    if last_called_grid_render:        
-        full_clear = ' ' * terminal_size + '\n'
-        print(full_clear * 26, end='')
-        last_called_grid_render = False
-
-
-    # terminal_buffer = ' ' * terminal_size
-    line_length = terminal_size - 1
 
     show_specific = ''
     all_effect_names = []
@@ -716,16 +702,32 @@ Beat {curr_beat:.1f}\
     effect_string = f'Effects: {", ".join(all_effect_names)}'
     to_fill = terminal_size - len(effect_string)
 
-    # the first character is to stop any rouge ansi codes 
     effect_print = ''.join([effect_string, (' ' * to_fill)])
     print(effect_print)
 
     to_fill = terminal_size - len(useful_info)
     print(useful_info + (' ' * to_fill))
 
+
+
+stage_chars = '.,-~:;=!*#$@'
+max_num = pow(2, 16) - 1
+purple = [153, 50, 204]
+laser_stage = random.randint(0, 110)
+disco_speed = .15
+disco_pos = 0
+async def render_non_grid_terminal(all_levels):
+    global laser_stage, disco_pos
+    rows_to_print = []
+    character = '▆'
+    try:
+        terminal_size = os.get_terminal_size().columns
+    except:
+        terminal_size = 45
+
+    line_length = terminal_size - 1
+
     levels_255 = list(map(lambda x: int(x * 255), all_levels))
-
-
     top_front_rgb = levels_255[0:3]
     top_back_rgb = levels_255[3:6]
     bottom_rgb = levels_255[6:9]
@@ -736,7 +738,6 @@ Beat {curr_beat:.1f}\
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
-    
     if any(laser_color_rgb):
         laser_arr = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
@@ -803,14 +804,14 @@ Beat {curr_beat:.1f}\
         if index == len(rows_to_print) - 1:
             ender = ''
         print(row, end=ender)
-    sys.stdout.write('\033[F' * 8)
+    sys.stdout.write('\033[F' * 6)
 
 
 all_levels = [0] * LIGHT_COUNT
-async def terminal(level, i):
+async def non_grid_terminal(level, i):
     all_levels[i] = level
     if i == LIGHT_COUNT - 1:
-        await render_to_terminal(all_levels)
+        await render_non_grid_terminal(all_levels)
 
 
 ####################################
@@ -819,6 +820,12 @@ def uuid_to_user(uuid):
     if uuid in users:
         return users[uuid]['name'] + f' ({uuid})'
     return uuid
+
+
+def print_current_beat():
+    curr_beat = (beat_index / SUB_BEATS) + 1
+    print(f'Beat: {curr_beat:.1f}\n' * 25)
+
 
 @profile
 async def light():
@@ -833,6 +840,9 @@ async def light():
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
         beat_index = int(time_diff * rate)
+
+        if args.local:
+            print_info_terminal_lines()
 
         if song_playing and not pygame.mixer.music.get_busy():
             remove_effect_name(song_queue[0][0])
@@ -894,7 +904,7 @@ async def light():
 
             if args.local:
                 if not grid_infos_for_this_sub_beat:
-                    await terminal(level_between_0_and_1, i)
+                    await non_grid_terminal(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
@@ -913,8 +923,8 @@ async def light():
                 return False
 
         grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
-        if args.local and bool(grid_infos_for_this_sub_beat):
-            last_called_grid_render = True
+        if args.local:
+            print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 
         if download_thread is not None:
             if not download_thread.is_alive():
@@ -952,13 +962,6 @@ async def light():
         if rate < 0:
             direction = -1
         time_delay = ((beat_index + direction) / rate) - time_diff
-
-        # if beat_index % SUB_BEATS == 0:
-        #     print(f'{beat_index=}, {time_diff=}')
-            # avg = 0
-        # else:
-        #     print(beat_index)
-        #     avg += time_diff
 
         await asyncio.sleep(min(0.05, time_delay))
 
@@ -1787,6 +1790,7 @@ if __name__ == '__main__':
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
+            'b': print_current_beat,
             'j': lambda: restart_show(skip=-skip_time),
             ';': lambda: restart_show(skip=skip_time),
             'left': lambda: restart_show(skip=-skip_time),

@@ -6,11 +6,9 @@ from effects.compiler import *
 
 effects = {
     "specto young": {
-        "length": 3,
+        "length": 1,
         "beats": [
-            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
-            grid_f(2, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
-            grid_f(3, function=grid_visualizer, color=(0, 0, 255), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
+            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
         ],
     },
 

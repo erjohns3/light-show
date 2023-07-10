@@ -1,4 +1,4 @@
-from effects.compiler import b
+from effects.compiler import b, grid_f
 
 # delete from misc.py when you convert any
 effects = {

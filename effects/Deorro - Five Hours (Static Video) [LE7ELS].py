@@ -1,4 +1,4 @@
-from effects.compiler import b
+from effects.compiler import b, grid_f
 
 import grid_helpers
 
@@ -28,14 +28,14 @@ effects = {
     '5 hours intro': {
         'length': 79,
         'beats': [
-            b(1, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(1, grid_function=move_grid, vector=(0, 1), grid_skip_top_fill=True, length=6),
-            b(4, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(6.75, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(7, grid_function=move_grid, vector=(0, 2), grid_skip_top_fill=True, length=73),
-            b(9.5, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(12, grid_function=spawn_row, color=colors['white'], length=0.01),
-            b(14.5, grid_function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(1, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(1, function=move_grid, vector=(0, 1), grid_skip_top_fill=True, length=6),
+            grid_f(4, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(6.75, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(7, function=move_grid, vector=(0, 2), grid_skip_top_fill=True, length=73),
+            grid_f(9.5, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(12, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(14.5, function=spawn_row, color=colors['white'], length=0.01),
         ]
     },
 
@@ -43,11 +43,11 @@ effects = {
     '5 hours main chorus': {
         'length': 64,
         'beats': [
-            b(1.5, grid_function=spawn_row, color=colors['pink'], length=0.01),
-            b(1, grid_function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=64),
-            b(2.5, grid_function=spawn_row, color=colors['pink'], length=0.01),
-            b(3.5, grid_function=spawn_row, color=colors['blue'], length=0.01),
-            b(4.5, grid_function=spawn_row, color=colors['green'], length=0.01),
+            grid_f(1.5, function=spawn_row, color=colors['pink'], length=0.01),
+            grid_f(1, function=move_grid, vector=(0, 3), grid_skip_top_fill=True, length=64),
+            grid_f(2.5, function=spawn_row, color=colors['pink'], length=0.01),
+            grid_f(3.5, function=spawn_row, color=colors['blue'], length=0.01),
+            grid_f(4.5, function=spawn_row, color=colors['green'], length=0.01),
         ]
     },
 
@@ -55,9 +55,9 @@ effects = {
     'wipe sad': {
         'length': 16,
         'beats': [
-            # b(1, grid_text='D:', font_size=13, length=.01),
-            b(1, grid_filename='nyan.webp', grid_rotate=True, length=16),
-            # b(1, grid_function=move_grid, vector=(0, -1), grid_skip_top_fill=True, beat_divide=12, length=64),        
+            grid_f(1, text='😭', font_size=13, length=.01),
+            # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
+            grid_f(1, function=move_grid, vector=(0, -1), grid_skip_top_fill=True, beat_divide=12, length=64),        
         ]
     },
 

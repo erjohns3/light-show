@@ -1,4 +1,4 @@
-from effects.compiler import b
+from effects.compiler import b, grid_f
 
 effects = {
     "Ghosts melody": {

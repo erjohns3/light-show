@@ -65,6 +65,10 @@ def get_ray_directory():
     global ray_is_active_andrew
     if is_ray():
         return pathlib.Path('T:/')
+    elif is_andrews_laptop():
+        return pathlib.Path('\\\\Ray\\T')
+    elif is_windows():
+        return pathlib.Path('T:/')
     elif is_andrews_main_computer():
         mount_path = pathlib.Path('/mnt/ray_network_share')
         if ray_is_active_andrew:

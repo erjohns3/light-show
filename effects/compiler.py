@@ -13,7 +13,7 @@
 import pathlib
 
 import grid_helpers
-
+from helpers import *
 
 useful_attrs = set([
     'text',
@@ -69,8 +69,32 @@ def fill_grid_from_text(grid_info):
 
 
 
+def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):
+    grid_info = GridInfo()
+    if filename is not None:
+        grid_info.filename = filename
+        grid_info.rotate_90 = rotate_90
+        function = fill_grid_from_image_filepath
+
+    if text is not None:
+        grid_info.text = text
+        grid_info.font_size = font_size
+        grid_info.rotate_90 = rotate_90
+        function = fill_grid_from_text
+
+    if function is None:
+        print_red(f'function is None, filename: {filename}, text: {text}')
+        exit()
+    grid_info.grid_function = function
+    if kwargs:
+        for key, value in kwargs.items():
+            setattr(grid_info, key, value)
+    return [start_beat, grid_info, length]
+
+
+
 following_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None, grid_function=None, grid_filename=None, rotate_90=None, grid_text=None, font_size=12, **grid_kwargs):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None):
     global following_beat
 
     if length is None:
@@ -92,25 +116,6 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
 
-
-    grid_info = GridInfo()
-    if grid_filename is not None:
-        grid_info.filename = grid_filename
-        grid_info.rotate_90 = rotate_90
-        grid_function = fill_grid_from_image_filepath
-
-    if grid_text is not None:
-        grid_info.text = grid_text
-        grid_info.font_size = font_size
-        grid_info.rotate_90 = rotate_90
-        grid_function = fill_grid_from_text
-
-    if grid_function is not None:
-        grid_info.grid_function = grid_function
-        if grid_kwargs:
-            for key, value in grid_kwargs.items():
-                setattr(grid_info, key, value)
-        return [start_beat, grid_info, length]
 
     if name is None:
         if top_rgb is None:

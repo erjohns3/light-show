@@ -1,4 +1,4 @@
-from effects.compiler import b
+from effects.compiler import b, grid_f
 import grid_helpers
 from scripts import tetris_grid
 
@@ -99,13 +99,13 @@ effects = {
         "delay_lights": 0.0252,
         "skip_song": 0.0,
         "beats": [
-            # b(1, grid_filename='dog.jpg', rotate_90=False, length=16),
-            # b(1, grid_filename='ricardo.gif', rotate_90=False, length=24),
-            b(1, grid_text='😭', rotate_90=True, length=240),
-            # b(1, grid_filename='nyan.webp', rotate_90=True, length=8),
-            # b(1, grid_function=lambda grid_info: print('hello'), length=16),
+            # grid_f(1, filename='dog.jpg', rotate_90=False, length=16),
+            # grid_f(1, filename='ricardo.gif', rotate_90=False, length=24),
+            grid_f(1, text='😭', rotate_90=True, length=240),
+            # grid_f(1, filename='nyan.webp', rotate_90=True, length=8),
+            # grid_f(1, function=lambda grid_info: print('hello'), length=16),
 
-            # b(1, grid_text='buy\n  it', font_size=8, length=8),
+            # grid_f(1, text='buy\n  it', font_size=8, length=8),
 
             # b(9, name='ll bass', length=144),
 

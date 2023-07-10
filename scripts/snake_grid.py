@@ -35,16 +35,15 @@ for item, color in item_colors.items():
     color_scaled = [round(c * 2.55) for c in color]
     item_styles[item] = f'rgb({color_scaled[0]},{color_scaled[1]},{color_scaled[2]})'
 
-grid = grid_helpers.get_grid()
 def render(game_state):
     for g_x, g_y in grid_helpers.grid_coords():
         if grid_helpers.grid_in_bounds((g_x, g_y)):
             if (g_x, g_y) == game_state.player_head_pos or (g_x, g_y) in game_state.player_body_poses:
-                grid[g_x][g_y] = item_colors['player']
+                grid_helpers.grid[g_x][g_y] = item_colors['player']
             elif (g_x, g_y) == game_state.food_pos:
-                grid[g_x][g_y] = item_colors['food']
+                grid_helpers.grid[g_x][g_y] = item_colors['food']
             else:
-                grid[g_x][g_y] = item_colors['empty']
+                grid_helpers.grid[g_x][g_y] = item_colors['empty']
     grid_helpers.render_grid(terminal=args.local)
 
 

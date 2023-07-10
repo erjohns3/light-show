@@ -36,7 +36,6 @@ lyrics = {
 # }
 
 
-grid = grid_helpers.get_grid()
 def tech_move_left(grid_info):
     if grid_info.curr_sub_beat % 1 == 0:
         grid_helpers.grid_move([1, 0])
@@ -49,18 +48,18 @@ def tech_move_up(grid_info):
 def tech_green_row(grid_info):
     grid_helpers.grid_reset()
     for x in range(grid_helpers.GRID_WIDTH):
-        grid[x][0] = (0, 100, 0)
+        grid_helpers.grid[x][0] = (0, 100, 0)
 
 import random
 def tech_random_row(grid_info):
     grid_helpers.grid_reset()
     for x in range(grid_helpers.GRID_WIDTH):
-        grid[x][0][random.randint(0, 2)] = 100
+        grid_helpers.grid[x][0][random.randint(0, 2)] = 100
 
 def tech_random_col(grid_info):
     grid_helpers.grid_reset()
     for y in range(grid_helpers.GRID_HEIGHT):
-        grid[0][y][random.randint(0, 2)] = 100
+        grid_helpers.grid[0][y][random.randint(0, 2)] = 100
 
 
 

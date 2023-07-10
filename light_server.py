@@ -820,9 +820,6 @@ def uuid_to_user(uuid):
         return users[uuid]['name'] + f' ({uuid})'
     return uuid
 
-grid = grid_helpers.get_grid()
-GRID_WIDTH = grid_helpers.get_grid_width()
-GRID_HEIGHT = grid_helpers.get_grid_height()
 @profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
@@ -904,8 +901,8 @@ async def light():
 
         
         if not grid_skip_top_fill:
-            grid[:][:GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            grid[GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+            grid_helpers.grid[:][:grid_helpers.GRID_WIDTH // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            grid_helpers.grid[grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
         for grid_info in grid_infos_for_this_sub_beat:
             try:

@@ -16,7 +16,6 @@ import grid_helpers
 from effects.compiler import GridInfo
 from helpers import *
 
-grid = grid_helpers.get_grid()
 
 
 def signal_handler(sig, frame):
@@ -225,7 +224,7 @@ def reprint_real_grid():
         [2, 1],
     ]:
         for rgb_index, value in enumerate(real_color):
-            grid[x][y][rgb_index] = value
+            grid_helpers.grid[x][y][rgb_index] = value
 
     # this doesnt work, why do i have to call grid multiple times????
     for _ in range(20):

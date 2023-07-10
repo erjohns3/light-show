@@ -19,9 +19,6 @@ script_helpers.make_directory_above_importable()
 from helpers import *
 import grid_helpers
 
-grid = grid_helpers.get_grid()
-GRID_WIDTH = grid_helpers.get_grid_width()
-GRID_HEIGHT = grid_helpers.get_grid_height()
 
 # TETRIS_X_OFFSET = 3
 # TETRIS_Y_OFFSET = 1
@@ -120,13 +117,13 @@ def fill_grid_and_render(game_state):
         y = (g_y // 2) + TETRIS_Y_OFFSET
         if grid_helpers.grid_in_bounds((g_x, g_y)):
             if x < 0 or x >= TETRIS_WIDTH or y < 0 or y >= TETRIS_HEIGHT:
-                grid[g_x][g_y] = block_colors['out_of_bounds']
+                grid_helpers.grid[g_x][g_y] = block_colors['out_of_bounds']
             elif (x, y) in active_poses:
-                grid[g_x][g_y] = block_colors['active_piece']
+                grid_helpers.grid[g_x][g_y] = block_colors['active_piece']
             elif game_state.board[x][y] is not None:
-                grid[g_x][g_y] = block_colors['dead_square']
+                grid_helpers.grid[g_x][g_y] = block_colors['dead_square']
             else:
-                grid[g_x][g_y] = block_colors['empty']
+                grid_helpers.grid[g_x][g_y] = block_colors['empty']
     grid_helpers.render_grid(terminal=args.local, rotate_terminal=args.rotate_terminal)
 
 

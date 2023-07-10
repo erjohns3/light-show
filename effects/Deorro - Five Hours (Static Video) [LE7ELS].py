@@ -3,7 +3,6 @@ from effects.compiler import b, grid_f
 import grid_helpers
 
 
-grid = grid_helpers.get_grid()
 def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
@@ -13,12 +12,12 @@ def move_grid(grid_info):
 
 def spawn_row(grid_info):
     for x in range(grid_helpers.GRID_WIDTH):
-        grid[x][0] = grid_info.color
+        grid_helpers.grid[x][0] = grid_info.color
 
 
 
 colors = {
-    'white': (100, 0, 100),
+    'white': (100, 100, 100),
     'pink': (100, 0, 100),
     'green': (0, 100, 0),
     'red': (100, 0, 0),
@@ -28,12 +27,13 @@ effects = {
     '5 hours intro': {
         'length': 79,
         'beats': [
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=79),
+            grid_f(1, function=move_grid, vector=(0, 1), length=6),
             grid_f(1, function=spawn_row, color=colors['white'], length=0.01),
-            grid_f(1, function=move_grid, vector=(0, 1), grid_skip_top_fill=True, length=6),
-            grid_f(4, function=spawn_row, color=colors['white'], length=0.01),
-            grid_f(6.75, function=spawn_row, color=colors['white'], length=0.01),
-            grid_f(7, function=move_grid, vector=(0, 2), grid_skip_top_fill=True, length=73),
-            grid_f(9.5, function=spawn_row, color=colors['white'], length=0.01),
+            grid_f(4, function=spawn_row, color=colors['pink'], length=0.01),
+            grid_f(6.75, function=spawn_row, color=colors['green'], length=0.01),
+            grid_f(7, function=move_grid, vector=(0, 2), length=73),
+            grid_f(9.5, function=spawn_row, color=colors['blue'], length=0.01),
             grid_f(12, function=spawn_row, color=colors['white'], length=0.01),
             grid_f(14.5, function=spawn_row, color=colors['white'], length=0.01),
         ]

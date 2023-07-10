@@ -165,6 +165,7 @@ effects = {
             grid_f(111.08, function=spawn_row, color=colors['white'], length=0.01),
             grid_f(111.62, function=spawn_row, color=colors['white'], length=0.01),
             grid_f(112.08, function=spawn_row, color=colors['white'], length=0.01),
+            
         ],
     },
 

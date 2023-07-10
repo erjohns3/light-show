@@ -823,6 +823,7 @@ def uuid_to_user(uuid):
 grid = grid_helpers.get_grid()
 GRID_WIDTH = grid_helpers.get_grid_width()
 GRID_HEIGHT = grid_helpers.get_grid_height()
+@profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
 
@@ -1488,7 +1489,7 @@ def compile_lut(local_effects_config):
                 if 'grid_info' not in curr_channel:
                     curr_channel['grid_info'] = []
                 ref_channel_all_grid_infos = reference_channel['grid_info']
-                print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
                 
                 if isinstance(ref_channel_all_grid_infos, GridInfo):
                     curr_channel['grid_info'].append(
@@ -1501,9 +1502,9 @@ def compile_lut(local_effects_config):
                 else:
                     for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
                         ref_grid_info_length = ref_end_beat - ref_start_beat
-                        print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_grid_info)}')
+                        # print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_grid_info)}')
                         for calced_start_beat in range(start_beat + ref_start_beat, start_beat + length, reference_length):
-                            print_green(f'  grid_info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_grid_info_length=}, and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+                            # print_green(f'  grid_info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_grid_info_length=}, and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
                             calced_end_beat = min(calced_start_beat + ref_grid_info_length, start_beat + length)
                             curr_channel['grid_info'].append(
                                 [
@@ -1512,7 +1513,7 @@ def compile_lut(local_effects_config):
                                     ref_grid_info,
                                 ],
                             )
-                            print(f'added {curr_channel["grid_info"][-1]}')
+                            # print(f'added {curr_channel["grid_info"][-1]}')
 
             if 'beats' not in channel_lut[reference_name]:
                 continue

@@ -68,8 +68,8 @@ effects = {
         "delay_lights": 0.37665,
         "skip_song": 0.0,
         "beats": [ 
-            b(1, name='wipe sad', length=79),
-            # b(1, name='5 hours intro', length=79),
+            # b(1, name='wipe sad', length=79),
+            b(1, name='5 hours intro', length=79),
             b(79, name='RBBB 1 bar', length=30, bright_shift=-.8),
             b(113, name='5 hours main chorus', length=64),
         ]

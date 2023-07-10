@@ -82,12 +82,14 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
     if terminal:
         if skip_if_terminal:
             return
+        # to_print_grid = grid.astype(int) * 2.55
+        to_print_grid = grid * 2.55
+        to_print_grid = to_print_grid.astype(int)
         if rotate_terminal:
             for x in range(GRID_WIDTH):
                 column_parts = []
                 for y in range(GRID_HEIGHT):
-                    rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
-                    column_parts.append(rgb_ansi('▆', rgb))
+                    column_parts.append(rgb_ansi('▆', to_print_grid[x][y]))
                 print(''.join(column_parts))
             if reset_terminal:
                 print('\033[F' * GRID_WIDTH, end='')
@@ -95,8 +97,7 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
             for y in range(GRID_HEIGHT):
                 row_parts = []
                 for x in range(GRID_WIDTH):
-                    rgb = tuple(map(lambda x: int(x * 2.55), grid[x][y]))
-                    row_parts.append(rgb_ansi('▆', rgb))
+                    row_parts.append(rgb_ansi('▆', to_print_grid[x][y]))
                 print(''.join(row_parts))
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
@@ -168,7 +169,7 @@ def get_grid_serial():
 
 # ====== image stuff ======
 
-@profile
+# @profile
 def resize_PIL_image(pil_image, rotate_90=False):
     desired_width = GRID_WIDTH
     desired_height = GRID_HEIGHT
@@ -184,7 +185,7 @@ def resize_PIL_image(pil_image, rotate_90=False):
     return pil_image
 
 
-@profile
+# @profile
 def recolor_PIL_image(pil_image):
     if pil_image.mode != 'RGB':
         print_yellow(f'was {pil_image.mode=}, but recoloring image to RGB, this should only happen once, if you see it multiple runs theres something wrong')
@@ -192,14 +193,14 @@ def recolor_PIL_image(pil_image):
     return pil_image
 
 
-@profile
+# @profile
 def resize_and_color_PIL_image(pil_image, rotate_90=False):
     pil_image = resize_PIL_image(pil_image, rotate_90=rotate_90)
     pil_image = recolor_PIL_image(pil_image)
     return pil_image
 
 
-@profile
+# @profile
 def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
     
@@ -230,7 +231,7 @@ def load_image_to_grid(image_filepath, rotate_90=False):
 
 
 animation_cache = {}
-@profile
+# @profile
 def try_load_into_animation_cache(filepath, rotate_90=False):
     with Image.open(filepath) as animation_file:
         print(f'loading animation {filepath.name}, {animation_file.info=}')

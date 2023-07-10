@@ -1904,7 +1904,6 @@ if __name__ == '__main__':
             song_queue.append([args.show, get_queue_salt(), 'CLI'])
             add_effect(args.show)
             play_song(args.show)
-
         asyncio.create_task(light())
 
         print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')

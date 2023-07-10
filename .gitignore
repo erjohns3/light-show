@@ -37,3 +37,4 @@ ray_songs/
 temp.txt
 *.lprof
 profile.svg
+beat_output_file.dat

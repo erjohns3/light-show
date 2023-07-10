@@ -828,6 +828,20 @@ def print_current_beat():
     print(f'Beat: {curr_beat:.1f}\n' * 25)
 
 
+cleard_beat_file = None
+def output_current_beat():
+    global cleard_beat_file
+
+    if cleard_beat_file is None:
+        cleard_beat_file = open('beat_output_file.dat', 'w')
+        cleard_beat_file.close()
+
+
+    with open('beat_output_file.dat', 'a') as f:
+        curr_beat = (beat_index / SUB_BEATS) + 1
+        f.writelines([str(round(curr_beat, 2)), '\n'])
+
+
 @profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
@@ -1787,6 +1801,7 @@ if __name__ == '__main__':
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
+            'n': output_current_beat,
             'b': print_current_beat,
             'j': lambda: restart_show(skip=-skip_time),
             ';': lambda: restart_show(skip=skip_time),

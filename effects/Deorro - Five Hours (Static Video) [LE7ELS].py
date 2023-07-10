@@ -2,7 +2,6 @@ from effects.compiler import b, grid_f
 
 import grid_helpers
 
-
 def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1

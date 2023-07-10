@@ -37,7 +37,6 @@ def copy_grid():
     return np.array(grid)
 
 
-@profile
 def grid_move(vector):
     global grid
     if vector[0]:
@@ -74,7 +73,6 @@ def set_grid(new_grid):
     grid = new_grid
 
 
-@profile
 def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:
         if skip_if_terminal:

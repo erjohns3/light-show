@@ -828,12 +828,12 @@ def print_current_beat():
     print(f'Beat: {curr_beat:.1f}\n' * 25)
 
 
-# @profile
+@profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
 
     download_thread = None
-    search_thread = None
+    search_thread = None 
     while True:
         grid_infos_for_this_sub_beat = []
         grid_skip_top_fill = False
@@ -1383,7 +1383,6 @@ def calculate_complex_effect_length(effect):
     return calced_effect_length
 
 
-@profile
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 

@@ -3,6 +3,7 @@ from PIL import Image, ImageSequence, ImageFont, ImageDraw
 from pilmoji import Pilmoji
 import numpy as np
 import serial
+import sys
 
 from helpers import *
 
@@ -86,19 +87,23 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
         to_print_grid = grid * 2.55
         to_print_grid = to_print_grid.astype(int)
         if rotate_terminal:
-            for x in range(GRID_WIDTH):
-                column_parts = []
-                for y in range(GRID_HEIGHT):
-                    column_parts.append(rgb_ansi('▆', to_print_grid[x][y]))
-                print(''.join(column_parts))
+            [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for y in range(GRID_HEIGHT)])) for x in range(GRID_WIDTH)]
+
+            # for x in range(GRID_WIDTH):
+            #     column_parts = [f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for y in range(GRID_HEIGHT)]
+            #     print(''.join(column_parts))
+
+            # for x in range(GRID_WIDTH):
+            #     column_parts = []
+            #     for y in range(GRID_HEIGHT):
+            #         ansi_string = rgb_ansi('▆', to_print_grid[x][y])
+            #         column_parts.append(ansi_string)
+            #     print(''.join(column_parts))
+
             if reset_terminal:
                 print('\033[F' * GRID_WIDTH, end='')
         else:
-            for y in range(GRID_HEIGHT):
-                row_parts = []
-                for x in range(GRID_WIDTH):
-                    row_parts.append(rgb_ansi('▆', to_print_grid[x][y]))
-                print(''.join(row_parts))
+            [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
     else:

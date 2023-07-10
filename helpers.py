@@ -1,5 +1,12 @@
 import os
 import pathlib
+from functools import lru_cache
+
+
+try:
+    profile
+except NameError:
+    profile = lambda x: x
 
 
 def is_windows():
@@ -214,18 +221,15 @@ def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
 
-disable_color_flag = False
 # I think this is called "true color" which is 24 bit color
+@profile
 def rgb_ansi(text, rgb_tuple):
-    if disable_color_flag:
-        return text
     rgb_style = f'38;2;{rgb_tuple[0]};{rgb_tuple[1]};{rgb_tuple[2]}'
     return f'\033[{rgb_style}m{text}\033[0m'
 
 
+
 def disable_color():
-    global disable_color_flag
-    disable_color_flag = True
     global bcolors
     bcolors.HEADER = ''
     bcolors.OKBLUE = ''

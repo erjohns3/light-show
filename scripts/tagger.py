@@ -74,5 +74,5 @@ else:
 #         assign_tag(filepath, tags, 'title')
 #         assign_tag(filepath, tags, 'artist')
 
-# for name, path in get_all_paths('songs', only_files=True):
+# for name, path in get_all_paths('songs'):
 #     assign_title_tag_if_not_exist(path)

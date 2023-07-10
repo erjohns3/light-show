@@ -1465,7 +1465,7 @@ def compile_lut(local_effects_config):
     for effect_name_or_grid_info in complex_effects:
         if isinstance(effect_name_or_grid_info, GridInfo):
             channel_lut[effect_name_or_grid_info] = {
-                'length': round(effect['length'] * SUB_BEATS),
+                'length': 0,
                 'grid_info': effect_name_or_grid_info,
             }
             continue

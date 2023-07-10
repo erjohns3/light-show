@@ -893,6 +893,7 @@ async def light():
                         grid_info.end_sub_beat = end_b
                         grid_info.curr_sub_beat = index - start_b
                         grid_info.bpm = curr_bpm
+                        grid_info.time_diff = time_diff
                         grid_infos_for_this_sub_beat.append(grid_info)
                         grid_skip_top_fill = grid_skip_top_fill or getattr(grid_info, 'grid_skip_top_fill', False)
 
@@ -1716,7 +1717,6 @@ if __name__ == '__main__':
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 
-
     load_effects_config_from_disk()
 
     for effect_name, effect in effects_config.items():
@@ -1728,7 +1728,6 @@ if __name__ == '__main__':
                 'song_path': effects_config[effect_name]['song_path'],
             }
     print_cyan(f'Up through copying effects to originals: {time.time() - first_start_time:.3f}')
-
 
     def detailed_output_on_enter():
         while True:

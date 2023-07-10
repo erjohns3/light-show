@@ -1,12 +1,23 @@
 from effects.compiler import *
 
 effects = {
-    "deadasdsadmau5 feat. Chrisasdasd James - The Veldt": {
+
+    "specto veldt": {
+        "length": 3,
+        "beats": [
+            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1),
+            grid_f(2, function=grid_visualizer, color=(0, 255, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1),
+            grid_f(3, function=grid_visualizer, color=(0, 0, 255), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1),
+        ],
+    },
+
+    "deadmau5 feat. Chrisasdasd James - The Veldt": {
         "bpm": 128,
-        "song_path": "songs/deadmau5 feat. Chris sadasdJames - The Veldt.ogg",
+        "song_path": "songs/deadmau5 feat. Chris James - The Veldt.ogg",
         "delay_lights": 0.048100000000000004,
         "skip_song": 0.0,
-        "not_done": True,
-        "beats": []
+        "beats": [
+            b(1, name='specto veldt', length=1000),
+        ]
     }
 }

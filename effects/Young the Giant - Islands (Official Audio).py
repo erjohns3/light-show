@@ -4,55 +4,24 @@ import sys
 from effects.compiler import *
 
 
-def normalize_numpy_array(array):
-    array_min, array_max = np.min(array), np.max(array)
-    return ((array - array_min) / (array_max - array_min)) * 255
-
-
-spectogram_cache = {}
-# def get_whole_spectogram(filepath, size=(20, 32), times_a_second=1/48):
-#     import librosa
-#     the_hash = (filepath, size, times_a_second)
-#     if the_hash not in spectogram_cache:
-#         y, sr = librosa.load(filepath, sr=48000)
-#         S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=size[1], hop_length=int(sr / times_a_second))
-#         S_db = librosa.power_to_db(S, ref=np.max)
-#         S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
-#         spectogram_cache[the_hash] = S_db_norm
-#     return spectogram_cache[the_hash]
-
-def get_whole_spectogram(filepath, size=(20, 32), times_a_second=1/48):
-    import librosa
-    the_hash = (filepath, size, times_a_second)
-    if the_hash not in spectogram_cache:
-        y, sr = librosa.load(filepath, sr=48000)
-        S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=size[1], hop_length=int(sr * times_a_second))
-        S_db = librosa.power_to_db(S, ref=np.max)
-        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
-        spectogram_cache[the_hash] = S_db_norm.T
-        spectogram_cache[the_hash] = spectogram_cache[the_hash].astype(int)
-    return spectogram_cache[the_hash]
-
-
-def grid_visualizer(grid_info):
-    grid_helpers.grid_reset()
-    spectogram = get_whole_spectogram(grid_info.song_path)
-    spectogram_at_time = spectogram[grid_info.curr_sub_beat]
-    for y in range(grid_helpers.GRID_HEIGHT):
-        for x in range(spectogram_at_time[y]):
-            grid_helpers.grid[x][y] = (0, 0, 255)
-
-
-
 effects = {
+    "specto young": {
+        "length": 3,
+        "beats": [
+            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
+            grid_f(2, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
+            grid_f(3, function=grid_visualizer, color=(0, 0, 255), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
+        ],
+    },
+
+
     "Young the Giant - Islands (Official Audio)": {
         "bpm": 124,
         "song_path": "songs/Young the Giant - Islands (Official Audio).ogg",
         "delay_lights": 0.3598709677419355,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=grid_visualizer, song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1000),
-            b(1, name='Red top', length=1000),
+            b(1, name='specto young', length=1000),
         ],
     }
 }

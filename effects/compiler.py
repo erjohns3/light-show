@@ -12,6 +12,8 @@
 
 import pathlib
 
+import numpy as np
+
 import grid_helpers
 from helpers import *
 
@@ -45,11 +47,43 @@ class GridInfo:
 
 # ==== grid_info effects ====
 
+spectogram_cache = {}
+def get_whole_spectogram(filepath, size=(20, 32), times_a_second=1/48):
+    import librosa
+    the_hash = (filepath, size, times_a_second)
+    if the_hash not in spectogram_cache:
+        y, sr = librosa.load(filepath, sr=48000)
+        S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=size[1], hop_length=int(sr * times_a_second))
+        S_db = librosa.power_to_db(S, ref=np.max)
+        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
+        spectogram_cache[the_hash] = S_db_norm.T
+        spectogram_cache[the_hash] = spectogram_cache[the_hash].astype(int)
+    return spectogram_cache[the_hash]
+
+
+def grid_visualizer(grid_info):
+    grid_helpers.grid_reset()
+    spectogram = get_whole_spectogram(grid_info.song_path)
+    spectogram_at_time = spectogram[grid_info.curr_sub_beat]
+    for y in range(grid_helpers.GRID_HEIGHT):
+        for x in range(spectogram_at_time[y]):
+            grid_helpers.grid[x][y] = grid_helpers.color
+
+
+
 def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
     if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
         grid_helpers.grid_move(grid_info.vector)
+
+
+def move_grid_wrap(grid_info):
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+        grid_helpers.grid_move_wrap(grid_info.vector)
+
 
 def spawn_row(grid_info):
     for x in range(grid_helpers.GRID_WIDTH):

@@ -65,9 +65,15 @@ def grid_visualizer(grid_info):
     grid_helpers.grid_reset()
     spectogram = get_whole_spectogram(grid_info.song_path)
     spectogram_at_time = spectogram[grid_info.curr_sub_beat]
-    for y in range(grid_helpers.GRID_HEIGHT):
-        for x in range(spectogram_at_time[y]):
-            grid_helpers.grid[x][y] = grid_info.color
+    
+    if getattr(grid_info, 'flip', None):
+        for y in range(grid_helpers.GRID_HEIGHT):
+            for x in range(spectogram_at_time[(grid_helpers.GRID_HEIGHT - 1) - y]):
+                grid_helpers.grid[x][y] = grid_info.color
+    else:
+        for y in range(grid_helpers.GRID_HEIGHT):
+            for x in range(spectogram_at_time[y]):
+                grid_helpers.grid[x][y] = grid_info.color
 
 
 

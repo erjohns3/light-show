@@ -1,4 +1,4 @@
-from effects.compiler import b, grid_f
+from effects.compiler import *
 
 effects = {
     "Muse  Supermassive Black Hole Official Music Video": {

@@ -1,4 +1,4 @@
-from effects.compiler import b, grid_f
+from effects.compiler import *
 
 effects = {
     "deadasdsadmau5 feat. Chrisasdasd James - The Veldt": {

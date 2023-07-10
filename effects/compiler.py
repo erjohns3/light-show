@@ -42,6 +42,26 @@ class GridInfo:
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
 
+
+# ==== grid_info effects ====
+
+def move_grid(grid_info):
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+        grid_helpers.grid_move(grid_info.vector)
+
+def spawn_row(grid_info):
+    for x in range(grid_helpers.GRID_WIDTH):
+        grid_helpers.grid[x][grid_info.y] = grid_info.color
+
+
+def spawn_col(grid_info):
+    for y in range(grid_helpers.GRID_HEIGHT):
+        grid_helpers.grid[grid_info.x][y] = grid_info.color
+
+
+# === image, animation and text grid_info effects ===
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()
 def fill_grid_from_image_filepath(grid_info):
@@ -68,7 +88,6 @@ def fill_grid_from_text(grid_info):
     grid_helpers.fill_grid_from_image_filepath(filepath)
 
 
-
 def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):
     grid_info = GridInfo()
     if filename is not None:
@@ -86,6 +105,7 @@ def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90
         print_red(f'function is None, filename: {filename}, text: {text}')
         exit()
     grid_info.grid_function = function
+    grid_info.length = length
     if kwargs:
         for key, value in kwargs.items():
             setattr(grid_info, key, value)

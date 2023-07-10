@@ -1,4 +1,4 @@
-from effects.compiler import b, grid_f
+from effects.compiler import *
 
 effects = {
     "five nights pulse white": {

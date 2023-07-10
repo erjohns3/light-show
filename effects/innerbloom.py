@@ -1,4 +1,4 @@
-from effects.compiler import b, grid_f
+from effects.compiler import *
 import random
 
 # 9, 17, 33, 41, 49 (high) 

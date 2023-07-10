@@ -1464,8 +1464,11 @@ def compile_lut(local_effects_config):
     complex_effect_perf_timer = time.time()
     for effect_name_or_grid_info in complex_effects:
         if isinstance(effect_name_or_grid_info, GridInfo):
+            # !TODO i think this length thing is rly wrong...
+            print(dir(effect_name_or_grid_info))
             channel_lut[effect_name_or_grid_info] = {
-                'length': 0,
+                # 'length': 0,
+                'length': effect_name_or_grid_info.length,
                 'grid_info': effect_name_or_grid_info,
             }
             continue

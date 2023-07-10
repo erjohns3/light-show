@@ -57,14 +57,11 @@ def grid_move(vector):
 
 
 def grid_move_wrap(vector):
-    arr = copy_grid()
-    grid_reset()
-    opp_vector = (vector[0] * -1, vector[1] * -1)
-    for x in range(GRID_WIDTH):
-        o_x = (x + opp_vector[0]) % GRID_WIDTH
-        for y in range(GRID_HEIGHT):
-            o_y = (y + opp_vector[1]) % GRID_HEIGHT 
-            grid[x][y] = arr[o_x][o_y]
+    global grid
+    if vector[0]:
+        grid = np.roll(grid, shift=vector[0], axis=0)
+    if vector[1]:
+        grid = np.roll(grid, shift=vector[1], axis=1)
 
 
 def set_grid(new_grid):
@@ -77,22 +74,11 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
     if terminal:
         if skip_if_terminal:
             return
-        # to_print_grid = grid.astype(int) * 2.55
         to_print_grid = grid * 2.55
         to_print_grid = to_print_grid.astype(int)
         if rotate_terminal:
+            # optimized from below
             [print(''.join(f'\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m▆\033[0m' for rgb in to_print_grid[x])) for x in range(GRID_WIDTH)]
-            
-            # for x in range(GRID_WIDTH):
-            #     row = []
-            #     for y in range(GRID_HEIGHT):
-            #         rgb = to_print_grid[x][y]
-            #         row.append(f'\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m▆\033[0m')
-            #     print(''.join(row))
-
-            # for x in range(GRID_WIDTH):
-            #     column_parts = [f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for y in range(GRID_HEIGHT)]
-            #     print(''.join(column_parts))
 
             # for x in range(GRID_WIDTH):
             #     column_parts = []
@@ -114,9 +100,6 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
         if grid_out == 0 and grid_in > 0:
             get_grid_serial().read(grid_in)
             get_grid_serial().write(grid_pack())
-
-def get_grid_index():
-    return grid_index
 
 
 def grid_in_bounds(pos):
@@ -170,6 +153,7 @@ def get_grid_serial():
             raise Exception('You probably need to add --local to your command line to make work, real exception printed above')
 
     return grid_serial
+
 
 
 

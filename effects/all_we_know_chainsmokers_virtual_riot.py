@@ -1,4 +1,4 @@
-from effects.compiler import b, grid_f
+from effects.compiler import *
 
 # python light_server.py --local --keyboard --show "g_The Chainsmokers - All We Know ft. Phoebe Ryan" --delay .189
 effects = {

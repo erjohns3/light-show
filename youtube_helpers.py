@@ -225,7 +225,7 @@ if __name__ == '__main__':
     make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument('url', type=str)
-    parser.add_argument('--show', dest='gen_show', default=None, action='store_true')
+    parser.add_argument('--no_show', dest='gen_show', default=True, action='store_false')
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
     args = parser.parse_args()
 

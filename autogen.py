@@ -103,7 +103,7 @@ def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=Fa
         
         final_str = 'effects = ' + shows_json_str
         if write_compiler:
-            final_str = 'from effects.compiler import b\n\n' + final_str
+            final_str = 'from effects.compiler import *\n\n' + final_str
         file.writelines([final_str])
     return output_filepath
 

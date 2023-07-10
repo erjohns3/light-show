@@ -47,7 +47,10 @@ Just copy either into your browser, and you'll be able to control the show from 
 
 # Getting songs
 ### download song from youtube and make show file (auto finds BPM and offset)
-`python youtube_helpers.py --show "YOUTUBE_URL_HERE"`
+`python youtube_helpers.py "YOUTUBE_URL_HERE"`
+
+#### if you just want the song and dont want to generate show (unlikely), then run
+`python youtube_helpers.py --no_show "YOUTUBE_URL_HERE"`
 
 ### To get all songs from doorbell
 It should be pretty good about auto downloading specific songs with the --show parameter (run it and see what it says), but to download all songs, run:

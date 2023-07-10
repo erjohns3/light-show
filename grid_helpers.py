@@ -73,6 +73,7 @@ def set_grid(new_grid):
     grid = new_grid
 
 
+@profile
 def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:
         if skip_if_terminal:
@@ -83,8 +84,6 @@ def render_grid(terminal=False, skip_if_terminal=False, reset_terminal=True, rot
         if rotate_terminal:
             [print(''.join(f'\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m▆\033[0m' for rgb in to_print_grid[x])) for x in range(GRID_WIDTH)]
             
-            # [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for y in range(GRID_HEIGHT)])) for x in range(GRID_WIDTH)]
-
             # for x in range(GRID_WIDTH):
             #     row = []
             #     for y in range(GRID_HEIGHT):

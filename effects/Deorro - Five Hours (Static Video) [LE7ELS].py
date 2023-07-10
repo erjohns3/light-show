@@ -32,7 +32,7 @@ effects = {
     '5 hours intro tapped': {
         'length': 113,
         'beats': [
-            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=79),
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=113),
             grid_f(1, function=move_grid, vector=(0, 1), length=8.5),
             grid_f(9.5, function=move_grid, vector=(0, 1), length=29),
             grid_f(38.5, function=move_grid, vector=(0, 1), length=11.5),

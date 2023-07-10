@@ -285,7 +285,6 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-@profile
 def get_all_paths(directory, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)

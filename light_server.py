@@ -1010,8 +1010,8 @@ def add_effect(new_effect_name):
 
     new_effect_name = maybe_get_laser_version(new_effect_name)
 
-    if new_effect_name in effects_config and 'song_path' in effects_config[new_effect_name]:
-        print(f'Adding effect with song named {new_effect_name}')
+    # if new_effect_name in effects_config and 'song_path' in effects_config[new_effect_name]:
+    #     print(f'Adding effect with song named {new_effect_name}')
 
     if new_effect_name not in channel_lut:
         print_green(f'late lut compiling {new_effect_name}')
@@ -1024,7 +1024,7 @@ def add_effect(new_effect_name):
     if 'bpm' in effect:
         clear_effects()
         time_start = time.time() + effect['delay_lights'] - song_time
-        print('effect will have time_start of:', effect['delay_lights'] - song_time)
+        # print('effect will have time_start of:', effect['delay_lights'] - song_time)
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
@@ -1040,9 +1040,9 @@ def add_effect(new_effect_name):
 
 def play_song(effect_name, print_out=True):
     global take_rekordbox_input, song_playing
-    print('Disabling rekordbox input')
+    # print('Disabling rekordbox input')
     take_rekordbox_input = False
-    print(f'Going to play music from effect: {effect_name}')
+    # print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:
@@ -1175,7 +1175,6 @@ def add_song_to_config(song_path):
         print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
-@profile
 def prep_loaded_effects(effect_names):
     global effects_config
     for effect_name in effect_names:
@@ -1224,7 +1223,6 @@ def prep_loaded_effects(effect_names):
     add_dependancies(updated_effect_names)
 
 
-@profile
 def load_effects_config_from_disk():
     global effects_config, effects_config_queue_client, effects_config_dj_client, graph, found, song_name_to_show_names
     update_config_and_lut_time = time.time()
@@ -1385,6 +1383,7 @@ def calculate_complex_effect_length(effect):
     return calced_effect_length
 
 
+@profile
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 
@@ -1530,17 +1529,22 @@ def compile_lut(local_effects_config):
                 grid_bright_shift = component[9]
 
             for i in range(length):
-                reference_channels = reference_beats[(i + offset) % reference_length]
-                if any(reference_channels):
+                reference_channel = reference_beats[(i + offset) % reference_length]
+                if any(reference_channel):
                     final_channel = beats[start_beat + i]
 
                     if length == 1:
                         mult = start_mult
                     else:
                         mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
+                    
 
-                    for x in range(LIGHT_COUNT):
-                        final_channel[x] += reference_channels[x] * mult
+                    # !TODO these next two lines are by far the slowest, the thing right below is an optimization, but only speeds up ~25%
+                    # for x in range(LIGHT_COUNT):
+                    #     final_channel[x] += reference_channel[x] * mult
+                    beats[start_beat + i] = [fin + (ref * mult) for fin, ref in zip(final_channel, reference_channel)]
+
+
                     if hue_shift or sat_shift or bright_shift or grid_bright_shift:
                         for part in range(3):
                             rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
@@ -1608,18 +1612,13 @@ def restart_show(skip=0, abs_time=None):
     if abs_time is not None:
         time_to_skip_to = abs_time
     song_time = time_to_skip_to
-    print(f'skipping to {time_to_skip_to}')
 
     if curr_effects:
         effect_name = curr_effects[0][0]
         if not has_song(effect_name):
             return
         remove_effect_index(0)
-        
         stop_song()
-
-        effect = effects_config[effect_name]
-
         add_effect(effect_name)
         try:
             play_song(effect_name, print_out=False)

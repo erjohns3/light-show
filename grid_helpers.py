@@ -1,12 +1,11 @@
-import PIL
-from PIL import Image, ImageSequence, ImageFont, ImageDraw
-from pilmoji import Pilmoji
 import numpy as np
-import serial
-import sys
+from pilmoji import Pilmoji
+from PIL import Image, ImageSequence, ImageFont, ImageDraw
 
 from helpers import *
 
+if is_doorbell():
+    import serial
 
 try:
     profile

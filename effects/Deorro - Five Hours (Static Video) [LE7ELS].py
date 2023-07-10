@@ -23,7 +23,7 @@ effects = {
         'length': 113,
         'beats': [
             grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=113),
-            grid_f(1, function=move_grid, vector=(0, -1), length=111),
+            grid_f(1, function=move_grid, vector=(0, 1), length=111),
 
             grid_f(1, function=spawn_row, font_size=9, y=0, color=white, length=0.01),
             grid_f(3.79, function=spawn_row, font_size=9, y=0, color=white, length=0.01),
@@ -181,7 +181,7 @@ effects = {
         'beats': [
             grid_f(1, text='🍆', font_size=9, length=.01),
             # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
-        grid_f(1, function=move_grid_wrap, vector=(0, -1), grid_skip_top_fill=True, beat_divide=3, length=64),        
+            grid_f(1, function=move_grid_wrap, vector=(0, -1), grid_skip_top_fill=True, beat_divide=3, length=64),        
         ]
     },
 

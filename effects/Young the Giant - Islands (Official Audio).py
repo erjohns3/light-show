@@ -19,7 +19,7 @@ effects = {
         "delay_lights": 0.3598709677419355,
         "skip_song": 0.0,
         "beats": [
-            b(1, name='specto young', length=1000),
+            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=100),
         ],
     }
 }

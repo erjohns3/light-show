@@ -67,7 +67,7 @@ def tech_random_col(grid_info):
 def tech_red_col(grid_info):
     grid_helpers.grid_reset()
     for y in range(grid_helpers.GRID_HEIGHT):
-        grid[0][y] = (100, 0, 0)
+        grid_helpers.grid[0][y] = (100, 0, 0)
 
 
 effects = {

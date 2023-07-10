@@ -285,31 +285,32 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
+@profile
+def get_all_paths(directory, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
     if not isinstance(directory, pathlib.Path):
         directory = pathlib.Path(directory)
     if not directory.exists():
         if not quiet:
             print_yellow(f'{directory} does not exist, returning [] for paths')
         return []
-    paths = []
-    for filename in os.listdir(directory):
+    all_filepaths = []
+
+
+    # all_folders = [str(p) for p in current_dir.glob('**/*') if p.is_dir()]
+    if recursive:
+        all_filepaths = [p for p in directory.glob('**/*') if p.is_file()]
+    else:
+        all_filepaths = [p for p in directory.glob('*') if p.is_file()]
+
+    filename_filepath_pairs = []
+    for filepath in all_filepaths:
         if exclude_names is not None and filename in exclude_names:
             continue
-        filepath = pathlib.Path(directory).joinpath(filename)
-        
-        if filepath.is_file():
-            if allowed_extensions is not None and filepath.suffix not in allowed_extensions:
-                continue
-            paths.append((filename, filepath))
-        # print(f'{filepath=}', filepath.is_dir())
-        if filepath.is_dir() and recursive:
-            # !TODO add this
-            if only_files:
-                pass
-            
-            paths += get_all_paths(filepath, only_files=only_files, exclude_names=exclude_names, recursive=recursive, allowed_extensions=allowed_extensions, quiet=quiet)
-    return paths
+        filename = filepath.name
+        if allowed_extensions is not None and filepath.suffix not in allowed_extensions:
+            continue
+        filename_filepath_pairs.append((filename, filepath))
+    return filename_filepath_pairs
 
 def start_video_in_mpv_async(video_path, volume=70):
     print(f'start_video_in_mpv: starting "{video_path}"')

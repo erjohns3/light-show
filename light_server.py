@@ -64,6 +64,7 @@ parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
+parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
 args = parser.parse_args()
 
 
@@ -1140,7 +1141,6 @@ def dfs(effect_name):
                     return missing_effect
         effects_config_sort([effect_name])
 
-@profile
 def add_dependancies(effect_names):
     for effect_name in effect_names:
         effect = effects_config[effect_name]
@@ -1175,7 +1175,7 @@ def add_song_to_config(song_path):
         print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 
 
-
+@profile
 def prep_loaded_effects(effect_names):
     global effects_config
     for effect_name in effect_names:
@@ -1188,7 +1188,7 @@ def prep_loaded_effects(effect_names):
 
     before_song_config_import = time.time()
     if not songs_config:
-        for name, filepath in get_all_paths('songs', only_files=True):
+        for name, filepath in get_all_paths('songs'):
             add_song_to_config(filepath)
     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
 
@@ -1224,7 +1224,7 @@ def prep_loaded_effects(effect_names):
     add_dependancies(updated_effect_names)
 
 
-
+@profile
 def load_effects_config_from_disk():
     global effects_config, effects_config_queue_client, effects_config_dj_client, graph, found, song_name_to_show_names
     update_config_and_lut_time = time.time()
@@ -1241,10 +1241,12 @@ def load_effects_config_from_disk():
     effects_dir = this_file_directory.joinpath('effects')
 
     total_time = 0
-    for name, filepath in get_all_paths(effects_dir, only_files=True) + \
-                          get_all_paths(effects_dir.joinpath('generated_effects'), only_files=True, quiet=True) + \
-                          get_all_paths(effects_dir.joinpath('rekordbox_effects'), only_files=True, quiet=True) + \
-                          get_all_paths(effects_dir.joinpath('autogen_shows'), only_files=True, quiet=True):
+
+    found_paths = get_all_paths(effects_dir)
+    if args.load_autogen_shows:
+        found_paths += get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True)
+
+    for name, filepath in found_paths:
         if name == 'compiler.py':
             continue
     
@@ -1252,15 +1254,12 @@ def load_effects_config_from_disk():
         relative_path = filepath.relative_to(this_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
-        if module_name in globals():
-            importlib.reload(globals()[module_name])
-        else:
-            globals()[module_name] = importlib.import_module(module_name)
-        if not is_doorbell():
-            if not filepath.stem.startswith('g_'):
-                for effect_name in globals()[module_name].effects:
-                    if effect_name in effects_config:
-                        print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
+        globals()[module_name] = importlib.import_module(module_name)
+        # importlib.reload(globals()[module_name])
+        if not filepath.stem.startswith('g_'):
+            for effect_name in globals()[module_name].effects:
+                if effect_name in effects_config:
+                    print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
         effects_config.update(globals()[module_name].effects)
         total_time += time.time() - t1
 
@@ -1695,7 +1694,7 @@ if __name__ == '__main__':
             autogen.generate_all_songs_in_directory(autogen_song_directory)
             sys.exit()
         else:
-            all_song_name_and_paths = get_all_paths(autogen_song_directory, only_files=True, allowed_extensions=set(['.ogg', '.mp3']))
+            all_song_name_and_paths = get_all_paths(autogen_song_directory, allowed_extensions=set(['.ogg', '.mp3']))
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
@@ -1740,7 +1739,7 @@ if __name__ == '__main__':
             @staticmethod
             def on_any_event(event):
                 filepath = event.src_path
-                if type(filepath) != pathlib.Path:
+                if not isinstance(filepath, pathlib.Path):
                     filepath = pathlib.Path(filepath)
 
                 print_cyan(f'Filesystem event detected, new "{filepath}"')
@@ -1907,7 +1906,6 @@ if __name__ == '__main__':
             add_effect(args.show)
             play_song(args.show)
 
-        # exit()
         asyncio.create_task(light())
 
         print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')

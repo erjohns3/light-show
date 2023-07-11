@@ -4,6 +4,7 @@ from effects.compiler import *
 from scripts import tetris_grid
 import joystick_and_keyboard_helpers
 
+
 def tetris(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
@@ -39,8 +40,8 @@ effects = {
     "tetris_flash": {
         "length": 1,
         "beats": [
-            b(1, name='Red top', length=.25),
-            grid_f(1.25, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=.75),
+            grid_f(1, filename='ricardo.gif', length=.50),
+            grid_f(1.50, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=.50),
         ]
     },
     "TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz": {

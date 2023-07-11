@@ -12,6 +12,7 @@
 
 import pathlib
 import time
+import sys
 
 import numpy as np
 
@@ -218,7 +219,7 @@ def fill_grid_from_image_filepath(grid_info):
     if grid_info.rotate_90:
         dimensions = (dimensions[1], dimensions[0])
 
-    cached_filepath = image_helpers.get_cached_converted_filepath(grid_info.filename, dimensions)
+    cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename, dimensions)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
     grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)

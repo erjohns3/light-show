@@ -7,7 +7,6 @@ import time
 import random
 import signal
 import sys
-import threading
 import pathlib
 
 
@@ -18,7 +17,7 @@ script_helpers.make_directory_above_importable()
 
 from helpers import *
 import grid_helpers
-
+import joystick_and_keyboard_helpers
 
 # TETRIS_X_OFFSET = 3
 # TETRIS_Y_OFFSET = 1
@@ -35,13 +34,6 @@ GRID_BLOCK_SIZE = 2
 TETRIS_WIDTH = 10
 TETRIS_HEIGHT = 15
 
-
-
-def signal_handler(sig, frame):
-    print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
-    if not args.local:
-        grid_helpers.grid_reset_and_write()
-    sys.exit()
 
 
 # https://static.wikia.nocookie.net/tetrisconcept/images/3/3d/SRS-pieces.png/revision/latest?cb=20060626173148
@@ -97,17 +89,17 @@ class TetrisGameState:
         self.board = [[None for y in range(TETRIS_HEIGHT)] for x in range(TETRIS_WIDTH)]
 
     def __repr__(self):
-        return f'TGameState({self.p_name}, {self.p_anchor}, {self.p_rotation})'
+        return f'TetrisGameState({self.p_name}, {self.p_anchor}, {self.p_rotation})'
 
 
 block_colors = {
     'active_piece': [0, 100, 0],
-    'dead_square': [0, 5, 0],
+    'dead_square': [0, 50, 0],
     'flash': [100, 100, 100],
-    'empty': [.8, 0, 0],
+    'empty': [0, 0, 10],
     'out_of_bounds': [0, 0, 0],
 }
-def fill_grid_and_render(game_state):
+def fill_grid_with_game_state():
     active_poses = set()
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
@@ -124,126 +116,6 @@ def fill_grid_and_render(game_state):
                 grid_helpers.grid[g_x][g_y] = block_colors['dead_square']
             else:
                 grid_helpers.grid[g_x][g_y] = block_colors['empty']
-    grid_helpers.render_grid(terminal=args.local, rotate_terminal=args.rotate_terminal)
-
-
-def try_get_gamepad_controller():
-    pygame.init()
-    pygame.joystick.init()
-    if pygame.joystick.get_count() > 0:
-        controller = pygame.joystick.Joystick(0)
-        controller.init()
-        return controller
-    return None
-
-
-def get_joystick_direction(controller):
-    x_axis = controller.get_axis(0)
-    y_axis = controller.get_axis(1)
-    threshold = 0.5
-    if x_axis < -threshold:
-        if args.local:
-            return 'left'
-        else:
-            return 'right'
-    elif x_axis > threshold:
-        if args.local:
-            return 'right'
-        else:
-            return 'left'
-    elif y_axis < -threshold:
-        return 'up'
-    elif y_axis > threshold:
-        return 'down'
-    return None
-
-
-if is_linux() and not is_doorbell():
-    _return_code, stdout, _stderr = run_command_blocking([
-        'xdotool',
-        'getactivewindow',
-    ])
-    process_window_id = int(stdout.strip())
-
-def window_focus():
-    if is_linux():
-        return_code, stdout, _stderr = run_command_blocking([
-            'xdotool',
-            'getwindowfocus',
-        ])
-        if return_code != 0:
-            return False
-        other = int(stdout.strip())
-        return process_window_id == other
-    return True
-
-last_key_pressed = None
-def on_press(key):
-    from pynput.keyboard import KeyCode
-    if not window_focus():
-        return
-
-    if type(key) == KeyCode:
-        key_name = key.char
-    else:
-        key_name = key.name
-
-    global last_key_pressed
-    last_key_pressed = key_name
-    # print(f"Key {key.name} was {'pressed' if key.key_type == keyboard.KEY_DOWN else 'released'}")
-
-def on_release(key):
-    pass
-
-def listen_for_keystrokes():
-    from pynput.keyboard import Listener
-    with Listener(on_press=on_press, on_release=on_release) as listener:
-        listener.join()
-
-
-
-keyboard_mappings = {
-    'esc': 'quit',
-    'enter': 'enter',
-    'a': 'left',
-    'd': 'right',
-    'w': 'up',
-    's': 'down',
-    'left': 'left',
-    'right': 'right',
-    'up': 'up',
-    'down': 'down',
-    'q': 'fps_down',
-    'e': 'fps_up',
-}
-joy_button_mapping = {
-    3: 'quit',
-    0: 'enter',
-    1: 'fps_up',
-    2: 'fps_down',
-    11: 'right',
-    12: 'left',
-    13: 'up',
-    14: 'down',
-}
-def read_input(controller):
-    if controller is None:
-        global last_key_pressed
-        if last_key_pressed in keyboard_mappings:
-            temp = last_key_pressed
-            last_key_pressed = None
-            return keyboard_mappings[temp]
-    else:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                return 'quit'
-            if event.type == pygame.JOYBUTTONDOWN:
-                if event.button in joy_button_mapping:
-                    return joy_button_mapping[event.button]
-        
-        pygame.event.pump()
-        joystick_direction = get_joystick_direction(controller)
-        return joystick_direction
 
 
 def in_bounds(pos):
@@ -286,9 +158,11 @@ def clear_y(game_state, y):
         game_state.board[x2][0] = None
 
 
-def tetris_game_for_grid():
-    pass
-
+game_state = None
+def start_new_game():
+    global game_state
+    game_state = TetrisGameState()
+    spawn_new_piece()
 
 directions = {
     'left': [-1, 0],
@@ -296,94 +170,181 @@ directions = {
     'up': [0, -1],
     'down': [0, 1],
 }
-states_per_second = 4
-def play_game(controller):
-    global states_per_second
-    fps = 60
-    last_state_time = 0
-    frame = 0
+def move_left():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    new_anchor = add_points(game_state.p_anchor, directions['left'])
+    if is_anchor_safe(game_state, new_anchor):
+        game_state.p_anchor = new_anchor
+    
+def move_right():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    new_anchor = add_points(game_state.p_anchor, directions['right'])
+    if is_anchor_safe(game_state, new_anchor):
+        game_state.p_anchor = new_anchor
 
-    game_state = TetrisGameState()
-    while True:
-        start_loop = time.time()
-        input_read = read_input(controller)
-        graphics_changed = False
+def move_down():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    new_anchor = add_points(game_state.p_anchor, directions['down'])
+    if is_anchor_safe(game_state, new_anchor):
+        game_state.p_anchor = new_anchor
+        return True
+    else:
+        for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
+            x, y = pos
+            game_state.board[x][y] = game_state.p_name
+            print(f'setting {(x, y)} to filled')
+        if not spawn_new_piece():
+            print_red('game over')
+            start_new_game()
+        return False
 
-        if input_read == 'quit':
-            if not args.local:
-                grid_helpers.grid_reset_and_write()
-            pygame.quit()
-            exit(1)
-        elif input_read == 'enter':
-            print_yellow('Resetting game')
-            return
-        elif input_read == 'fps_up':
-            print('fps_up', states_per_second)
-            states_per_second += 0.5
-        elif input_read == 'fps_down':
-            states_per_second -= 0.5
-        if game_state.p_name is not None and input_read in ['left', 'right', 'up', 'down']:
-            if input_read in ['left', 'right']:
-                new_p_anchor = add_points(game_state.p_anchor, directions[input_read])
-                if is_anchor_safe(game_state, new_p_anchor):
-                    game_state.p_anchor = new_p_anchor
-                    graphics_changed = True
-            elif input_read == 'up':
-                game_state.p_rotation = game_state.p_rotation - 1
-                if game_state.p_rotation < 0:
-                    game_state.p_rotation = 3
-                graphics_changed = True
-            elif input_read == 'down':
-                new_p_anchor = add_points(game_state.p_anchor, directions['down'])
-                if is_anchor_safe(game_state, new_p_anchor):
-                    game_state.p_anchor = new_p_anchor
-                    graphics_changed = True
+def rotate():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    new_rotation = (game_state.p_rotation + 1) % 4
+    new_anchor = game_state.p_anchor
+    if not is_anchor_safe(game_state, new_anchor):
+        new_anchor = add_points(new_anchor, directions['left'])
+        if not is_anchor_safe(game_state, new_anchor):
+            new_anchor = add_points(new_anchor, directions['right'])
+            new_anchor = add_points(new_anchor, directions['right'])
+            if not is_anchor_safe(game_state, new_anchor):
+                new_anchor = add_points(new_anchor, directions['left'])
+                new_anchor = add_points(new_anchor, directions['left'])
+                new_rotation = game_state.p_rotation
+    if is_anchor_safe(game_state, new_anchor):
+        game_state.p_anchor = new_anchor
+        game_state.p_rotation = new_rotation
 
-        if (time.time() - last_state_time) > 1 / states_per_second:
-            # print_cyan(f'State frame {frame}')
-            if game_state.p_name is None:
-                game_state.p_name = random.choice(list(pieces.keys()))
-                game_state.p_anchor = [(TETRIS_WIDTH // 2) - 2, 0]
-                game_state.p_rotation = 0
-                for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
-                    if not is_avail(game_state, pos):
-                        print('pos', pos, 'not avail')
-                        fill_grid_and_render(game_state)
-                        print_red('Game over!')
-                        return
-            else:
-                new_p_anchor = add_points(game_state.p_anchor, directions['down'])
-                if is_anchor_safe(game_state, new_p_anchor):
-                    game_state.p_anchor = new_p_anchor
-                    graphics_changed = True
-                else:
-                    for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
-                        game_state.board[pos[0]][pos[1]] = 1
-                    game_state.p_name = None
-                    game_state.p_anchor = None
-                    game_state.p_rotation = None
 
-                    for y in range(TETRIS_HEIGHT):
-                        clear = True
-                        for x in range(TETRIS_WIDTH):
-                            if game_state.board[x][y] is None:
-                                clear = False
-                                break
-                        if clear:
-                            clear_y(game_state, y)
-                    graphics_changed = True
+def spawn_new_piece():
+    game_state.p_name = random.choice(list(pieces.keys()))
+    game_state.p_anchor = [(TETRIS_WIDTH // 2) - 2, 0]
+    game_state.p_rotation = 0
+    for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
+        if not is_avail(game_state, pos):
+            print_red('Game over!')
+            return False
+    return True
 
-            if graphics_changed:
-                fill_grid_and_render(game_state)
-            if frame == 1:
-                exit()
-            last_state_time = time.time()
 
-        to_wait = 1 / fps - (time.time() - start_loop)
-        if to_wait > 0:
-            time.sleep(to_wait)
-        frame += 1
+def hard_drop():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    while move_down():
+        pass
 
+
+def advance_game_state():
+    if game_state is None:
+        print_red(f'game_state is none, returning')
+        return
+    move_down()
+
+
+# states_per_second = 4
+# def play_game_main():
+#     global states_per_second
+#     fps = 60
+#     last_state_time = 0
+#     frame = 0
+
+#     while True:
+#         start_loop = time.time()
+#         graphics_changed = False
+
+#         for normalized_input in joystick_and_keyboard_helpers.inputs_since_last_called():
+#             print(normalized_input)
+#             if normalized_input == 'quit':
+#                 if not args.local:
+#                     grid_helpers.grid_reset()
+#                     grid_helpers.render_grid()
+#                 pygame.quit()
+#                 exit(1)
+#             elif normalized_input == 'enter':
+#                 print_yellow('Resetting game')
+#                 return
+#             elif normalized_input == 'b':
+#                 print('fps_up', states_per_second)
+#                 states_per_second += 0.5
+#             elif normalized_input == 'x':
+#                 states_per_second -= 0.5
+#             if game_state.p_name is not None and normalized_input in ['left', 'right', 'up', 'down']:
+#                 if normalized_input in ['left', 'right']:
+#                     new_p_anchor = add_points(game_state.p_anchor, directions[normalized_input])
+#                     if is_anchor_safe(game_state, new_p_anchor):
+#                         game_state.p_anchor = new_p_anchor
+#                         graphics_changed = True
+#                 elif normalized_input == 'up':
+#                     game_state.p_rotation = game_state.p_rotation - 1
+#                     if game_state.p_rotation < 0:
+#                         game_state.p_rotation = 3
+#                     graphics_changed = True
+#                 elif normalized_input == 'down':
+#                     new_p_anchor = add_points(game_state.p_anchor, directions['down'])
+#                     if is_anchor_safe(game_state, new_p_anchor):
+#                         game_state.p_anchor = new_p_anchor
+#                         graphics_changed = True
+
+#             if (time.time() - last_state_time) > 1 / states_per_second:
+#                 if game_state.p_name is None:
+#                     game_state.p_name = random.choice(list(pieces.keys()))
+#                     game_state.p_anchor = [(TETRIS_WIDTH // 2) - 2, 0]
+#                     game_state.p_rotation = 0
+#                     for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
+#                         if not is_avail(game_state, pos):
+#                             print('pos', pos, 'not avail')
+#                             fill_grid_and_render(game_state)
+#                             print_red('Game over!')
+#                             return
+#                 else:
+#                     new_p_anchor = add_points(game_state.p_anchor, directions['down'])
+#                     if is_anchor_safe(game_state, new_p_anchor):
+#                         game_state.p_anchor = new_p_anchor
+#                         graphics_changed = True
+#                     else:
+#                         for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
+#                             game_state.board[pos[0]][pos[1]] = 1
+#                         game_state.p_name = None
+#                         game_state.p_anchor = None
+#                         game_state.p_rotation = None
+
+#                         for y in range(TETRIS_HEIGHT):
+#                             clear = True
+#                             for x in range(TETRIS_WIDTH):
+#                                 if game_state.board[x][y] is None:
+#                                     clear = False
+#                                     break
+#                             if clear:
+#                                 clear_y(game_state, y)
+#                         graphics_changed = True
+
+#                 if graphics_changed:
+#                     fill_grid_and_render(game_state)
+#                 if frame == 1:
+#                     exit()
+#                 last_state_time = time.time()
+
+#         to_wait = 1 / fps - (time.time() - start_loop)
+#         if to_wait > 0:
+#             time.sleep(to_wait)
+#         frame += 1
+
+
+def signal_handler(sig, frame):
+    print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
+    if not args.local:
+        grid_helpers.grid_reset()
+        grid_helpers.render_grid()
+    sys.exit()
 
 if __name__ == "__main__":
     argparse = argparse.ArgumentParser()
@@ -395,25 +356,5 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    serial_communicator = None
-    if args.local:
-        # !TODO long term I really should just be rendering to terminal whats visible on grid
-        block_colors = {
-            'active_piece': [0, 100, 0],
-            'dead_square': [0, 80, 0],
-            'flash': [100, 100, 100],
-            'empty': [30, 0, 0],
-            'out_of_bounds': [0, 0, 0],
-        }
-    else:
-        disable_color()
-
-    controller = try_get_gamepad_controller()
-    if controller is None:
-        print_red('No controller found, using keyboard')
-        threading.Thread(target=listen_for_keystrokes, args=[], daemon=True).start()
-    if args.keyboard:
-        controller = None
-
     while True:
-        play_game(controller)
+        play_game_main()

@@ -11,6 +11,7 @@
 # laser motor: 0 - 100
 
 import pathlib
+import time
 
 import numpy as np
 
@@ -48,22 +49,118 @@ class GridInfo:
 # ==== grid_info effects ====
 
 spectogram_cache = {}
-def get_whole_spectogram(filepath, size=(20, 32), times_a_second=1/48):
+# this is part of the reason load slow is bad
+# https://librosa.org/blog/2019/07/17/resample-on-load/
+def get_whole_spectogram_librosa(filepath, size=(20, 32), times_a_second=1/48):
     import librosa
     the_hash = (filepath, size, times_a_second)
     if the_hash not in spectogram_cache:
+        start_time_specto = time.time()
         y, sr = librosa.load(filepath, sr=48000)
+        print_cyan(f'loaded {filepath} in {time.time() - start_time_specto} seconds')
         S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=size[1], hop_length=int(sr * times_a_second))
         S_db = librosa.power_to_db(S, ref=np.max)
         S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
         spectogram_cache[the_hash] = S_db_norm.T
         spectogram_cache[the_hash] = spectogram_cache[the_hash].astype(int)
+        print_cyan(f'computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
+    return spectogram_cache[the_hash]
+
+
+# idk this code just doesn't work
+def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
+    import aubio
+    the_hash = (filepath, size, times_a_second)
+    # frequency bins is 32
+    if the_hash not in spectogram_cache:
+        start_time_specto = time.time()
+    
+        sr = 48000
+        win_size = 512 # fft size
+        hop_size = win_size // 2 # hop size
+        
+        try:
+            src = aubio.source(str(filepath), 0, hop_size)
+        except:
+            print_red(f'failed to load {filepath} with aubio')
+            return
+        print(f'loaded {filepath} in {time.time() - start_time_specto} seconds')
+
+        n_filters = size[1]
+        n_coeffs = size[1]
+
+        pv = aubio.pvoc(win_size, hop_size)
+        f = aubio.filterbank(n_coeffs, win_size)
+        f.set_mel_coeffs_slaney(sr)
+
+        S = []
+        total_frames = 0
+        while True:
+            samples, read = src()
+            specgram = pv(samples)
+            mfcc_bands = f(specgram)
+            S.append(mfcc_bands)
+            total_frames += read
+            if read < hop_size:
+                break
+
+        S = np.array(S).T
+        S_db = 20 * np.log10(S / np.max(S))
+        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0]))
+
+        spectogram_cache[the_hash] = S_db_norm.T.astype(int)
+        print(f'computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
+        print(spectogram_cache[the_hash].shape)
+    return spectogram_cache[the_hash]
+
+
+def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
+    import aubio
+    the_hash = (filepath, size, times_a_second)
+    if the_hash not in spectogram_cache:
+        start_time_specto = time.time()
+        sr = 48000
+        win_size = 512 # fft size
+        hop_size = win_size // 2 # hop size
+        
+        try:
+            src = aubio.source(str(filepath), 0, hop_size)
+        except:
+            print_red(f'failed to load {filepath} with aubio')
+            return
+
+        n_filters = size[1]
+        n_coeffs = size[0]
+
+        pv = aubio.pvoc(win_size, hop_size)
+        f = aubio.filterbank(n_coeffs, win_size)
+        f.set_mel_coeffs_slaney(sr)
+
+        S = []
+        total_frames = 0
+        while True:
+            samples, read = src()
+            specgram = pv(samples)
+            mfcc_bands = f(specgram)
+            S.append(mfcc_bands)
+            total_frames += read
+            if read < hop_size:
+                break
+
+        S = np.array(S).T
+        S_db = 20 * np.log10(S / np.max(S))
+        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
+
+        print(f'loaded and computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
+        spectogram_cache[the_hash] = S_db_norm.T.astype(int)
+        print(spectogram_cache[the_hash].shape)
     return spectogram_cache[the_hash]
 
 
 def grid_visualizer(grid_info):
     grid_helpers.grid_reset()
-    spectogram = get_whole_spectogram(grid_info.song_path)
+    spectogram = get_whole_spectogram_aubio(grid_info.song_path)
+    # spectogram = get_whole_spectogram_librosa(grid_info.song_path)
     spectogram_at_time = spectogram[grid_info.curr_sub_beat]
     
     if getattr(grid_info, 'flip', None):
@@ -117,7 +214,11 @@ def fill_grid_from_image_filepath(grid_info):
 
     time_in_pattern = relative_beat * (60 / bpm)
 
-    cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename)
+    dimensions = (grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT)
+    if grid_info.rotate_90:
+        dimensions = (dimensions[1], dimensions[0])
+
+    cached_filepath = image_helpers.get_cached_converted_filepath(grid_info.filename, dimensions)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
     grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)

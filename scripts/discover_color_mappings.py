@@ -20,7 +20,8 @@ from helpers import *
 
 def signal_handler(sig, frame):
     print('SIG Handler inside discover_color_mappings.py: ' + str(sig), flush=True)
-    grid_helpers.grid_reset_and_write()
+    grid_helpers.grid_reset()
+    grid_helpers.render_grid()
     sys.exit()
 
 

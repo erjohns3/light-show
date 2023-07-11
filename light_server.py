@@ -20,6 +20,7 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
 from effects.compiler import GridInfo
+import joystick_and_keyboard_helpers
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
 # os.environ['SDL_AUDIODRIVER'] = 'jack'
@@ -1605,7 +1606,8 @@ def signal_handler(sig, frame):
                 child.kill()
     if not args.local:
         threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
-        grid_helpers.grid_reset_and_write()
+        grid_helpers.grid_reset()
+        grid_helpers.render_grid()
         for pin in LED_PINS:
             pi.set_PWM_dutycycle(pin, 0)
     sys.exit()
@@ -1685,6 +1687,9 @@ def debug_channel_lut_grid_info(effect_name):
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
+    if args.local:
+        joystick_and_keyboard_helpers.invert_left_right_joystick()
+
     make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     try:
         # pygame.mixer.pre_init(48000, 16, 2, 4096)
@@ -1694,6 +1699,7 @@ if __name__ == '__main__':
         print_red('PYGAME COULDNT INITIALIZE, NO SOUND WILL WORK')
     print_cyan(f'Up through pygame init: {time.time() - first_start_time:.3f}')
 
+        
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 

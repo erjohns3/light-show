@@ -157,7 +157,8 @@ def play_game(controller):
 
         if input_read == 'quit':
             if not args.local:
-                grid_helpers.grid_reset_and_write()
+                grid_helpers.grid_reset()
+                grid_helpers.render_grid()
             pygame.quit()
             exit(1)
         elif input_read == 'enter':

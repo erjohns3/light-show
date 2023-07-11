@@ -32,6 +32,7 @@ def grid_coords():
         for y in range(GRID_HEIGHT):
             yield (x, y)
 
+
 def copy_grid():
     return np.array(grid)
 
@@ -112,8 +113,10 @@ def grid_in_bounds(pos):
     index = grid_index[x][y] * 3
     return index >= 0
 
+
 def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
+
 
 def grid_fill(to_fill):
     if type(to_fill) in [float, int]:
@@ -122,16 +125,10 @@ def grid_fill(to_fill):
         for rgb_index, value in enumerate(to_fill):
             grid[x][y][rgb_index] = value
 
-def grid_fill_and_write(to_fill, terminal=False):
-    grid_fill(to_fill)
-    render_grid(terminal=terminal)
 
 def grid_reset():
     grid.fill(0)
 
-def grid_reset_and_write(terminal=False):
-    grid_reset()
-    render_grid(terminal=terminal)
 
 def get_grid_serial():
     global grid_serial
@@ -160,13 +157,9 @@ def get_grid_serial():
 # ====== image stuff ======
 
 # @profile
-def resize_PIL_image(pil_image, rotate_90=False):
-    desired_width = GRID_WIDTH
-    desired_height = GRID_HEIGHT
-    if rotate_90:
-        desired_width = GRID_HEIGHT
-        desired_height = GRID_WIDTH
-    
+def resize_PIL_image(pil_image, dimensions):
+    desired_width, desired_height = dimensions
+
     # rely on cache here
     if pil_image.size[0] != desired_width or pil_image.size[1] != desired_height:
         print_yellow(f'resizeing image, this should only happen once, if you see it multiple runs theres something wrong')
@@ -176,16 +169,20 @@ def resize_PIL_image(pil_image, rotate_90=False):
 
 
 # @profile
-def recolor_PIL_image(pil_image):
-    if pil_image.mode != 'RGB':
+def recolor_PIL_image(pil_image, color_mode='RGB'):
+    if pil_image.mode != color_mode:
         print_yellow(f'was {pil_image.mode=}, but recoloring image to RGB, this should only happen once, if you see it multiple runs theres something wrong')
-        pil_image = pil_image.convert('RGB')
+        pil_image = pil_image.convert(color_mode)
     return pil_image
 
 
 # @profile
 def resize_and_color_PIL_image(pil_image, rotate_90=False):
-    pil_image = resize_PIL_image(pil_image, rotate_90=rotate_90)
+    dimensions = (GRID_WIDTH, GRID_HEIGHT)
+    if rotate_90:
+        dimensions = (GRID_HEIGHT, GRID_WIDTH)
+    
+    pil_image = resize_PIL_image(pil_image, dimensions)
     pil_image = recolor_PIL_image(pil_image)
     return pil_image
 

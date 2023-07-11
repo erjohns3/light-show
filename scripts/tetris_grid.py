@@ -164,6 +164,7 @@ def start_new_game():
     game_state = TetrisGameState()
     spawn_new_piece()
 
+
 directions = {
     'left': [-1, 0],
     'right': [1, 0],
@@ -198,30 +199,48 @@ def move_down():
         for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
             x, y = pos
             game_state.board[x][y] = game_state.p_name
-            print(f'setting {(x, y)} to filled')
         if not spawn_new_piece():
-            print_red('game over')
             start_new_game()
         return False
 
-def rotate():
+
+def rotate_left():
+    temp = game_state.p_rotation - 1
+    if temp < 0:
+        temp = 3
+    rotate(temp)
+
+
+def rotate_right():
+    rotate((game_state.p_rotation + 1) % 4)
+
+
+def try_safe_anchor(piece_name, anchor, rotation_index):
+    for (x, y) in get_board_points(piece_name, rotation_index, anchor):
+        if x < 0:
+            return add_points(anchor, directions['right'])
+        elif x >= TETRIS_WIDTH:
+            return add_points(anchor, directions['left'])
+        elif y >= TETRIS_HEIGHT:
+            return add_points(anchor, directions['up'])
+        elif game_state.board[x][y] is not None:
+            return add_points(anchor, directions['up'])
+
+
+def rotate(rotation_index):
     if game_state is None:
         print_red(f'game_state is none, returning')
         return
-    new_rotation = (game_state.p_rotation + 1) % 4
+
     new_anchor = game_state.p_anchor
-    if not is_anchor_safe(game_state, new_anchor):
-        new_anchor = add_points(new_anchor, directions['left'])
-        if not is_anchor_safe(game_state, new_anchor):
-            new_anchor = add_points(new_anchor, directions['right'])
-            new_anchor = add_points(new_anchor, directions['right'])
-            if not is_anchor_safe(game_state, new_anchor):
-                new_anchor = add_points(new_anchor, directions['left'])
-                new_anchor = add_points(new_anchor, directions['left'])
-                new_rotation = game_state.p_rotation
-    if is_anchor_safe(game_state, new_anchor):
-        game_state.p_anchor = new_anchor
-        game_state.p_rotation = new_rotation
+    while True:
+        potential_new_anchor = try_safe_anchor(game_state.p_name, new_anchor, rotation_index)
+        if potential_new_anchor is None:
+            break
+        new_anchor = potential_new_anchor
+
+    game_state.p_anchor = new_anchor
+    game_state.p_rotation = rotation_index
 
 
 def spawn_new_piece():
@@ -250,103 +269,64 @@ def advance_game_state():
     move_down()
 
 
-# states_per_second = 4
-# def play_game_main():
-#     global states_per_second
-#     fps = 60
-#     last_state_time = 0
-#     frame = 0
-
-#     while True:
-#         start_loop = time.time()
-#         graphics_changed = False
-
-#         for normalized_input in joystick_and_keyboard_helpers.inputs_since_last_called():
-#             print(normalized_input)
-#             if normalized_input == 'quit':
-#                 if not args.local:
-#                     grid_helpers.grid_reset()
-#                     grid_helpers.render_grid()
-#                 pygame.quit()
-#                 exit(1)
-#             elif normalized_input == 'enter':
-#                 print_yellow('Resetting game')
-#                 return
-#             elif normalized_input == 'b':
-#                 print('fps_up', states_per_second)
-#                 states_per_second += 0.5
-#             elif normalized_input == 'x':
-#                 states_per_second -= 0.5
-#             if game_state.p_name is not None and normalized_input in ['left', 'right', 'up', 'down']:
-#                 if normalized_input in ['left', 'right']:
-#                     new_p_anchor = add_points(game_state.p_anchor, directions[normalized_input])
-#                     if is_anchor_safe(game_state, new_p_anchor):
-#                         game_state.p_anchor = new_p_anchor
-#                         graphics_changed = True
-#                 elif normalized_input == 'up':
-#                     game_state.p_rotation = game_state.p_rotation - 1
-#                     if game_state.p_rotation < 0:
-#                         game_state.p_rotation = 3
-#                     graphics_changed = True
-#                 elif normalized_input == 'down':
-#                     new_p_anchor = add_points(game_state.p_anchor, directions['down'])
-#                     if is_anchor_safe(game_state, new_p_anchor):
-#                         game_state.p_anchor = new_p_anchor
-#                         graphics_changed = True
-
-#             if (time.time() - last_state_time) > 1 / states_per_second:
-#                 if game_state.p_name is None:
-#                     game_state.p_name = random.choice(list(pieces.keys()))
-#                     game_state.p_anchor = [(TETRIS_WIDTH // 2) - 2, 0]
-#                     game_state.p_rotation = 0
-#                     for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
-#                         if not is_avail(game_state, pos):
-#                             print('pos', pos, 'not avail')
-#                             fill_grid_and_render(game_state)
-#                             print_red('Game over!')
-#                             return
-#                 else:
-#                     new_p_anchor = add_points(game_state.p_anchor, directions['down'])
-#                     if is_anchor_safe(game_state, new_p_anchor):
-#                         game_state.p_anchor = new_p_anchor
-#                         graphics_changed = True
-#                     else:
-#                         for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
-#                             game_state.board[pos[0]][pos[1]] = 1
-#                         game_state.p_name = None
-#                         game_state.p_anchor = None
-#                         game_state.p_rotation = None
-
-#                         for y in range(TETRIS_HEIGHT):
-#                             clear = True
-#                             for x in range(TETRIS_WIDTH):
-#                                 if game_state.board[x][y] is None:
-#                                     clear = False
-#                                     break
-#                             if clear:
-#                                 clear_y(game_state, y)
-#                         graphics_changed = True
-
-#                 if graphics_changed:
-#                     fill_grid_and_render(game_state)
-#                 if frame == 1:
-#                     exit()
-#                 last_state_time = time.time()
-
-#         to_wait = 1 / fps - (time.time() - start_loop)
-#         if to_wait > 0:
-#             time.sleep(to_wait)
-#         frame += 1
 
 
-def signal_handler(sig, frame):
-    print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
-    if not args.local:
-        grid_helpers.grid_reset()
-        grid_helpers.render_grid()
-    sys.exit()
+states_per_second = 4
+def play_game_main():
+    global states_per_second, game_state
+    fps = 60
+    last_state_time = 0
+    frame = 0
+
+    game_state = TetrisGameState()
+    spawn_new_piece()
+    start_loop = time.time()
+    while True:
+        for normalized_input in joystick_and_keyboard_helpers.inputs_since_last_called():
+            if normalized_input == 'quit':
+                if not args.local:
+                    grid_helpers.grid_reset()
+                    grid_helpers.render_grid()
+                pygame.quit()
+                exit(1)
+            elif normalized_input == 'y':
+                print_yellow('Resetting game')
+                return
+            elif normalized_input == 'back':
+                states_per_second = max(.001, states_per_second - 0.5)
+            elif normalized_input == 'start':
+                states_per_second += 0.5
+            elif normalized_input == 'x':
+                rotate_left()
+            elif normalized_input == 'b':
+                rotate_right()
+            if normalized_input == 'left':
+                move_left()
+            if normalized_input == 'right':
+                move_right()
+            elif normalized_input == 'down':
+                move_down()
+
+        if (time.time() - last_state_time) > 1 / states_per_second:
+            advance_game_state()
+            fill_grid_with_game_state()
+            grid_helpers.render_grid(terminal=args.local)
+            last_state_time = time.time()
+
+        to_wait = 1 / fps - (time.time() - start_loop)
+        if to_wait > 0:
+            time.sleep(to_wait)
+        frame += 1
+
 
 if __name__ == "__main__":
+    def signal_handler(sig, frame):
+        print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
+        if not args.local:
+            grid_helpers.grid_reset()
+            grid_helpers.render_grid()
+        sys.exit()
+
     argparse = argparse.ArgumentParser()
     argparse.add_argument('--keyboard', action='store_true')
     argparse.add_argument('--local', action='store_true')

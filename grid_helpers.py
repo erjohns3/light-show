@@ -1,3 +1,5 @@
+import sys
+
 import numpy as np
 from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageDraw
@@ -314,7 +316,7 @@ def fill_grid_from_image_filepath(filepath, rotate_90=False):
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 run_once = set()
-def get_cached_converted_filepath(filename, rotate_90=False):
+def get_cached_converted_filepath(filename, rotate_90=False, use_cache=True):
     filepath = this_file_directory.joinpath('images', filename)
     cache_filepath = resize_cache_dir.joinpath(f'{rotate_90}_' + filepath.name)
 
@@ -322,7 +324,7 @@ def get_cached_converted_filepath(filename, rotate_90=False):
     if cache_filepath.suffix.lower() in ['.jpg', '.jpeg']:
         cache_filepath = cache_filepath.with_suffix('.png')
 
-    if (False and filepath not in run_once) or not cache_filepath.exists():
+    if (use_cache and filepath not in run_once) or not cache_filepath.exists():
         save_resize_and_color_image(source_path=filepath, destination_path=cache_filepath, rotate_90=rotate_90)
         print(f'cached {filepath} to {cache_filepath}')
         run_once.add(filepath)
@@ -337,51 +339,86 @@ def get_font_path(font_filename):
 
 
 run_once_text_image = set()
-def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_color=(255, 255, 255)):
+def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_color=(255, 255, 255), use_cache=True):
     hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-    if hash_filename in run_once_text_image and output_filepath.exists():
+    if output_filepath.exists() and (use_cache or output_filepath in run_once_text_image):
         return output_filepath
 
     if not rotate_90:
         width, height = 32, 20
     else:
         width, height = 20, 32
-    image = Image.new('RGB', (width, height), 'black')
-    
-    # C:\Windows\Fonts
-    # font_name = 'Noto-Medium.ttf'
-    # font_name = 'arial.ttf'
-    # font_name = 'ariblk.ttf'
-    # font_name = 'verdana.ttf'
-    # font_name = 'sitka-small.ttf'
-    # font_name = 'dogicapixel.ttf'
-    font_name = 'dogicapixel.otf'
-    font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
+    with Image.new('RGB', (width, height), 'black') as image:
+        # font_name = 'arial.ttf', 'Noto-Medium.ttf', 'ariblk.ttf', verdana.ttf
+        # font_name = 'verdana.ttf'
+        font_name = 'dogicapixel.otf'
+        font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
-    # defaults to source=Twemoji
-    # another option is source=MicrosoftEmojiSource
-    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
-    with Pilmoji(image) as pilmoji:
-        # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
-        # text_width, text_height = pilmoji_drawer.textsize(text, font)
-        # draw = ImageDraw.Draw(image)
-        # text_width, text_height = draw.textsize(text, font)
+        # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
+        with Pilmoji(image) as pilmoji:
+            # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
+            # I had to edit line 149 in Pilmojis helpers.py
+            # elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):
+            try:
+                text_width, text_height = pilmoji.getsize(text, font=font)
+            except:
+                print_red('this is some weird library stiff. you need to edit line 149 of Pilmojis helpers.py to:')
+                print_yellow('elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):')
+                sys.exit()
+            x = (width - text_width) // 2
+            y = (height - text_height) // 2
+            pilmoji.text((x, y), text, text_color, font)
 
-        # x = (width - text_width) // 2
-        # y = (height - text_height) // 2
-        pilmoji.text((0, 4), text, text_color, font)
+        if not rotate_90:
+            image = image.rotate(90, expand=True)
 
-
-    if not rotate_90:
-        image = image.rotate(90, expand=True)
-
-    image.save(output_filepath, format='png')
-    print(f'saved "{text}" to image {output_filepath}')
-    run_once_text_image.add(hash_filename)
+        image.save(output_filepath, format='png')
+        # run_command_blocking([
+        #     'feh',
+        #     '--borderless',
+        #     '--force-aliasing',
+        #     '-F',
+        #     str(output_filepath),
+        # ])
+        print(f'saved "{text}" to image {output_filepath}')
+        run_once_text_image.add(hash_filename)
     return output_filepath
 
 
+if __name__ == '__main__':
+    # !TODO why antialiasing at 12 and not 8???
+    # filepath = create_image_from_text_pilmoji('OY', font_size=12)
+    filepath = create_image_from_text_pilmoji('OY', font_size=8)
+
+    rotated_filepath = get_temp_dir().joinpath('test.png')
+    rotated_filepath.unlink(missing_ok=True)
+    with open(filepath, 'rb') as f:
+        img = Image.open(f)
+        print(f'{filepath=}, {img.width=}, {img.height=}')
+        img = img.rotate(270)
+        print(rotated_filepath)
+        img.save(rotated_filepath, format='png')
+
+        arr = PIL_image_to_numpy_arr(img)
+
+        width, height, _rgb_size = arr.shape
+        print(f'{arr.shape=}')
+
+        for x in range(width):
+            to_print = []
+            for y in range(height):
+                to_print.append(rgb_ansi('█', arr[x][y]))
+            print(''.join(to_print))
+
+
+    run_command_blocking([
+        'feh',
+        '--borderless',
+        '--force-aliasing',
+        'rotate 90',
+        str(rotated_filepath),
+    ])
 
 
 # def create_image_from_text(text, rotate_90=False):

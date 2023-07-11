@@ -1,5 +1,3 @@
-import sys
-
 import pygame
 
 from helpers import *
@@ -35,6 +33,8 @@ joystick_normalized = {
     0: 'a',
     1: 'b',
     2: 'x',
+    6: 'back',
+    7: 'start',
     11: 'right',
     12: 'left',
     13: 'up',
@@ -86,11 +86,23 @@ def inputs_since_last_called():
         if not is_doorbell():
             pass
 
+        # print(f'Event: {event}, {event.type=}\n' * 50)
         if event.type == pygame.JOYBUTTONDOWN:
+            # print(f'Joystick button pressed: {event.button}\n' * 50)
             if event.button in joystick_normalized:
                 all_events.append(joystick_normalized[event.button])
             # else:
-            #     print(f'Unknown joystick button pressed: {event.button}\n' * 8)
+            #     print(f'Unknown joystick button pressed: {event.button}\n' * 50)
+        elif event.type == pygame.JOYHATMOTION:
+            x, y = event.value
+            if x == 1:
+                all_events.append('right')
+            elif x == -1:
+                all_events.append('left')
+            if y == -1:
+                all_events.append('down')
+            elif y == 1:
+                all_events.append('up')
     return all_events
 
 

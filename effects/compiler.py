@@ -115,53 +115,10 @@ def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
     return spectogram_cache[the_hash]
 
 
-def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
-    import aubio
-    the_hash = (filepath, size, times_a_second)
-    if the_hash not in spectogram_cache:
-        start_time_specto = time.time()
-        sr = 48000
-        win_size = 512 # fft size
-        hop_size = win_size // 2 # hop size
-        
-        try:
-            src = aubio.source(str(filepath), 0, hop_size)
-        except:
-            print_red(f'failed to load {filepath} with aubio')
-            return
-
-        n_filters = size[1]
-        n_coeffs = size[0]
-
-        pv = aubio.pvoc(win_size, hop_size)
-        f = aubio.filterbank(n_coeffs, win_size)
-        f.set_mel_coeffs_slaney(sr)
-
-        S = []
-        total_frames = 0
-        while True:
-            samples, read = src()
-            specgram = pv(samples)
-            mfcc_bands = f(specgram)
-            S.append(mfcc_bands)
-            total_frames += read
-            if read < hop_size:
-                break
-
-        S = np.array(S).T
-        S_db = 20 * np.log10(S / np.max(S))
-        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
-
-        print(f'loaded and computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
-        spectogram_cache[the_hash] = S_db_norm.T.astype(int)
-        print(spectogram_cache[the_hash].shape)
-    return spectogram_cache[the_hash]
-
-
 def grid_visualizer(grid_info):
     grid_helpers.grid_reset()
-    spectogram = get_whole_spectogram_aubio(grid_info.song_path)
-    # spectogram = get_whole_spectogram_librosa(grid_info.song_path)
+    # spectogram = get_whole_spectogram_aubio(grid_info.song_path)
+    spectogram = get_whole_spectogram_librosa(grid_info.song_path)
     spectogram_at_time = spectogram[grid_info.curr_sub_beat]
     
     if getattr(grid_info, 'flip', None):
@@ -172,7 +129,6 @@ def grid_visualizer(grid_info):
         for y in range(grid_helpers.GRID_HEIGHT):
             for x in range(spectogram_at_time[y]):
                 grid_helpers.grid[x][y] = grid_info.color
-
 
 
 def move_grid(grid_info):
@@ -219,15 +175,15 @@ def fill_grid_from_image_filepath(grid_info):
     if grid_info.rotate_90:
         dimensions = (dimensions[1], dimensions[0])
 
-    cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename, dimensions)
+    cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename, dimensions, use_cache=False)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
     grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)
 
 
 def fill_grid_from_text(grid_info):
-    filepath = grid_helpers.create_image_from_text_pilmoji(grid_info.text, font_size=grid_info.font_size, rotate_90=grid_info.rotate_90)
-    grid_helpers.fill_grid_from_image_filepath(filepath)
+    filepath = grid_helpers.create_image_from_text_pilmoji(grid_info.text, font_size=grid_info.font_size, rotate_90=grid_info.rotate_90, use_cache=False)    
+    grid_helpers.fill_grid_from_image_filepath(filepath, rotate_90=grid_info.rotate_90)
 
 
 def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):

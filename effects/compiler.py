@@ -15,6 +15,7 @@ import time
 import sys
 
 import numpy as np
+from PIL import Image
 
 import grid_helpers
 from helpers import *
@@ -44,6 +45,23 @@ class GridInfo:
             building.append(f'{attr}: {value}')
         
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
+
+
+
+
+# ==== eric and andrews transformation matrix stuff
+
+
+
+transform_object_memory = {}
+def our_transform(grid_info):
+    if isinstance(grid_info.object, str): # is a previous object
+        if grid_info.object not in transform_object_memory:
+            raise Exception(f'object name "{grid_info.object}" not found in memory')        
+    else: # is a numpy array
+        object_as_uint8 = grid_info.object.astype(np.uint8)
+        object_image = Image.fromarray(object_as_uint8)
+
 
 
 

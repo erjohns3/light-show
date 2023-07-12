@@ -17,23 +17,8 @@ except NameError:
 
 grid_serial = None
 
-# https://www.mathworks.com/discovery/affine-transformation.html#:~:text=Affine%20transformation%20is%20a%20linear,with%20non%2Dideal%20camera%20angles.
-# Pillow.tranform
+# !TODO dvd logo bouncing around
 
-# dvd logo bouncing around
-# grid_f(1,
-#     function=spawn_then_move, 
-#     object=arr_2d, 
-#     start_pos=(1, 1), 
-#     end_pos=(5, 5), 
-#     start_scale= (1, 1), 
-#     end_scale= (1, 1), 
-#     end_pos=(5, 5), 
-#     start_rot=5, 
-#     end_rot=5, 
-#     grid_skip_top_fill=True, 
-#     length=2,
-# ),
 
 
 GRID_WIDTH = 20
@@ -142,9 +127,6 @@ def visible_coord(pos):
 
 def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
-
-def grid_pack():
-    grid.reshape(GRID_SIZE)[grid_index]
 
 
 

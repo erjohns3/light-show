@@ -926,8 +926,14 @@ async def light():
 
         
         if not grid_skip_top_fill:
-            grid_helpers.grid[:][:grid_helpers.GRID_WIDTH // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            grid_helpers.grid[grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+            # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            # grid_helpers.grid[:][grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+
+            grid_helpers.grid[:grid_helpers.GRID_WIDTH // 2][:] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:][:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+
+            # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
         for grid_info in grid_infos_for_this_sub_beat:
             try:

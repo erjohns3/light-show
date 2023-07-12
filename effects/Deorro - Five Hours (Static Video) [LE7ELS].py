@@ -1,3 +1,5 @@
+import random
+
 from effects.compiler import *
 
 import grid_helpers
@@ -10,13 +12,26 @@ intro_beats = [1, 3.79, 6.79, 9.54, 12.12, 14.58, 16.92, 19.08, 21.12, 23.25, 25
 
 
 def squares_up(grid_info):
+    if getattr(grid_info, 'filled_to', None) is None:
+        grid_info.filled_to = 0
+        grid_info.last_color = [random.randint(0, 30), random.randint(0, 30), random.randint(0, 150)]
+    
+    coords_length = grid_helpers.total_coords
     length = grid_info.end_sub_beat - grid_info.start_sub_beat
-    curr = grid_info.curr_sub_beat
+    percent_done = grid_info.curr_sub_beat / length
+    fill_to = int(percent_done * coords_length)
+    # print(f'{grid_info.start_sub_beat=}, {grid_info.curr_sub_beat=}, {length=}, {percent_done=}, filling from {grid_info.filled_to} to {fill_to}')
+    for index, (x, y) in enumerate(grid_helpers.grid_coords_y_first()):
+        if grid_info.filled_to <= index <= fill_to:
+            grid_helpers.grid[x][y] = white
+            grid_helpers.grid[x][y] = grid_info.last_color
 
-    for x, y in grid_helpers.grid_coords():
-        pass    
-
-
+            chosen_index = random.randint(0, 2)
+            if random.randint(0, 1) == 0:
+                grid_info.last_color[chosen_index] = max(grid_info.last_color[chosen_index] - 15, 0)
+            else:
+                grid_info.last_color[chosen_index] = min(grid_info.last_color[chosen_index] + 15, 254)
+    grid_info.filled_to = fill_to
 
 white = (100, 100, 100)
 pink = (100, 0, 100)
@@ -63,11 +78,8 @@ def get_wub_across(beats, colors):
         components.append(grid_f(beat, function=spawn_row, y=0, color=color, length=0.01))
     return components
 
-def get_wub_bounce(beats, colors, speed=1, end_point=112, length=None):
-    components = [
-        grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=length),
-    ]
-    print(f'creating grid_skip_top_fill at {1}, for {length=}')
+def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=None):
+    components = []
     counter = 0
     y_index = 0
     spawn_points = [0, 31]
@@ -75,10 +87,14 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, length=None):
 
     for index, beat in enumerate(beats):
         next_beat = beats[index + 1] if index + 1 < len(beats) else end_point
-        color = colors[counter % len(colors)]
-        counter += 1
+        color = white
+        if type(colors[0]) in [int, float]:
+            color = colors
+        elif start_colors_at_beat is None or beat > start_colors_at_beat:
+            color = colors[counter % len(colors)]
+            counter += 1
         y_index = 1 - y_index
-        print(f'creating at {beat}, for length {next_beat - beat}')
+        # print(f'creating at {beat}, for length {next_beat - beat}')
         components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.01))
         components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
     return components
@@ -98,22 +114,34 @@ effects = {
     '5 hours grid intro': {
         'length': 113,
         'beats': [
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=111.5),
+
             # *get_wub_across(intro_beats, intro_melody_colors),
-            *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, length=113),
-            grid_f(112, function=squares_up, length=2),
+            *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),
+            grid_f(112, function=squares_up, length=.5),
         ],
     },
+
+    '5 hours Bottom bass bottom': {
+        'length': 1,
+        'beats': [
+            b(1, name='Blue bottom', length=.8, intensity=[.1, 0], hue_shift=.9),
+        ]
+    },
+
 
     '5 hours grid chorus': {
         'length': 4,
         'beats': [
-            b(1, name='Red disco pulse', length=3),
-            b(4, name='Red disco pulse', length=1),
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=4),
+
+            b(1, name='5 hours Bottom bass bottom', length=4),
+            b(1, name='Red disco pulse', length=3, offset=.5),
+            b(4, name='Green disco pulse', length=1, offset=.5),
             *get_wub_bounce(
                 [x + .5 for x in range(1, 5)],
                 colors=chorus_melody_colors, 
                 speed=3,
-                length=4,
                 end_point=5,
             ),
         ]
@@ -133,4 +161,3 @@ effects = {
         ]
     }
 }
-# exit()

@@ -34,6 +34,12 @@ def grid_coords():
         for y in range(GRID_HEIGHT):
             yield (x, y)
 
+def grid_coords_y_first():
+    for y in range(GRID_HEIGHT):
+        for x in range(GRID_WIDTH):
+            yield (x, y)
+total_coords = len(list(grid_coords()))
+
 
 def copy_grid():
     return np.array(grid)

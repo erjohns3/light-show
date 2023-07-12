@@ -156,31 +156,65 @@ def move_until_y_occupy(grid_info):
             grid_helpers.move(vector)
 
 
+def clear_grid(grid_info):
+    grid_helpers.reset()
 
 def spawn_row_then_move(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
 
     if grid_info.curr_sub_beat == 0:
-        print('NEWBIE!!')
         if getattr(grid_info, 'clear', None):
             grid_helpers.reset()
         grid_info.last_y = None
     
     if not (0 <= grid_info.y < grid_helpers.GRID_HEIGHT):
-        if getattr(grid_info, 'stop_at_edge', None):
+        if getattr(grid_info, 'bounce', None):
+            grid_info.vector = (-grid_info.vector[0], -grid_info.vector[1])
+            grid_info.y = max(0, min(grid_info.y, grid_helpers.GRID_HEIGHT - 1))
+        else:
+            if getattr(grid_info, 'stop_at_edge', None):
+                return
+            if grid_info.last_y is not None:
+                add_color_row(grid_info.last_y, list(map(lambda i: -i, grid_info.color)))
+                grid_info.last_y = None
             return
-        if grid_info.last_y is not None:
-            add_color_row(grid_info.last_y, list(map(lambda x: -x, grid_info.color)))
-            grid_info.last_y = None
-        return
 
     if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
         if grid_info.last_y is not None:
-            add_color_row(grid_info.last_y, list(map(lambda x: -x, grid_info.color)))
+            add_color_row(grid_info.last_y, list(map(lambda i: -i, grid_info.color)))
         grid_info.last_y = grid_info.y
         add_color_row(grid_info.y, grid_info.color)
         grid_info.y += grid_info.vector[1]
+
+
+def spawn_col_then_move(grid_info):
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+
+    if grid_info.curr_sub_beat == 0:
+        if getattr(grid_info, 'clear', None):
+            grid_helpers.reset()
+        grid_info.last_x = None
+    
+    if not (0 <= grid_info.x < grid_helpers.GRID_WIDTH):
+        if getattr(grid_info, 'bounce', None):
+            grid_info.vector = (-grid_info.vector[0], -grid_info.vector[1])
+            grid_info.x = max(0, min(grid_info.x, grid_helpers.GRID_WIDTH - 1))
+        else:
+            if getattr(grid_info, 'stop_at_edge', None):
+                return
+            if grid_info.last_x is not None:
+                add_color_col(grid_info.last_x, list(map(lambda i: -i, grid_info.color)))
+                grid_info.last_x = None
+            return
+
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+        if grid_info.last_x is not None:
+            add_color_col(grid_info.last_x, list(map(lambda i: -i, grid_info.color)))
+        grid_info.last_x = grid_info.x
+        add_color_col(grid_info.x, grid_info.color)
+        grid_info.x += grid_info.vector[0]
 
 
 def add_color_row(y, rgb):

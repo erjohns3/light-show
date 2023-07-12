@@ -155,10 +155,12 @@ effects = {
     },
 
     '5 hours grid after chorus': {
-        'length': 2,
+        'length': 64,
         'beats': [
-            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=4),
-            grid_f(1, function=spawn_row_then_move, y=0, color=pink, vector=(0, 1), length=2),
+            # grid_f(1, function=clear_grid, grid_skip_top_fill=True, length=0.01),
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=64),
+            grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
+            grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
         ]
     },
 

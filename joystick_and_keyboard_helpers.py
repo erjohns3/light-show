@@ -76,6 +76,17 @@ def ensure_joystick_init():
             joystick.init()
             has_inited.add(joystick)
 
+
+joyhat_x_mapping = {
+    -1: 'left',
+    1: 'right',
+}
+if is_doorbell():
+    joyhat_x_mapping = {
+        1: 'left',
+        -1: 'right',
+    }
+
 def inputs_since_last_called():
     if not ensure_init():
         return
@@ -96,10 +107,8 @@ def inputs_since_last_called():
                 # print(f'Unknown joystick button pressed: {event.button}\n' * 50)
         if event.type == pygame.JOYHATMOTION:
             x, y = event.value
-            if x == 1:
-                all_events.append('left')
-            elif x == -1:
-                all_events.append('right')
+            if x != 0:
+                all_events.append(joyhat_x_mapping[x])
             if y == -1:
                 all_events.append('down')
             elif y == 1:

@@ -3,7 +3,6 @@ import sys
 import numpy as np
 from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageDraw
-PIL.Transform
 
 from helpers import *
 
@@ -143,6 +142,10 @@ def visible_coord(pos):
 
 def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
+
+def grid_pack():
+    grid.reshape(GRID_SIZE)[grid_index]
+
 
 
 def fill(to_fill):

@@ -890,8 +890,7 @@ async def light():
                 # print(f'Looking at {len(grid_info_arr)} grid_info_arrs for {effect_name}')
                 for start_b, end_b, grid_info in grid_info_arr:
                     if start_b <= index <= end_b:
-                        grid_info.start_sub_beat = start_b
-                        grid_info.end_sub_beat = end_b
+                        grid_info.length = end_b - start_b
                         grid_info.curr_sub_beat = index - start_b
                         grid_info.bpm = curr_bpm
                         grid_info.time_diff = time_diff

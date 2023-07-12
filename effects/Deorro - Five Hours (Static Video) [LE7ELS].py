@@ -17,10 +17,8 @@ def squares_up(grid_info):
         grid_info.last_color = [random.randint(0, 30), random.randint(0, 30), random.randint(0, 150)]
     
     coords_length = grid_helpers.total_coords
-    length = grid_info.end_sub_beat - grid_info.start_sub_beat
-    percent_done = grid_info.curr_sub_beat / length
+    percent_done = grid_info.curr_sub_beat / grid_info.length
     fill_to = int(percent_done * coords_length)
-    # print(f'{grid_info.start_sub_beat=}, {grid_info.curr_sub_beat=}, {length=}, {percent_done=}, filling from {grid_info.filled_to} to {fill_to}')
     for index, (x, y) in enumerate(grid_helpers.grid_coords_y_first()):
         if grid_info.filled_to <= index <= fill_to:
             grid_helpers.grid[x][y] = white

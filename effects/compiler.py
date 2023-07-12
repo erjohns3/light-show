@@ -193,11 +193,9 @@ def fill_grid_from_image_filepath(grid_info):
     # print(f'GridInfo: {grid_info.all_attr_values()}')
 
     bpm = grid_info.bpm
-    start_beat = grid_info.start_sub_beat / SUB_BEATS
-    end_beat = grid_info.end_sub_beat / SUB_BEATS
     curr_beat = grid_info.curr_sub_beat / SUB_BEATS
 
-    relative_beat = curr_beat - start_beat
+    relative_beat = grid_info.length - curr_beat
 
     time_in_pattern = relative_beat * (60 / bpm)
 

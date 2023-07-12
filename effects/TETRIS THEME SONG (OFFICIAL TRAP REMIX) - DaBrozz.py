@@ -13,7 +13,7 @@ def tetris(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
 
-    if grid_info.curr_sub_beat == grid_info.start_sub_beat:
+    if grid_info.curr_sub_beat == 0:
         joystick_and_keyboard_helpers.clear_events()
         
     if tetris_grid.game_state is None:

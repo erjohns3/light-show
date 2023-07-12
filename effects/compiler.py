@@ -52,15 +52,70 @@ class GridInfo:
 # ==== eric and andrews transformation matrix stuff
 
 
+def interpolate_float(f1, f2, percent_done):
+    return (1 - percent_done) * f1 + percent_done * f2
+
+
+def interpolate_int(i1, i2, percent_done):
+    interpolated_float = interpolate_float(i1, i2, percent_done)
+    return round(interpolated_float)
+
+
+# v1: (-2, 4) # v2: (3, 1)  # percent_done: 0-1
+def interpolate_vectors_float(v1, v2, percent_done):
+    return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
+
+
+def interpolate_vectors_int(v1, v2, percent_done):
+    mids = interpolate_vectors_float(v1, v2, percent_done)
+    return tuple(map(round, mids))
+
+
 
 transform_object_memory = {}
 def our_transform(grid_info):
     if isinstance(grid_info.object, str): # is a previous object
+        raise Exception(f'memory mode (string name) not impelmented yet')
         if grid_info.object not in transform_object_memory:
             raise Exception(f'object name "{grid_info.object}" not found in memory')        
+        object_image = None
+        start_pos = None
+        start_scale = None
+        start_rot = None
     else: # is a numpy array
+        start_pos = getattr(grid_info, 'start_pos', (0, 0))
+        start_scale = getattr(grid_info, 'start_scale', (1, 1))
+        start_rot = getattr(grid_info, 'start_rot', 0)
         object_as_uint8 = grid_info.object.astype(np.uint8)
         object_image = Image.fromarray(object_as_uint8)
+
+    end_pos = getattr(grid_info, 'end_pos', (0, 0))
+    end_scale = getattr(grid_info, 'end_scale', (1, 1))
+    end_rot = getattr(grid_info, 'end_rot', 0)
+
+    percent_done = grid_info.curr_sub_beat / grid_info.length
+    pos = interpolate_vectors_float(start_pos, end_pos, percent_done)
+    scale = interpolate_vectors_float(start_scale, end_scale, percent_done)
+    rot = interpolate_float(start_rot, end_rot, percent_done)
+
+    size = object_image.size
+    matrix = [scale[0]*np.cos(rot), scale[1]*np.sin(rot), pos[0], -scale[0]*np.sin(rot), scale[1]*np.cos(rot), pos[1]]
+    transformed_image = object_image.transform(
+        size, 
+        Image.AFFINE, 
+        matrix, 
+        # Image.BICUBIC,
+        Image.NEAREST,
+    )
+
+    # print(f'{pos=}, {scale=}, {rot=}, {object_image.size=}, {transformed_image.size=}\n' * 10)
+    
+    np_arr = np.array(transformed_image)
+    for (x, y) in grid_helpers.coords():
+        grid_helpers.grid[x][y] = np_arr[x][y]
+    
+
+
 
 
 

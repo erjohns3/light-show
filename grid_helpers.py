@@ -327,8 +327,9 @@ def fill_grid_from_image_filepath(filepath, rotate_90=False):
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 run_once = set()
-def get_cached_converted_filepath(filename, rotate_90=False, use_cache=True):
-    filepath = this_file_directory.joinpath('images', filename)
+def get_cached_converted_filepath(filepath, rotate_90=False, use_cache=True):
+    if isinstance(filepath, str):
+        filepath = this_file_directory.joinpath('images', filepath)
     cache_filepath = resize_cache_dir.joinpath(f'{rotate_90}_' + filepath.name)
 
     # jpgs have horrible artifacts, so we convert them to pngs, note we will have to do this for mpegs too, and maybe webps
@@ -395,6 +396,13 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
         print(f'saved "{text}" to image {output_filepath}')
         run_once_text_image.add(hash_filename)
     return output_filepath
+
+
+def get_2d_arr_from_image(filepath):
+    if isinstance(filepath, str):
+        filepath = this_file_directory.joinpath('images', filepath)
+    with Image.open(filepath) as image:
+        return PIL_image_to_numpy_arr(image)
 
 
 if __name__ == '__main__':

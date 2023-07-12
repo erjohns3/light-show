@@ -95,7 +95,16 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
             counter += 1
         y_index = 1 - y_index
         # print(f'creating at {beat}, for length {next_beat - beat}')
-        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.01))
+        # if speed == 1:
+        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.01))    
+        # if speed == 3:
+        #     sub_or_add = 1
+        #     if y_index == 1:
+        #         sub_or_add = -1
+        #     components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index] + sub_or_add * 2, color=color, length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index] + sub_or_add, color=list(map(lambda x: x // 10, color)), length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index], color=list(map(lambda x: x // 20, color)), length=0.01))
+
         components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
     return components
 

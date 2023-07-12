@@ -35,10 +35,10 @@ joystick_normalized = {
     2: 'x',
     6: 'back',
     7: 'start',
-    11: 'right',
-    12: 'left',
-    13: 'up',
-    14: 'down',
+    # 11: 'right',
+    # 12: 'left',
+    # 13: 'up',
+    # 14: 'down',
 }
 
 def invert_left_right_joystick():
@@ -82,6 +82,7 @@ def inputs_since_last_called():
     ensure_joystick_init()
 
     all_events = []
+
     for event in pygame.event.get():
         if not is_doorbell():
             pass
@@ -92,13 +93,13 @@ def inputs_since_last_called():
             if event.button in joystick_normalized:
                 all_events.append(joystick_normalized[event.button])
             # else:
-            #     print(f'Unknown joystick button pressed: {event.button}\n' * 50)
-        elif event.type == pygame.JOYHATMOTION:
+                # print(f'Unknown joystick button pressed: {event.button}\n' * 50)
+        if event.type == pygame.JOYHATMOTION:
             x, y = event.value
             if x == 1:
-                all_events.append('right')
-            elif x == -1:
                 all_events.append('left')
+            elif x == -1:
+                all_events.append('right')
             if y == -1:
                 all_events.append('down')
             elif y == 1:

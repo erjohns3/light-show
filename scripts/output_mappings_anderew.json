@@ -1,6 +1,16 @@
 {
-    "red": {
-        "real_color": 1,
-        "term_color": 22
-    }
+    "red": [
+        {
+            "real_color": 1,
+            "term_color": 33
+        },
+        {
+            "real_color": 2,
+            "term_color": 49
+        },
+        {
+            "real_color": 3,
+            "term_color": 57
+        }
+    ]
 }

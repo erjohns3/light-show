@@ -46,6 +46,8 @@ rgb_index_to_letter = {
 }
 letter_to_rgb_index = {v: k for k, v in rgb_index_to_letter.items()}
 def load_output_mappings(filepath):
+    global real_color, term_color
+
     try:
         with open(filepath) as f:
             initial_mapping_read = json.load(f)
@@ -53,7 +55,9 @@ def load_output_mappings(filepath):
         print_stacktrace()
         print_red(f'warning load_output_mappings() failed to load {filepath}, stack trace above, initing to nothing')
         initial_mapping_read = {}
-    
+        real_color = (100, 0, 0)
+        term_color = (10, 0, 0)  
+  
     output_mappings = {}
     for letter, sub_map_arr in initial_mapping_read.items():
         rgb_index = letter_to_rgb_index[letter]
@@ -170,6 +174,9 @@ def find_right_below(rgb):
         new[rgb_index] = i
         if tuple(new) in output_mappings:
             return output_mappings[tuple(new)]
+    thing = [0, 0, 0]
+    thing[rgb_index] = 1
+    return tuple(thing)
 
 def make_red():
     global real_color, term_color
@@ -213,8 +220,15 @@ output_mapping_filepath = 'output_mappings_anderew.json'
 output_mappings = load_output_mappings(output_mapping_filepath)
 
 def reprint_terminal():
+    print(term_color)
     grid_helpers.grid_fill(term_color)
-    grid_helpers.render_grid(terminal=True, reset_terminal=False)
+
+    for (x, y) in grid_helpers.grid_coords():
+        rgb = list(map(int, grid_helpers.grid[x][y]))
+        if rgb:
+            print(rgb, rgb_ansi(character, rgb))
+            break
+    # grid_helpers.render_grid(terminal=True, reset_terminal=False)
     print(f'Terminal color is {term_color}')
     
 
@@ -222,15 +236,12 @@ def reprint_real_grid():
     grid_helpers.grid_reset()
     
     for x, y in [
-        [2, 1],
+        [2, 1]
     ]:
         for rgb_index, value in enumerate(real_color):
             grid_helpers.grid[x][y][rgb_index] = value
 
-    # this doesnt work, why do i have to call grid multiple times????
-    for _ in range(20):
-        grid_helpers.render_grid()    
-        time.sleep(.03)
+    grid_helpers.render_grid()    
     print(f'Real color is {real_color}')
 
 

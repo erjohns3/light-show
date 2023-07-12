@@ -46,8 +46,8 @@ effects = {
     "tetris drop": {
         "length": 1,
         "beats": [
-            b(1, name='Red top', length=.50),
-            grid_f(1.50, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=.50),
+            b(1, name='Red top', length=.30, intensity=.3),
+            grid_f(1.30, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=.70),
         ]
     },
     "TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz": {
@@ -59,8 +59,11 @@ effects = {
             grid_f(1, function=start_new_tetris_game, length=0.01),
 
             grid_f(1, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=129),
-            grid_f(128, text='OY', font_size=8, grid_skip_top_fill=True, length=1),
-            b(129, name='tetris drop', length=64),
+            grid_f(128, text='OY', font_size=8, grid_skip_top_fill=True, length=1.5),
+            # !TODO Fix offset
+            b(129.5, name='tetris drop', offset=.5, length=34.5),
+            grid_f(164, text='WHAT', font_size=8, grid_skip_top_fill=True, length=1.5),
+            b(165.5, name='tetris drop', offset=.5, length=193 - 165.5),
             grid_f(193, function=tetris, grid_skip_top_fill=True, beat_divide=12, length=129),
         ]
     }

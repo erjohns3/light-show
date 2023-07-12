@@ -1509,7 +1509,7 @@ def compile_lut(local_effects_config):
                 if 'grid_info' not in curr_channel:
                     curr_channel['grid_info'] = []
                 ref_channel_all_grid_infos = reference_channel['grid_info']
-                print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
             
 
                 if isinstance(ref_channel_all_grid_infos, GridInfo):
@@ -1527,7 +1527,7 @@ def compile_lut(local_effects_config):
                     for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
                         # !TODO idk if this is right...
                         if offset:
-                            print_cyan(f'  offsetting by {offset=}')
+                            # print_cyan(f'  offsetting by {offset=}')
                             ref_start_beat += offset
                             ref_end_beat += offset
 
@@ -1931,11 +1931,11 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
         compile_all_luts_from_effects_config()
-        debug_channel_lut_grid_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
+        # debug_channel_lut_grid_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
         # debug_channel_lut_grid_info('tech effect testing')
         # debug_channel_lut_grid_info('tech effect testing sub')
         # debug_channel_lut_grid_info('5 hours intro')
-        exit()
+        # exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)

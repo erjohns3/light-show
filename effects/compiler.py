@@ -157,18 +157,49 @@ def move_until_y_occupy(grid_info):
 
 
 
+def spawn_row_then_move(grid_info):
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+
+    if grid_info.curr_sub_beat == 0:
+        print('NEWBIE!!')
+        if getattr(grid_info, 'clear', None):
+            grid_helpers.reset()
+        grid_info.last_y = None
+    
+    if not (0 <= grid_info.y < grid_helpers.GRID_HEIGHT):
+        if getattr(grid_info, 'stop_at_edge', None):
+            return
+        if grid_info.last_y is not None:
+            add_color_row(grid_info.last_y, list(map(lambda x: -x, grid_info.color)))
+            grid_info.last_y = None
+        return
+
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+        if grid_info.last_y is not None:
+            add_color_row(grid_info.last_y, list(map(lambda x: -x, grid_info.color)))
+        grid_info.last_y = grid_info.y
+        add_color_row(grid_info.y, grid_info.color)
+        grid_info.y += grid_info.vector[1]
+
+
+def add_color_row(y, rgb):
+    for x in range(grid_helpers.GRID_WIDTH):
+        grid_helpers.grid[x][y] = np.clip(grid_helpers.grid[x][y] + rgb, a_min=0, a_max=100)
+
+def add_color_col(x, rgb):
+    for y in range(grid_helpers.GRID_HEIGHT):
+        grid_helpers.grid[x][y] = np.clip(grid_helpers.grid[x][y] + rgb, a_min=0, a_max=100)
+
+
 def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
     if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        grid_helpers.move(grid_info.vector)
-
-
-def move_grid_wrap(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        grid_helpers.move_wrap(grid_info.vector)
+        if grid_info.wrap:
+            grid_helpers.move_wrap(grid_info.vector)
+        else:
+            grid_helpers.move(grid_info.vector)
 
 
 def spawn_row(grid_info):

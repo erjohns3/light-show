@@ -114,7 +114,7 @@ effects = {
         'beats': [
             grid_f(1, text='🍆', font_size=9, length=.01),
             # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
-            grid_f(1, function=move_grid_wrap, vector=(0, -1), grid_skip_top_fill=True, beat_divide=3, length=64),        
+            grid_f(1, function=move_grid, wrap=True, vector=(0, -1), grid_skip_top_fill=True, beat_divide=3, length=64),        
         ]
     },
 
@@ -154,6 +154,14 @@ effects = {
         ]
     },
 
+    '5 hours grid after chorus': {
+        'length': 2,
+        'beats': [
+            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=4),
+            grid_f(1, function=spawn_row_then_move, y=0, color=pink, vector=(0, 1), length=2),
+        ]
+    },
+
     "Deorro - Five Hours (Static Video) [LE7ELS]": {
         "bpm": 128,
         "song_path": "songs/Deorro - Five Hours (Static Video) [LE7ELS].ogg",
@@ -165,6 +173,7 @@ effects = {
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),
+            b(177, name='5 hours grid after chorus', length=64),
         ]
     }
 }

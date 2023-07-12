@@ -1469,7 +1469,7 @@ def compile_lut(local_effects_config):
     complex_effect_perf_timer = time.time()
     for effect_name_or_grid_info in complex_effects:
         if isinstance(effect_name_or_grid_info, GridInfo):
-            # !TODO i think this length thing is rly wrong...
+            # !TODO i think this length thing might be wrong...
             channel_lut[effect_name_or_grid_info] = {
                 # 'length': 0,
                 'length': effect_name_or_grid_info.length,
@@ -1501,14 +1501,17 @@ def compile_lut(local_effects_config):
 
             length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
 
+
+
             reference_channel = channel_lut[reference_name]
             reference_length = channel_lut[reference_name]['length']
             if 'grid_info' in reference_channel:
                 if 'grid_info' not in curr_channel:
                     curr_channel['grid_info'] = []
                 ref_channel_all_grid_infos = reference_channel['grid_info']
-                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
-                
+                print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+            
+
                 if isinstance(ref_channel_all_grid_infos, GridInfo):
                     curr_channel['grid_info'].append(
                         [
@@ -1518,7 +1521,17 @@ def compile_lut(local_effects_config):
                         ],
                     )
                 else:
+                    offset = 0
+                    if len(component) > 4:
+                        offset = round(component[5] * SUB_BEATS)
                     for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
+                        # !TODO idk if this is right...
+                        if offset:
+                            print_cyan(f'  offsetting by {offset=}')
+                            ref_start_beat += offset
+                            ref_end_beat += offset
+
+
                         ref_grid_info_length = ref_end_beat - ref_start_beat
                         # print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_grid_info)}')
                         for calced_start_beat in range(start_beat + ref_start_beat, start_beat + length, reference_length):
@@ -1536,14 +1549,14 @@ def compile_lut(local_effects_config):
             if 'beats' not in channel_lut[reference_name]:
                 continue
             reference_beats = channel_lut[reference_name]['beats']
-
+            
             start_mult = component[3]
             end_mult = component[4]
             offset = round(component[5] * SUB_BEATS)
             hue_shift = component[6]
             sat_shift = component[7]
             bright_shift = component[8]
-            
+
             grid_bright_shift = 0
             if len(component) > 9:
                 grid_bright_shift = component[9]
@@ -1918,10 +1931,11 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
         compile_all_luts_from_effects_config()
-        # debug_channel_lut_grid_info('Daft Punk - Technologic (Official Video)')
+        debug_channel_lut_grid_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
         # debug_channel_lut_grid_info('tech effect testing')
         # debug_channel_lut_grid_info('tech effect testing sub')
         # debug_channel_lut_grid_info('5 hours intro')
+        exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)

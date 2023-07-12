@@ -10,8 +10,6 @@ def clear_events():
         return
     pygame.event.clear()
 
-
-
 pygame_keyboard_normalized = {
     pygame.K_ESCAPE: 'quit',
     pygame.K_RETURN: 'enter',
@@ -93,18 +91,12 @@ def inputs_since_last_called():
     ensure_joystick_init()
 
     all_events = []
-
     for event in pygame.event.get():
         if not is_doorbell():
             pass
-
-        # print(f'Event: {event}, {event.type=}\n' * 50)
         if event.type == pygame.JOYBUTTONDOWN:
-            # print(f'Joystick button pressed: {event.button}\n' * 50)
             if event.button in joystick_normalized:
                 all_events.append(joystick_normalized[event.button])
-            # else:
-                # print(f'Unknown joystick button pressed: {event.button}\n' * 50)
         if event.type == pygame.JOYHATMOTION:
             x, y = event.value
             if x != 0:

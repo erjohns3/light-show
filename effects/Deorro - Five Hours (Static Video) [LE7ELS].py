@@ -19,7 +19,7 @@ def squares_up(grid_info):
     coords_length = grid_helpers.total_coords
     percent_done = grid_info.curr_sub_beat / grid_info.length
     fill_to = int(percent_done * coords_length)
-    for index, (x, y) in enumerate(grid_helpers.grid_coords_y_first()):
+    for index, (x, y) in enumerate(grid_helpers.coords_y_first()):
         if grid_info.filled_to <= index <= fill_to:
             grid_helpers.grid[x][y] = white
             grid_helpers.grid[x][y] = grid_info.last_color

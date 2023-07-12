@@ -116,7 +116,7 @@ def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
 
 
 def grid_visualizer(grid_info):
-    grid_helpers.grid_reset()
+    grid_helpers.reset()
     # spectogram = get_whole_spectogram_aubio(grid_info.song_path)
     spectogram = get_whole_spectogram_librosa(grid_info.song_path)
     spectogram_at_time = spectogram[grid_info.curr_sub_beat]
@@ -153,7 +153,7 @@ def move_until_y_occupy(grid_info):
             for x in range(grid_helpers.GRID_WIDTH):
                 if grid_helpers.grid[x][grid_info.y].any():
                     return
-            grid_helpers.grid_move(vector)
+            grid_helpers.move(vector)
 
 
 
@@ -161,26 +161,26 @@ def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
     if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        grid_helpers.grid_move(grid_info.vector)
+        grid_helpers.move(grid_info.vector)
 
 
 def move_grid_wrap(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
     if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        grid_helpers.grid_move_wrap(grid_info.vector)
+        grid_helpers.move_wrap(grid_info.vector)
 
 
 def spawn_row(grid_info):
     if getattr(grid_info, 'clear', None):
-        grid_helpers.grid_reset()
+        grid_helpers.reset()
     for x in range(grid_helpers.GRID_WIDTH):
         grid_helpers.grid[x][grid_info.y] = grid_info.color
 
 
 def spawn_col(grid_info):
     if getattr(grid_info, 'clear', None):
-        grid_helpers.grid_reset()
+        grid_helpers.reset()
     for y in range(grid_helpers.GRID_HEIGHT):
         grid_helpers.grid[grid_info.x][y] = grid_info.color
 

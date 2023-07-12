@@ -942,7 +942,7 @@ async def light():
                 print_yellow(f'TRIED TO CALL {grid_info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render_grid(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
+        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local:
             print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 
@@ -1622,8 +1622,8 @@ def signal_handler(sig, frame):
                 child.kill()
     if not args.local:
         threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
-        grid_helpers.grid_reset()
-        grid_helpers.render_grid()
+        grid_helpers.reset()
+        grid_helpers.render()
         for pin in LED_PINS:
             pi.set_PWM_dutycycle(pin, 0)
     sys.exit()

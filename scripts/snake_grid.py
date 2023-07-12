@@ -36,15 +36,15 @@ for item, color in item_colors.items():
     item_styles[item] = f'rgb({color_scaled[0]},{color_scaled[1]},{color_scaled[2]})'
 
 def render(game_state):
-    for g_x, g_y in grid_helpers.grid_coords():
-        if grid_helpers.grid_in_bounds((g_x, g_y)):
+    for g_x, g_y in grid_helpers.coords():
+        if grid_helpers.visible_coord((g_x, g_y)):
             if (g_x, g_y) == game_state.player_head_pos or (g_x, g_y) in game_state.player_body_poses:
                 grid_helpers.grid[g_x][g_y] = item_colors['player']
             elif (g_x, g_y) == game_state.food_pos:
                 grid_helpers.grid[g_x][g_y] = item_colors['food']
             else:
                 grid_helpers.grid[g_x][g_y] = item_colors['empty']
-    grid_helpers.render_grid(terminal=args.local)
+    grid_helpers.render(terminal=args.local)
 
 
 def init_controller():
@@ -116,7 +116,7 @@ def read_input(controller):
 
 
 def legal(game_state, pos):
-    if grid_helpers.grid_in_bounds(pos) and pos not in game_state.player_body_poses:
+    if grid_helpers.visible_coord(pos) and pos not in game_state.player_body_poses:
         return True
     return False
 
@@ -125,7 +125,7 @@ def random_pos():
     while True:
         x = random.randint(0, grid_helpers.get_grid_width() - 1)
         y = random.randint(0, grid_helpers.get_grid_height() - 1)
-        if grid_helpers.grid_in_bounds((x, y)):
+        if grid_helpers.visible_coord((x, y)):
             return (x, y)
 
 
@@ -157,8 +157,8 @@ def play_game(controller):
 
         if input_read == 'quit':
             if not args.local:
-                grid_helpers.grid_reset()
-                grid_helpers.render_grid()
+                grid_helpers.reset()
+                grid_helpers.render()
             pygame.quit()
             exit(1)
         elif input_read == 'enter':

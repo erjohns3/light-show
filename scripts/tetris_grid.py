@@ -104,10 +104,10 @@ def fill_grid_with_game_state():
     if game_state.p_name is not None:
         active_poses = set(get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor))
 
-    for g_x, g_y in grid_helpers.grid_coords():
+    for g_x, g_y in grid_helpers.coords():
         x = (g_x // 2) - TETRIS_X_OFFSET
         y = (g_y // 2) + TETRIS_Y_OFFSET
-        if grid_helpers.grid_in_bounds((g_x, g_y)):
+        if grid_helpers.visible_coord((g_x, g_y)):
             if x < 0 or x >= TETRIS_WIDTH or y < 0 or y >= TETRIS_HEIGHT:
                 grid_helpers.grid[g_x][g_y] = block_colors['out_of_bounds']
             elif (x, y) in active_poses:
@@ -285,8 +285,8 @@ def play_game_main():
         for normalized_input in joystick_and_keyboard_helpers.inputs_since_last_called():
             if normalized_input == 'quit':
                 if not args.local:
-                    grid_helpers.grid_reset()
-                    grid_helpers.render_grid()
+                    grid_helpers.reset()
+                    grid_helpers.render()
                 pygame.quit()
                 exit(1)
             elif normalized_input == 'y':
@@ -310,7 +310,7 @@ def play_game_main():
         if (time.time() - last_state_time) > 1 / states_per_second:
             advance_game_state()
             fill_grid_with_game_state()
-            grid_helpers.render_grid(terminal=args.local)
+            grid_helpers.render(terminal=args.local)
             last_state_time = time.time()
 
         to_wait = 1 / fps - (time.time() - start_loop)
@@ -323,8 +323,8 @@ if __name__ == "__main__":
     def signal_handler(sig, frame):
         print('SIG Handler in tetris_grid.py: ' + str(sig), flush=True)
         if not args.local:
-            grid_helpers.grid_reset()
-            grid_helpers.render_grid()
+            grid_helpers.reset()
+            grid_helpers.render()
         sys.exit()
 
     argparse = argparse.ArgumentParser()

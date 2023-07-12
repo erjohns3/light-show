@@ -29,7 +29,7 @@ def fill_grid_from_image_filepath(grid_info):
         if wait_frame > 0:
             wait_frame = 0
             grid_helpers.increment_animation_frame(image_filepath)
-    grid_helpers.render_grid(terminal=console)
+    grid_helpers.render(terminal=console)
 
 
 grid_info = GridInfo()

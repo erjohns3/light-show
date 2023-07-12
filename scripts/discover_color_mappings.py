@@ -20,8 +20,8 @@ from helpers import *
 
 def signal_handler(sig, frame):
     print('SIG Handler inside discover_color_mappings.py: ' + str(sig), flush=True)
-    grid_helpers.grid_reset()
-    grid_helpers.render_grid()
+    grid_helpers.reset()
+    grid_helpers.render()
     sys.exit()
 
 
@@ -221,9 +221,9 @@ output_mappings = load_output_mappings(output_mapping_filepath)
 
 def reprint_terminal():
     print(term_color)
-    grid_helpers.grid_fill(term_color)
+    grid_helpers.fill(term_color)
 
-    for (x, y) in grid_helpers.grid_coords():
+    for (x, y) in grid_helpers.coords():
         rgb = list(map(int, grid_helpers.grid[x][y]))
         if rgb:
             print(rgb, rgb_ansi(character, rgb))
@@ -233,7 +233,7 @@ def reprint_terminal():
     
 
 def reprint_real_grid():        
-    grid_helpers.grid_reset()
+    grid_helpers.reset()
     
     for x, y in [
         [2, 1]
@@ -241,7 +241,7 @@ def reprint_real_grid():
         for rgb_index, value in enumerate(real_color):
             grid_helpers.grid[x][y][rgb_index] = value
 
-    grid_helpers.render_grid()    
+    grid_helpers.render()    
     print(f'Real color is {real_color}')
 
 

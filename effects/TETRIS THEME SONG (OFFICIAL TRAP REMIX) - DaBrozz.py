@@ -61,7 +61,7 @@ effects = {
             grid_f(1, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=129),
             grid_f(128, text='OY', font_size=8, grid_skip_top_fill=True, length=1),
             b(129, name='tetris drop', length=64),
-            grid_f(129 + 64, function=tetris, grid_skip_top_fill=True, beat_divide=12, length=129),
+            grid_f(193, function=tetris, grid_skip_top_fill=True, beat_divide=12, length=129),
         ]
     }
 }

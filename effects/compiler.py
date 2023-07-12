@@ -131,6 +131,32 @@ def grid_visualizer(grid_info):
                 grid_helpers.grid[x][y] = grid_info.color
 
 
+def get_smallest_equivilent_vectors(vector):
+    all_vectors = []
+    sign_x = 1 if vector[0] > 0 else -1
+    sign_y = 1 if vector[1] > 0 else -1
+    needed_x, needed_y = list(map(abs, vector))
+    for _ in range(max(needed_x, needed_y)):
+        should_x = sign_x if needed_x > 0 else 0
+        should_y = sign_y if needed_y > 0 else 0
+        all_vectors.append((should_x, should_y))
+        needed_x -= should_x
+        needed_y -= should_y
+    return all_vectors
+
+
+def move_until_y_occupy(grid_info):
+    if getattr(grid_info, 'beat_divide', None) is None:
+        grid_info.beat_divide = 1
+    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+        for vector in get_smallest_equivilent_vectors(grid_info.vector):
+            for x in range(grid_helpers.GRID_WIDTH):
+                if grid_helpers.grid[x][grid_info.y].any():
+                    return
+            grid_helpers.grid_move(vector)
+
+
+
 def move_grid(grid_info):
     if getattr(grid_info, 'beat_divide', None) is None:
         grid_info.beat_divide = 1
@@ -146,11 +172,15 @@ def move_grid_wrap(grid_info):
 
 
 def spawn_row(grid_info):
+    if getattr(grid_info, 'clear', None):
+        grid_helpers.grid_reset()
     for x in range(grid_helpers.GRID_WIDTH):
         grid_helpers.grid[x][grid_info.y] = grid_info.color
 
 
 def spawn_col(grid_info):
+    if getattr(grid_info, 'clear', None):
+        grid_helpers.grid_reset()
     for y in range(grid_helpers.GRID_HEIGHT):
         grid_helpers.grid[grid_info.x][y] = grid_info.color
 

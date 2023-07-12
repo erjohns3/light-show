@@ -58,9 +58,10 @@ effects = {
         "beats": [
             grid_f(1, function=start_new_tetris_game, length=0.01),
 
+
             grid_f(1, function=tetris, beat_divide=12, grid_skip_top_fill=True, length=129),
             grid_f(128, text='OY', font_size=8, grid_skip_top_fill=True, length=1.5),
-            # !TODO Fix offset
+            # !TODO offset might be wrong 
             b(129.5, name='tetris drop', offset=.5, length=34.5),
             grid_f(164, text='WHAT', font_size=8, grid_skip_top_fill=True, length=1.5),
             b(165.5, name='tetris drop', offset=.5, length=193 - 165.5),

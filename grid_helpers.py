@@ -3,6 +3,7 @@ import sys
 import numpy as np
 from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageDraw
+PIL.Transform
 
 from helpers import *
 
@@ -16,6 +17,24 @@ except NameError:
 
 
 grid_serial = None
+
+# https://www.mathworks.com/discovery/affine-transformation.html#:~:text=Affine%20transformation%20is%20a%20linear,with%20non%2Dideal%20camera%20angles.
+# Pillow.tranform
+
+# dvd logo bouncing around
+# grid_f(1,
+#     function=spawn_then_move, 
+#     object=arr_2d, 
+#     start_pos=(1, 1), 
+#     end_pos=(5, 5), 
+#     start_scale= (1, 1), 
+#     end_scale= (1, 1), 
+#     end_pos=(5, 5), 
+#     start_rot=5, 
+#     end_rot=5, 
+#     grid_skip_top_fill=True, 
+#     length=2,
+# ),
 
 
 GRID_WIDTH = 20
@@ -192,6 +211,8 @@ def resize_and_color_PIL_image(pil_image, rotate_90=False):
     pil_image = resize_PIL_image(pil_image, dimensions)
     pil_image = recolor_PIL_image(pil_image)
     return pil_image
+
+
 
 
 # @profile

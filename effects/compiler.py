@@ -113,40 +113,59 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
 
 
 
-transform_object_memory = {}
+object_memory = {}
 @profile
 def our_transform(grid_info):
+    # memory_recieve = False
     if isinstance(grid_info.object, str): # is a previous object
-        raise Exception(f'memory mode (string name) not impelmented yet')
-        if grid_info.object not in transform_object_memory:
-            raise Exception(f'object name "{grid_info.object}" not found in memory')        
-        object_image = None
-        start_pos = None
-        start_scale = None
-        start_rot = None
-    else: # is a numpy array
-        start_pos = getattr(grid_info, 'start_pos', (0, 0))
-        start_scale = getattr(grid_info, 'start_scale', (1, 1))
-        start_rot = getattr(grid_info, 'start_rot', 0)
-        object_as_uint8 = grid_info.object.astype(np.uint8)
-        object_image = Image.fromarray(object_as_uint8)
+        grid_info.name = grid_info.object
+        if grid_info.name not in object_memory:
+            raise Exception(f'object name "{grid_info.name}" not found in memory')
+        grid_info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[grid_info.name]
 
-    end_pos = getattr(grid_info, 'end_pos', (0, 0))
-    end_scale = getattr(grid_info, 'end_scale', (1, 1))
-    end_rot = getattr(grid_info, 'end_rot', 0)
+        grid_info.start_pos = getattr(grid_info, 'start_pos', loaded_pos)
+        grid_info.start_scale = getattr(grid_info, 'start_scale', loaded_scale)
+        grid_info.start_rot = getattr(grid_info, 'start_rot', loaded_rot)
 
+        grid_info.end_pos = getattr(grid_info, 'end_pos', grid_info.start_pos)
+        grid_info.end_scale = getattr(grid_info, 'end_scale', grid_info.start_scale)
+        grid_info.end_rot = getattr(grid_info, 'end_rot', grid_info.start_rot)
+
+        object_memory[grid_info.name][1] = (grid_info.end_pos, grid_info.end_scale, grid_info.end_rot)
+        print_blue(f'object name "{grid_info.name}" found in memory, loading {grid_info.start_pos, grid_info.start_scale, grid_info.start_rot=}, {grid_info.end_pos, grid_info.end_scale, grid_info.end_rot=}\n' * 3)
+    else:
+        grid_info.start_pos = getattr(grid_info, 'start_pos', (0, 0))
+        grid_info.start_scale = getattr(grid_info, 'start_scale', (1, 1))
+        grid_info.start_rot = getattr(grid_info, 'start_rot', 0)
+
+        grid_info.end_pos = getattr(grid_info, 'end_pos', grid_info.start_pos)
+        grid_info.end_scale = getattr(grid_info, 'end_scale', grid_info.start_scale)
+        grid_info.end_rot = getattr(grid_info, 'end_rot', grid_info.start_rot)
+        if isinstance(grid_info.object, np.ndarray): # is a numpy array            
+            object_as_uint8 = grid_info.object.astype(np.uint8)
+            object_image = Image.fromarray(object_as_uint8)
+            if getattr(grid_info, 'name', None) is not None:
+                object_memory[grid_info.name] = [object_image, (grid_info.end_pos, grid_info.end_scale, grid_info.end_rot)]
+            grid_info.object = object_image
+        elif isinstance(grid_info.object, Image.Image): # is a PIL image
+            object_image = grid_info.object
+            print(f'object is pillow. using {grid_info.start_pos, grid_info.start_scale, grid_info.start_rot=}, {grid_info.end_pos, grid_info.end_scale, grid_info.end_rot=}\n' * 3)
+        else:
+            raise Exception(f'object type "{type(grid_info.object)}" not supported')
+
+    # by this point grid_info.object is a pillow image
     percent_done = grid_info.curr_sub_beat / grid_info.length
-    pos = interpolate_vectors_float(start_pos, end_pos, percent_done)
-    scale = interpolate_vectors_float(start_scale, end_scale, percent_done)
-    rot = interpolate_float(start_rot, end_rot, percent_done)
+    pos = interpolate_vectors_float(grid_info.start_pos, grid_info.end_pos, percent_done)
+    scale = interpolate_vectors_float(grid_info.start_scale, grid_info.end_scale, percent_done)
+    rot = interpolate_float(grid_info.start_rot, grid_info.end_rot, percent_done)
 
-    size = object_image.size
+    size = grid_info.object.size
 
     # why is this seemingly backwards???
     midpoint = (grid_helpers.GRID_HEIGHT // 2, grid_helpers.GRID_WIDTH // 2)
 
-    transformed_image = transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos)
-    # print(f'{pos=}, {scale=}, {rot=}, {object_image.size=}, {transformed_image.size=}\n' * 10)
+    transformed_image = transform_scale_rotation_and_translation(grid_info.object, size, midpoint, scale, rot, pos)
+    # print(f'{pos=}, {scale=}, {rot=}, {grid_info.object.size=}, {transformed_image.size=}\n' * 10)
     
     grid_helpers.grid = np.array(transformed_image)
     # np_arr = np.array(transformed_image)

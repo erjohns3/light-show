@@ -148,7 +148,7 @@ def is_anchor_safe(game_state, p_anchor):
     return True
 
 
-def clear_y(game_state, y):
+def clear_y(y):
     for x2 in range(TETRIS_WIDTH):
         game_state.board[x2][y] = None
     for x2 in range(TETRIS_WIDTH):
@@ -199,6 +199,10 @@ def move_down():
         for pos in get_board_points(game_state.p_name, game_state.p_rotation, game_state.p_anchor):
             x, y = pos
             game_state.board[x][y] = game_state.p_name
+
+        for y in range(TETRIS_HEIGHT):
+            if all(game_state.board[x][y] is not None for x in range(TETRIS_WIDTH)):
+                clear_y(y)
         if not spawn_new_piece():
             start_new_game()
         return False
@@ -269,8 +273,6 @@ def advance_game_state():
     move_down()
 
 
-
-
 states_per_second = 4
 def play_game_main():
     global states_per_second, game_state
@@ -296,6 +298,8 @@ def play_game_main():
                 states_per_second = max(.001, states_per_second - 0.5)
             elif normalized_input == 'start':
                 states_per_second += 0.5
+            elif normalized_input == 'a':
+                hard_drop()
             elif normalized_input == 'x':
                 rotate_left()
             elif normalized_input == 'b':

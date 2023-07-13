@@ -114,6 +114,7 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
 
 
 transform_object_memory = {}
+@profile
 def our_transform(grid_info):
     if isinstance(grid_info.object, str): # is a previous object
         raise Exception(f'memory mode (string name) not impelmented yet')
@@ -147,10 +148,10 @@ def our_transform(grid_info):
     transformed_image = transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos)
     # print(f'{pos=}, {scale=}, {rot=}, {object_image.size=}, {transformed_image.size=}\n' * 10)
     
-    np_arr = np.array(transformed_image)
-    # np_arr = np.array(object_image)
-    for (x, y) in grid_helpers.coords():
-        grid_helpers.grid[x][y] = np_arr[x][y]
+    grid_helpers.grid = np.array(transformed_image)
+    # np_arr = np.array(transformed_image)
+    # for (x, y) in grid_helpers.coords():
+    #     grid_helpers.grid[x][y] = np_arr[x][y]
     
 
 

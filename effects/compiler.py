@@ -137,6 +137,8 @@ def load_object(info):
         if isinstance(info.object, np.ndarray): # is a numpy array            
             object_as_uint8 = info.object.astype(np.uint8)
             object_image = Image.fromarray(object_as_uint8)
+            # object_image.save('temp/test.png')
+            # print('temp/test.png')
             if getattr(info, 'name', None) is not None:
                 object_memory[info.name] = [object_image, (info.end_pos, info.end_scale, info.end_rot)]
             info.object = object_image
@@ -165,8 +167,12 @@ def our_transform(info):
 
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
     # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)
-    
-    grid_helpers.grid = np.array(transformed_image)
+
+    # !TODO this is rly bad
+    arr_version = np.array(transformed_image)
+    normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100
+
+    grid_helpers.grid = normalizedData
     # np_arr = np.array(transformed_image)
     # for (x, y) in grid_helpers.coords():
     #     grid_helpers.grid[x][y] = np_arr[x][y]

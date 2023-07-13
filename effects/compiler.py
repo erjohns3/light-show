@@ -113,59 +113,62 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
 
 
 
+def load_object(info):
+    if isinstance(info.object, str): # is a previous object
+        info.name = info.object
+        if info.name not in object_memory:
+            raise Exception(f'object name "{info.name}" not found in memory')
+        info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[info.name]
+
+        info.start_pos = getattr(info, 'start_pos', loaded_pos)
+        info.start_scale = getattr(info, 'start_scale', loaded_scale)
+        info.start_rot = getattr(info, 'start_rot', loaded_rot)
+
+        info.end_pos = getattr(info, 'end_pos', info.start_pos)
+        info.end_scale = getattr(info, 'end_scale', info.start_scale)
+        info.end_rot = getattr(info, 'end_rot', info.start_rot)
+
+        object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot)
+        # print_blue(f'object name "{info.name}" found in memory, loading {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
+    else:
+        info.start_pos = getattr(info, 'start_pos', (0, 0))
+        info.start_scale = getattr(info, 'start_scale', (1, 1))
+        info.start_rot = getattr(info, 'start_rot', 0)
+
+        info.end_pos = getattr(info, 'end_pos', info.start_pos)
+        info.end_scale = getattr(info, 'end_scale', info.start_scale)
+        info.end_rot = getattr(info, 'end_rot', info.start_rot)
+        if isinstance(info.object, np.ndarray): # is a numpy array            
+            object_as_uint8 = info.object.astype(np.uint8)
+            object_image = Image.fromarray(object_as_uint8)
+            if getattr(info, 'name', None) is not None:
+                object_memory[info.name] = [object_image, (info.end_pos, info.end_scale, info.end_rot)]
+            info.object = object_image
+        elif isinstance(info.object, Image.Image): # is a PIL image
+            object_image = info.object
+            # print(f'object is pillow. using {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
+        else:
+            raise Exception(f'object type "{type(info.object)}" not supported')
+
+
 object_memory = {}
 @profile
-def our_transform(grid_info):
-    # memory_recieve = False
-    if isinstance(grid_info.object, str): # is a previous object
-        grid_info.name = grid_info.object
-        if grid_info.name not in object_memory:
-            raise Exception(f'object name "{grid_info.name}" not found in memory')
-        grid_info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[grid_info.name]
+def our_transform(info):
+    load_object(info)
 
-        grid_info.start_pos = getattr(grid_info, 'start_pos', loaded_pos)
-        grid_info.start_scale = getattr(grid_info, 'start_scale', loaded_scale)
-        grid_info.start_rot = getattr(grid_info, 'start_rot', loaded_rot)
+    # by this point info.object is a pillow image
+    percent_done = info.curr_sub_beat / info.length
+    pos = interpolate_vectors_float(info.start_pos, info.end_pos, percent_done)
+    scale = interpolate_vectors_float(info.start_scale, info.end_scale, percent_done)
+    rot = interpolate_float(info.start_rot, info.end_rot, percent_done)
 
-        grid_info.end_pos = getattr(grid_info, 'end_pos', grid_info.start_pos)
-        grid_info.end_scale = getattr(grid_info, 'end_scale', grid_info.start_scale)
-        grid_info.end_rot = getattr(grid_info, 'end_rot', grid_info.start_rot)
-
-        object_memory[grid_info.name][1] = (grid_info.end_pos, grid_info.end_scale, grid_info.end_rot)
-        print_blue(f'object name "{grid_info.name}" found in memory, loading {grid_info.start_pos, grid_info.start_scale, grid_info.start_rot=}, {grid_info.end_pos, grid_info.end_scale, grid_info.end_rot=}\n' * 3)
-    else:
-        grid_info.start_pos = getattr(grid_info, 'start_pos', (0, 0))
-        grid_info.start_scale = getattr(grid_info, 'start_scale', (1, 1))
-        grid_info.start_rot = getattr(grid_info, 'start_rot', 0)
-
-        grid_info.end_pos = getattr(grid_info, 'end_pos', grid_info.start_pos)
-        grid_info.end_scale = getattr(grid_info, 'end_scale', grid_info.start_scale)
-        grid_info.end_rot = getattr(grid_info, 'end_rot', grid_info.start_rot)
-        if isinstance(grid_info.object, np.ndarray): # is a numpy array            
-            object_as_uint8 = grid_info.object.astype(np.uint8)
-            object_image = Image.fromarray(object_as_uint8)
-            if getattr(grid_info, 'name', None) is not None:
-                object_memory[grid_info.name] = [object_image, (grid_info.end_pos, grid_info.end_scale, grid_info.end_rot)]
-            grid_info.object = object_image
-        elif isinstance(grid_info.object, Image.Image): # is a PIL image
-            object_image = grid_info.object
-            print(f'object is pillow. using {grid_info.start_pos, grid_info.start_scale, grid_info.start_rot=}, {grid_info.end_pos, grid_info.end_scale, grid_info.end_rot=}\n' * 3)
-        else:
-            raise Exception(f'object type "{type(grid_info.object)}" not supported')
-
-    # by this point grid_info.object is a pillow image
-    percent_done = grid_info.curr_sub_beat / grid_info.length
-    pos = interpolate_vectors_float(grid_info.start_pos, grid_info.end_pos, percent_done)
-    scale = interpolate_vectors_float(grid_info.start_scale, grid_info.end_scale, percent_done)
-    rot = interpolate_float(grid_info.start_rot, grid_info.end_rot, percent_done)
-
-    size = grid_info.object.size
+    size = info.object.size
 
     # why is this seemingly backwards???
     midpoint = (grid_helpers.GRID_HEIGHT // 2, grid_helpers.GRID_WIDTH // 2)
 
-    transformed_image = transform_scale_rotation_and_translation(grid_info.object, size, midpoint, scale, rot, pos)
-    # print(f'{pos=}, {scale=}, {rot=}, {grid_info.object.size=}, {transformed_image.size=}\n' * 10)
+    transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
+    # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)
     
     grid_helpers.grid = np.array(transformed_image)
     # np_arr = np.array(transformed_image)
@@ -178,7 +181,7 @@ def our_transform(grid_info):
 
 
 
-# ==== grid_info effects ====
+# ==== info effects ====
 
 spectogram_cache = {}
 # this is part of the reason load slow is bad
@@ -246,20 +249,20 @@ def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
     return spectogram_cache[the_hash]
 
 
-def grid_visualizer(grid_info):
+def grid_visualizer(info):
     grid_helpers.reset()
-    # spectogram = get_whole_spectogram_aubio(grid_info.song_path)
-    spectogram = get_whole_spectogram_librosa(grid_info.song_path)
-    spectogram_at_time = spectogram[grid_info.curr_sub_beat]
+    # spectogram = get_whole_spectogram_aubio(info.song_path)
+    spectogram = get_whole_spectogram_librosa(info.song_path)
+    spectogram_at_time = spectogram[info.curr_sub_beat]
     
-    if getattr(grid_info, 'flip', None):
+    if getattr(info, 'flip', None):
         for y in range(grid_helpers.GRID_HEIGHT):
             for x in range(spectogram_at_time[(grid_helpers.GRID_HEIGHT - 1) - y]):
-                grid_helpers.grid[x][y] = grid_info.color
+                grid_helpers.grid[x][y] = info.color
     else:
         for y in range(grid_helpers.GRID_HEIGHT):
             for x in range(spectogram_at_time[y]):
-                grid_helpers.grid[x][y] = grid_info.color
+                grid_helpers.grid[x][y] = info.color
 
 
 def get_smallest_equivilent_vectors(vector):
@@ -276,76 +279,76 @@ def get_smallest_equivilent_vectors(vector):
     return all_vectors
 
 
-def move_until_y_occupy(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        for vector in get_smallest_equivilent_vectors(grid_info.vector):
+def move_until_y_occupy(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        for vector in get_smallest_equivilent_vectors(info.vector):
             for x in range(grid_helpers.GRID_WIDTH):
-                if grid_helpers.grid[x][grid_info.y].any():
+                if grid_helpers.grid[x][info.y].any():
                     return
             grid_helpers.move(vector)
 
 
-def clear_grid(grid_info):
+def clear_grid(info):
     grid_helpers.reset()
 
-def spawn_row_then_move(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
+def spawn_row_then_move(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
 
-    if grid_info.curr_sub_beat == 0:
-        if getattr(grid_info, 'clear', None):
+    if info.curr_sub_beat == 0:
+        if getattr(info, 'clear', None):
             grid_helpers.reset()
-        grid_info.last_y = None
+        info.last_y = None
     
-    if not (0 <= grid_info.y < grid_helpers.GRID_HEIGHT):
-        if getattr(grid_info, 'bounce', None):
-            grid_info.vector = (-grid_info.vector[0], -grid_info.vector[1])
-            grid_info.y = max(0, min(grid_info.y, grid_helpers.GRID_HEIGHT - 1))
+    if not (0 <= info.y < grid_helpers.GRID_HEIGHT):
+        if getattr(info, 'bounce', None):
+            info.vector = (-info.vector[0], -info.vector[1])
+            info.y = max(0, min(info.y, grid_helpers.GRID_HEIGHT - 1))
         else:
-            if getattr(grid_info, 'stop_at_edge', None):
+            if getattr(info, 'stop_at_edge', None):
                 return
-            if grid_info.last_y is not None:
-                add_color_row(grid_info.last_y, list(map(lambda i: -i, grid_info.color)))
-                grid_info.last_y = None
+            if info.last_y is not None:
+                add_color_row(info.last_y, list(map(lambda i: -i, info.color)))
+                info.last_y = None
             return
 
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        if grid_info.last_y is not None:
-            add_color_row(grid_info.last_y, list(map(lambda i: -i, grid_info.color)))
-        grid_info.last_y = grid_info.y
-        add_color_row(grid_info.y, grid_info.color)
-        grid_info.y += grid_info.vector[1]
+    if info.curr_sub_beat % info.beat_divide == 0:
+        if info.last_y is not None:
+            add_color_row(info.last_y, list(map(lambda i: -i, info.color)))
+        info.last_y = info.y
+        add_color_row(info.y, info.color)
+        info.y += info.vector[1]
 
 
-def spawn_col_then_move(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
+def spawn_col_then_move(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
 
-    if grid_info.curr_sub_beat == 0:
-        if getattr(grid_info, 'clear', None):
+    if info.curr_sub_beat == 0:
+        if getattr(info, 'clear', None):
             grid_helpers.reset()
-        grid_info.last_x = None
+        info.last_x = None
     
-    if not (0 <= grid_info.x < grid_helpers.GRID_WIDTH):
-        if getattr(grid_info, 'bounce', None):
-            grid_info.vector = (-grid_info.vector[0], -grid_info.vector[1])
-            grid_info.x = max(0, min(grid_info.x, grid_helpers.GRID_WIDTH - 1))
+    if not (0 <= info.x < grid_helpers.GRID_WIDTH):
+        if getattr(info, 'bounce', None):
+            info.vector = (-info.vector[0], -info.vector[1])
+            info.x = max(0, min(info.x, grid_helpers.GRID_WIDTH - 1))
         else:
-            if getattr(grid_info, 'stop_at_edge', None):
+            if getattr(info, 'stop_at_edge', None):
                 return
-            if grid_info.last_x is not None:
-                add_color_col(grid_info.last_x, list(map(lambda i: -i, grid_info.color)))
-                grid_info.last_x = None
+            if info.last_x is not None:
+                add_color_col(info.last_x, list(map(lambda i: -i, info.color)))
+                info.last_x = None
             return
 
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        if grid_info.last_x is not None:
-            add_color_col(grid_info.last_x, list(map(lambda i: -i, grid_info.color)))
-        grid_info.last_x = grid_info.x
-        add_color_col(grid_info.x, grid_info.color)
-        grid_info.x += grid_info.vector[0]
+    if info.curr_sub_beat % info.beat_divide == 0:
+        if info.last_x is not None:
+            add_color_col(info.last_x, list(map(lambda i: -i, info.color)))
+        info.last_x = info.x
+        add_color_col(info.x, info.color)
+        info.x += info.vector[0]
 
 
 def add_color_row(y, rgb):
@@ -357,81 +360,81 @@ def add_color_col(x, rgb):
         grid_helpers.grid[x][y] = np.clip(grid_helpers.grid[x][y] + rgb, a_min=0, a_max=100)
 
 
-def move_grid(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
-        if grid_info.wrap:
-            grid_helpers.move_wrap(grid_info.vector)
+def move_grid(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        if info.wrap:
+            grid_helpers.move_wrap(info.vector)
         else:
-            grid_helpers.move(grid_info.vector)
+            grid_helpers.move(info.vector)
 
 
-def spawn_row(grid_info):
-    if getattr(grid_info, 'clear', None):
+def spawn_row(info):
+    if getattr(info, 'clear', None):
         grid_helpers.reset()
     for x in range(grid_helpers.GRID_WIDTH):
-        grid_helpers.grid[x][grid_info.y] = grid_info.color
+        grid_helpers.grid[x][info.y] = info.color
 
 
-def spawn_col(grid_info):
-    if getattr(grid_info, 'clear', None):
+def spawn_col(info):
+    if getattr(info, 'clear', None):
         grid_helpers.reset()
     for y in range(grid_helpers.GRID_HEIGHT):
-        grid_helpers.grid[grid_info.x][y] = grid_info.color
+        grid_helpers.grid[info.x][y] = info.color
 
 
-# === image, animation and text grid_info effects ===
+# === image, animation and text info effects ===
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()
-def fill_grid_from_image_filepath(grid_info):
+def fill_grid_from_image_filepath(info):
     from light_server import SUB_BEATS
-    # print(f'GridInfo: {grid_info.all_attr_values()}')
+    # print(f'GridInfo: {info.all_attr_values()}')
 
-    bpm = grid_info.bpm
-    curr_beat = grid_info.curr_sub_beat / SUB_BEATS
+    bpm = info.bpm
+    curr_beat = info.curr_sub_beat / SUB_BEATS
 
-    relative_beat = grid_info.length - curr_beat
+    relative_beat = info.length - curr_beat
 
     time_in_pattern = relative_beat * (60 / bpm)
 
     dimensions = (grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT)
-    if grid_info.rotate_90:
+    if info.rotate_90:
         dimensions = (dimensions[1], dimensions[0])
 
-    cached_filepath = grid_helpers.get_cached_converted_filepath(grid_info.filename, dimensions, use_cache=False)
+    cached_filepath = grid_helpers.get_cached_converted_filepath(info.filename, dimensions, use_cache=False)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
-    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=grid_info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=info.rotate_90)
 
 
-def fill_grid_from_text(grid_info):
-    filepath = grid_helpers.create_image_from_text_pilmoji(grid_info.text, font_size=grid_info.font_size, rotate_90=grid_info.rotate_90, use_cache=False)    
-    grid_helpers.fill_grid_from_image_filepath(filepath, rotate_90=grid_info.rotate_90)
+def fill_grid_from_text(info):
+    filepath = grid_helpers.create_image_from_text_pilmoji(info.text, font_size=info.font_size, rotate_90=info.rotate_90, use_cache=False)    
+    grid_helpers.fill_grid_from_image_filepath(filepath, rotate_90=info.rotate_90)
 
 
 def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):
-    grid_info = GridInfo()
+    info = GridInfo()
     if filename is not None:
-        grid_info.filename = filename
-        grid_info.rotate_90 = rotate_90
+        info.filename = filename
+        info.rotate_90 = rotate_90
         function = fill_grid_from_image_filepath
 
     if text is not None:
-        grid_info.text = text
-        grid_info.font_size = font_size
-        grid_info.rotate_90 = rotate_90
+        info.text = text
+        info.font_size = font_size
+        info.rotate_90 = rotate_90
         function = fill_grid_from_text
 
     if function is None:
         print_red(f'function is None, filename: {filename}, text: {text}')
         exit()
-    grid_info.grid_function = function
-    grid_info.length = length
+    info.grid_function = function
+    info.length = length
     if kwargs:
         for key, value in kwargs.items():
-            setattr(grid_info, key, value)
-    return [start_beat, grid_info, length]
+            setattr(info, key, value)
+    return [start_beat, info, length]
 
 
 

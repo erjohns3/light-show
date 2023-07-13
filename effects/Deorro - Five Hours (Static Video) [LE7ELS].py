@@ -11,25 +11,25 @@ intro_beats = [1, 3.79, 6.79, 9.54, 12.12, 14.58, 16.92, 19.08, 21.12, 23.25, 25
 
 
 
-def squares_up(grid_info):
-    if getattr(grid_info, 'filled_to', None) is None:
-        grid_info.filled_to = 0
-        grid_info.last_color = [random.randint(0, 30), random.randint(0, 30), random.randint(0, 150)]
+def squares_up(info):
+    if getattr(info, 'filled_to', None) is None:
+        info.filled_to = 0
+        info.last_color = [random.randint(0, 30), random.randint(0, 30), random.randint(0, 150)]
     
     coords_length = grid_helpers.total_coords
-    percent_done = grid_info.curr_sub_beat / grid_info.length
+    percent_done = info.curr_sub_beat / info.length
     fill_to = int(percent_done * coords_length)
     for index, (x, y) in enumerate(grid_helpers.coords_y_first()):
-        if grid_info.filled_to <= index <= fill_to:
+        if info.filled_to <= index <= fill_to:
             grid_helpers.grid[x][y] = white
-            grid_helpers.grid[x][y] = grid_info.last_color
+            grid_helpers.grid[x][y] = info.last_color
 
             chosen_index = random.randint(0, 2)
             if random.randint(0, 1) == 0:
-                grid_info.last_color[chosen_index] = max(grid_info.last_color[chosen_index] - 15, 0)
+                info.last_color[chosen_index] = max(info.last_color[chosen_index] - 15, 0)
             else:
-                grid_info.last_color[chosen_index] = min(grid_info.last_color[chosen_index] + 15, 254)
-    grid_info.filled_to = fill_to
+                info.last_color[chosen_index] = min(info.last_color[chosen_index] + 15, 254)
+    info.filled_to = fill_to
 
 white = (100, 100, 100)
 pink = (100, 0, 100)

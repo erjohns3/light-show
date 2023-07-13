@@ -5,15 +5,15 @@ from scripts import tetris_grid
 import joystick_and_keyboard_helpers
 
 
-def start_new_tetris_game(grid_info):
+def start_new_tetris_game(info):
     tetris_grid.start_new_game()
 
 
-def tetris(grid_info):
-    if getattr(grid_info, 'beat_divide', None) is None:
-        grid_info.beat_divide = 1
+def tetris(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
 
-    if grid_info.curr_sub_beat == 0:
+    if info.curr_sub_beat == 0:
         joystick_and_keyboard_helpers.clear_events()
         
     if tetris_grid.game_state is None:
@@ -35,7 +35,7 @@ def tetris(grid_info):
         elif normalized_event == 'a':
             tetris_grid.hard_drop()
 
-    if grid_info.curr_sub_beat % grid_info.beat_divide == 0:
+    if info.curr_sub_beat % info.beat_divide == 0:
         tetris_grid.advance_game_state()
     
     tetris_grid.fill_grid_with_game_state()

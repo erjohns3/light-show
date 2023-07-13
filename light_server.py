@@ -662,7 +662,7 @@ def get_sub_effect_names(effect_name, beat):
 #     last_called_grid_render = False
 
 # in light
-# if args.local and bool(grid_infos_for_this_sub_beat):
+# if args.local and bool(infos_for_this_sub_beat):
 #     last_called_grid_render = True
 
 
@@ -854,8 +854,8 @@ async def light():
     download_thread = None
     search_thread = None 
     while True:
-        grid_infos_for_this_sub_beat = []
-        grid_skip_top_fill = False
+        infos_for_this_sub_beat = []
+        grid_fill_from_old = True
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -889,17 +889,17 @@ async def light():
         for effect_tuple in curr_effects:
             effect_name = effect_tuple[0]
             index = beat_index + effect_tuple[1]
-            grid_info_arr = channel_lut[effect_name].get('grid_info', None)
-            if grid_info_arr is not None:
-                # print(f'Looking at {len(grid_info_arr)} grid_info_arrs for {effect_name}')
-                for start_b, end_b, grid_info in grid_info_arr:
+            info_arr = channel_lut[effect_name].get('info', None)
+            if info_arr is not None:
+                # print(f'Looking at {len(info_arr)} info_arrs for {effect_name}')
+                for start_b, end_b, info in info_arr:
                     if start_b <= index <= end_b:
-                        grid_info.length = end_b - start_b
-                        grid_info.curr_sub_beat = index - start_b
-                        grid_info.bpm = curr_bpm
-                        grid_info.time_diff = time_diff
-                        grid_infos_for_this_sub_beat.append(grid_info)
-                        grid_skip_top_fill = grid_skip_top_fill or getattr(grid_info, 'grid_skip_top_fill', False)
+                        info.length = end_b - start_b
+                        info.curr_sub_beat = index - start_b
+                        info.bpm = curr_bpm
+                        info.time_diff = time_diff
+                        infos_for_this_sub_beat.append(info)
+                        grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
         grid_levels = [0] * LIGHT_COUNT
         for i in range(LIGHT_COUNT):
@@ -921,14 +921,14 @@ async def light():
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                if not grid_infos_for_this_sub_beat:
+                if not infos_for_this_sub_beat:
                     await non_grid_terminal(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
         
-        if not grid_skip_top_fill:
+        if grid_fill_from_old:
             # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             # grid_helpers.grid[:][grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
 
@@ -938,15 +938,15 @@ async def light():
             # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
-        for grid_info in grid_infos_for_this_sub_beat:
+        for info in infos_for_this_sub_beat:
             try:
-                grid_info.grid_function(grid_info)
+                info.grid_function(info)
             except Exception as e:
                 print_stacktrace()
-                print_yellow(f'TRIED TO CALL {grid_info=}, but it DIDNT work, stacktrace above')
+                print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(grid_infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
+        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local:
             print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 
@@ -1123,10 +1123,10 @@ simple_effects = []
 complex_effects = []
 
 
-all_grid_infos = []
-def reset_all_grid_infos():
-    for grid_info in all_grid_infos:
-        grid_info.reset()
+all_infos = []
+def reset_all_infos():
+    for info in all_infos:
+        info.reset()
 
 def effects_config_sort(all_nodes):
     curr_node = all_nodes[-1]
@@ -1136,7 +1136,7 @@ def effects_config_sort(all_nodes):
     
     found[curr_node] = True
     if isinstance(curr_node, GridInfo):
-        all_grid_infos.append(curr_node)
+        all_infos.append(curr_node)
         complex_effects.append(curr_node)
         return
 
@@ -1471,17 +1471,17 @@ def compile_lut(local_effects_config):
     print_blue(f'Simple effects took: {time.time() - simple_effect_perf_timer:.3f} seconds')
 
     complex_effect_perf_timer = time.time()
-    for effect_name_or_grid_info in complex_effects:
-        if isinstance(effect_name_or_grid_info, GridInfo):
+    for effect_name_or_info in complex_effects:
+        if isinstance(effect_name_or_info, GridInfo):
             # !TODO i think this length thing might be wrong...
-            channel_lut[effect_name_or_grid_info] = {
+            channel_lut[effect_name_or_info] = {
                 # 'length': 0,
-                'length': effect_name_or_grid_info.length,
-                'grid_info': effect_name_or_grid_info,
+                'length': effect_name_or_info.length,
+                'info': effect_name_or_info,
             }
             continue
 
-        effect_name = effect_name_or_grid_info
+        effect_name = effect_name_or_info
         effect = effects_config[effect_name]
 
         set_complex_effect_defaults(effect)
@@ -1509,26 +1509,26 @@ def compile_lut(local_effects_config):
 
             reference_channel = channel_lut[reference_name]
             reference_length = channel_lut[reference_name]['length']
-            if 'grid_info' in reference_channel:
-                if 'grid_info' not in curr_channel:
-                    curr_channel['grid_info'] = []
-                ref_channel_all_grid_infos = reference_channel['grid_info']
-                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
+            if 'info' in reference_channel:
+                if 'info' not in curr_channel:
+                    curr_channel['info'] = []
+                ref_channel_all_infos = reference_channel['info']
+                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding info from {reference_name}, {ref_channel_all_infos=}')
             
 
-                if isinstance(ref_channel_all_grid_infos, GridInfo):
-                    curr_channel['grid_info'].append(
+                if isinstance(ref_channel_all_infos, GridInfo):
+                    curr_channel['info'].append(
                         [
                             start_beat,
                             start_beat + length,
-                            ref_channel_all_grid_infos,
+                            ref_channel_all_infos,
                         ],
                     )
                 else:
                     offset = 0
                     if len(component) > 4:
                         offset = round(component[5] * SUB_BEATS)
-                    for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_grid_infos:
+                    for (ref_start_beat, ref_end_beat, ref_info) in ref_channel_all_infos:
                         # !TODO idk if this is right...
                         if offset:
                             # print_cyan(f'  offsetting by {offset=}')
@@ -1536,19 +1536,19 @@ def compile_lut(local_effects_config):
                             ref_end_beat += offset
 
 
-                        ref_grid_info_length = ref_end_beat - ref_start_beat
-                        # print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_grid_info)}')
+                        ref_info_length = ref_end_beat - ref_start_beat
+                        # print(f'taking a look at {(ref_start_beat, ref_end_beat, ref_info)}')
                         for calced_start_beat in range(start_beat + ref_start_beat, start_beat + length, reference_length):
-                            # print_green(f'  grid_info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_grid_info_length=}, and we are adding grid_info from {reference_name}, {ref_channel_all_grid_infos=}')
-                            calced_end_beat = min(calced_start_beat + ref_grid_info_length, start_beat + length)
-                            curr_channel['grid_info'].append(
+                            # print_green(f'  info compiler: {effect_name=}, {start_beat=}, {ref_start_beat=}, {calced_start_beat=}, {length=}, {reference_length=}, {ref_info_length=}, and we are adding info from {reference_name}, {ref_channel_all_infos=}')
+                            calced_end_beat = min(calced_start_beat + ref_info_length, start_beat + length)
+                            curr_channel['info'].append(
                                 [
                                     calced_start_beat,
                                     calced_end_beat,
-                                    ref_grid_info,
+                                    ref_info,
                                 ],
                             )
-                            # print(f'added {curr_channel["grid_info"][-1]}')
+                            # print(f'added {curr_channel["info"][-1]}')
 
             if 'beats' not in channel_lut[reference_name]:
                 continue
@@ -1689,20 +1689,20 @@ def try_download_video(show_name):
     raise Exception('Couldnt download video')
 
 
-def debug_channel_lut_grid_info(effect_name):
+def debug_channel_lut_info(effect_name):
     if effect_name not in effects_config:
         print_red(f'Couldnt find effect {effect_name}')
         return
     channel = channel_lut[effect_name]
 
-    if 'grid_info' not in channel:
-        print_red('No grid_info found')
+    if 'info' not in channel:
+        print_red('No info found')
         return
-    all_grid_infos = channel['grid_info']
+    all_infos = channel['info']
 
-    print_blue(f'{effect_name=}, number of grid_infos: {len(all_grid_infos)}')
-    for grid_info in all_grid_infos:
-        print_cyan(f'  grid_info: {grid_info}')
+    print_blue(f'{effect_name=}, number of infos: {len(all_infos)}')
+    for info in all_infos:
+        print_cyan(f'  info: {info}')
 
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
@@ -1935,10 +1935,10 @@ if __name__ == '__main__':
                 print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
 
         compile_all_luts_from_effects_config()
-        # debug_channel_lut_grid_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
-        # debug_channel_lut_grid_info('tech effect testing')
-        # debug_channel_lut_grid_info('tech effect testing sub')
-        # debug_channel_lut_grid_info('5 hours intro')
+        # debug_channel_lut_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
+        # debug_channel_lut_info('tech effect testing')
+        # debug_channel_lut_info('tech effect testing sub')
+        # debug_channel_lut_info('5 hours intro')
         # exit()
 
         if args.show:

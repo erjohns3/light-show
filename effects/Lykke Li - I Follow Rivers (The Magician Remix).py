@@ -103,7 +103,7 @@ effects = {
             # grid_f(1, text='😭', rotate_90=True, length=16),
             grid_f(1, filename='ricardo.gif', rotate_90=False, length=32),
             # grid_f(1, filename='nyan.webp', rotate_90=True, length=8),
-            # grid_f(1, function=lambda grid_info: print('hello'), length=16),
+            # grid_f(1, function=lambda info: print('hello'), length=16),
 
             # grid_f(1, text='buy\n  it', font_size=8, length=8),
 

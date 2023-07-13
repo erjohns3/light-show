@@ -51,6 +51,16 @@ class GridInfo:
 # ==== eric and andrews transformation matrix stuff
 
 
+def get_rectangle_numpy(width, height, color=(100, 100, 100)):
+    rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
+    for x in range(width):
+        for y in range(height):
+            rectangle[x][y] = color
+    return rectangle
+
+
+
+
 def interpolate_float(f1, f2, percent_done):
     return (1 - percent_done) * f1 + percent_done * f2
 
@@ -69,19 +79,6 @@ def interpolate_vectors_int(v1, v2, percent_done):
     mids = interpolate_vectors_float(v1, v2, percent_done)
     return tuple(map(round, mids))
 
-
-
-
-# !kind of works
-# with no midpoint (0, 0 is always the origin)
-def no_midpoint_transformation(object_image, transform_matrix, size):
-    return object_image.transform(
-        size, 
-        Image.AFFINE, 
-        transform_matrix, 
-        # Image.BICUBIC,
-        Image.NEAREST,
-    )
 
 
 def create_transform_matrix(midpoint, scale, rot, pos):

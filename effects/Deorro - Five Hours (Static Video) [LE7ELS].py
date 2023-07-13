@@ -149,8 +149,32 @@ effects = {
             ),
         ]
     },
-
     '5 hours grid after chorus': {
+        'length': 2,
+        'beats': [
+            grid_f(
+                1,
+                function=our_transform,
+                object=grid_helpers.get_2d_arr_from_text('😋'),
+                name='oy',
+                start_pos=(-5, 0),
+                end_pos=(5, 0),
+                start_rot = 0,
+                end_rot = 6.24,
+                length=1,
+            ),
+            grid_f(
+                2,
+                function=our_transform,
+                object='oy',
+                end_pos=(-5, 0),
+                end_rot = 0,
+                length=1,
+            ),        
+        ]
+    },
+
+    '5 hours grid after chorus ': {
         'length': 64,
         'beats': [
             # grid_f(1, function=clear_grid, length=0.01),

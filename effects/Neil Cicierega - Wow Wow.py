@@ -25,10 +25,11 @@ effects = {
         "beats": [
             grid_f(
                 1,
-                function=our_transform, 
-                object=grid_helpers.get_2d_arr_from_image('oy.png'),
+                function=our_transform,
+                # object=grid_helpers.get_2d_arr_from_image('oy.png'),
+                object=grid_helpers.get_2d_arr_from_text('😋'),
                 name='oy',
-                start_pos=(-10, 0),
+                start_pos=(0, 0),
                 start_rot=0,
                 end_rot=7,
                 length=8,

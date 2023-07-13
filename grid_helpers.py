@@ -405,6 +405,12 @@ def get_2d_arr_from_image(filepath):
         return PIL_image_to_numpy_arr(image)
 
 
+def get_2d_arr_from_text(*args, **kwargs):
+    filepath = create_image_from_text_pilmoji(*args, **kwargs)
+    with Image.open(filepath) as image:
+        return PIL_image_to_numpy_arr(image)
+
+
 if __name__ == '__main__':
     # !TODO why antialiasing at 12 and not 8???
     # filepath = create_image_from_text_pilmoji('OY', font_size=12)

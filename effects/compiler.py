@@ -83,8 +83,8 @@ def interpolate_vectors_int(v1, v2, percent_done):
 
 def create_transform_matrix(midpoint, scale, rot, pos):
     # Step 1: Translate midpoint to (0, 0)
-    tx1 = -midpoint[0]
-    ty1 = -midpoint[1]
+    tx1 = -midpoint[0] + pos[0]
+    ty1 = -midpoint[1] + pos[1]
 
     # Step 2: Rotate & Scale
     # Convert degrees to radians and negate it due to PIL's coordinate system
@@ -95,8 +95,8 @@ def create_transform_matrix(midpoint, scale, rot, pos):
     e = scale[1]*np.cos(rot_rad)
 
     # Step 3: Translate back the (0, 0) to the midpoint
-    tx2 = midpoint[0]
-    ty2 = midpoint[1]
+    tx2 = midpoint[0] + pos[0]
+    ty2 = midpoint[1] + pos[1]
     return [
         a, b, a*tx1 + b*ty1 + tx2,
         d, e, d*tx1 + e*ty1 + ty2

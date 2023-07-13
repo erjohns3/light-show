@@ -8,7 +8,7 @@ effects = {
     "specto young": {
         "length": 1,
         "beats": [
-            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=1),
+            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', length=1),
         ],
     },
 
@@ -19,7 +19,7 @@ effects = {
         "delay_lights": 0.3598709677419355,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', grid_skip_top_fill=True, length=100),
+            grid_f(1, function=grid_visualizer, color=(0, 255, 0), song_path='songs/Young the Giant - Islands (Official Audio).ogg', length=100),
         ],
     }
 }

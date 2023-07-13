@@ -114,15 +114,13 @@ effects = {
         'beats': [
             grid_f(1, text='🍆', font_size=9, length=.01),
             # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
-            grid_f(1, function=move_grid, wrap=True, vector=(0, -1), grid_skip_top_fill=True, beat_divide=3, length=64),        
+            grid_f(1, function=move_grid, wrap=True, vector=(0, -1), beat_divide=3, length=64),        
         ]
     },
 
     '5 hours grid intro': {
         'length': 113,
         'beats': [
-            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=111.5),
-
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),
             grid_f(112, function=squares_up, length=.5),
@@ -140,8 +138,6 @@ effects = {
     '5 hours grid chorus': {
         'length': 4,
         'beats': [
-            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=4),
-
             b(1, name='5 hours Bottom bass bottom', length=4),
             b(1, name='Red disco pulse', length=3, offset=.5),
             b(4, name='Green disco pulse', length=1, offset=.5),
@@ -157,8 +153,7 @@ effects = {
     '5 hours grid after chorus': {
         'length': 64,
         'beats': [
-            # grid_f(1, function=clear_grid, grid_skip_top_fill=True, length=0.01),
-            grid_f(1, function=lambda x: None, grid_skip_top_fill=True, length=64),
+            # grid_f(1, function=clear_grid, length=0.01),
             grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
             grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
         ]
@@ -172,8 +167,8 @@ effects = {
         "delay_lights": 0.37665,
         "skip_song": 0.0,
         "beats": [ 
-            # grid_f(1, filename='nyan.webp', grid_skip_top_fill=True, rotate_90=True, length=100),
-            # grid_f(1, filename='ricardo.gif', grid_skip_top_fill=True, length=100),
+            # grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
+            # grid_f(1, filename='ricardo.gif', length=100),
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),

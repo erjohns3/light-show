@@ -13,7 +13,6 @@ from effects.compiler import *
 #     end_pos=(5, 5), 
 #     start_rot=5,
 #     end_rot=5,
-#     grid_skip_top_fill=True, 
 #     length=2,
 # ),
 
@@ -32,7 +31,6 @@ effects = {
                 start_pos=(-10, 0),
                 start_rot=0,
                 end_rot=7,
-                grid_skip_top_fill=True,
                 length=8,
             ),
             grid_f(
@@ -40,7 +38,6 @@ effects = {
                 function=our_transform, 
                 object='oy',
                 end_pos=(5, 0),
-                grid_skip_top_fill=True,
                 length=8,
             ),
             grid_f(
@@ -49,7 +46,6 @@ effects = {
                 object='oy',
                 start_scale= (1, 1), 
                 end_scale=(.5, 1), 
-                grid_skip_top_fill=True,
                 length=8,
             ),
 

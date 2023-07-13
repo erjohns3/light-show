@@ -81,19 +81,19 @@ effects = {
     'battling_lines': {
         'length': 4,
         'beats': [
-            grid_f(1, function=tech_red_col, grid_skip_top_fill=True, length=0.1),
-            grid_f(1, function=tech_move_left, grid_skip_top_fill=True, length=2),
-            grid_f(3, function=tech_green_row, grid_skip_top_fill=True, length=0.1),
-            grid_f(3, function=tech_move_up, grid_skip_top_fill=True, length=2),
+            grid_f(1, function=tech_red_col, length=0.1),
+            grid_f(1, function=tech_move_left, length=2),
+            grid_f(3, function=tech_green_row, length=0.1),
+            grid_f(3, function=tech_move_up, length=2),
         ]
     },
     'battling_lines 2': {
         'length': 4,
         'beats': [
-            grid_f(1, function=tech_random_col, grid_skip_top_fill=True, length=0.1),
-            grid_f(1, function=tech_move_left, grid_skip_top_fill=True, length=2),
-            grid_f(3, function=tech_random_row, grid_skip_top_fill=True, length=0.1),
-            grid_f(3, function=tech_move_up, grid_skip_top_fill=True, length=2),
+            grid_f(1, function=tech_random_col, length=0.1),
+            grid_f(1, function=tech_move_left, length=2),
+            grid_f(3, function=tech_random_row, length=0.1),
+            grid_f(3, function=tech_move_up, length=2),
         ]
     },
 

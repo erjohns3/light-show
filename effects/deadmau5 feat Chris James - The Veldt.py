@@ -5,10 +5,10 @@ effects = {
     "specto veldt": {
         "length": 4,
         "beats": [
-            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1),
-            grid_f(2, function=grid_visualizer, color=(0, 255, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', flip=True, grid_skip_top_fill=True, length=1),
-            grid_f(3, function=grid_visualizer, color=(0, 0, 255), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1),
-            grid_f(4, function=grid_visualizer, color=(255, 0, 255), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', flip=True, grid_skip_top_fill=True, length=1),
+            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', length=1),
+            grid_f(2, function=grid_visualizer, color=(0, 255, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', flip=True, length=1),
+            grid_f(3, function=grid_visualizer, color=(0, 0, 255), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', length=1),
+            grid_f(4, function=grid_visualizer, color=(255, 0, 255), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', flip=True, length=1),
         ],
     },
 
@@ -19,7 +19,7 @@ effects = {
         "skip_song": 0.0,
         "beats": [
             # b(1, name='specto veldt', length=1000),
-            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', grid_skip_top_fill=True, length=1000),
+            grid_f(1, function=grid_visualizer, color=(255, 0, 0), song_path='songs/deadmau5 feat. Chris James - The Veldt.ogg', length=1000),
         ]
     }
 }

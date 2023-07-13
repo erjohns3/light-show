@@ -72,6 +72,45 @@ def interpolate_vectors_int(v1, v2, percent_done):
 
 
 
+
+# !kind of works
+# with no midpoint (0, 0 is always the origin)
+def no_midpoint_transformation(object_image, transform_matrix, size):
+    return object_image.transform(
+        size, 
+        Image.AFFINE, 
+        transform_matrix, 
+        # Image.BICUBIC,
+        Image.NEAREST,
+    )
+
+def create_transform_matrix(midpoint, scale, rot):
+    # Step 1: Translate midpoint to (0, 0)
+    tx1 = -midpoint[0]
+    ty1 = -midpoint[1]
+
+    # Step 2: Rotate & Scale
+    # Convert degrees to radians and negate it due to PIL's coordinate system
+    rot_rad = -rot
+    a = scale[0]*np.cos(rot_rad)
+    b = -scale[0]*np.sin(rot_rad)
+    d = scale[1]*np.sin(rot_rad)
+    e = scale[1]*np.cos(rot_rad)
+
+    # Step 3: Translate back the (0, 0) to the midpoint
+    tx2 = midpoint[0]
+    ty2 = midpoint[1]
+    return [
+        a, b, a*tx1 + b*ty1 + tx2,
+        d, e, d*tx1 + e*ty1 + ty2
+    ]
+
+def transform_scale_and_rotation(object_image, size, midpoint, scale, rot):
+    transform_matrix = create_transform_matrix(midpoint, scale, rot)
+    return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
+
+
+
 transform_object_memory = {}
 def our_transform(grid_info):
     if isinstance(grid_info.object, str): # is a previous object
@@ -99,18 +138,15 @@ def our_transform(grid_info):
     rot = interpolate_float(start_rot, end_rot, percent_done)
 
     size = object_image.size
-    matrix = [scale[0]*np.cos(rot), scale[1]*np.sin(rot), pos[0], -scale[0]*np.sin(rot), scale[1]*np.cos(rot), pos[1]]
-    transformed_image = object_image.transform(
-        size, 
-        Image.AFFINE, 
-        matrix, 
-        # Image.BICUBIC,
-        Image.NEAREST,
-    )
 
+    # why is this seemingly backwards???
+    midpoint = (grid_helpers.GRID_HEIGHT // 2, grid_helpers.GRID_WIDTH // 2)
+
+    transformed_image = transform_scale_and_rotation(object_image, size, midpoint, scale, rot)
     # print(f'{pos=}, {scale=}, {rot=}, {object_image.size=}, {transformed_image.size=}\n' * 10)
     
     np_arr = np.array(transformed_image)
+    # np_arr = np.array(object_image)
     for (x, y) in grid_helpers.coords():
         grid_helpers.grid[x][y] = np_arr[x][y]
     

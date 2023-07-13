@@ -68,6 +68,10 @@ parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, acti
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
 args = parser.parse_args()
 
+if args.keyboard and is_doorbell():
+    raise Exception('Keyboard mode is not supported on the doorbell')
+
+
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')

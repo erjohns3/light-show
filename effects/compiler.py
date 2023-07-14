@@ -143,7 +143,8 @@ def load_object(info):
     if isinstance(info.object, str): # is a previous object
         info.name = info.object
         if info.name not in object_memory:
-            raise Exception(f'object name "{info.name}" not found in memory')
+            print(f'object name "{info.name}" not found in memory')
+            return False
         info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[info.name]
 
         info.start_pos = getattr(info, 'start_pos', loaded_pos)
@@ -172,12 +173,14 @@ def load_object(info):
                 object_memory[info.name] = [info.object, (info.end_pos, info.end_scale, info.end_rot)]
         elif not isinstance(info.object, Image.Image): # is a PIL image
             raise Exception(f'object type "{type(info.object)}" not supported')
+    return True
 
 
 object_memory = {}
 @profile
 def our_transform(info):
-    load_object(info)
+    if not load_object(info):
+        return
 
     # by this point info.object is a pillow image and start_'s end_'s all are set
     percent_done = info.curr_sub_beat / info.length

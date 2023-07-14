@@ -141,10 +141,9 @@ def make_transforms(beat, length_per, object=None, poses=None, scales=None, rota
             if data is None:
                 continue
             # print('part', part, 'data', data)
-            if part in ['pos', 'scale']:
-                data = data[i]
-                if data is None:
-                    continue
+            data = data[i]
+            if data is None:
+                continue
             start, end = data
             if start is not None:
                 setattr(info, f'start_{part}', start)
@@ -285,9 +284,68 @@ effects = {
                 1, 
                 length_per=1,
                 object=get_rectangle_numpy(1, 20, color=(100, 0, 0)),
+                poses=[
+                    [(8, 4), None],
+                    None,
+                    None,
+                    None,
+                ],
                 rotations=[
-                    0,
-                    6.28,
+                    (0, -.5),
+                    (None, -3.14),
+                    (None, -.5),
+                    (None, 0),
+                ],
+            ),
+            *make_transforms(
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 20, color=(0, 100, 0)),
+                poses=[
+                    [(-8, 4), None],
+                    None,
+                    None,
+                    None,
+                ],
+                rotations=[
+                    (0, .5),
+                    (None, 3.14),
+                    (None, .5),
+                    (None, 0),
+                ],
+            ),
+            *make_transforms(
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 20, color=(50, 0, 50)),
+                poses=[
+                    [(-8, -4), None],
+                    None,
+                    None,
+                    None,
+                ],
+                rotations=[
+                    (0, -.5),
+                    (None, -3.14),
+                    (None, -.5),
+                    (None, 0),
+                ],
+            ),
+            *make_transforms(
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 20, color=(0, 0, 100)),
+                poses=[
+                    [(8, -4), None],
+                    None,
+                    None,
+                    None,
+                ],
+                rotations=[
+                    (0, .5),
+                    (None, 3.14),
+                    (None, .5),
+                    (None, 0),
                 ],
             ),
         ]
@@ -315,6 +373,7 @@ effects = {
             b(113, name='5 hours grid chorus', length=64),
             b(177, name='5 hours grid after chorus', length=64),
             b(241, name='5 hours grid again', length=64),
+            b(305, name='5 hours grid chorus', length=64),
         ]
     }
 }

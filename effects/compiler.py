@@ -128,6 +128,7 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
     transform_matrix = (center_matrix @ scale_matrix @ rotation_matrix @ translate_matrix @ uncenter_matrix)[0:2].reshape((6)).tolist()
 
     # transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
+    # return object_image.transform(size, Image.AFFINE, transform_matrix, Image.BICUBIC)
     return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
 
     scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
@@ -169,7 +170,7 @@ def load_object(info):
             info.object = object_image
             if getattr(info, 'name', None) is not None:
                 object_memory[info.name] = [info.object, (info.end_pos, info.end_scale, info.end_rot)]
-        else:
+        elif not isinstance(info.object, Image.Image): # is a PIL image
             raise Exception(f'object type "{type(info.object)}" not supported')
 
 
@@ -190,14 +191,14 @@ def our_transform(info):
     midpoint = ((grid_helpers.GRID_HEIGHT - 1) / 2, (grid_helpers.GRID_WIDTH - 1) / 2)
 
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
-    # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)
-
-    # !TODO this is rly bad
-    arr_version = np.array(transformed_image)
-    # normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100
-
-    grid_helpers.grid = arr_version
     
+    arr_version = np.array(transformed_image)
+    if getattr(info, 'override', None):
+        grid_helpers.grid = arr_version
+    else:
+        grid_helpers.grid += arr_version
+
+
 
 
 

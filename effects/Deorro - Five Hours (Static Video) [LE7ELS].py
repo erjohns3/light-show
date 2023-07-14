@@ -150,7 +150,7 @@ effects = {
         ]
     },
     '5 hours grid after chorus': {
-        'length': 2,
+        'length': 4,
         'beats': [
             # grid_f(
             #     1,
@@ -174,20 +174,30 @@ effects = {
             grid_f(
                 1,
                 function=our_transform,
-                object=get_rectangle_numpy(4, 4),
+                object=get_rectangle_numpy(1, 1),
                 name='oy',
-                start_pos=(0, 0),
-                end_pos=(0, 0),
-                start_rot = 0,
-                end_rot = 6.24,
+                end_scale=(1, 21),
                 length=1,
             ),
             grid_f(
                 2,
                 function=our_transform,
                 object='oy',
-                end_pos=(0, 0),
-                end_rot = 0,
+                end_scale=(45, 21),
+                length=1,
+            ),
+            grid_f(
+                3,
+                function=our_transform,
+                object='oy',
+                end_scale=(1, 21),
+                length=1,
+            ),
+            grid_f(
+                4,
+                function=our_transform,
+                object='oy',
+                end_scale=(1, 1),
                 length=1,
             ),
         ]

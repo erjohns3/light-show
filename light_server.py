@@ -856,6 +856,7 @@ async def light():
     while True:
         infos_for_this_sub_beat = []
         grid_fill_from_old = True
+        clear_grid_at_start = True
 
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
@@ -899,6 +900,7 @@ async def light():
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
                         infos_for_this_sub_beat.append(info)
+                        clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
         grid_levels = [0] * LIGHT_COUNT
@@ -927,6 +929,8 @@ async def light():
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
+        if clear_grid_at_start:
+            grid_helpers.reset()
         
         if grid_fill_from_old:
             # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]

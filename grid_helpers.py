@@ -212,7 +212,7 @@ def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
     
     # this is because we are working with 0-100 in the grid, not 0-255
-    np_arr = np.array(pil_image)
+    # np_arr = np.array(pil_image)
     np_arr = np.array(pil_image) / 2.55
 
     # https://www.desmos.com/calculator

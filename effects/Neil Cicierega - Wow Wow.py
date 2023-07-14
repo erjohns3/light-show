@@ -31,7 +31,7 @@ effects = {
                 name='oy',
                 start_pos=(0, 0),
                 start_rot=0,
-                end_rot=3.14/2,
+                end_rot=3.14/4,
                 length=8,
             ),
             grid_f(

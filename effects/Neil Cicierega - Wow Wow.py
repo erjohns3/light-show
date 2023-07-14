@@ -31,14 +31,14 @@ effects = {
                 name='oy',
                 start_pos=(0, 0),
                 start_rot=0,
-                end_rot=7,
+                end_rot=3.14/2,
                 length=8,
             ),
             grid_f(
                 9,
                 function=our_transform, 
                 object='oy',
-                end_pos=(5, 0),
+                end_pos=(10, 0),
                 length=8,
             ),
             grid_f(

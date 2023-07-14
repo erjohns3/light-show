@@ -106,7 +106,14 @@ def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_t
             if reset_terminal:
                 print('\033[F' * GRID_WIDTH, end='')
         else:
-            [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
+            for y in range(GRID_HEIGHT):
+                column_parts = []
+                for x in range(GRID_WIDTH):
+                    ansi_string = rgb_ansi('▆', to_print_grid[x][y]) * 2
+                    column_parts.append(ansi_string)
+                print(''.join(column_parts))
+
+            # [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
     else:

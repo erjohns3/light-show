@@ -83,8 +83,10 @@ def interpolate_vectors_int(v1, v2, percent_done):
 
 def create_transform_matrix(midpoint, scale, rot, pos):
     # Step 1: Translate midpoint to (0, 0)
-    tx1 = -midpoint[0] + pos[0]
-    ty1 = -midpoint[1] + pos[1]
+    tx1 = -midpoint[0]
+    ty1 = -midpoint[1]
+    # tx1 = -midpoint[0]
+    # ty1 = -midpoint[1]
 
     # Step 2: Rotate & Scale
     # Convert degrees to radians and negate it due to PIL's coordinate system
@@ -173,12 +175,7 @@ def our_transform(info):
     normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100
 
     grid_helpers.grid = normalizedData
-    # np_arr = np.array(transformed_image)
-    # for (x, y) in grid_helpers.coords():
-    #     grid_helpers.grid[x][y] = np_arr[x][y]
     
-
-
 
 
 

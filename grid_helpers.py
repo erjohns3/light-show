@@ -416,9 +416,8 @@ def get_2d_arr_from_image(filepath):
 def get_2d_arr_from_text(*args, **kwargs):
     filepath = create_image_from_text_pilmoji(*args, **kwargs)
     with Image.open(filepath) as image:
-        # for lol in PIL_image_to_numpy_arr(image):
-        #     print(lol)
-        return PIL_image_to_numpy_arr(image)
+        # return PIL_image_to_numpy_arr(image)
+        return image
 
 
 if __name__ == '__main__':

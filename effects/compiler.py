@@ -128,7 +128,7 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
     transform_matrix = (center_matrix @ scale_matrix @ rotation_matrix @ translate_matrix @ uncenter_matrix)[0:2].reshape((6)).tolist()
 
     # transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
-    return object_image.transform(size, Image.AFFINE, transform_matrix, Image.BICUBIC)
+    return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
 
     scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
     # print(scale_rot_matrix)
@@ -172,8 +172,8 @@ def load_object(info):
                 object_memory[info.name] = [object_image, (info.end_pos, info.end_scale, info.end_rot)]
             info.object = object_image
         elif isinstance(info.object, Image.Image): # is a PIL image
-            object_image = info.object
-            # print(f'object is pillow. using {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
+            # object_image = info.object
+            print(f'object is pillow. using {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
         else:
             raise Exception(f'object type "{type(info.object)}" not supported')
 

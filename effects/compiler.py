@@ -166,13 +166,10 @@ def load_object(info):
         if isinstance(info.object, np.ndarray): # is a numpy array            
             object_as_uint8 = info.object.astype(np.uint8)
             object_image = Image.fromarray(object_as_uint8)
-            # object_image.save('temp/test.png')
-            # print('temp/test.png')
-            if getattr(info, 'name', None) is not None:
-                object_memory[info.name] = [object_image, (info.end_pos, info.end_scale, info.end_rot)]
             info.object = object_image
+            if getattr(info, 'name', None) is not None:
+                object_memory[info.name] = [info.object, (info.end_pos, info.end_scale, info.end_rot)]
         elif isinstance(info.object, Image.Image): # is a PIL image
-            # object_image = info.object
             print(f'object is pillow. using {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
         else:
             raise Exception(f'object type "{type(info.object)}" not supported')

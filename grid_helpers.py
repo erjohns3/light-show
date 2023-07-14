@@ -213,7 +213,7 @@ def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     
     # this is because we are working with 0-100 in the grid, not 0-255
     np_arr = np.array(pil_image)
-    # np_arr = np.array(pil_image) / 2.55
+    np_arr = np.array(pil_image) / 2.55
 
     # https://www.desmos.com/calculator
     # iterate through numpy array and run ln(x) * 22
@@ -416,8 +416,8 @@ def get_2d_arr_from_image(filepath):
 def get_2d_arr_from_text(*args, **kwargs):
     filepath = create_image_from_text_pilmoji(*args, **kwargs)
     with Image.open(filepath) as image:
-        # return PIL_image_to_numpy_arr(image)
-        return image
+        return PIL_image_to_numpy_arr(image)
+        # return image
 
 
 if __name__ == '__main__':

@@ -181,7 +181,6 @@ def our_transform(info):
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
     # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)
 
-    transformed_image.show()
     # !TODO this is rly bad
     arr_version = np.array(transformed_image)
     # normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100

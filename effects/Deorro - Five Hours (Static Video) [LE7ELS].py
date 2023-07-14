@@ -169,6 +169,8 @@ effects = {
     '5 hours grid intro': {
         'length': 113,
         'beats': [
+            grid_f(1, function=lambda x: x, clear=False, length=113),
+
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),
             grid_f(112, function=squares_up, length=.5),
@@ -186,6 +188,7 @@ effects = {
     '5 hours grid chorus': {
         'length': 4,
         'beats': [
+            grid_f(1, function=lambda x: x, clear=False, length=4),
             b(1, name='5 hours Bottom bass bottom', length=4),
             b(1, name='Red disco pulse', length=3, offset=.5),
             b(4, name='Green disco pulse', length=1, offset=.5),

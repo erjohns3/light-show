@@ -91,49 +91,32 @@ def create_transform_matrix(midpoint, scale, rot, pos):
     # Step 1: Translate midpoint to (0, 0)
     tx1 = -midpoint[0]
     ty1 = -midpoint[1]
-    # tx1 = -midpoint[0]
-    # ty1 = -midpoint[1]
 
     # Step 2: Rotate & Scale
-    # Convert degrees to radians and negate it due to PIL's coordinate system
     rot_rad = -rot
-    a = scale[0]*np.cos(rot_rad)
-    b = -scale[0]*np.sin(rot_rad)
-    d = scale[1]*np.sin(rot_rad)
-    e = scale[1]*np.cos(rot_rad)
+    a = scale[0] * np.cos(rot_rad)
+    b = -scale[0] * np.sin(rot_rad)
+    d = scale[1] * np.sin(rot_rad)
+    e = scale[1] * np.cos(rot_rad)
 
-    # Step 3: Translate back the (0, 0) to the midpoint
+    # Step 3: Translate back
     tx2 = midpoint[0] + pos[0]
     ty2 = midpoint[1] + pos[1]
+    # print(f'{a=}, {b=}, {tx1=}, {ty1=}, {tx2=}, {ty2=}')
     return [
         a, b, a*tx1 + b*ty1 + tx2,
         d, e, d*tx1 + e*ty1 + ty2
+        # a, b, pos[0],
+        # d, e, pos[1],
     ]
 
-
-def scale_rotate_matrix(midpoint, scale, rot):
-    # Step 1: Translate midpoint to (0, 0)
-    tx1 = -midpoint[0]
-    ty1 = -midpoint[1]
-
-    # Step 2: Rotate & Scale
-    rot_rad = -rot
-    a = scale[0]*np.cos(rot_rad)
-    b = -scale[0]*np.sin(rot_rad)
-    d = scale[1]*np.sin(rot_rad)
-    e = scale[1]*np.cos(rot_rad)
-
-    # Step 3: Translate back the (0, 0) to the midpoint
-    tx2 = midpoint[0]
-    ty2 = midpoint[1]
-    return [
-        a, b, a*tx1 + b*ty1 + tx2,
-        d, e, d*tx1 + e*ty1 + ty2
-    ]
-
+# import PIL
+# PIL.Image.transform
 
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
     scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
+    # print(scale_rot_matrix)
+    # exit()
     between = object_image.transform(size, Image.AFFINE, scale_rot_matrix, Image.NEAREST)
     translation_matrix = create_transform_matrix(midpoint, (1, 1), 0, pos)
     return between.transform(size, Image.AFFINE, translation_matrix, Image.NEAREST)
@@ -198,11 +181,12 @@ def our_transform(info):
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
     # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)
 
+    transformed_image.show()
     # !TODO this is rly bad
     arr_version = np.array(transformed_image)
-    normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100
+    # normalizedData = (arr_version-np.min(arr_version))/(np.max(arr_version)-np.min(arr_version)) * 100
 
-    grid_helpers.grid = normalizedData
+    grid_helpers.grid = arr_version
     
 
 

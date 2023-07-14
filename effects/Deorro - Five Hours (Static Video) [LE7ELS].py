@@ -140,15 +140,15 @@ def make_transforms(beat, length_per, object=None, poses=None, scales=None, rota
         for part, data in [['pos', poses], ['scale', scales], ['rot', rotations]]:
             if data is None:
                 continue
-            data = data[i]
-            if data is None:
-                continue
+            # print('part', part, 'data', data)
+            if part in ['pos', 'scale']:
+                data = data[i]
+                if data is None:
+                    continue
             start, end = data
             if start is not None:
-                print(f'setting start {part} to {start}')
                 setattr(info, f'start_{part}', start)
             if end is not None:
-                print(f'setting end {part} to {end}')
                 setattr(info, f'end_{part}', end)
         building.append(thing)
         beat += length_per
@@ -278,6 +278,21 @@ effects = {
         ]
     },
 
+    '5 hours grid again': {
+        'length': 4, 
+        'beats': [
+            *make_transforms(
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 20, color=(100, 0, 0)),
+                rotations=[
+                    0,
+                    6.28,
+                ],
+            ),
+        ]
+    },
+
     '5 hours grid after chorus ': {
         'length': 64,
         'beats': [
@@ -299,6 +314,7 @@ effects = {
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),
             b(177, name='5 hours grid after chorus', length=64),
+            b(241, name='5 hours grid again', length=64),
         ]
     }
 }

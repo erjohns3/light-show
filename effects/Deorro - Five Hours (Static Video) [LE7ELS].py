@@ -108,16 +108,26 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
     return components
 
 
-def make_transforms(object, poses, scales, rotations, length_per):
+last_object_name = None
+def make_transforms(beat, length_per, object=None, poses=None, scales=None, rotations=None):
+    global last_object_name
+
     building = []
-    name = random_letters(10)
-    beat = 1
+    if object is None:
+        name = last_object_name
+    else:
+        name = random_letters(10)
+        last_object_name = name
 
-    number = len(poses)
-    print(number)
+    if poses:
+        beats_to_run = len(poses)
+    elif scales:
+        beats_to_run = len(scales)
+    elif rotations:
+        beats_to_run = len(rotations)
 
-    for i in range(number):
-        if i > 0:
+    for i in range(beats_to_run):
+        if object is None or i > 0:
             object = name
         thing = grid_f(
             beat,
@@ -128,16 +138,18 @@ def make_transforms(object, poses, scales, rotations, length_per):
         )
         info = thing[1]
         for part, data in [['pos', poses], ['scale', scales], ['rot', rotations]]:
-            print('data', data, i, len(data))
+            if data is None:
+                continue
             data = data[i]
-            if data is not None:
-                start, end = data
-                if start is not None:
-                    print(f'setting start {part} to {start}')
-                    setattr(info, f'start_{part}', start)
-                if end is not None:
-                    print(f'setting end {part} to {end}')
-                    setattr(info, f'end_{part}', end)
+            if data is None:
+                continue
+            start, end = data
+            if start is not None:
+                print(f'setting start {part} to {start}')
+                setattr(info, f'start_{part}', start)
+            if end is not None:
+                print(f'setting end {part} to {end}')
+                setattr(info, f'end_{part}', end)
         building.append(thing)
         beat += length_per
     return building
@@ -149,9 +161,9 @@ widen_2_beat = [
     [None, (1, 21)],
     [None, (65, 21)],
 ]
-nothing_2_beat = [
-    None,
-    None,
+shrink_2_beat = [
+    [None, (65, 1)],
+    [None, (1, 1)],
 ]
 
 effects = {
@@ -186,29 +198,83 @@ effects = {
             ),
         ]
     },
-    '5 hours grid after chorus': {
-        'length': 2,
+    '5 hours grid after chorus color 1': {
+        'length': 4, 
         'beats': [
             *make_transforms(
-                get_rectangle_numpy(1, 1, color=(100, 0, 0)),
-                [
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 1, color=(0, 100, 0)),
+                poses=[
                     [(15, 0), None],
                     None,
                 ],
-                widen_2_beat,
-                nothing_2_beat,
-                length_per=1,
+                scales=widen_2_beat,
             ),
             *make_transforms(
-                get_rectangle_numpy(1, 1, color=(0, 0, 100)),
-                [
-                    [(-15, 0), None],
+                3, 
+                length_per=1,
+                scales=shrink_2_beat,
+            ),
+            *make_transforms(
+                1,
+                object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
+                length_per=1,
+                poses=[
+                    [(-16, 0), None],
                     None,
                 ],
-                widen_2_beat,
-                nothing_2_beat,
-                length_per=1,
+                scales=widen_2_beat,
             ),
+            *make_transforms(
+                3, 
+                length_per=1,
+                scales=shrink_2_beat,
+            ),
+        ]
+    },
+    '5 hours grid after chorus color 2': {
+        'length': 4, 
+        'beats': [
+            *make_transforms(
+                1, 
+                length_per=1,
+                object=get_rectangle_numpy(1, 1, color=(100, 0, 0)),
+                poses=[
+                    [(15, 0), None],
+                    None,
+                ],
+                scales=widen_2_beat,
+            ),
+            *make_transforms(
+                3, 
+                length_per=1,
+                scales=shrink_2_beat,
+            ),
+            *make_transforms(
+                1,
+                object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
+                length_per=1,
+                poses=[
+                    [(-16, 0), None],
+                    None,
+                ],
+                scales=widen_2_beat,
+            ),
+            *make_transforms(
+                3, 
+                length_per=1,
+                scales=shrink_2_beat,
+            ),
+        ]
+    },
+
+    # !TODO IF YOU SET LENGTH LOWER THAN 4, IT WILL ERROR
+    '5 hours grid after chorus': {
+        'length': 8, 
+        'beats': [
+            b(1, name='5 hours grid after chorus color 1', length=4),
+            b(5, name='5 hours grid after chorus color 2', length=4),
         ]
     },
 

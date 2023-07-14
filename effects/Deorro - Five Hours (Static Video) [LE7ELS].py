@@ -152,13 +152,32 @@ effects = {
     '5 hours grid after chorus': {
         'length': 2,
         'beats': [
+            # grid_f(
+            #     1,
+            #     function=our_transform,
+            #     object=grid_helpers.get_2d_arr_from_text('😋'),
+            #     name='oy',
+            #     start_pos=(-10, 0),
+            #     end_pos=(10, 0),
+            #     start_rot = 0,
+            #     end_rot = 6.24,
+            #     length=1,
+            # ),
+            # grid_f(
+            #     2,
+            #     function=our_transform,
+            #     object='oy',
+            #     end_pos=(-10, 0),
+            #     end_rot = 0,
+            #     length=1,
+            # ),
             grid_f(
                 1,
                 function=our_transform,
-                object=grid_helpers.get_2d_arr_from_text('😋'),
+                object=get_rectangle_numpy(4, 4),
                 name='oy',
-                start_pos=(-10, -10),
-                end_pos=(10, 10),
+                start_pos=(0, 0),
+                end_pos=(0, 0),
                 start_rot = 0,
                 end_rot = 6.24,
                 length=1,
@@ -167,10 +186,10 @@ effects = {
                 2,
                 function=our_transform,
                 object='oy',
-                end_pos=(-10, -10),
+                end_pos=(0, 0),
                 end_rot = 0,
                 length=1,
-            ),        
+            ),
         ]
     },
 

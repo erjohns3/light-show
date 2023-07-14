@@ -53,9 +53,15 @@ class GridInfo:
 
 def get_rectangle_numpy(width, height, color=(100, 100, 100)):
     rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
+
+    mid_x = (grid_helpers.GRID_WIDTH - 1) / 2
+    mid_y = (grid_helpers.GRID_HEIGHT - 1) / 2
+    
+    start_x = int(mid_x - width / 2)
+    start_y = int(mid_y - height / 2)
     for x in range(width):
         for y in range(height):
-            rectangle[x][y] = color
+            rectangle[x + start_x][y + start_y] = color
     return rectangle
 
 
@@ -105,10 +111,32 @@ def create_transform_matrix(midpoint, scale, rot, pos):
     ]
 
 
-def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
-    transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
-    return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
+def scale_rotate_matrix(midpoint, scale, rot):
+    # Step 1: Translate midpoint to (0, 0)
+    tx1 = -midpoint[0]
+    ty1 = -midpoint[1]
 
+    # Step 2: Rotate & Scale
+    rot_rad = -rot
+    a = scale[0]*np.cos(rot_rad)
+    b = -scale[0]*np.sin(rot_rad)
+    d = scale[1]*np.sin(rot_rad)
+    e = scale[1]*np.cos(rot_rad)
+
+    # Step 3: Translate back the (0, 0) to the midpoint
+    tx2 = midpoint[0]
+    ty2 = midpoint[1]
+    return [
+        a, b, a*tx1 + b*ty1 + tx2,
+        d, e, d*tx1 + e*ty1 + ty2
+    ]
+
+
+def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
+    scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
+    between = object_image.transform(size, Image.AFFINE, scale_rot_matrix, Image.NEAREST)
+    translation_matrix = create_transform_matrix(midpoint, (1, 1), 0, pos)
+    return between.transform(size, Image.AFFINE, translation_matrix, Image.NEAREST)
 
 
 def load_object(info):
@@ -165,7 +193,7 @@ def our_transform(info):
     size = info.object.size
 
     # why is this seemingly backwards???
-    midpoint = (grid_helpers.GRID_HEIGHT // 2, grid_helpers.GRID_WIDTH // 2)
+    midpoint = ((grid_helpers.GRID_HEIGHT - 1) / 2, (grid_helpers.GRID_WIDTH - 1) / 2)
 
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
     # print(f'{pos=}, {scale=}, {rot=}, {info.object.size=}, {transformed_image.size=}\n' * 10)

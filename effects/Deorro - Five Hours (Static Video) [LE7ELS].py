@@ -1,4 +1,5 @@
 import random
+from copy import deepcopy
 
 from effects.compiler import *
 
@@ -107,17 +108,53 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
     return components
 
 
+def make_transforms(object, poses, scales, rotations, length_per):
+    building = []
+    name = random_letters(10)
+    beat = 1
+
+    number = len(poses)
+    print(number)
+
+    for i in range(number):
+        if i > 0:
+            object = name
+        thing = grid_f(
+            beat,
+            function=our_transform,
+            object=object,
+            name=name,
+            length=length_per,
+        )
+        info = thing[1]
+        for part, data in [['pos', poses], ['scale', scales], ['rot', rotations]]:
+            print('data', data, i, len(data))
+            data = data[i]
+            if data is not None:
+                start, end = data
+                if start is not None:
+                    print(f'setting start {part} to {start}')
+                    setattr(info, f'start_{part}', start)
+                if end is not None:
+                    print(f'setting end {part} to {end}')
+                    setattr(info, f'end_{part}', end)
+        building.append(thing)
+        beat += length_per
+    return building
+
+
+
+
+widen_2_beat = [
+    [None, (1, 21)],
+    [None, (65, 21)],
+]
+nothing_2_beat = [
+    None,
+    None,
+]
 
 effects = {
-    'five hours eggplant wrap': {
-        'length': 160,
-        'beats': [
-            grid_f(1, text='🍆', font_size=9, length=.01),
-            # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
-            grid_f(1, function=move_grid, wrap=True, vector=(0, -1), beat_divide=3, length=64),        
-        ]
-    },
-
     '5 hours grid intro': {
         'length': 113,
         'beats': [
@@ -150,8 +187,58 @@ effects = {
         ]
     },
     '5 hours grid after chorus': {
-        'length': 4,
+        'length': 2,
         'beats': [
+            *make_transforms(
+                get_rectangle_numpy(1, 1, color=(100, 0, 0)),
+                [
+                    [(15, 0), None],
+                    None,
+                ],
+                widen_2_beat,
+                nothing_2_beat,
+                length_per=1,
+            ),
+            *make_transforms(
+                get_rectangle_numpy(1, 1, color=(0, 0, 100)),
+                [
+                    [(-15, 0), None],
+                    None,
+                ],
+                widen_2_beat,
+                nothing_2_beat,
+                length_per=1,
+            ),
+        ]
+    },
+
+    '5 hours grid after chorus ': {
+        'length': 64,
+        'beats': [
+            # grid_f(1, function=clear_grid, length=0.01),
+            grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
+            grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
+        ]
+    },
+
+    "Deorro - Five Hours (Static Video) [LE7ELS]": {
+        "bpm": 128,
+        "song_path": "songs/Deorro - Five Hours (Static Video) [LE7ELS].ogg",
+        "delay_lights": 0.37665,
+        "skip_song": 0.0,
+        "beats": [ 
+            # grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
+            # grid_f(1, filename='ricardo.gif', length=100),
+            # b(1, name='five hours eggplant wrap', length=79),
+            b(1, name='5 hours grid intro', length=113),
+            b(113, name='5 hours grid chorus', length=64),
+            b(177, name='5 hours grid after chorus', length=64),
+        ]
+    }
+}
+
+
+
             # grid_f(
             #     1,
             #     function=our_transform,
@@ -171,61 +258,46 @@ effects = {
             #     end_rot = 0,
             #     length=1,
             # ),
-            grid_f(
-                1,
-                function=our_transform,
-                object=get_rectangle_numpy(1, 1),
-                name='oy',
-                end_scale=(1, 21),
-                length=1,
-            ),
-            grid_f(
-                2,
-                function=our_transform,
-                object='oy',
-                end_scale=(45, 21),
-                length=1,
-            ),
-            grid_f(
-                3,
-                function=our_transform,
-                object='oy',
-                end_scale=(1, 21),
-                length=1,
-            ),
-            grid_f(
-                4,
-                function=our_transform,
-                object='oy',
-                end_scale=(1, 1),
-                length=1,
-            ),
-        ]
-    },
-
-    '5 hours grid after chorus ': {
-        'length': 64,
-        'beats': [
-            # grid_f(1, function=clear_grid, length=0.01),
-            grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
-            grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
-        ]
-    },
 
 
 
-    "Deorro - Five Hours (Static Video) [LE7ELS]": {
-        "bpm": 128,
-        "song_path": "songs/Deorro - Five Hours (Static Video) [LE7ELS].ogg",
-        "delay_lights": 0.37665,
-        "skip_song": 0.0,
-        "beats": [ 
-            # grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
-            # grid_f(1, filename='ricardo.gif', length=100),
-            # b(1, name='five hours eggplant wrap', length=79),
-            b(1, name='5 hours grid intro', length=113),
-            b(113, name='5 hours grid chorus', length=64),
-            b(177, name='5 hours grid after chorus', length=64),
-        ]
-    }
-}
+    # 'five hours eggplant wrap': {
+    #     'length': 160,
+    #     'beats': [
+    #         grid_f(1, text='🍆', font_size=9, length=.01),
+    #         # grid_f(1, filename='nyan.webp', grid_rotate=True, length=16),
+    #         grid_f(1, function=move_grid, wrap=True, vector=(0, -1), beat_divide=3, length=64),        
+    #     ]
+    # },
+
+
+            # grid_f(
+            #     1,
+            #     function=our_transform,
+            #     object=get_rectangle_numpy(1, 1, color=(100, 0, 0)),
+            #     name='oy',
+            #     start_pos=(15, 0),
+            #     end_scale=(1, 21),
+            #     length=1,
+            # ),
+            # grid_f(
+            #     2,
+            #     function=our_transform,
+            #     object='oy',
+            #     end_scale=(45, 21),
+            #     length=1,
+            # ),
+            # grid_f(
+            #     3,
+            #     function=our_transform,
+            #     object='oy',
+            #     end_scale=(1, 21),
+            #     length=1,
+            # ),
+            # grid_f(
+            #     4,
+            #     function=our_transform,
+            #     object='oy',
+            #     end_scale=(1, 1),
+            #     length=1,
+            # ),

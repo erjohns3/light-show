@@ -13,7 +13,7 @@
 import pathlib
 import time
 import sys
-
+import math
 import numpy as np
 from PIL import Image
 
@@ -89,23 +89,27 @@ def interpolate_vectors_int(v1, v2, percent_done):
 
 def create_transform_matrix(midpoint, scale, rot, pos):
     # Step 1: Translate midpoint to (0, 0)
-    tx1 = -midpoint[0]
-    ty1 = -midpoint[1]
+    cx = midpoint[0]
+    cy = midpoint[1]
+
+    sx = 1/scale[0]
+    sy = 1/scale[1]
+
+    r = -rot
 
     # Step 2: Rotate & Scale
-    rot_rad = -rot
-    a = scale[0] * np.cos(rot_rad)
-    b = -scale[0] * np.sin(rot_rad)
-    d = scale[1] * np.sin(rot_rad)
-    e = scale[1] * np.cos(rot_rad)
+    a = sx * np.cos(r)
+    b = sy * np.sin(r)
+    d = -sx * np.sin(r)
+    e = sy * np.cos(r)
 
     # Step 3: Translate back
-    tx2 = midpoint[0] + pos[0]
-    ty2 = midpoint[1] + pos[1]
+    tx = pos[0] + cx
+    ty = pos[1] + cy
     # print(f'{a=}, {b=}, {tx1=}, {ty1=}, {tx2=}, {ty2=}')
     return [
-        a, b, a*tx1 + b*ty1 + tx2,
-        d, e, d*tx1 + e*ty1 + ty2
+        a, b, tx - cx*a - cy*b,
+        d, e, ty - cx*d - cy*e
         # a, b, pos[0],
         # d, e, pos[1],
     ]
@@ -114,6 +118,18 @@ def create_transform_matrix(midpoint, scale, rot, pos):
 # PIL.Image.transform
 
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
+
+    center_matrix = np.array([[1, 0, midpoint[0]], [0, 1, midpoint[1]], [0,0,1]])
+    uncenter_matrix = np.array([[1, 0, -midpoint[0]], [0, 1, -midpoint[1]], [0,0,1]])
+    translate_matrix = np.array([[1, 0, pos[0]], [0, 1, pos[1]], [0,0,1]])
+    scale_matrix = np.array([[1/scale[0], 0, 0], [0, 1/scale[1], 0], [0,0,1]])
+    rotation_matrix = np.array([[math.cos(rot), -math.sin(rot), 0], [math.sin(rot), math.cos(rot), 0], [0,0,1]])
+
+    transform_matrix = (center_matrix @ scale_matrix @ rotation_matrix @ translate_matrix @ uncenter_matrix)[0:2].reshape((6)).tolist()
+
+    # transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
+    return object_image.transform(size, Image.AFFINE, transform_matrix, Image.BICUBIC)
+
     scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
     # print(scale_rot_matrix)
     # exit()

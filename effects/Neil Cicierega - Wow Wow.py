@@ -30,8 +30,11 @@ effects = {
                 # object=grid_helpers.get_2d_arr_from_text('😋'),
                 name='oy',
                 start_pos=(0, 0),
+                end_pos=(30, 0),
                 start_rot=0,
-                end_rot=3.14/4,
+                end_rot=6.28,
+                # start_scale= (0.5, 2), 
+                # end_scale=(3, 3), 
                 length=8,
             ),
             grid_f(

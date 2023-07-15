@@ -286,7 +286,7 @@ effects = {
             *make_transforms(
                 1, 
                 length_per=1,
-                object=get_rectangle_numpy(1, 20, color=(100, 0, 0)),
+                object=get_rectangle_numpy(2, 20, color=(100, 0, 0)),
                 poses=[
                     [(8, 4), None],
                     None,
@@ -296,14 +296,14 @@ effects = {
                 rotations=[
                     (0, -.5),
                     (None, -3.14),
-                    (None, -.5),
+                    (None, 0),
                     (None, 0),
                 ],
             ),
             *make_transforms(
                 1, 
                 length_per=1,
-                object=get_rectangle_numpy(1, 20, color=(0, 100, 0)),
+                object=get_rectangle_numpy(2, 20, color=(0, 100, 0)),
                 poses=[
                     [(-8, 4), None],
                     None,
@@ -313,14 +313,14 @@ effects = {
                 rotations=[
                     (0, .5),
                     (None, 3.14),
-                    (None, .5),
+                    (None, 0),
                     (None, 0),
                 ],
             ),
             *make_transforms(
                 1, 
                 length_per=1,
-                object=get_rectangle_numpy(1, 20, color=(50, 0, 50)),
+                object=get_rectangle_numpy(2, 20, color=(30, 0, 30)),
                 poses=[
                     [(-8, -4), None],
                     None,
@@ -330,14 +330,14 @@ effects = {
                 rotations=[
                     (0, -.5),
                     (None, -3.14),
-                    (None, -.5),
+                    (None, 0),
                     (None, 0),
                 ],
             ),
             *make_transforms(
                 1, 
                 length_per=1,
-                object=get_rectangle_numpy(1, 20, color=(0, 0, 100)),
+                object=get_rectangle_numpy(2, 20, color=(0, 0, 100)),
                 poses=[
                     [(8, -4), None],
                     None,
@@ -347,7 +347,7 @@ effects = {
                 rotations=[
                     (0, .5),
                     (None, 3.14),
-                    (None, .5),
+                    (None, 0),
                     (None, 0),
                 ],
             ),

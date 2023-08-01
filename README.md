@@ -77,6 +77,8 @@ It should be pretty good about auto downloading specific songs with the --show p
   * 1 beat before drop the flash
 
 # stretch todo
+* visualizer: https://github.com/projectM-visualizer/projectm
+  * milkdrop is the name of the old winamp one
 * halloween
     * spooky lights for UI
     * make it spooky button

@@ -51,6 +51,18 @@ class GridInfo:
 # ==== eric and andrews transformation matrix stuff
 
 
+def get_point_numpy(point, color=(100, 100, 100)):
+    rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
+
+    mid_x = (grid_helpers.GRID_WIDTH - 1) / 2
+    mid_y = (grid_helpers.GRID_HEIGHT - 1) / 2
+    
+    x = int(mid_x - point[0])
+    y = int(mid_y - point[1])
+    rectangle[x][y] = color
+    return rectangle
+
+
 def get_rectangle_numpy(width, height, color=(100, 100, 100)):
     rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
 
@@ -110,15 +122,10 @@ def create_transform_matrix(midpoint, scale, rot, pos):
     return [
         a, b, tx - cx*a - cy*b,
         d, e, ty - cx*d - cy*e
-        # a, b, pos[0],
-        # d, e, pos[1],
     ]
 
-# import PIL
-# PIL.Image.transform
 
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
-
     center_matrix = np.array([[1, 0, midpoint[0]], [0, 1, midpoint[1]], [0,0,1]])
     uncenter_matrix = np.array([[1, 0, -midpoint[0]], [0, 1, -midpoint[1]], [0,0,1]])
     translate_matrix = np.array([[1, 0, pos[0]], [0, 1, pos[1]], [0,0,1]])
@@ -130,13 +137,6 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
     # transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
     # return object_image.transform(size, Image.AFFINE, transform_matrix, Image.BICUBIC)
     return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
-
-    scale_rot_matrix = create_transform_matrix(midpoint, scale, rot, (0, 0))
-    # print(scale_rot_matrix)
-    # exit()
-    between = object_image.transform(size, Image.AFFINE, scale_rot_matrix, Image.NEAREST)
-    translation_matrix = create_transform_matrix(midpoint, (1, 1), 0, pos)
-    return between.transform(size, Image.AFFINE, translation_matrix, Image.NEAREST)
 
 
 def load_object(info):
@@ -156,7 +156,6 @@ def load_object(info):
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
 
         object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot)
-        # print_blue(f'object name "{info.name}" found in memory, loading {info.start_pos, info.start_scale, info.start_rot=}, {info.end_pos, info.end_scale, info.end_rot=}\n' * 3)
     else:
         info.start_pos = getattr(info, 'start_pos', (0, 0))
         info.start_scale = getattr(info, 'start_scale', (1, 1))
@@ -196,12 +195,10 @@ def our_transform(info):
     transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
     
     arr_version = np.array(transformed_image)
-    if getattr(info, 'override', None):
+    if getattr(info, 'overwrite', None):
         grid_helpers.grid = arr_version
     else:
         grid_helpers.grid += arr_version
-
-
 
 
 

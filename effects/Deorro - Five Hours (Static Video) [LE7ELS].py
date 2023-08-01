@@ -43,6 +43,25 @@ note_3 = (100, 0, 0)
 note_4 = (0, 100, 0)
 note_5 = (0, 100, 100)
 
+hard_colors = [
+    (100, 0, 0),
+    (0, 100, 0),
+    (0, 0, 100),
+    (100, 0, 100),
+    (0, 100, 100),
+    (100, 100, 0),
+]
+
+
+soft_colors = [
+    (30, 0, 0),
+    (0, 30, 0),
+    (0, 0, 30),
+    (30, 0, 30),
+    (0, 30, 30),
+    (30, 30, 0),
+]
+
 intro_melody_colors = [
     note_1,
     note_1,
@@ -109,7 +128,7 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
 
 
 last_object_name = None
-def make_transforms(beat, length_per, object=None, poses=None, scales=None, rotations=None):
+def make_transforms(beat, beat_lengths, object=None, poses=None, scales=None, rotations=None):
     global last_object_name
 
     building = []
@@ -119,41 +138,69 @@ def make_transforms(beat, length_per, object=None, poses=None, scales=None, rota
         name = random_letters(10)
         last_object_name = name
 
+    beats_to_run = 0
     if poses:
-        beats_to_run = len(poses)
+        beats_to_run = max(len(poses), beats_to_run)
     elif scales:
-        beats_to_run = len(scales)
+        beats_to_run = max(len(scales), beats_to_run)
     elif rotations:
-        beats_to_run = len(rotations)
+        beats_to_run = max(len(rotations), beats_to_run)
 
-    for i in range(beats_to_run):
-        if object is None or i > 0:
+    if not isinstance(beat_lengths, list):
+        beat_lengths = [beat_lengths] * beats_to_run
+
+    for index, beat_length in enumerate(beat_lengths):
+        if object is None or index > 0:
             object = name
         thing = grid_f(
             beat,
             function=our_transform,
             object=object,
             name=name,
-            length=length_per,
+            length=beat_length,
         )
         info = thing[1]
         for part, data in [['pos', poses], ['scale', scales], ['rot', rotations]]:
             if data is None:
                 continue
             # print('part', part, 'data', data)
-            data = data[i]
+            if len(data) <= index:
+                continue
+            data = data[index]
             if data is None:
                 continue
             start, end = data
+            # if part in ['pos', 'scale']:
+            #     if not isinstance(start, list):
+            #         start = [start, None]
+            #     if not isinstance(end, list):
+            #         end = [end, None]
             if start is not None:
                 setattr(info, f'start_{part}', start)
             if end is not None:
                 setattr(info, f'end_{part}', end)
         building.append(thing)
-        beat += length_per
+        beat += beat_length
     return building
 
 
+def get_random_rotate_circles(num, beat_length, colors, circles_angles):
+    arr = []
+    colors_copy = deepcopy(colors)
+    random.shuffle(colors_copy)
+
+    for j, angle in enumerate(circles_angles):
+        for i in range(num):
+            rand_dist = random.randint(4, 9)
+            rand_position = (random.randint(-8, 8), random.randint(-8, 8))
+            arr += make_transforms(
+                1 + i * beat_length,
+                beat_lengths=beat_length,
+                object=get_point_numpy((0, rand_dist), color=colors_copy[(i + j) % len(colors_copy)]),
+                poses=[[rand_position, None]],
+                rotations=[(0, angle)],
+            )
+    return arr
 
 
 widen_2_beat = [
@@ -173,7 +220,7 @@ effects = {
 
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),
-            grid_f(112, function=squares_up, length=.5),
+            grid_f(112.5, function=squares_up, length=.5),
         ],
     },
 
@@ -200,12 +247,12 @@ effects = {
             ),
         ]
     },
-    '5 hours grid after chorus color 1': {
+    '5 hours box combine color 1': {
         'length': 4, 
         'beats': [
             *make_transforms(
                 1, 
-                length_per=1,
+                beat_lengths=1,
                 object=get_rectangle_numpy(1, 1, color=(0, 100, 0)),
                 poses=[
                     [(15, 0), None],
@@ -215,13 +262,13 @@ effects = {
             ),
             *make_transforms(
                 3, 
-                length_per=1,
+                beat_lengths=1,
                 scales=shrink_2_beat,
             ),
             *make_transforms(
                 1,
                 object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
-                length_per=1,
+                beat_lengths=1,
                 poses=[
                     [(-16, 0), None],
                     None,
@@ -230,17 +277,17 @@ effects = {
             ),
             *make_transforms(
                 3, 
-                length_per=1,
+                beat_lengths=1,
                 scales=shrink_2_beat,
             ),
         ]
     },
-    '5 hours grid after chorus color 2': {
+    '5 hours box combine color 2': {
         'length': 4, 
         'beats': [
             *make_transforms(
                 1, 
-                length_per=1,
+                beat_lengths=1,
                 object=get_rectangle_numpy(1, 1, color=(100, 0, 0)),
                 poses=[
                     [(15, 0), None],
@@ -250,13 +297,13 @@ effects = {
             ),
             *make_transforms(
                 3, 
-                length_per=1,
+                beat_lengths=1,
                 scales=shrink_2_beat,
             ),
             *make_transforms(
                 1,
                 object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
-                length_per=1,
+                beat_lengths=1,
                 poses=[
                     [(-16, 0), None],
                     None,
@@ -265,101 +312,150 @@ effects = {
             ),
             *make_transforms(
                 3, 
-                length_per=1,
+                beat_lengths=1,
                 scales=shrink_2_beat,
             ),
         ]
     },
 
     # !TODO IF YOU SET LENGTH LOWER THAN 4, IT WILL ERROR
-    '5 hours grid after chorus': {
+    '5 hours box combine': {
         'length': 8, 
         'beats': [
-            b(1, name='5 hours grid after chorus color 1', length=4),
-            b(5, name='5 hours grid after chorus color 2', length=4),
+            b(1, name='5 hours box combine color 1', length=4),
+            b(5, name='5 hours box combine color 2', length=4),
         ]
     },
 
-    '5 hours grid again': {
+    '5 hours pinwheel grid': {
         'length': 4, 
         'beats': [
             *make_transforms(
                 1, 
-                length_per=1,
-                object=get_rectangle_numpy(2, 20, color=(100, 0, 0)),
-                poses=[
-                    [(8, 4), None],
-                    None,
-                    None,
-                    None,
+                beat_lengths=[
+                    .2, 
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
                 ],
+                object=get_rectangle_numpy(2, 20, color=(30, 30, 0)),
+                poses=[[(8, 4), None]],
                 rotations=[
-                    (0, -.5),
-                    (None, -3.14),
-                    (None, 0),
-                    (None, 0),
+                    (0, 3.14 / 4),
+                    None,
+                    (None, 2 * 3.14 / 4),
+                    None,
+                    (None, 3 * 3.14 / 4),
+                    None,
+                    (None, 4 * 3.14 / 4),
+                    None,
                 ],
             ),
             *make_transforms(
                 1, 
-                length_per=1,
-                object=get_rectangle_numpy(2, 20, color=(0, 100, 0)),
-                poses=[
-                    [(-8, 4), None],
-                    None,
-                    None,
-                    None,
+                beat_lengths=[
+                    .2, 
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
                 ],
+                object=get_rectangle_numpy(2, 20, color=(0, 30, 30)),
+                poses=[[(-8, 4), None]],
                 rotations=[
-                    (0, .5),
-                    (None, 3.14),
-                    (None, 0),
-                    (None, 0),
+                    (0, -3.14 / 4),
+                    None,
+                    (None, 2 * -3.14 / 4),
+                    None,
+                    (None, 3 * -3.14 / 4),
+                    None,
+                    (None, 4 * -3.14 / 4),
+                    None,
                 ],
             ),
             *make_transforms(
                 1, 
-                length_per=1,
+                beat_lengths=[
+                    .2, 
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
+                ],
                 object=get_rectangle_numpy(2, 20, color=(30, 0, 30)),
-                poses=[
-                    [(-8, -4), None],
-                    None,
-                    None,
-                    None,
-                ],
+                poses=[[(-8, -4), None]],
                 rotations=[
-                    (0, -.5),
-                    (None, -3.14),
-                    (None, 0),
-                    (None, 0),
+                    (0, 3.14 / 4),
+                    None,
+                    (None, 2 * 3.14 / 4),
+                    None,
+                    (None, 3 * 3.14 / 4),
+                    None,
+                    (None, 4 * 3.14 / 4),
+                    None,
                 ],
             ),
             *make_transforms(
                 1, 
-                length_per=1,
-                object=get_rectangle_numpy(2, 20, color=(0, 0, 100)),
-                poses=[
-                    [(8, -4), None],
-                    None,
-                    None,
-                    None,
+                beat_lengths=[
+                    .2, 
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
+                    .2,
+                    .8,
                 ],
+                object=get_rectangle_numpy(2, 20, color=(30, 30, 30)),
+                poses=[[(8, -4), None]],
                 rotations=[
-                    (0, .5),
-                    (None, 3.14),
-                    (None, 0),
-                    (None, 0),
+                    (0, -3.14 / 4),
+                    None,
+                    (None, 2 * -3.14 / 4),
+                    None,
+                    (None, 3 * -3.14 / 4),
+                    None,
+                    (None, 4 * -3.14 / 4),
+                    None,
                 ],
             ),
+            grid_f(3, function=lambda x: 0, clear=False, length=2),
         ]
     },
 
-    '5 hours grid after chorus ': {
+    '5 hours box combine ': {
         'length': 64,
         'beats': [
             # grid_f(1, function=clear_grid, length=0.01),
             grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
             grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
+        ]
+    },
+
+    '5 hours rotate circle 1': {
+        'length': 32,
+        'beats': [
+            grid_f(1, function=lambda x: 0, clear=False, length=32),
+            *get_random_rotate_circles(num=16, beat_length=2, colors=soft_colors, circles_angles=[-6.28, 6.28]),
+        ]
+    },
+
+    '5 hours rotate circle 2': {
+        'length': 32,
+        'beats': [
+            # grid_f(1, function=lambda x: 0, clear=False, length=32),
+            *get_random_rotate_circles(num=16, beat_length=2, colors=hard_colors, circles_angles=[-6.28, 6.28]),
         ]
     },
 
@@ -374,9 +470,12 @@ effects = {
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),
-            b(177, name='5 hours grid after chorus', length=64),
-            b(241, name='5 hours grid again', length=64),
+            b(177, name='5 hours box combine', length=64),
+            b(241, name='5 hours pinwheel grid', length=64),
             b(305, name='5 hours grid chorus', length=64),
+            grid_f(369, function=clear_grid, length=.01),
+            b(369, name='5 hours rotate circle 1', length=32),
+            b(391, name='5 hours rotate circle 2', length=64),
         ]
     }
 }

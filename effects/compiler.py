@@ -63,11 +63,11 @@ def get_point_numpy(point, color=(100, 100, 100)):
     return rectangle
 
 
-def get_rectangle_numpy(width, height, color=(100, 100, 100)):
+def get_rectangle_numpy(width, height, color=(100, 100, 100), offset_x=0, offset_y=0):
     rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
 
-    mid_x = (grid_helpers.GRID_WIDTH - 1) / 2
-    mid_y = (grid_helpers.GRID_HEIGHT - 1) / 2
+    mid_x = ((grid_helpers.GRID_WIDTH - 1) / 2) + offset_x
+    mid_y = ((grid_helpers.GRID_HEIGHT - 1) / 2) + offset_y
     
     start_x = int(mid_x - width / 2)
     start_y = int(mid_y - height / 2)

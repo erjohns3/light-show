@@ -196,7 +196,8 @@ def get_random_rotate_circles(num, beat_length, colors, circles_angles):
             arr += make_transforms(
                 1 + i * beat_length,
                 beat_lengths=beat_length,
-                object=get_point_numpy((0, rand_dist), color=colors_copy[(i + j) % len(colors_copy)]),
+                # object=get_point_numpy((0, rand_dist), color=colors_copy[(i + j) % len(colors_copy)]),
+                object=get_rectangle_numpy(random.randint(1, 5), random.randint(1, 5), color=colors_copy[(i + j) % len(colors_copy)], offset_x=random.randint(-5, 5), offset_y=random.randint(-5, 5)),
                 poses=[[rand_position, None]],
                 rotations=[(0, angle)],
             )
@@ -430,7 +431,7 @@ effects = {
                     None,
                 ],
             ),
-            grid_f(3, function=lambda x: 0, clear=False, length=2),
+            # grid_f(3, function=lambda x: 0, clear=False, length=2),
         ]
     },
 

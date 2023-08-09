@@ -35,7 +35,8 @@ results_to_consider = 3
 def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_length_of_video_seconds=1000):
     global last_youtube_searched_time
     import yt_dlp
-    if yt_dlp.version.__version__ < 'yt-dlp-2023.7.6':
+    if yt_dlp.version.__version__ < '2023.07.06':
+        print(yt_dlp.version.__version__)
         raise Exception(f'Please run the command `pip install -r yt-dlp`')
 
     if last_youtube_searched_time:

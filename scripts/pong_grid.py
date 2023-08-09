@@ -76,7 +76,7 @@ def is_avail(game_state, pos):
 
 
 def add_points(p1, p2):
-    return (p1[0] + p2[0], p1[1] + p2[1])
+    return [p1[0] + p2[0], p1[1] + p2[1]]
 
 
 game_state = None
@@ -147,7 +147,7 @@ def advance_game_state():
         game_state.ball_direction[1] *= -1
         new_ball_point[1] += game_state.ball_direction[1] * 2
 
-    if new_ball_point[0] == 0 or new_ball_point[0] == PONG_WIDTH - 1:
+    if new_ball_point[0] < 0 or new_ball_point[0] > PONG_WIDTH - 1:
         game_state.ball_direction[0] *= -1
         new_ball_point[0] += game_state.ball_direction[0] * 2
 

@@ -355,7 +355,11 @@ def get_font_path(font_filename):
     local_font_directory = this_file_directory.joinpath('fonts')
     if local_font_directory.exists() and local_font_directory.joinpath(font_filename).exists():
         return local_font_directory.joinpath(font_filename)
-    return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
+    try:
+        font_path = get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
+    except Exception as e:
+        print("Skipping emoji generation, couldn't find font")
+        return ''
 
 
 run_once_text_image = set()
@@ -373,25 +377,27 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
         # font_name = 'arial.ttf', 'Noto-Medium.ttf', 'ariblk.ttf', verdana.ttf
         # font_name = 'verdana.ttf'
         font_name = 'dogicapixel.otf'
-        font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
+        font_path = str(get_font_path(font_name))
+        if font_path != '':
+            font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
 
-        # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
-        with Pilmoji(image) as pilmoji:
-            # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
-            # I had to edit line 149 in Pilmojis helpers.py
-            # elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):
-            try:
-                text_width, text_height = pilmoji.getsize(text, font=font)
-            except:
-                print_red('this is some weird library stiff. you need to edit line 149 of Pilmojis helpers.py to:')
-                print_yellow('elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):')
-                sys.exit()
-            x = (width - text_width) // 2
-            y = (height - text_height) // 2
-            pilmoji.text((x, y), text, text_color, font)
+            # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
+            with Pilmoji(image) as pilmoji:
+                # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
+                # I had to edit line 149 in Pilmojis helpers.py
+                # elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):
+                try:
+                    text_width, text_height = pilmoji.getsize(text, font=font)
+                except:
+                    print_red('this is some weird library stiff. you need to edit line 149 of Pilmojis helpers.py to:')
+                    print_yellow('elif tuple(int(part) for part in PIL.__version__.split(".")) >= (9, 2, 0):')
+                    sys.exit()
+                x = (width - text_width) // 2
+                y = (height - text_height) // 2
+                pilmoji.text((x, y), text, text_color, font)
 
-        if not rotate_90:
-            image = image.rotate(90, expand=True)
+            if not rotate_90:
+                image = image.rotate(90, expand=True)
 
         image.save(output_filepath, format='png')
         # run_command_blocking([

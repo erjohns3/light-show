@@ -12,7 +12,6 @@
 
 import pathlib
 import time
-import sys
 import math
 import numpy as np
 from PIL import Image
@@ -147,6 +146,8 @@ def load_object(info):
             return False
         info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[info.name]
 
+        # !TODO IMPLEMENT COLOR
+
         info.start_pos = getattr(info, 'start_pos', loaded_pos)
         info.start_scale = getattr(info, 'start_scale', loaded_scale)
         info.start_rot = getattr(info, 'start_rot', loaded_rot)
@@ -161,6 +162,11 @@ def load_object(info):
         info.start_scale = getattr(info, 'start_scale', (1, 1))
         info.start_rot = getattr(info, 'start_rot', 0)
 
+        if getattr(info, 'start_color', None) is not None:
+            info.start_color = getattr(info, 'start_color', (0, 0, 0))
+            info.end_color = getattr(info, 'end_color', info.start_color)
+            info.color = True
+
         info.end_pos = getattr(info, 'end_pos', info.start_pos)
         info.end_scale = getattr(info, 'end_scale', info.start_scale)
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
@@ -173,6 +179,21 @@ def load_object(info):
         elif not isinstance(info.object, Image.Image): # is a PIL image
             raise Exception(f'object type "{type(info.object)}" not supported')
     return True
+
+
+def change_numpy_array_to_color(numpy_array, color):
+    result_array = np.copy(numpy_array)
+    result_array[(result_array != 0).all(axis=-1)] = color
+    return result_array
+
+
+def change_to_color(pillow_image, color):
+    color = tuple(map(int, color))
+
+    numpy_array = np.array(pillow_image)
+    numpy_array = numpy_array.astype(np.uint8)
+    numpy_array = change_numpy_array_to_color(numpy_array, color)
+    return Image.fromarray(numpy_array)
 
 
 object_memory = {}
@@ -192,14 +213,19 @@ def our_transform(info):
     # why is this seemingly backwards???
     midpoint = ((grid_helpers.GRID_HEIGHT - 1) / 2, (grid_helpers.GRID_WIDTH - 1) / 2)
 
-    transformed_image = transform_scale_rotation_and_translation(info.object, size, midpoint, scale, rot, pos)
+    colored_object = info.object
+    
+    if getattr(info, 'color', None) is not None:
+        current_color = interpolate_vectors_float(info.start_color, info.end_color, percent_done)
+        colored_object = change_to_color(info.object, current_color)
+    
+    transformed_image = transform_scale_rotation_and_translation(colored_object, size, midpoint, scale, rot, pos)
     
     arr_version = np.array(transformed_image)
     if getattr(info, 'overwrite', None):
         grid_helpers.grid = arr_version
     else:
         grid_helpers.grid += arr_version
-
 
 
 

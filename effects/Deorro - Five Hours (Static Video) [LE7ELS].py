@@ -330,6 +330,7 @@ effects = {
 
     '5 hours pinwheel grid': {
         'length': 4, 
+        # 'autogen': 'complex grid',
         'beats': [
             *make_transforms(
                 1, 

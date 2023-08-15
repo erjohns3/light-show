@@ -1,7 +1,30 @@
 from effects.compiler import *
+import grid_helpers
+
+
 # [beat, effect, length, start intensity, end intensity, beat skip, hue[-1, 1], sat, brightness]
 
 effects = {
+    # "complex grid test": {
+    #     "length": 8,
+    #     "autogen": "complex grid",
+    #     "intensity": "low",
+    #     "beats": [
+    #         grid_f(
+    #             1,
+    #             function=our_transform,
+    #             object=get_rectangle_numpy(4, 4),
+    #             start_pos=(-10, 0),
+    #             end_pos=(10, 0),
+    #             start_rot = 0,
+    #             end_rot = 6.24,
+    #             length=8,
+    #         ),
+    #     ],
+    # },
+
+
+
     # dimmers
     "z_dimmer all": {
         "length": 1,
@@ -130,6 +153,7 @@ effects = {
             [3, "White top", .4, .8, 0],
         ],
     },
+
     "z_rainbow good top pulse 1": {
         "length": 8,
         "autogen": "downbeat top",
@@ -672,3 +696,44 @@ effects = {
         ],
     },
 }
+
+
+import random
+
+hard_colors = [
+    (100, 0, 0),
+    (0, 100, 0),
+    (0, 0, 100),
+    (100, 0, 100),
+    (0, 100, 100),
+    (100, 100, 0),
+]
+
+
+for i in range(25):
+    beats = []
+    
+    for j in range(2):
+        y = 11 - (j * 24)
+        beats.append(
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_rectangle_numpy(20, 5),
+                start_pos=(y, 0),
+                start_color=random.choice(hard_colors),
+                end_color=(0, 0, 0),
+                # start_rot = 0,
+                # end_rot = 6.24,
+                length=8,
+            )
+        )
+        if random.randint(1, 2) == 1:
+            beats[-1][1].end_color = random.choice(hard_colors)
+
+
+    effects[f'complex grid test {i}'] = {
+            "length": 8,
+            "autogen": "complex grid",
+            "beats": beats,
+        }

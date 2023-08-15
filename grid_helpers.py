@@ -356,7 +356,7 @@ def get_font_path(font_filename):
     if local_font_directory.exists() and local_font_directory.joinpath(font_filename).exists():
         return local_font_directory.joinpath(font_filename)
     try:
-        font_path = get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
+        return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
     except Exception as e:
         print("Skipping emoji generation, couldn't find font")
         return ''

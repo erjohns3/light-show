@@ -56,6 +56,9 @@ def is_andrews_main_computer():
     import socket
     return socket.gethostname() in ['zetai']
 
+def is_emmas_laptop():
+    import socket
+    return socket.gethostname() in ['Emmas-Air']
 
 def is_andrews_laptop():
     import socket

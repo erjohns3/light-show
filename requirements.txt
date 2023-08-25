@@ -19,4 +19,5 @@ rich
 pyserial
 pillow
 keyboard
+pilmoji
 git+https://github.com/aubio/aubio.git

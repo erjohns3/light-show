@@ -121,7 +121,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
-    if is_windows():
+    if is_windows() or is_emmas_laptop():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
@@ -398,7 +398,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
     
     effects_config_filtered = dict(filter(lambda x: x[1].get('autogen', False), top_level_effect_config.items()))
-    
+
     effect_names = list(effects_config_filtered.keys())
     effect_types_to_name = {}
     for name, effect in effects_config_filtered.items():
@@ -408,30 +408,30 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
             effect_types_to_name[effect['autogen']].append(name)
     
     scenes = [
-        [8, ['downbeat top', 'downbeat bottom']],
-        [8, ['downbeat top', 'downbeat bottom', 'disco']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top', 'disco strobe']],
-        [8, ['downbeat bottom']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed', 'disco']],
-        [8, ['downbeat mixed', 'disco strobe']],
-        [8, ['downbeat mixed', 'UV pulse']],
-        [8, ['downbeat mixed', 'UV']],
-        [8, ['downbeat top', 'downbeat bottom', 'UV']],
-        [8, ['downbeat top', 'UV']],
-        [8, ['downbeat bottom', 'UV']],
-        [8, ['rainbow top', 'downbeat bottom']],
-        [8, ['rainbow top', 'disco strobe']],
-        [8, ['disco strobe']],
-        [2, ['filler']],
-        [2, ['UV pulse']],
-        [2, ['disco']],
+        [8, ['complex grid', 'downbeat bottom']],
+        [8, ['complex grid', 'downbeat bottom', 'disco']],
+        [8, ['complex grid']],
+        # [8, ['complex grid']],
+        # [8, ['complex grid', 'disco strobe']],
+        # [8, ['downbeat bottom']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed', 'disco']],
+        # [8, ['downbeat mixed', 'disco strobe']],
+        # [8, ['downbeat mixed', 'UV pulse']],
+        # [8, ['downbeat mixed', 'UV']],
+        # [8, ['complex grid', 'downbeat bottom', 'UV']],
+        # [8, ['complex grid', 'UV']],
+        # [8, ['downbeat bottom', 'UV']],
+        # [8, ['complex grid', 'downbeat bottom']],
+        # [8, ['complex grid', 'disco strobe']],
+        # [8, ['disco strobe']],
+        # [2, ['filler']],
+        # [2, ['UV pulse']],
+        # [2, ['disco']],
         [1, ['filler']],
-        [1, ['filler', 'disco strobe']],
-        [1, ['UV pulse single']],
+        # [1, ['filler', 'disco strobe']],
+        # [1, ['UV pulse single']],
     ]
 
     if mode == 'lasers':
@@ -470,8 +470,6 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     elif use_boundaries==True: # Based on scenes
         boundary_beats.append(total_beats+1) # add beats up to ending (maybe off by 1)
         prev_bound = 0
-        prev_scene = None
-        prev_effects = []
         for iter, bound in enumerate(boundary_beats):
             chunk_level = chunk_levels[iter]
             length_left = bound-prev_bound
@@ -490,7 +488,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
-                    for effect_type in effect_types:
+                    for effect_type in effect_types:                        
                         effect_candidates = deepcopy(effect_types_to_name[effect_type])
 
                         if chunk_level == "hi":

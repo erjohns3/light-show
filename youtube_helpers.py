@@ -100,6 +100,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
             downloaded_filepath = pathlib.Path(info['filepath'])
     except Exception as e:
         print(f'Couldnt download url {url} due to {e}')
+        print_cyan(f'You probably need to run "pip install --upgrade yt_dlp"')
         return None
 
     # clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
@@ -209,6 +210,9 @@ def get_info_from_youtube_playlist(url, write_files=True):
         continuation_token = None
         response = requests.post(url, params=params, json=body)
         print(f'continuation request {continuation_index} status code: {response.status_code}')
+        if response.status_code >= 500:
+            print_red('500 status code, so returning no videos')
+            return []
         if write_files:
             with open(get_temp_dir().joinpath(f'playlist_full_cont_{continuation_index}.json'), 'w', encoding="utf-8") as f:
                 f.write(response.text)

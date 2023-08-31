@@ -1,5 +1,6 @@
 from effects.compiler import *
 import grid_helpers
+import random
 
 
 # [beat, effect, length, start intensity, end intensity, beat skip, hue[-1, 1], sat, brightness]
@@ -697,8 +698,6 @@ effects = {
     },
 }
 
-
-import random
 
 hard_colors = [
     (100, 0, 0),

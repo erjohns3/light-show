@@ -58,6 +58,9 @@ if __name__ == '__main__':
                     os.mkdir(dest_path)
 
             filepath = youtube_helpers.download_youtube_url(url=url, dest_path=dest_path, codec='mp3')
+            if filepath is None:
+                print(f'Couldnt download url {url}... continuing')
+                continue
             print_green(f'Downloaded file to "{filepath}", {filepath.exists()=}')
             # generate_rekordbox_effects.generate_rekordbox_effect(filepath)
             src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True)
@@ -87,6 +90,6 @@ if __name__ == '__main__':
         if not already_downloaded:
             print('nothing downloaded')
 
-        seconds_to_sleep = random.randint(59, 90)
+        seconds_to_sleep = random.randint(59, 190)
         print(f'Sleeping for {seconds_to_sleep} seconds)...')
         time.sleep(seconds_to_sleep)

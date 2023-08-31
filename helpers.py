@@ -1,7 +1,6 @@
 import os
 import pathlib
-from functools import lru_cache
-
+import subprocess
 
 try:
     profile
@@ -56,6 +55,9 @@ def is_andrews_main_computer():
     import socket
     return socket.gethostname() in ['zetai']
 
+def is_emmas_laptop():
+    import socket
+    return socket.gethostname() in ['Emmas-Air']
 
 def is_andrews_laptop():
     import socket
@@ -67,15 +69,10 @@ def is_doorbell():
     return socket.gethostname() in ['doorbell']
 
 
-
 ray_is_active_andrew = False
 def get_ray_directory():
     global ray_is_active_andrew
     if is_ray():
-        return pathlib.Path('T:/')
-    elif is_andrews_laptop():
-        return pathlib.Path('\\\\Ray\\T')
-    elif is_windows():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer():
         mount_path = pathlib.Path('/mnt/ray_network_share')
@@ -88,7 +85,7 @@ def get_ray_directory():
         if stdout:
             return mount_path
         else:
-            print_red('Cannot find any files in "' + mount_path + '", you probably need to run "sudo mount -t cifs -o username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
+            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
             exit()
     else:
         print_red('doesnt know how contact ray_directory')
@@ -286,31 +283,49 @@ def random_letters(num_chars: int) -> str:
     return ''.join(random.sample(letters, num_chars))
 
 
-def get_all_paths(directory, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
-    if not isinstance(directory, pathlib.Path):
-        directory = pathlib.Path(directory)
+def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
+    directory = pathlib.Path(directory)
+
     if not directory.exists():
         if not quiet:
-            print_yellow(f'{directory} does not exist, returning [] for paths')
-        return []
-    all_filepaths = []
+            print(f'{directory} does not exist, returning [] for paths')
+        return
 
+    exclude_names = set(exclude_names or [])
 
-    # all_folders = [str(p) for p in current_dir.glob('**/*') if p.is_dir()]
-    if recursive:
-        all_filepaths = [p for p in directory.glob('**/*') if p.is_file()]
-    else:
-        all_filepaths = [p for p in directory.glob('*') if p.is_file()]
-
-    filename_filepath_pairs = []
-    for filepath in all_filepaths:
-        if exclude_names is not None and filename in exclude_names:
+    for entry in directory.iterdir():
+        if entry.name in exclude_names:
             continue
-        filename = filepath.name
-        if allowed_extensions is not None and filepath.suffix not in allowed_extensions:
-            continue
-        filename_filepath_pairs.append((filename, filepath))
-    return filename_filepath_pairs
+        
+        if entry.is_file():
+            if allowed_extensions and entry.suffix not in allowed_extensions:
+                continue
+            yield entry.name, entry
+        elif entry.is_dir() and recursive:
+            yield from get_all_paths(entry, only_files, exclude_names, recursive, allowed_extensions, quiet)
+        elif not only_files:
+            yield entry.name, entry
+
+
+def start_http_server_blocking(port, filepath_to_serve):
+    import http.server
+    import socketserver
+
+    Handler = http.server.SimpleHTTPRequestHandler
+    os.chdir(filepath_to_serve)
+    with socketserver.TCPServer(("", port), Handler) as httpd:
+        print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
+        httpd.serve_forever()
+
+
+def start_http_server_async(port, filepath_to_serve):
+    import threading
+    threading.Thread(target=start_http_server_blocking, args=(port, filepath_to_serve,)).start()
+
+
+def is_python_32_bit():
+    import sys
+    return sys.maxsize > 2**32
 
 def start_video_in_mpv_async(video_path, volume=70):
     print(f'start_video_in_mpv: starting "{video_path}"')
@@ -327,8 +342,7 @@ def start_video_in_mpv_async(video_path, volume=70):
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
-def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_out=False, stdin=None):
-    import subprocess
+def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe=None, stdout_pipe=subprocess.PIPE, stderr_pipe=subprocess.PIPE):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
@@ -339,29 +353,36 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, print_std_
         if full_command_arr[0] in ['ffmpeg', 'ffplay', 'ffprobe']:
             full_command_arr[0] += '.exe'
 
+    full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
     if debug:
-        full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
         print(f'going to run "{full_call}"')
-    # env = os.environ.copy()
-    # env['SSH_AUTH_SOCK'] = os.environ['SSH_AUTH_SOCK']
-    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
+    
+    # env = os.environ.copy() # env['SSH_AUTH_SOCK'] = os.
+    process = subprocess.Popen(full_command_arr, stdout=stdout_pipe, stderr=stderr_pipe, stdin=stdin_pipe)
     stdout, stderr = process.communicate(timeout=timeout)
 
     if debug:
         print(f'Finished execution, return code was {process.returncode}')
 
-    return_string_start = f'SUCCESS Executed: {bcolors.OKGREEN}'
+    if stdout is not None:
+        stdout = stdout.decode("utf-8")
+    if stderr is not None:
+        stderr = stderr.decode("utf-8")
+
     if process.returncode:
-        return_string_start = f'FAILURE Executed: {bcolors.FAIL}'
-        print(f'stdout: {stdout.decode("utf-8")}\nstderr: {stderr.decode("utf-8")}')
-
-    if debug or process.returncode:
-        full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
-        print(f'{return_string_start}{full_call}{bcolors.ENDC}')
-
-    if print_std_out and not process.returncode:
-        print(f'stdout: {stdout.decode("utf-8")}')
-    return process.returncode, stdout.decode("utf-8"), stderr.decode("utf-8")
+        print_red(f'FAILURE executing "{full_call}"')
+        if stdout:
+            print('stdout', stdout)
+        if stderr:
+            print_red('stderr', stderr)
+    elif debug:
+        print_green(f'SUCCESS executing "{full_call}"')
+        if stdout:
+            print('stdout', stdout)
+        if stderr:
+            print_red('stderr', stderr)
+        
+    return process.returncode, stdout, stderr
 
 
 def make_if_not_exist(output_dir, quiet=False):

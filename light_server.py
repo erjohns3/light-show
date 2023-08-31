@@ -1214,7 +1214,7 @@ def prep_loaded_effects(effect_names):
 
     before_song_config_import = time.time()
     if not songs_config:
-        for name, filepath in get_all_paths('songs'):
+        for name, filepath in get_all_paths('songs', only_files=True):
             add_song_to_config(filepath)
     print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
 
@@ -1267,9 +1267,9 @@ def load_effects_config_from_disk():
 
     total_time = 0
 
-    found_paths = get_all_paths(effects_dir)
+    found_paths = list(get_all_paths(effects_dir, only_files=True))
     if args.load_autogen_shows:
-        found_paths += get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True) + get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True)
+        found_paths += list(get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True, only_files=True)) + list(get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True, only_files=True))
 
     for name, filepath in found_paths:
         if name == 'compiler.py':
@@ -1739,7 +1739,7 @@ if __name__ == '__main__':
             autogen.generate_all_songs_in_directory(autogen_song_directory)
             sys.exit()
         else:
-            all_song_name_and_paths = get_all_paths(autogen_song_directory, allowed_extensions=set(['.ogg', '.mp3']))
+            all_song_name_and_paths = list(get_all_paths(autogen_song_directory, allowed_extensions=set(['.ogg', '.mp3'], only_files=True)))
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))

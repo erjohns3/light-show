@@ -43,7 +43,7 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
     # import concurrent
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
-    all_song_name_and_paths = get_all_paths(autogen_song_directory, recursive=True, allowed_extensions=set(['.ogg', '.mp3', '.wav']))
+    all_song_name_and_paths = get_all_paths(autogen_song_directory, recursive=True, allowed_extensions=set(['.ogg', '.mp3', '.wav'], only_files=True))
     all_song_paths = [path for _name, path in all_song_name_and_paths]
 
     if is_macos():
@@ -121,7 +121,7 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
-    if is_windows():
+    if is_windows() or is_emmas_laptop():
         song_filepath = sound_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
@@ -341,7 +341,7 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
 def get_top_level_effect_config():
     all_globals = globals()
     effects_config = {}
-    for name, path in get_all_paths('effects'):
+    for name, path in get_all_paths('effects', only_files=True):
         if name == 'compiler.py':
             continue
         module = 'effects.' + path.stem
@@ -569,7 +569,7 @@ if __name__ == '__main__':
             }
 
     guess_bpm_delay = {}
-    for name, song_filepath in get_all_paths('songs'):
+    for name, song_filepath in get_all_paths('songs', only_files=True):
         length, guess_bpm, guess_delay = get_src_bpm_offset(song_filepath)        
         guess_bpm_delay[str(song_filepath)] = (guess_bpm, guess_delay)
 

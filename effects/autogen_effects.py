@@ -714,21 +714,22 @@ for i in range(25):
     
     for j in range(2):
         y = 11 - (j * 24)
-        beats.append(
-            grid_f(
-                1,
-                function=our_transform,
-                object=get_rectangle_numpy(20, 5),
-                start_pos=(y, 0),
-                start_color=random.choice(hard_colors),
-                end_color=(0, 0, 0),
-                # start_rot = 0,
-                # end_rot = 6.24,
-                length=8,
+        for p in range(8):
+            beats.append(
+                grid_f(
+                    p + 1,
+                    function=our_transform,
+                    object=get_rectangle_numpy(20, 5),
+                    start_pos=(y, 0),
+                    start_color=random.choice(hard_colors),
+                    end_color=(0, 0, 0),
+                    # start_rot = 0,
+                    # end_rot = 6.24,
+                    length=1,
+                )
             )
-        )
-        if random.randint(1, 2) == 1:
-            beats[-1][1].end_color = random.choice(hard_colors)
+            # if random.randint(1, 2) == 1:
+            # beats[-1][1].end_color = random.choice(hard_colors)
 
 
     effects[f'complex grid test {i}'] = {

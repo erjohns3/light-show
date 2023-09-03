@@ -18,7 +18,9 @@ TWINKLE_TIME = 100
 TWINKLE_FADE = 5
 
 # Twinkle speed, higher is slower, lower is faster
-TWINKLE_SPEED = 2
+TWINKLE_SPEED = 10
+
+white = (100,100,100)
 
 beats = []
 
@@ -35,7 +37,7 @@ for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
                     function=our_transform,
                     object=get_rectangle_numpy(1, 1),
                     start_pos=(y,x),
-                    start_color=(100,100,100),
+                    start_color=white,
                     end_color=(0, 0, 0),
                     length=TWINKLE_FADE,
                 )

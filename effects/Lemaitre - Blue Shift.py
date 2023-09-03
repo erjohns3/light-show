@@ -15,17 +15,20 @@ NUM_GRID_TWINKLE = int(TWINKLE_PERCENT * (grid_helpers.GRID_WIDTH * grid_helpers
 TWINKLE_TIME = 100
 
 # Time for each twinkle to fade
-TWINKLE_FADE = 2
+TWINKLE_FADE = 5
+
+# Twinkle speed, higher is slower, lower is faster
+TWINKLE_SPEED = 2
 
 beats = []
 
-for i in range(1, TWINKLE_TIME, TWINKLE_FADE):
+for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
     for j in range(int(NUM_GRID_TWINKLE)):
         # Get random point on grid
         x = random.randint(-(grid_helpers.GRID_WIDTH/2), (grid_helpers.GRID_WIDTH/2))
         y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
         # Create random offset for start beat of each twinkle
-        t_offset = random.uniform(0, 2)
+        t_offset = random.uniform(0, TWINKLE_SPEED)
         beats.append(
                 grid_f(
                     i + t_offset,

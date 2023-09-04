@@ -1739,7 +1739,7 @@ if __name__ == '__main__':
             autogen.generate_all_songs_in_directory(autogen_song_directory)
             sys.exit()
         else:
-            all_song_name_and_paths = list(get_all_paths(autogen_song_directory, allowed_extensions=set(['.ogg', '.mp3'], only_files=True)))
+            all_song_name_and_paths = list(get_all_paths(autogen_song_directory, allowed_extensions=set(['.ogg', '.mp3']), only_files=True))
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))

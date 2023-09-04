@@ -85,7 +85,6 @@ def move_wrap(vector):
         grid = np.roll(grid, shift=vector[1], axis=1)
 
 
-@profile
 def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:
         if skip_if_terminal:

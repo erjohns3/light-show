@@ -76,52 +76,12 @@ def get_rectangle_numpy(width, height, color=(100, 100, 100), offset_x=0, offset
     return rectangle
 
 
-
-
 def interpolate_float(f1, f2, percent_done):
     return (1 - percent_done) * f1 + percent_done * f2
 
 
-def interpolate_int(i1, i2, percent_done):
-    interpolated_float = interpolate_float(i1, i2, percent_done)
-    return round(interpolated_float)
-
-
-# v1: (-2, 4) # v2: (3, 1)  # percent_done: 0-1
 def interpolate_vectors_float(v1, v2, percent_done):
     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
-
-
-def interpolate_vectors_int(v1, v2, percent_done):
-    mids = interpolate_vectors_float(v1, v2, percent_done)
-    return tuple(map(round, mids))
-
-
-
-def create_transform_matrix(midpoint, scale, rot, pos):
-    # Step 1: Translate midpoint to (0, 0)
-    cx = midpoint[0]
-    cy = midpoint[1]
-
-    sx = 1/scale[0]
-    sy = 1/scale[1]
-
-    r = -rot
-
-    # Step 2: Rotate & Scale
-    a = sx * np.cos(r)
-    b = sy * np.sin(r)
-    d = -sx * np.sin(r)
-    e = sy * np.cos(r)
-
-    # Step 3: Translate back
-    tx = pos[0] + cx
-    ty = pos[1] + cy
-    # print(f'{a=}, {b=}, {tx1=}, {ty1=}, {tx2=}, {ty2=}')
-    return [
-        a, b, tx - cx*a - cy*b,
-        d, e, ty - cx*d - cy*e
-    ]
 
 
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
@@ -133,8 +93,6 @@ def transform_scale_rotation_and_translation(object_image, size, midpoint, scale
 
     transform_matrix = (center_matrix @ scale_matrix @ rotation_matrix @ translate_matrix @ uncenter_matrix)[0:2].reshape((6)).tolist()
 
-    # transform_matrix = create_transform_matrix(midpoint, scale, rot, pos)
-    # return object_image.transform(size, Image.AFFINE, transform_matrix, Image.BICUBIC)
     return object_image.transform(size, Image.AFFINE, transform_matrix, Image.NEAREST)
 
 
@@ -144,17 +102,17 @@ def load_object(info):
         if info.name not in object_memory:
             print(f'object name "{info.name}" not found in memory')
             return False
-        info.object, (loaded_pos, loaded_scale, loaded_rot) = object_memory[info.name]
-
-        # !TODO IMPLEMENT COLOR
+        info.object, (loaded_pos, loaded_scale, loaded_rot, loaded_color) = object_memory[info.name]
 
         info.start_pos = getattr(info, 'start_pos', loaded_pos)
         info.start_scale = getattr(info, 'start_scale', loaded_scale)
         info.start_rot = getattr(info, 'start_rot', loaded_rot)
+        info.start_rot = getattr(info, 'start_color', loaded_rot)
 
         info.end_pos = getattr(info, 'end_pos', info.start_pos)
         info.end_scale = getattr(info, 'end_scale', info.start_scale)
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
+        info.end_rot = getattr(info, 'end_color', info.start_color)
 
         object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot)
     else:
@@ -175,7 +133,7 @@ def load_object(info):
             object_image = Image.fromarray(object_as_uint8)
             info.object = object_image
             if getattr(info, 'name', None) is not None:
-                object_memory[info.name] = [info.object, (info.end_pos, info.end_scale, info.end_rot)]
+                object_memory[info.name] = [info.object, (info.end_pos, info.end_scale, info.end_rot, info.end_color)]
         elif not isinstance(info.object, Image.Image): # is a PIL image
             raise Exception(f'object type "{type(info.object)}" not supported')
     return True
@@ -341,6 +299,7 @@ def move_until_y_occupy(info):
 def clear_grid(info):
     grid_helpers.reset()
 
+
 def spawn_row_then_move(info):
     if getattr(info, 'beat_divide', None) is None:
         info.beat_divide = 1
@@ -483,7 +442,6 @@ def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90
         for key, value in kwargs.items():
             setattr(info, key, value)
     return [start_beat, info, length]
-
 
 
 following_beat = None

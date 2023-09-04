@@ -22,7 +22,7 @@ TWINKLE_SPEED = 10
 
 white = (100,100,100)
 
-beats = []
+twinkle_beats = []
 
 for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
     for j in range(int(NUM_GRID_TWINKLE)):
@@ -31,7 +31,7 @@ for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
         y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
         # Create random offset for start beat of each twinkle
         t_offset = random.uniform(0, TWINKLE_SPEED)
-        beats.append(
+        twinkle_beats.append(
                 grid_f(
                     i + t_offset,
                     function=our_transform,
@@ -44,11 +44,16 @@ for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
             )
 
 effects = {
+    "blue shift - twinkle": {
+        "beats": twinkle_beats,
+    },
     "Lemaitre - Blue Shift": {
         "bpm": 118,
         "song_path": "songs/Lemaitre - Blue Shift.ogg",
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
-        "beats": beats,
+        "beats": [
+            b(1, name="blue shift - twinkle", length=1000),
+        ],
     }
 }

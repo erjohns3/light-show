@@ -12,7 +12,9 @@
 
 import pathlib
 import time
+import inspect
 import math
+
 import numpy as np
 from PIL import Image
 
@@ -444,19 +446,21 @@ def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90
     return [start_beat, info, length]
 
 
-following_beat = None
+following_beat = {}
 def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None):
     global following_beat
 
     if length is None:
         raise Exception('length must be defined')
 
+    frame = inspect.stack()[1]
+    caller_filename = frame[0].f_code.co_filename
     if start_beat is None:
-        if following_beat is None:
-            raise Exception('needed to specify last beat first')
-        start_beat = following_beat
+        if caller_filename not in following_beat:
+            raise Exception('You have never specified a beat in this song')
+        start_beat = following_beat[caller_filename]
     
-    following_beat = start_beat + length 
+    following_beat[caller_filename] = start_beat + length 
 
     if (name or intensity or offset or hue_shift or sat_shift or bright_shift) and (disco_rgb or top_rgb or front_rgb or back_rgb or bottom_rgb or uv or green_laser or red_laser or laser_motor):
         raise Exception(f'Anything between the sets "name intensity offset hue_shift sat_shift bright_shift" and "disco_rgb top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')

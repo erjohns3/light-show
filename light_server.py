@@ -1510,6 +1510,12 @@ def compile_lut(local_effects_config):
             length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
 
 
+            start_mult = component[3] if len(component) > 3 else 0
+            end_mult = component[4] if len(component) > 4 else 0
+            offset = round(component[5] * SUB_BEATS) if len(component) > 5 else 0
+            hue_shift = component[6] if len(component) > 6 else 0
+            sat_shift = component[7] if len(component) > 7 else 0
+            bright_shift = component[8] if len(component) > 8 else 0
 
             reference_channel = channel_lut[reference_name]
             reference_length = channel_lut[reference_name]['length']
@@ -1529,9 +1535,6 @@ def compile_lut(local_effects_config):
                         ],
                     )
                 else:
-                    offset = 0
-                    if len(component) > 4:
-                        offset = round(component[5] * SUB_BEATS)
                     for (ref_start_beat, ref_end_beat, ref_info) in ref_channel_all_infos:
                         # !TODO idk if this is right...
                         if offset:
@@ -1558,13 +1561,6 @@ def compile_lut(local_effects_config):
                 continue
             reference_beats = channel_lut[reference_name]['beats']
             
-            start_mult = component[3]
-            end_mult = component[4]
-            offset = round(component[5] * SUB_BEATS)
-            hue_shift = component[6]
-            sat_shift = component[7]
-            bright_shift = component[8]
-
             grid_bright_shift = 0
             if len(component) > 9:
                 grid_bright_shift = component[9]

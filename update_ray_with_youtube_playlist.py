@@ -19,7 +19,7 @@ import time
 import random
 
 import autogen
-import youtube_helpers
+import youtube_download_helpers
 from helpers import *
 import generate_rekordbox_effects
 from copy import deepcopy
@@ -38,7 +38,7 @@ if __name__ == '__main__':
     while True:
         already_downloaded = False
         funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'    
-        for title, url, contributor_name in youtube_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url):
+        for title, url, contributor_name in youtube_download_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url):
             if url in urls_downloaded:
                 continue
             
@@ -57,7 +57,7 @@ if __name__ == '__main__':
                     print(f'Creating {dest_path} because it doesnt exist')
                     os.mkdir(dest_path)
 
-            filepath = youtube_helpers.download_youtube_url(url=url, dest_path=dest_path, codec='mp3')
+            filepath = youtube_download_helpers.download_youtube_url(url=url, dest_path=dest_path, codec='mp3')
             if filepath is None:
                 print(f'Couldnt download url {url}... continuing')
                 continue

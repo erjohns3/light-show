@@ -66,17 +66,17 @@ It should be pretty good about auto downloading specific songs with the --show p
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
 
 
-# andrew specific commands
+## andrew specific commands
 
 `python light_server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
 `python light_server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
 
-# ideas for lights
+## ideas for lights
 * from tokyo vent
   * Flash  75 blue, 25 of, right to red 
   * 1 beat before drop the flash
 
-# stretch todo
+## stretch todo
 * visualizer: https://github.com/projectM-visualizer/projectm
   * milkdrop is the name of the old winamp one
 * halloween
@@ -84,6 +84,34 @@ It should be pretty good about auto downloading specific songs with the --show p
     * make it spooky button
         * add "boo" sounds to drop
         * lights are all orange
+
+## concepts in the code
+simple_effects = [
+
+]
+
+effects_config = {
+  effect_name: {
+    'bpm': int,
+    'song_path': str,
+    'delay_lights': float,
+    'skip_song': float,
+    'beats': [components...]
+  }
+}
+
+channels = LIGHT_COUNT floats describing what rgb lights to turn on 0-100
+component = one effect in the beats array, either a complex or simple component
+
+channel_lut = {
+  effect_name: {
+      'length': int,
+      'loop': bool,
+      'info': GridInfo OR [GridInfo...],
+      'beats': [floats...], (compiled beats)
+    }
+
+}
 
 # Other
 ## ideas for python audio feature extraction:

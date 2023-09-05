@@ -2,14 +2,11 @@ import os
 import argparse
 import traceback
 import json
-import shutil
 from copy import deepcopy
 import time
 import subprocess
 
 from helpers import *
-
-
 
 
 ydl_search_opts = {
@@ -37,7 +34,7 @@ def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_le
     import yt_dlp
     if yt_dlp.version.__version__ < '2023.07.06':
         print(yt_dlp.version.__version__)
-        raise Exception(f'Please run the command `pip install -r yt-dlp`')
+        raise Exception(f'Please run the command `pip install --upgrade yt-dlp`')
 
     if last_youtube_searched_time:
         time_to_wait = max(0, minimum_youtube_api_wait_time_seconds - (time.time() - last_youtube_searched_time))
@@ -50,12 +47,12 @@ def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_le
             all_results = ydl.extract_info(f"ytsearch{results_to_consider}:{search_phrase}", download=False)
             for entry in all_results['entries']:
                 if 'title' not in entry or 'webpage_url' not in entry:
-                    print(f'{bcolors.FAIL}Somehow title or webpage_url arent in this object {entry}{bcolors.ENDC}')
+                    print_red(f'Somehow title or webpage_url arent in this object {entry}')
                 if 'duration' in entry and entry['duration'] >= minimum_length_of_video_seconds and entry['duration'] <= maximum_length_of_video_seconds:
                     return entry
     except yt_dlp.DownloadError as e:
         # maybe i misread this, this can throw a DownloadError?
-        print(f'{bcolors.FAIL}Couldnt download "{search_phrase}" due to DownloadError: {e}{bcolors.ENDC}')
+        print_red(f'Couldnt download "{search_phrase}" due to {get_stacktrace()}')
 
     last_youtube_searched_time = time.time()
 
@@ -102,17 +99,6 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         print(f'Couldnt download url {url} due to {e}')
         print_cyan(f'You probably need to run "pip install --upgrade yt_dlp"')
         return None
-
-    # clean_filesystem_name = get_no_duplicate_spaces(get_clean_filesystem_string(downloaded_filepath.stem))
-    # if downloaded_filepath.name != clean_filesystem_name + downloaded_filepath.suffix:
-    #     if not clean_filesystem_name:
-    #         clean_filesystem_name = random_letters(5)
-    #         print(f'Somehow {downloaded_filepath} has stripped down to nothing, making up {clean_filesystem_name} to assign')
-    #     clean_filesystem_name += downloaded_filepath.suffix
-    #     no_special_chars_filepath = downloaded_filepath.parent.joinpath(clean_filesystem_name)
-    #     print(f'Changing {downloaded_filepath.stem} to {clean_filesystem_name} to make it filesystem friendly')
-    #     shutil.move(downloaded_filepath, no_special_chars_filepath)
-    #     return no_special_chars_filepath
 
     return downloaded_filepath
 

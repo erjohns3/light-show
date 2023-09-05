@@ -42,10 +42,10 @@ print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
 print_cyan(f'Up to custom import: {time.time() - first_start_time:.3f}')
 import sound_helpers
-import youtube_helpers
+import youtube_download_helpers
 from users import users
 import grid_helpers
-print_cyan(f'Up to custom import: {time.time() - first_start_time:.3f}')
+print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 
 parser = argparse.ArgumentParser(description = '')
@@ -57,7 +57,6 @@ parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
-parser.add_argument('--invert', dest='invert', default=False, action='store_true')
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
@@ -113,7 +112,7 @@ download_queue, search_queue = [], []
 PORT = 9555
 try:
     info = socket.gethostbyname_ex(socket.gethostname())
-    print(info)
+    # print(info)
     local_ip = info[2][0]
     # local_ip = socket.gethostbyname(socket.gethostname())
 except:
@@ -312,7 +311,7 @@ def download_song(url, uuid):
         max_length_seconds = 15 * 60
     
     # TODO add caching here
-    filepath = youtube_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
+    filepath = youtube_download_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
         print_yellow('Couldnt download video, returning')
         return
@@ -1073,7 +1072,7 @@ def play_song(effect_name, print_out=True):
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
     if print_out:
-        print(f'{bcolors.OKBLUE}Starting music "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume{bcolors.ENDC}')
+        print_blue(f'Starting music "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume')
 
 
     pygame.mixer.music.set_volume(args.volume)
@@ -1380,8 +1379,10 @@ def set_complex_effect_defaults(effect):
     for component in effect['beats']:
         start_beat = component[0] - 1
         reference_effect_name = component[1]
-        if isinstance(reference_effect_name, GridInfo):
-            return
+        
+        # !todo look if this is right
+        # if isinstance(reference_effect_name, GridInfo):
+        #     return
         
         if len(component) == 2:
             if effects_config[reference_effect_name]['loop']:
@@ -1464,14 +1465,6 @@ def compile_lut(local_effects_config):
                     mult = (start_mult * ((length-1-i)/(length-1))) + (end_mult * ((i)/(length-1)))
                 for x in range(LIGHT_COUNT):
                     channel_lut[effect_name]['beats'][start_beat + i][x] += channels[x] * mult
-                if args.invert:
-                    tmp = channel_lut[effect_name]['beats'][start_beat + i]
-                    tmp[3] = tmp[6]
-                    tmp[4] = tmp[7]
-                    tmp[5] = tmp[8]
-                    tmp[0], tmp[6] = tmp[6], tmp[0]
-                    tmp[1], tmp[7] = tmp[7], tmp[1]
-                    tmp[2], tmp[8] = tmp[8], tmp[2]
     print_blue(f'Simple effects took: {time.time() - simple_effect_perf_timer:.3f} seconds')
 
     complex_effect_perf_timer = time.time()
@@ -1487,7 +1480,6 @@ def compile_lut(local_effects_config):
 
         effect_name = effect_name_or_info
         effect = effects_config[effect_name]
-
         set_complex_effect_defaults(effect)
 
         if 'length' not in effect:
@@ -1509,13 +1501,13 @@ def compile_lut(local_effects_config):
 
             length = round(min(component[2] * SUB_BEATS, channel_lut[effect_name]['length'] - start_beat))
 
+            start_mult = component[3]
+            end_mult = component[4]
+            offset = round(component[5] * SUB_BEATS)
+            hue_shift = component[6]
+            sat_shift = component[7]
+            bright_shift = component[8]
 
-            start_mult = component[3] if len(component) > 3 else 0
-            end_mult = component[4] if len(component) > 4 else 0
-            offset = round(component[5] * SUB_BEATS) if len(component) > 5 else 0
-            hue_shift = component[6] if len(component) > 6 else 0
-            sat_shift = component[7] if len(component) > 7 else 0
-            bright_shift = component[8] if len(component) > 8 else 0
 
             reference_channel = channel_lut[reference_name]
             reference_length = channel_lut[reference_name]['length']
@@ -1525,17 +1517,17 @@ def compile_lut(local_effects_config):
                 ref_channel_all_infos = reference_channel['info']
                 # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding info from {reference_name}, {ref_channel_all_infos=}')
             
-
                 if isinstance(ref_channel_all_infos, GridInfo):
+                    ref_grid_info = ref_channel_all_infos
                     curr_channel['info'].append(
                         [
                             start_beat,
                             start_beat + length,
-                            ref_channel_all_infos,
+                            ref_grid_info,
                         ],
                     )
                 else:
-                    for (ref_start_beat, ref_end_beat, ref_info) in ref_channel_all_infos:
+                    for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_infos:
                         # !TODO idk if this is right...
                         if offset:
                             # print_cyan(f'  offsetting by {offset=}')
@@ -1552,7 +1544,7 @@ def compile_lut(local_effects_config):
                                 [
                                     calced_start_beat,
                                     calced_end_beat,
-                                    ref_info,
+                                    ref_grid_info,
                                 ],
                             )
                             # print(f'added {curr_channel["info"][-1]}')
@@ -1677,13 +1669,13 @@ def get_effects_config():
 def try_download_video(show_name):
     just_filename = pathlib.Path(effects_config[show_name]['song_path']).stem
     print(f'Searching with phrase "{just_filename}"')
-    youtube_search_result = youtube_helpers.youtube_search(just_filename)
+    youtube_search_result = youtube_download_helpers.youtube_search(just_filename)
     if not youtube_search_result:
         print('Couldnt find relevant video on youtube, exiting...')
         exit()
 
     url = youtube_search_result['webpage_url']
-    if youtube_helpers.download_youtube_url(url, dest_path='songs'):
+    if youtube_download_helpers.download_youtube_url(url, dest_path='songs'):
         print('downloaded video, continuing to try to recover')
         return
     raise Exception('Couldnt download video')
@@ -1901,7 +1893,7 @@ if __name__ == '__main__':
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
-        print(f'{bcolors.OKGREEN}started websocket servers{bcolors.ENDC}')
+        print_green(f'started websocket servers')
 
         if args.show:
             print('Starting show from CLI:', args.show)
@@ -1932,7 +1924,7 @@ if __name__ == '__main__':
                     # effects_config[args.show]['skip_song'] += args.skip_show_seconds
                     # effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
             else:
-                print(f'{bcolors.FAIL}Couldnt find effect named "{args.show}" in any profile{bcolors.ENDC}')
+                print_red(f'Couldnt find effect named "{args.show}" in any profile')
 
         compile_all_luts_from_effects_config()
         # debug_channel_lut_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')

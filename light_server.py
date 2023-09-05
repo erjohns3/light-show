@@ -950,7 +950,7 @@ async def light():
                 print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render(terminal=args.local, skip_if_terminal=bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
+        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local:
             print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 

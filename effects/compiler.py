@@ -109,14 +109,14 @@ def load_object(info):
         info.start_pos = getattr(info, 'start_pos', loaded_pos)
         info.start_scale = getattr(info, 'start_scale', loaded_scale)
         info.start_rot = getattr(info, 'start_rot', loaded_rot)
-        info.start_rot = getattr(info, 'start_color', loaded_rot)
+        info.start_color = getattr(info, 'start_color', loaded_color)
 
         info.end_pos = getattr(info, 'end_pos', info.start_pos)
         info.end_scale = getattr(info, 'end_scale', info.start_scale)
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
-        info.end_rot = getattr(info, 'end_color', info.start_color)
+        info.end_color = getattr(info, 'end_color', info.start_color)
 
-        object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot)
+        object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot, info.end_color)
     else:
         info.start_pos = getattr(info, 'start_pos', (0, 0))
         info.start_scale = getattr(info, 'start_scale', (1, 1))
@@ -126,6 +126,7 @@ def load_object(info):
             info.start_color = getattr(info, 'start_color', (0, 0, 0))
             info.end_color = getattr(info, 'end_color', info.start_color)
             info.color = True
+        info.end_color = getattr(info, 'end_color', None)
 
         info.end_pos = getattr(info, 'end_pos', info.start_pos)
         info.end_scale = getattr(info, 'end_scale', info.start_scale)

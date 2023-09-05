@@ -91,7 +91,7 @@ def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_t
             return
         to_print_grid = grid * 2.55
         to_print_grid = to_print_grid.astype(int)
-        if rotate_terminal:
+        if not rotate_terminal:
             # optimized from below
             [print(''.join(f'\033[38;2;{rgb[0]};{rgb[1]};{rgb[2]}m▆\033[0m' for rgb in to_print_grid[x])) for x in range(GRID_WIDTH)]
 

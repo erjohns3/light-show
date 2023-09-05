@@ -22,30 +22,38 @@ TWINKLE_SPEED = 10
 
 white = (100,100,100)
 
-twinkle_beats = []
 
-for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
-    for j in range(int(NUM_GRID_TWINKLE)):
-        # Get random point on grid
-        x = random.randint(-(grid_helpers.GRID_WIDTH/2), (grid_helpers.GRID_WIDTH/2))
-        y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
-        # Create random offset for start beat of each twinkle
-        t_offset = random.uniform(0, TWINKLE_SPEED)
-        twinkle_beats.append(
-                grid_f(
-                    i + t_offset,
-                    function=our_transform,
-                    object=get_rectangle_numpy(1, 1),
-                    start_pos=(y,x),
-                    start_color=white,
-                    end_color=(0, 0, 0),
-                    length=TWINKLE_FADE,
+def make_twinkle_beats(color):
+    twinkle_beats = []
+    for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
+        for j in range(int(NUM_GRID_TWINKLE)):
+            # Get random point on grid
+            x = random.randint(-(grid_helpers.GRID_WIDTH/2), (grid_helpers.GRID_WIDTH/2))
+            y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
+            # Create random offset for start beat of each twinkle
+            t_offset = random.uniform(0, TWINKLE_SPEED)
+            twinkle_beats.append(
+                    grid_f(
+                        i + t_offset,
+                        function=our_transform,
+                        object=get_rectangle_numpy(1, 1),
+                        start_pos=(y,x),
+                        start_color=color,
+                        end_color=(0, 0, 0),
+                        length=TWINKLE_FADE,
+                    )
                 )
-            )
+    return twinkle_beats
+
 
 effects = {
     "blue shift - twinkle": {
-        "beats": twinkle_beats,
+        "length": 4,
+        "beats": make_twinkle_beats(white),
+    },
+    "blue shift - twinkle blue": {
+        "length": 4,
+        "beats": make_twinkle_beats((0, 0, 100)),
     },
     "Lemaitre - Blue Shift": {
         "bpm": 118,
@@ -53,7 +61,8 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            b(1, name="blue shift - twinkle", length=1000),
+            b(1, name="blue shift - twinkle", length=4),
+            b(5, name="blue shift - twinkle blue", length=1000),
         ],
     }
 }

@@ -932,11 +932,12 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
-            # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            # grid_helpers.grid[:][grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+            # chris said this
+            grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
 
-            grid_helpers.grid[:grid_helpers.GRID_WIDTH // 2][:] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:][:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
+            # grid_helpers.grid[:grid_helpers.GRID_WIDTH // 2][:] = [grid_levels[3], grid_levels[4], grid_levels[5]]
+            # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:][:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
 
             # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
@@ -949,7 +950,7 @@ async def light():
                 print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
+        grid_helpers.render(terminal=args.local, skip_if_terminal=bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local:
             print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 

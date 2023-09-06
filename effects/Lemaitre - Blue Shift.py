@@ -48,11 +48,9 @@ def make_twinkle_beats(color):
 
 effects = {
     "blue shift - twinkle": {
-        "length": 4,
         "beats": make_twinkle_beats(white),
     },
     "blue shift - twinkle blue": {
-        "length": 4,
         "beats": make_twinkle_beats((0, 0, 100)),
     },
     "Lemaitre - Blue Shift": {
@@ -61,8 +59,7 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            b(1, name="blue shift - twinkle", length=4),
-            b(5, name="blue shift - twinkle blue", length=1000),
+            b(1, name="blue shift - twinkle", length=1000),
         ],
     }
 }

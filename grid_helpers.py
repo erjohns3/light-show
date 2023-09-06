@@ -1,3 +1,4 @@
+print('top of grid_helpers')
 import sys
 
 import numpy as np

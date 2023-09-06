@@ -20,6 +20,7 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
 from effects.compiler import GridInfo
+import effects.compiler
 import joystick_and_keyboard_helpers
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
@@ -1265,31 +1266,32 @@ def load_effects_config_from_disk():
 
     effects_dir = this_file_directory.joinpath('effects')
 
-    total_time = 0
-
+    import_time = 0
     found_paths = list(get_all_paths(effects_dir, only_files=True))
     if args.load_autogen_shows:
         found_paths += list(get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True, only_files=True)) + list(get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True, only_files=True))
 
-    for name, filepath in found_paths:
+    for _index, (name, filepath) in enumerate(found_paths):
         if name == 'compiler.py':
             continue
     
-        t1 = time.time()
         relative_path = filepath.relative_to(this_file_directory)
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
+        t1 = time.time()
         globals()[module_name] = importlib.import_module(module_name)
+        effects.compiler.next_beat = None
         # importlib.reload(globals()[module_name])
+        import_time += time.time() - t1
+        # print(f'{module_name}: {time.time() - t1}')
         if not filepath.stem.startswith('g_'):
             for effect_name in globals()[module_name].effects:
                 if effect_name in effects_config:
                     print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
         effects_config.update(globals()[module_name].effects)
-        total_time += time.time() - t1
 
     prep_loaded_effects(list(effects_config.keys()))
-    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, {total_time:.3f} to import modules')
+    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}')
 
 
 def set_effect_defaults(name, effect):

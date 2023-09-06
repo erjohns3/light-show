@@ -363,7 +363,7 @@ effects = {
             b(1, name="ib laser melody", length=16),
             b(1, name='ib UV high hat', length=64),
             b(1, name='ib feels like bassline with top', length=64),
-            
+
             b(33, name="ib laser melody", length=16),
         ]
     },

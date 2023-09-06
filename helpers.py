@@ -31,42 +31,39 @@ def is_macos():
         return True
     return False
 
-
-def is_marias_computer():
-    import socket
-    return socket.gethostname() in ['DESKTOP-IKO6828']
-
+def get_datetime_str():
+    import datetime
+    return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 def is_image_path(path):
     return path.endswith('.jpg') or path.endswith('.png') or path.endswith('.webp')
 
+def get_hostname():
+    import socket
+    return socket.gethostname()
+
+def is_marias_computer():
+    return get_hostname() in ['DESKTOP-IKO6828']
+
 
 def is_ray():
-    import socket
-    return socket.gethostname() in ['ray']
+    return get_hostname() in ['ray']
 
 
 def is_erics_laptop():
-    import socket
-    return socket.gethostname() in ['LAPTOP-ERIC']
+    return get_hostname() in ['LAPTOP-ERIC']
 
 
 def is_andrews_main_computer():
-    import socket
-    return socket.gethostname() in ['zetai']
+    return get_hostname() in ['zetai']
 
-def is_emmas_laptop():
-    import socket
-    return socket.gethostname() in ['Emmas-Air']
 
 def is_andrews_laptop():
-    import socket
-    return socket.gethostname() in ['DESKTOP-754BOFE']
+    return get_hostname() in ['DESKTOP-754BOFE']
 
 
 def is_doorbell():
-    import socket
-    return socket.gethostname() in ['doorbell']
+    return get_hostname() in ['doorbell']
 
 
 ray_is_active_andrew = False
@@ -282,7 +279,6 @@ def random_letters(num_chars: int) -> str:
     letters = [chr(ord('a') + a) for a in range(26)]
     return ''.join(random.sample(letters, num_chars))
 
-
 def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
     directory = pathlib.Path(directory)
 
@@ -416,6 +412,26 @@ def run_command_async(full_command_arr, debug=False, stdin=None):
     if debug:
         print(f'started process with "{full_call}"')
     return process
+
+
+def executable_running(executable_name):
+    import psutil
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] == executable_name:
+            return True
+    return False
+
+
+def kill_process_by_name(executable_name):
+    import psutil
+    for proc in psutil.process_iter(['pid', 'name']):
+        if proc.info['name'] == executable_name:
+            try:
+                proc.kill()
+            except psutil.AccessDenied:
+                print_red(f'Access denied for {executable_name=}')
+            except psutil.NoSuchProcess:
+                pass
 
 
 # -ss '120534ms'

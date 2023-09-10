@@ -933,6 +933,7 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
+            pass
             # chris said this
             grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]

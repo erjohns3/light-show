@@ -93,7 +93,7 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=trail_ball, length=32, clear=False),
+            grid_f(1, function=trail_ball, length=64, speed=.25, clear=False),
             # b(name="blue shift - twinkle", length=8),
             # b(name="blue shift - twinkle blue", length=8),
         ],

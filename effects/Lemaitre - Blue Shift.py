@@ -52,36 +52,6 @@ def random_color():
     r = random.randint(0, 100)
     return (b, g, r)
 
-
-def trail_ball(grid_info):
-    if getattr(grid_info, 'pos', None) is None:
-        grid_info.pos = (random.randint(0, grid_helpers.GRID_WIDTH - 1), random.randint(0, grid_helpers.GRID_HEIGHT - 1))
-        grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
-        grid_info.color = random_color()
-    speed = int(1 / getattr(grid_info, 'speed', 1))
-
-    if grid_info.curr_sub_beat % speed == 0:
-        x, y = grid_info.pos
-        d_x, d_y = grid_info.dir
-
-        hit = False
-        if x + d_x < 0 or x + d_x >= grid_helpers.GRID_WIDTH:
-            grid_info.dir = (grid_info.dir[0] * -1, grid_info.dir[1])
-            d_x *= -1
-            hit = True
-
-        if y + d_y < 0 or y + d_y >= grid_helpers.GRID_HEIGHT:
-            grid_info.dir = (grid_info.dir[0], grid_info.dir[1] * -1)
-            d_y *= -1
-            hit = True
-
-        if hit:
-            grid_info.color = random_color()
-
-        grid_info.pos = (x + d_x, y + d_y)
-        grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
-
-
 def minus_color(color, amt):
     return (max(color[0] - amt, 0), max(color[1] - amt, 0), max(color[2] - amt, 0))
 

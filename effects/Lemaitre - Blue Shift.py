@@ -98,23 +98,30 @@ def trail_ball_fade(grid_info):
 
 def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat == 1 or getattr(grid_info, 'pos', None) is None:
-        grid_info.pos = (random.randint(0, grid_helpers.GRID_WIDTH - 1), random.randint(0, grid_helpers.GRID_HEIGHT - 1))
-        grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
+        if random.randint(0, 1) == 0:
+            start_x, x_dir = random.sample([(0, 1), (grid_helpers.GRID_WIDTH - 1, -1)])[0]
+            start_y = random.randint(0, grid_helpers.GRID_HEIGHT - 1)
+            y_dir = 1 - (random.randint(0, 1) * 2)
+        else:
+            start_x = random.randint(0, grid_helpers.GRID_WIDTH - 1)
+            x_dir = 1 - (random.randint(0, 1) * 2)
+            start_y, y_dir = random.sample([(0, 1), (grid_helpers.GRID_HEIGHT - 1, -1)])[0]
+
+        grid_info.pos = (start_x, start_y)
+        grid_info.dir = (x_dir, y_dir)
+        # grid_info.pos = (random.randint(0, grid_helpers.GRID_WIDTH - 1), random.randint(0, grid_helpers.GRID_HEIGHT - 1))
+        # grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
         grid_info.color = random_color()
         grid_info.trail = deque([])
 
     speed = int(1 / getattr(grid_info, 'speed', 1))
 
     if grid_info.curr_sub_beat % speed == 0:
-
         index = 0
         while index < len(grid_info.trail):
             (p_x, p_y), p_color = grid_info.trail[index]
-            
             p_color = minus_color(p_color, 5)
-
             grid_info.trail[index][1] = p_color
-            
             grid_helpers.grid[p_x][p_y] = p_color
             if p_color == (0, 0, 0) and index == 0:
                 grid_info.trail.popleft()

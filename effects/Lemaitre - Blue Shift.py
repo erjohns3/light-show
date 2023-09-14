@@ -99,13 +99,13 @@ def trail_ball_fade(grid_info):
 def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat == 1 or getattr(grid_info, 'pos', None) is None:
         if random.randint(0, 1) == 0:
-            start_x, x_dir = random.sample([(0, 1), (grid_helpers.GRID_WIDTH - 1, -1)])[0]
+            start_x, x_dir = random.sample([(0, 1), (grid_helpers.GRID_WIDTH - 1, -1)], k=1)[0]
             start_y = random.randint(0, grid_helpers.GRID_HEIGHT - 1)
             y_dir = 1 - (random.randint(0, 1) * 2)
         else:
             start_x = random.randint(0, grid_helpers.GRID_WIDTH - 1)
             x_dir = 1 - (random.randint(0, 1) * 2)
-            start_y, y_dir = random.sample([(0, 1), (grid_helpers.GRID_HEIGHT - 1, -1)])[0]
+            start_y, y_dir = random.sample([(0, 1), (grid_helpers.GRID_HEIGHT - 1, -1)], k=1)[0]
 
         grid_info.pos = (start_x, start_y)
         grid_info.dir = (x_dir, y_dir)

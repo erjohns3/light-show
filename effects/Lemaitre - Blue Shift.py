@@ -90,18 +90,19 @@ def trail_ball_fade(grid_info):
         grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
         grid_info.color = random_color()
         grid_info.trail = deque([])
-    speed = int(1 / getattr(grid_info, 'speed', 1))
 
+
+    grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
+    for index, ((p_x, p_y), p_color) in enumerate(grid_info.trail):        
+        grid_helpers.grid[p_x][p_y] += p_color
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
     if grid_info.curr_sub_beat % speed == 0:
         index = 0
         while index < len(grid_info.trail):
             (p_x, p_y), p_color = grid_info.trail[index]
-            
             p_color = minus_color(p_color, 5)
-
             grid_info.trail[index][1] = p_color
-            
-            grid_helpers.grid[p_x][p_y] = p_color
             if p_color == (0, 0, 0) and index == 0:
                 grid_info.trail.popleft()
             else:
@@ -121,9 +122,8 @@ def trail_ball_fade(grid_info):
             grid_info.color = random_color()
 
         grid_info.pos = (x + d_x, y + d_y)
-        grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
-
         grid_info.trail.append([grid_info.pos, grid_info.color])
+
 
 def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat == 1 or getattr(grid_info, 'pos', None) is None:
@@ -151,7 +151,7 @@ def fire_ball_fade(grid_info):
             (p_x, p_y), p_color = grid_info.trail[index]
             p_color = minus_color(p_color, 5)
             grid_info.trail[index][1] = p_color
-            grid_helpers.grid[p_x][p_y] = p_color
+            grid_helpers.grid[p_x][p_y] += p_color
             if p_color == (0, 0, 0) and index == 0:
                 grid_info.trail.popleft()
             else:
@@ -162,40 +162,63 @@ def fire_ball_fade(grid_info):
         if x + d_x < 0 or x + d_x >= grid_helpers.GRID_WIDTH or y + d_y < 0 or y + d_y >= grid_helpers.GRID_HEIGHT:
             return
         grid_info.pos = (x + d_x, y + d_y)
-        grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
 
+    grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
+
+    if grid_info.curr_sub_beat % speed == 0:
         grid_info.trail.append([grid_info.pos, grid_info.color])
 
 
 effects = {
-    "trail ball": {
+    "trail ball fast": {
         "profiles": ['Emma'],
         "trigger": "toggle",
+        "loop": True,
         'beats': [
-            grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
+            grid_f(1, function=trail_ball_fade, length=64, speed=1),
+        ],
+    },
+    "trail ball mid": {
+        "profiles": ['Emma'],
+        "trigger": "toggle",
+        "loop": True,
+        'beats': [
+            grid_f(1, function=trail_ball_fade, length=64, speed=.5),
+        ],
+    },
+    "trail ball slow": {
+        "profiles": ['Emma'],
+        "trigger": "toggle",
+        "loop": True,
+        'beats': [
+            grid_f(1, function=trail_ball_fade, length=64, speed=.25),
         ],
     },
     "fire ball fade": {
         "profiles": ['Emma'],
         "trigger": "hold",
         'beats': [
-            grid_f(1, function=fire_ball_fade, length=8, speed=1, clear=False),
+            grid_f(1, function=fire_ball_fade, length=8, speed=1),
         ],
     },
     "blue shift - twinkle": {
         "profiles": ['Emma'],
+        "loop": True,
         "beats": make_twinkle_beats_2(white),
     },
     "blue shift - twinkle blue": {
         "profiles": ['Emma'],
+        "loop": True,
         "beats": make_twinkle_beats_2(blue),
     },
     "blue shift - twinkle green": {
         "profiles": ['Emma'],
+        "loop": True,
         "beats": make_twinkle_beats_2(green),
     },
     "blue shift - twinkle red": {
         "profiles": ['Emma'],
+        "loop": True,
         "beats": make_twinkle_beats_2(red),
     },
     "blue shift - circle pulse 1": {
@@ -260,9 +283,9 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            # grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
-            b(1, name="blue shift - circle pulse 1", length=32, offset=1),
-            b(1, name="blue shift - circle pulse 2", length=32),
+            grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
+            # b(1, name="blue shift - circle pulse 1", length=32, offset=1),
+            # b(1, name="blue shift - circle pulse 2", length=32),
             # b(1, name="blue shift - twinkle", length=32),
             # b(name="blue shift - twinkle blue", length=32),
         ],

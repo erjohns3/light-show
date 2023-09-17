@@ -1,5 +1,6 @@
 print('top of grid_helpers')
 import sys
+import random
 
 import numpy as np
 from pilmoji import Pilmoji
@@ -47,11 +48,15 @@ def coords():
             if (x, y) not in non_existent_coords:
                 yield (x, y)
 
+coords_unrolled = list(coords())
+total_coords = len(coords_unrolled)
+def random_coord():
+    return random.sample(coords_unrolled, k=1)[0]
+
 def coords_y_first():
     for y in range(GRID_HEIGHT):
         for x in range(GRID_WIDTH):
             yield (x, y)
-total_coords = len(list(coords()))
 
 
 def copy_of_grid():

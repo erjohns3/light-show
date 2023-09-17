@@ -29,9 +29,7 @@ def make_twinkle_beats(color):
     twinkle_beats = []
     for beat in range(1, TWINKLE_TIME):
         for j in range(int(NUM_GRID_TWINKLE)):
-            # Get random point on grid
-            x = random.randint(-(grid_helpers.GRID_WIDTH/2), (grid_helpers.GRID_WIDTH/2))
-            y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
+            x, y = grid_helpers.random_coord()
             # Create random offset for start beat of each twinkle
             t_offset = random.uniform(0, beat * TWINKLE_SPEED)
             twinkle_beats.append(
@@ -48,6 +46,35 @@ def make_twinkle_beats(color):
     return twinkle_beats
 
 
+def make_twinkle_beats_2(color):
+    def twinkle(grid_info):
+        x, y = grid_info.pos
+        grid_info.percent_done * 2
+        if grid_info.percent_done <= .5:
+            color = interpolate_vectors_float((0, 0, 0), grid_info.color, grid_info.percent_done * 2)
+        else:
+            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (grid_info.percent_done * 2) - 1)
+
+        grid_helpers.grid[x][y] = color
+
+    twinkle_beats = []
+    for beat in range(1, TWINKLE_TIME):
+        for j in range(int(NUM_GRID_TWINKLE)):
+            x, y = grid_helpers.random_coord()
+            # Create random offset for start beat of each twinkle
+            t_offset = random.uniform(0, beat * TWINKLE_SPEED)
+            twinkle_beats.append(
+                grid_f(
+                    beat + t_offset,
+                    function=twinkle,
+                    pos=(x, y),
+                    color=color,
+                    length=TWINKLE_FADE,
+                )
+            )
+    return twinkle_beats
+
+
 def random_color():
     b = random.randint(0, 100)
     g = random.randint(0, 100)
@@ -59,7 +86,7 @@ def minus_color(color, amt):
 
 def trail_ball_fade(grid_info):
     if getattr(grid_info, 'pos', None) is None:
-        grid_info.pos = (random.randint(0, grid_helpers.GRID_WIDTH - 1), random.randint(0, grid_helpers.GRID_HEIGHT - 1))
+        grid_info.pos = grid_helpers.random_coord()
         grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
         grid_info.color = random_color()
         grid_info.trail = deque([])
@@ -157,19 +184,19 @@ effects = {
     },
     "blue shift - twinkle": {
         "profiles": ['Emma'],
-        "beats": make_twinkle_beats(white),
+        "beats": make_twinkle_beats_2(white),
     },
     "blue shift - twinkle blue": {
         "profiles": ['Emma'],
-        "beats": make_twinkle_beats(blue),
+        "beats": make_twinkle_beats_2(blue),
     },
     "blue shift - twinkle green": {
         "profiles": ['Emma'],
-        "beats": make_twinkle_beats(green),
+        "beats": make_twinkle_beats_2(green),
     },
     "blue shift - twinkle red": {
         "profiles": ['Emma'],
-        "beats": make_twinkle_beats(red),
+        "beats": make_twinkle_beats_2(red),
     },
     "blue shift - circle pulse 1": {
         "profiles": ['Emma'],

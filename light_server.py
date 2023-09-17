@@ -897,6 +897,7 @@ async def light():
                     if start_b <= index <= end_b:
                         info.length = end_b - start_b
                         info.curr_sub_beat = index - start_b
+                        info.percent_done = info.curr_sub_beat / info.length
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
                         infos_for_this_sub_beat.append(info)

@@ -6,7 +6,7 @@ from effects.compiler import *
 import grid_helpers
 
 # Set percentage of grid to twinkle
-TWINKLE_PERCENT = 0.1
+TWINKLE_PERCENT = 0.2
 
 # Find number of random points on grid to make twinkle
 NUM_GRID_TWINKLE = int(TWINKLE_PERCENT * (grid_helpers.GRID_WIDTH * grid_helpers.GRID_HEIGHT))
@@ -15,29 +15,31 @@ NUM_GRID_TWINKLE = int(TWINKLE_PERCENT * (grid_helpers.GRID_WIDTH * grid_helpers
 TWINKLE_TIME = 100
 
 # Time for each twinkle to fade
-TWINKLE_FADE = 5
+TWINKLE_FADE = 2
 
 # Twinkle speed, higher is slower, lower is faster
 TWINKLE_SPEED = 10
 
-white = (100,100,100)
-
+white = (100, 100, 100)
+blue = (0, 0, 100)
+red = (100, 0, 0)
+green = (0, 100, 0)
 
 def make_twinkle_beats(color):
     twinkle_beats = []
-    for i in range(1, TWINKLE_TIME, TWINKLE_SPEED):
+    for beat in range(1, TWINKLE_TIME):
         for j in range(int(NUM_GRID_TWINKLE)):
             # Get random point on grid
             x = random.randint(-(grid_helpers.GRID_WIDTH/2), (grid_helpers.GRID_WIDTH/2))
             y = random.randint(-(grid_helpers.GRID_HEIGHT/2), (grid_helpers.GRID_HEIGHT/2))
             # Create random offset for start beat of each twinkle
-            t_offset = random.uniform(0, TWINKLE_SPEED)
+            t_offset = random.uniform(0, beat * TWINKLE_SPEED)
             twinkle_beats.append(
                     grid_f(
-                        i + t_offset,
+                        beat + t_offset,
                         function=our_transform,
                         object=get_rectangle_numpy(1, 1),
-                        start_pos=(y,x),
+                        start_pos=(y, x),
                         start_color=color,
                         end_color=(0, 0, 0),
                         length=TWINKLE_FADE,
@@ -139,18 +141,91 @@ def fire_ball_fade(grid_info):
 
 
 effects = {
-    "blue shift - fire ball fade": {
-        "profiles": ['Andrew'],
+    "trail ball": {
+        "profiles": ['Emma'],
+        "trigger": "toggle",
+        'beats': [
+            grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
+        ],
+    },
+    "fire ball fade": {
+        "profiles": ['Emma'],
         "trigger": "hold",
         'beats': [
             grid_f(1, function=fire_ball_fade, length=8, speed=1, clear=False),
         ],
     },
     "blue shift - twinkle": {
+        "profiles": ['Emma'],
         "beats": make_twinkle_beats(white),
     },
     "blue shift - twinkle blue": {
-        "beats": make_twinkle_beats((0, 0, 100)),
+        "profiles": ['Emma'],
+        "beats": make_twinkle_beats(blue),
+    },
+    "blue shift - twinkle green": {
+        "profiles": ['Emma'],
+        "beats": make_twinkle_beats(green),
+    },
+    "blue shift - twinkle red": {
+        "profiles": ['Emma'],
+        "beats": make_twinkle_beats(red),
+    },
+    "blue shift - circle pulse 1": {
+        "profiles": ['Emma'],
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy(radius=10, color=blue, offset_y=-8),
+                name='Ok 1',
+                start_pos=(0, 0),
+                # start_color=random.choice(hard_colors),
+                # end_color=(0, 0, 0),
+                start_scale = (.01, .01),
+                end_scale = (1, 1),
+                length=1,
+            ),
+            grid_f(
+                2,
+                function=our_transform,
+                object='Ok 1',
+                start_pos=(0, 0),
+                # start_color=random.choice(hard_colors),
+                # end_color=(0, 0, 0),
+                start_scale = (1, 1),
+                end_scale = (.01, .01),
+                length=1,
+            ),
+        ],
+    },
+    "blue shift - circle pulse 2": {
+        "profiles": ['Emma'],
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy(radius=10, color=green, offset_y=8),
+                name='Ok 2',
+                start_pos=(0, 0),
+                # start_color=random.choice(hard_colors),
+                # end_color=(0, 0, 0),
+                start_scale = (.01, .01),
+                end_scale = (1, 1),
+                length=1,
+            ),
+            grid_f(
+                2,
+                function=our_transform,
+                object='Ok 2',
+                start_pos=(0, 0),
+                # start_color=random.choice(hard_colors),
+                # end_color=(0, 0, 0),
+                start_scale = (1, 1),
+                end_scale = (.01, .01),
+                length=1,
+            ),
+        ],
     },
     "Lemaitre - Blue Shift": {
         "bpm": 118,
@@ -158,9 +233,11 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
-            # b(name="blue shift - twinkle", length=8),
-            # b(name="blue shift - twinkle blue", length=8),
+            # grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
+            b(1, name="blue shift - circle pulse 1", length=32, offset=1),
+            b(1, name="blue shift - circle pulse 2", length=32),
+            # b(1, name="blue shift - twinkle", length=32),
+            # b(name="blue shift - twinkle blue", length=32),
         ],
     }
 }

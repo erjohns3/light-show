@@ -51,6 +51,22 @@ class GridInfo:
 # ==== eric and andrews transformation matrix stuff
 
 
+def get_centered_circle_numpy(radius, offset_x=0, offset_y=0, color=(100, 100, 100)):
+    grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
+    
+    circle = np.zeros((grid_width, grid_height, 3), dtype=np.double)
+
+    mid_x = (grid_width // 2) + offset_x
+    mid_y = (grid_height // 2) + offset_y
+
+    for x in range(grid_width):
+        for y in range(grid_height):
+            if (x - mid_x) ** 2 + (y - mid_y) ** 2 <= radius ** 2:
+                circle[x][y] = color
+
+    return circle
+
+
 def get_point_numpy(point, color=(100, 100, 100)):
     rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
 

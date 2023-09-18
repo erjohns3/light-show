@@ -18,7 +18,7 @@ import pandas as pd
 import numpy as np
 
 from effects.compiler import *
-import sound_helpers
+import sound_video_helpers
 from helpers import *
 
 
@@ -56,7 +56,7 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
     print(f'Getting all song metadata info for {len(all_song_paths)} songs...')
 
     with ProcessPoolExecutor() as executor:
-        futures = [executor.submit(sound_helpers.get_song_metadata_info, song_path) for song_path in all_song_paths]
+        futures = [executor.submit(sound_video_helpers.get_song_metadata_info, song_path) for song_path in all_song_paths]
         for future in as_completed(futures):
             if future.exception() is not None:
                 print_red(f'Exception occured in subprocess: {future.exception()}')
@@ -121,8 +121,8 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
-    if is_windows() or is_emmas_laptop():
-        song_filepath = sound_helpers.convert_to_wav(song_filepath)
+    if is_windows():
+        song_filepath = sound_video_helpers.convert_to_wav(song_filepath)
 
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size

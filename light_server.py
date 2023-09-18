@@ -42,7 +42,7 @@ import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
 print_cyan(f'Up to custom import: {time.time() - first_start_time:.3f}')
-import sound_helpers
+import sound_video_helpers
 import youtube_download_helpers
 from users import users
 import grid_helpers
@@ -1193,7 +1193,7 @@ def add_song_to_config(song_path):
         relative_path = relative_path.relative_to(this_file_directory)
 
     if song_path.suffix in ['.mp3', '.ogg', '.wav']:
-        name, artist, duration, samplerate, _song_path = sound_helpers.get_song_metadata_info(song_path)
+        name, artist, duration, samplerate, _song_path = sound_video_helpers.get_song_metadata_info(song_path)
         if samplerate != 48000:
             print_red(f'This song file is not 48000hz sample rate, {song_path}. This introduces weird bugs, delete the file.')
             return False
@@ -1918,7 +1918,7 @@ if __name__ == '__main__':
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:
                     effects_config[args.show]['bpm'] *= args.speed
-                    effects_config[args.show]['song_path'] = str(sound_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
+                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
                     args.skip_show_seconds *= 1 / args.speed
                     args.delay_seconds *= 1 / args.speed
                     effects_config[args.show]['skip_song'] *= 1 / args.speed

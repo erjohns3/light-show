@@ -7,33 +7,29 @@ try:
 except NameError:
     profile = lambda x: x
 
+helper_file_folder = pathlib.Path(__file__).parent.resolve()
 
 def is_windows():
     import platform
-    plt = platform.system()
-    if plt == "Windows":
-        return True
-    return False
+    return platform.system() == "Windows"
 
 
 def is_linux():
     import platform
-    plt = platform.system()
-    if plt == "Linux":
-        return True
-    return False
+    return platform.system() == "Linux"
 
 
 def is_macos():
     import platform
-    plt = platform.system()
-    if plt == "Darwin":
-        return True
-    return False
+    return platform.system() == "Darwin"
 
 def get_datetime_str():
     import datetime
     return datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+def unix_to_human_readable(unix_time):
+    import datetime
+    return datetime.datetime.utcfromtimestamp(unix_time).strftime('%Y-%m-%d %H:%M:%S')
 
 def is_image_path(path):
     return path.endswith('.jpg') or path.endswith('.png') or path.endswith('.webp')
@@ -51,7 +47,7 @@ def is_ray():
 
 
 def is_erics_laptop():
-    return get_hostname() in ['LAPTOP-ERIC']
+    return get_hostname() in ['Eric-Laptop']
 
 
 def is_andrews_main_computer():
@@ -66,12 +62,31 @@ def is_doorbell():
     return get_hostname() in ['doorbell']
 
 
+def is_screensaver_running():
+    if not is_ray():
+        print_yellow('is_screensaver_running() was called, but on a computer that isnt ray, returning False')
+        return False
+
+    import psutil
+    for process in psutil.process_iter():
+        try:
+            if 'python.exe' in process.name():
+                args = process.cmdline()
+                if len(args) > 1:
+                    if args[1].endswith('screensaver.py'):
+                        if len(args) > 2 and args[2].lower() == '/s':
+                            return True
+        except psutil.NoSuchProcess:
+            pass
+    return False
+
+
 ray_is_active_andrew = False
 def get_ray_directory():
     global ray_is_active_andrew
-    if is_ray():
+    if is_ray() or is_erics_laptop():
         return pathlib.Path('T:/')
-    elif is_andrews_main_computer():
+    elif is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/ray_network_share')
         if ray_is_active_andrew:
             return mount_path
@@ -90,7 +105,7 @@ def get_ray_directory():
 nas_is_active_andrew = False
 def get_nas_directory():
     global nas_is_active_andrew
-    if is_andrews_main_computer():
+    if is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/nas')
         if nas_is_active_andrew:
             return mount_path
@@ -216,6 +231,16 @@ def red(s):
     return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
 
+color_tracker = 0
+avail_colors = [(yellow, 'yellow'), (green, 'green'), (cyan, 'cyan'), (blue, 'blue'), (red, 'red')]
+def next_color(s, skip=None):
+    global color_tracker
+    while True:
+        color_tracker = (color_tracker + 1) % len(avail_colors)
+        if skip is None or avail_colors[color_tracker][1] not in skip:
+            break
+    return avail_colors[color_tracker][0](s)
+
 # I think this is called "true color" which is 24 bit color
 # @profile
 def rgb_ansi(text, rgb_tuple):
@@ -261,13 +286,6 @@ def print_red(*args, **kwargs):
     args = map(str, args)
     print(red(' '.join(args)), **kwargs)
 
-
-# !TODO straight up i think this might be right lol
-def get_clean_filesystem_string(s):
-    # cleaned = ''.join(char for char in s if char.isalnum() or char in ' -_.()[],')
-    # print_blue('get_clean_filesystem_string():', s, 'cleaned:', cleaned)
-    # return cleaned
-    return s
 
 def get_no_duplicate_spaces(s):
     import re
@@ -338,11 +356,14 @@ def start_video_in_mpv_async(video_path, volume=70):
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
-def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe=None, stdout_pipe=subprocess.PIPE, stderr_pipe=subprocess.PIPE):
+def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe=None, stdout_pipe=subprocess.PIPE, stderr_pipe=subprocess.PIPE, timing=False):
+    import time 
+    start_time = time.time()
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
-            print_yellow(f'WARNING: the parameter "cmd" was not a str, casting and continuing')
+            if not isinstance(cmd, pathlib.Path):
+                print_yellow(f'WARNING: the parameter "cmd" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():
@@ -365,24 +386,28 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe
     if stderr is not None:
         stderr = stderr.decode("utf-8")
 
-    if process.returncode:
-        print_red(f'FAILURE executing "{full_call}"')
-        if stdout:
-            print('stdout', stdout)
-        if stderr:
-            print_red('stderr', stderr)
-    elif debug:
-        print_green(f'SUCCESS executing "{full_call}"')
-        if stdout:
-            print('stdout', stdout)
-        if stderr:
-            print_red('stderr', stderr)
+    if debug:
+        if process.returncode:
+            print_red(f'FAILURE executing "{full_call}"')
+            if stdout:
+                print('stdout', stdout)
+            if stderr:
+                print_red('stderr', stderr)
+        else:
+            print_green(f'SUCCESS executing "{full_call}"')
+            if stdout:
+                print('stdout', stdout)
+            if stderr:
+                print_red('stderr', stderr)
         
+    if timing:
+        print_blue(f'Took {time.time() - start_time:.2f} seconds, command was "{full_call}"')
     return process.returncode, stdout, stderr
 
 
 def make_if_not_exist(output_dir, quiet=False):
-    if not os.path.exists(output_dir):
+    output_dir = pathlib.Path(output_dir)
+    if not output_dir.exists():
         if not quiet:
             print_yellow(f'Creating {output_dir} since it didn\'t exist')
         os.mkdir(output_dir)
@@ -391,6 +416,16 @@ def make_if_not_exist(output_dir, quiet=False):
 
 def get_temp_dir():
     return make_if_not_exist(pathlib.Path(__file__).parent.joinpath('temp'))
+
+def get_sub_temp_dir(name=None):
+    if name is None:
+        name = random_letters(15)
+    return make_if_not_exist(get_temp_dir().joinpath(name))
+
+def get_temp_file(name=None):
+    if name is None:
+        name = random_letters(15)
+    return get_temp_dir().joinpath(name)
 
 
 def run_command_async(full_command_arr, debug=False, stdin=None):
@@ -436,6 +471,9 @@ def kill_process_by_name(executable_name):
 
 # -ss '120534ms'
 def seconds_to_fmmpeg_ms_string(seconds):
+    if seconds < 0:
+        print_red(f'WARNING: seconds_to_fmmpeg_ms_string was called with {seconds=}, returning 0')
+        return '0ms'
     return str(int(seconds * 1000)) + 'ms'
 
 # 63 -> '00:06:03'
@@ -452,26 +490,88 @@ def seconds_to_hmsm_string(seconds) -> str:
     agged = f'{hours}:{minutes}:{seconds}{milliseconds}'
     return agged
 
-
-# argument stuff
-    # global args
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--testing', action='store_true', default=False,
-    #                help='To run without rasberry pi support')
-    # args = parser.parse_args()
-
-
-
+def hmsm_string_to_seconds(string):
+    parts = string.split(":")
+    hours = int(parts[0])
+    minutes = int(parts[1])
+    seconds_parts = parts[2].split(".")
+    seconds = int(seconds_parts[0])
+    milliseconds = int(seconds_parts[1])
+    return hours * 3600 + minutes * 60 + seconds + milliseconds / 100
 
 
+def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False):
+    cmd = [
+        'mpv', 
+        video_path, 
+        '--no-resume-playback',
+        '--no-pause',
+        '--load-scripts=no',
+    ]
+    if not subtitles:
+        cmd.append('--sid=no')
+    if volume is not None:
+        cmd.append(f'--volume={volume}')
+    if run_async:
+        return run_command_async(cmd)
+    else:
+        run_command_blocking(cmd, stdout_pipe=None, stderr_pipe=None)
 
-# make directory above importable
+
+
+def kill_self(seconds=0):
+    import time
+    if seconds:
+        print(f'Sleeping for {seconds} before killing self')
+        time.sleep(seconds)
+    if is_windows():
+        kill_string = f'taskkill /PID {os.getpid()} /f'
+    else:
+        kill_string = f'kill -9 {os.getpid()}'
+    for i in range(10):
+        print(f'{i}: running to kill: "{kill_string}"')
+        os.system(kill_string)
+    print_red('THIS SHOULD BE UNREACHABLE')
+
+
+
+def path_is_local(path):
+    if is_ray():
+        if path.resolve().parts[0] in ['C:\\', 'T:\\']:
+            return True
+    elif is_linux():
+        if ''.join(path.resolve().parts[0:2]) != '/mnt':
+            return True
+    elif is_windows():
+        if not is_andrews_laptop():
+            print(f'path_is_local called, assuming that only the C:\\ drive is local. update this code if you dont want it to print every time')
+        if path.resolve().parts[0] == 'C:\\':
+            return True
+    return False
+
+# Going over network is quite slow with processing, copy things locally to speed things up on successive runs.
+def copy_file_locally(file_path, output_directory=get_temp_dir()):
+    import shutil
+    if path_is_local(file_path):
+        return file_path
+
+    dest_path = output_directory.joinpath(file_path.name)
+    if not dest_path.exists() and file_path.exists():
+        print_yellow(f'WARNING: Copying {file_path.name} locally. This is for speedup because networking is slow. Copying {file_path} to {dest_path}')
+        shutil.copy(file_path, dest_path)
+        print_green('Finished copying file')
+    return dest_path
+
+
+def dump_text_to_file(text, output_directory=get_temp_dir()):
+    filepath = output_directory.joinpath(random_letters(15) + '.txt')
+    filepath.write_text(text)
+    return filepath
+
+
 # import sys
 # import pathlib
-
-# def make_directory_above_importable():
-#     path_above_file = pathlib.Path(__file__).parent.joinpath('..').resolve()
-#     sys.path.insert(0, str(path_above_file))
+# sys.path.insert(0, str(pathlib.Path(__file__).parent.joinpath('..').resolve()))
 
 
 # go up a line: '\033[A'

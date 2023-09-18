@@ -1427,7 +1427,6 @@ def calculate_complex_effect_length(effect):
         calced_effect_length = max(calced_effect_length, start_beat + component[2])
     return calced_effect_length
 
-@profile
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 

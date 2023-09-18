@@ -20,6 +20,27 @@ TWINKLE_FADE = 2
 # Twinkle speed, higher is slower, lower is faster
 TWINKLE_SPEED = 10
 
+# def make_twinkle_beats(color):
+#     twinkle_beats = []
+#     for beat in range(1, TWINKLE_TIME):
+#         for j in range(int(NUM_GRID_TWINKLE)):
+#             x, y = grid_helpers.random_coord()
+#             # Create random offset for start beat of each twinkle
+#             t_offset = random.uniform(0, beat * TWINKLE_SPEED)
+#             twinkle_beats.append(
+#                     grid_f(
+#                         beat + t_offset,
+#                         function=our_transform,
+#                         object=get_rectangle_numpy(1, 1),
+#                         start_pos=(y, x),
+#                         start_color=color,
+#                         end_color=(0, 0, 0),
+#                         length=TWINKLE_FADE,
+#                     )
+#                 )
+#     return twinkle_beats
+
+
 white = (100, 100, 100)
 blue = (0, 0, 100)
 red = (100, 0, 0)
@@ -32,87 +53,51 @@ pink = (100, 0, 50)
 light_blue = (0, 50, 100)
 light_green = (50, 100, 0)
 
-def make_twinkle_beats(color):
-    twinkle_beats = []
-    for beat in range(1, TWINKLE_TIME):
-        for j in range(int(NUM_GRID_TWINKLE)):
-            x, y = grid_helpers.random_coord()
-            # Create random offset for start beat of each twinkle
-            t_offset = random.uniform(0, beat * TWINKLE_SPEED)
-            twinkle_beats.append(
-                    grid_f(
-                        beat + t_offset,
-                        function=our_transform,
-                        object=get_rectangle_numpy(1, 1),
-                        start_pos=(y, x),
-                        start_color=color,
-                        end_color=(0, 0, 0),
-                        length=TWINKLE_FADE,
-                    )
-                )
-    return twinkle_beats
 
 
-def make_twinkle_beats_2(beats, color=white, fade=TWINKLE_FADE, num_twinkles=NUM_GRID_TWINKLE, speed=TWINKLE_SPEED):
-    def twinkle(grid_info):
-        x, y = grid_info.pos
-        grid_info.percent_done * 2
-        if grid_info.percent_done <= .5:
-            color = interpolate_vectors_float((0, 0, 0), grid_info.color, grid_info.percent_done * 2)
-        else:
-            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (grid_info.percent_done * 2) - 1)
-        grid_helpers.grid[x][y] = color
+@profile
+def twinkle(grid_info):
+    num_twinkles = grid_info.num_twinkles
+    twinkle_length = grid_info.twinkle_length
+    twinkle_lower_wait = grid_info.twinkle_lower_wait
+    twinkle_upper_wait = grid_info.twinkle_upper_wait
+    if getattr(grid_info, 'twinkles', None) is None:
+        grid_info.twinkles = [None] * num_twinkles
+        for index in range(len(grid_info.twinkles)):
+            grid_info.twinkles[index] = time.time() + (random.random() * (twinkle_upper_wait - twinkle_lower_wait))
 
-    twinkle_beats = []
-    for beat in range(1, beats + 1):
-        for _ in range(int(num_twinkles)):
-            x, y = grid_helpers.random_coord()
-            t_offset = random.uniform(0, beat * speed)
-            twinkle_beats.append(
-                grid_f(
-                    beat + t_offset,
-                    function=twinkle,
-                    pos=(x, y),
-                    color=color,
-                    length=fade,
-                )
-            )
-    return twinkle_beats
-
-
-def twinkle_forever(color=white, length=1, num_twinkles=40, lower_wait=1, upper_wait=4):
-    def twinkle(grid_info):
-        if getattr(grid_info, 'twinkles', None) is None:
-            grid_info.twinkles = [None] * num_twinkles
-            for index in range(len(grid_info.twinkles)):
-                grid_info.twinkles[index] = time.time() + (random.random() * (upper_wait - lower_wait))
-
-        for index, state_or_next_time in enumerate(grid_info.twinkles):
-            if isinstance(state_or_next_time, float):
-                if time.time() < state_or_next_time:
-                    continue
-
-                new_x, new_y = grid_helpers.random_coord()
-                grid_info.twinkles[index] = (new_x, new_y, time.time(), length)
-            
-            curr_x, curr_y, curr_start_time, curr_length = grid_info.twinkles[index]
-
-            percent_done = (time.time() - curr_start_time) / curr_length
-            if percent_done > 1:
-                grid_info.twinkles[index] = time.time() + lower_wait + (random.random() * upper_wait)
+    for index, state_or_next_time in enumerate(grid_info.twinkles):
+        if isinstance(state_or_next_time, float):
+            if time.time() < state_or_next_time:
                 continue
 
-            percent_done * 2
-            if percent_done <= .5:
-                color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
-            else:
-                color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
-            grid_helpers.grid[curr_x][curr_y] += color
+            new_x, new_y = grid_helpers.random_coord()
+            grid_info.twinkles[index] = (new_x, new_y, time.time(), twinkle_length)
+        
+        curr_x, curr_y, curr_start_time, curr_length = grid_info.twinkles[index]
 
+        percent_done = (time.time() - curr_start_time) / curr_length
+        if percent_done > 1:
+            grid_info.twinkles[index] = time.time() + twinkle_lower_wait + (random.random() * twinkle_upper_wait)
+            continue
+
+        percent_done * 2
+        if percent_done <= .5:
+            color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
+        else:
+            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
+        grid_helpers.grid[curr_x][curr_y] += color
+
+
+def twinkle_forever(color=white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         1,
         function=twinkle,
         color=color,
+        num_twinkles=num_twinkles,
+        twinkle_lower_wait=twinkle_lower_wait,
+        twinkle_upper_wait=twinkle_upper_wait, 
+        twinkle_length=twinkle_length,
         length=1,
     )]
 

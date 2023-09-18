@@ -1934,11 +1934,11 @@ if __name__ == '__main__':
                 print_red(f'Couldnt find effect named "{args.show}" in any profile')
 
         compile_all_luts_from_effects_config()
-        debug_grid_info_effect_name('Lemaitre - Blue Shift')
-        debug_grid_info_effect_name('twinkle white')
-        # debug_grid_info_effect_name('tech effect testing sub')
-        # debug_grid_info_effect_name('5 hours intro')
-        exit()
+        # debug_grid_info_effect_name('Lemaitre - Blue Shift')
+        # debug_grid_info_effect_name('twinkle white')
+        # # debug_grid_info_effect_name('tech effect testing sub')
+        # # debug_grid_info_effect_name('5 hours intro')
+        # exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)

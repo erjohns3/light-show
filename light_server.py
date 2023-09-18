@@ -436,6 +436,7 @@ async def init_queue_client(websocket, path):
                         broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
+                # !TODO im not sure about restart_show...
                 restart_show(abs_time=msg['time'])
                 broadcast_light_status = True
 
@@ -848,7 +849,7 @@ def output_current_beat():
 
 @profile
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects
 
     download_thread = None
     search_thread = None 
@@ -876,15 +877,21 @@ async def light():
                 song_playing = False
             broadcast_song_status = True
 
-        i = 0
-        while i < len(curr_effects):
-            index = beat_index + curr_effects[i][1]
-            effect_name = curr_effects[i][0]
+        rebuild_effects = False
+        for effect_name, start_index in curr_effects: 
+            index = beat_index + start_index
             if not channel_lut[effect_name]['loop'] and index >= channel_lut[effect_name]['length']:
-                remove_effect_index(i)
-                broadcast_light_status = True
-            else:
-                i+=1
+                rebuild_effects = True
+                break
+
+        if rebuild_effects:
+            print(f'REBUILDING: {index=}, {beat_index=}, {start_index=}\n'*8)
+
+            broadcast_light_status = True
+            curr_effects = [ # list comp is fastest
+                effect for effect in curr_effects 
+                if channel_lut[effect_name]['loop'] or beat_index + start_index < channel_lut[effect_name]['length']
+            ]
 
         # For the grid function effects
         for effect_name, start_index in curr_effects:
@@ -901,7 +908,8 @@ async def light():
                 # print(f'Looking at {len(info_arr)} info_arrs for {effect_name}\n' * 8)
                 # !TODO i think this is the slowest part for lots of grid effects, take a look, probably can be smart about start beat
                 for start_b, end_b, info in info_arr:
-                    if start_b <= index <= end_b:
+                    # print(f'{index=}\n' * 8)
+                    if start_b <= index < end_b:
                         info.length = end_b - start_b
                         info.curr_sub_beat = index - start_b
                         info.percent_done = info.curr_sub_beat / info.length
@@ -918,6 +926,8 @@ async def light():
             level = 0
             for effect_name, start_index in curr_effects:
                 index = beat_index + start_index
+
+                # print(f'{index=}, {beat_index=}, {start_index=}\n'*8)
 
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
@@ -1522,7 +1532,7 @@ def compile_lut(local_effects_config):
                 if 'info' not in curr_channel:
                     curr_channel['info'] = []
                 ref_channel_all_infos = reference_channel['info']
-                # print_cyan(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding info from {reference_name}, {ref_channel_all_infos=}')
+                # print_red(f'we are on effect {effect_name}, {start_beat=}, {length=} and we are adding info from {reference_name}, {ref_channel_all_infos=}')
             
                 if isinstance(ref_channel_all_infos, GridInfo):
                     ref_grid_info = ref_channel_all_infos
@@ -1688,7 +1698,7 @@ def try_download_video(show_name):
     raise Exception('Couldnt download video')
 
 
-def debug_grid_info_effect_name(effect_name):
+def debug_effect_or_grid(effect_name):
     if effect_name not in effects_config:
         print_red(f'Couldnt find effect {effect_name}')
         return
@@ -1699,7 +1709,7 @@ def debug_grid_info_effect_name(effect_name):
         return
     all_infos = channel['info']
 
-    print_blue(f'{effect_name=}, number of infos: {len(all_infos)}')
+    print_blue(f'{effect_name=}, number of infos: {len(all_infos)}, {channel["length"]=}')
     for info in all_infos:
         print_cyan(f'  info: {info}')
 
@@ -1934,10 +1944,10 @@ if __name__ == '__main__':
                 print_red(f'Couldnt find effect named "{args.show}" in any profile')
 
         compile_all_luts_from_effects_config()
-        # debug_grid_info_effect_name('Lemaitre - Blue Shift')
-        # debug_grid_info_effect_name('twinkle white')
-        # # debug_grid_info_effect_name('tech effect testing sub')
-        # # debug_grid_info_effect_name('5 hours intro')
+        # debug_effect_or_grid('twinkle white')
+        # debug_effect_or_grid('Lemaitre - Blue Shift')
+        # debug_effect_or_grid('tech effect testing sub')
+        # debug_effect_or_grid('5 hours intro')
         # exit()
 
         if args.show:

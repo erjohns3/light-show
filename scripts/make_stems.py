@@ -10,6 +10,10 @@ import sound_video_helpers
 this_file_folder = pathlib.Path(__file__).parent.resolve()
 
 
+# !TODO DO THIS I THINK PROBABLY WAY FASTER:
+# import demucs.separate
+# demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", "track with space.mp3"])
+
 def separate_stem(audio_path, stem, desintation_folder=get_temp_dir()):
     avail_stems = ['vocals', 'drums', 'bass', 'other']
     if stem not in avail_stems:

@@ -173,7 +173,6 @@ def change_to_color(pillow_image, color):
 
 
 object_memory = {}
-@profile
 def our_transform(info):
     if not load_object(info):
         return

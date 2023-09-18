@@ -24,6 +24,13 @@ white = (100, 100, 100)
 blue = (0, 0, 100)
 red = (100, 0, 0)
 green = (0, 100, 0)
+purple = (100, 0, 100)
+yellow = (100, 100, 0)
+cyan = (0, 100, 100)
+orange = (100, 50, 0)
+pink = (100, 0, 50)
+light_blue = (0, 50, 100)
+light_green = (50, 100, 0)
 
 def make_twinkle_beats(color):
     twinkle_beats = []
@@ -46,7 +53,7 @@ def make_twinkle_beats(color):
     return twinkle_beats
 
 
-def make_twinkle_beats_2(color):
+def make_twinkle_beats_2(beats, color=white, fade=TWINKLE_FADE, num_twinkles=NUM_GRID_TWINKLE, speed=TWINKLE_SPEED):
     def twinkle(grid_info):
         x, y = grid_info.pos
         grid_info.percent_done * 2
@@ -54,25 +61,60 @@ def make_twinkle_beats_2(color):
             color = interpolate_vectors_float((0, 0, 0), grid_info.color, grid_info.percent_done * 2)
         else:
             color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (grid_info.percent_done * 2) - 1)
-
         grid_helpers.grid[x][y] = color
 
     twinkle_beats = []
-    for beat in range(1, TWINKLE_TIME):
-        for j in range(int(NUM_GRID_TWINKLE)):
+    for beat in range(1, beats + 1):
+        for _ in range(int(num_twinkles)):
             x, y = grid_helpers.random_coord()
-            # Create random offset for start beat of each twinkle
-            t_offset = random.uniform(0, beat * TWINKLE_SPEED)
+            t_offset = random.uniform(0, beat * speed)
             twinkle_beats.append(
                 grid_f(
                     beat + t_offset,
                     function=twinkle,
                     pos=(x, y),
                     color=color,
-                    length=TWINKLE_FADE,
+                    length=fade,
                 )
             )
     return twinkle_beats
+
+
+def twinkle_forever(color=white, length=1, num_twinkles=40, lower_wait=1, upper_wait=4):
+    def twinkle(grid_info):
+        if getattr(grid_info, 'twinkles', None) is None:
+            grid_info.twinkles = [None] * num_twinkles
+            for index in range(len(grid_info.twinkles)):
+                grid_info.twinkles[index] = time.time() + (random.random() * (upper_wait - lower_wait))
+
+        for index, state_or_next_time in enumerate(grid_info.twinkles):
+            if isinstance(state_or_next_time, float):
+                if time.time() < state_or_next_time:
+                    continue
+
+                new_x, new_y = grid_helpers.random_coord()
+                grid_info.twinkles[index] = (new_x, new_y, time.time(), length)
+            
+            curr_x, curr_y, curr_start_time, curr_length = grid_info.twinkles[index]
+
+            percent_done = (time.time() - curr_start_time) / curr_length
+            if percent_done > 1:
+                grid_info.twinkles[index] = time.time() + lower_wait + (random.random() * upper_wait)
+                continue
+
+            percent_done * 2
+            if percent_done <= .5:
+                color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
+            else:
+                color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
+            grid_helpers.grid[curr_x][curr_y] += color
+
+    return [grid_f(
+        1,
+        function=twinkle,
+        color=color,
+        length=1,
+    )]
 
 
 def random_color():
@@ -168,8 +210,31 @@ def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat % speed == 0:
         grid_info.trail.append([grid_info.pos, grid_info.color])
 
-
+white = (100, 100, 100)
+blue = (0, 0, 100)
+red = (100, 0, 0)
+green = (0, 100, 0)
+purple = (100, 0, 100)
+yellow = (100, 100, 0)
+cyan = (0, 100, 100)
+orange = (100, 50, 0)
+pink = (100, 0, 50)
+light_blue = (0, 50, 100)
+light_green = (50, 100, 0)
 effects = {
+    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=white)},
+    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=blue)},
+    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=green)},
+    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=red)},
+    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=purple)},
+    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=yellow)},
+    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=cyan)},
+    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=orange)},
+    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=pink)},
+    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=light_blue)},
+    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=light_green)},
+
+    
     "trail ball fast": {
         "profiles": ['Emma'],
         "trigger": "toggle",
@@ -200,26 +265,6 @@ effects = {
         'beats': [
             grid_f(1, function=fire_ball_fade, length=8, speed=1),
         ],
-    },
-    "blue shift - twinkle": {
-        "profiles": ['Emma'],
-        "loop": True,
-        "beats": make_twinkle_beats_2(white),
-    },
-    "blue shift - twinkle blue": {
-        "profiles": ['Emma'],
-        "loop": True,
-        "beats": make_twinkle_beats_2(blue),
-    },
-    "blue shift - twinkle green": {
-        "profiles": ['Emma'],
-        "loop": True,
-        "beats": make_twinkle_beats_2(green),
-    },
-    "blue shift - twinkle red": {
-        "profiles": ['Emma'],
-        "loop": True,
-        "beats": make_twinkle_beats_2(red),
     },
     "blue shift - circle pulse 1": {
         "profiles": ['Emma'],
@@ -283,11 +328,11 @@ effects = {
         "delay_lights": 0.4043245762711864,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
+            # grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
             # b(1, name="blue shift - circle pulse 1", length=32, offset=1),
             # b(1, name="blue shift - circle pulse 2", length=32),
-            # b(1, name="blue shift - twinkle", length=32),
-            # b(name="blue shift - twinkle blue", length=32),
+            b(1, name="twinkle white", length=32),
+            # b(name="twinkle blue", length=32),
         ],
     }
 }

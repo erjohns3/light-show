@@ -846,7 +846,6 @@ def output_current_beat():
         curr_beat = (beat_index / SUB_BEATS) + 1
         f.writelines([str(round(curr_beat, 2)), '\n'])
 
-
 @profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render
@@ -887,12 +886,20 @@ async def light():
             else:
                 i+=1
 
-        for effect_tuple in curr_effects:
-            effect_name = effect_tuple[0]
-            index = beat_index + effect_tuple[1]
+        # For the grid function effects
+        for effect_name, start_index in curr_effects:
             info_arr = channel_lut[effect_name].get('info', None)
             if info_arr is not None:
-                # print(f'Looking at {len(info_arr)} info_arrs for {effect_name}')
+                index = beat_index + start_index
+                looped = False
+                if index >= 0 and channel_lut[effect_name]['loop']:
+                    # !idk about this
+                    if index >= channel_lut[effect_name]['length']:
+                        looped = True
+                    index = index % channel_lut[effect_name]['length']
+
+                # print(f'Looking at {len(info_arr)} info_arrs for {effect_name}\n' * 8)
+                # !TODO i think this is the slowest part for lots of grid effects, take a look, probably can be smart about start beat
                 for start_b, end_b, info in info_arr:
                     if start_b <= index <= end_b:
                         info.length = end_b - start_b
@@ -900,16 +907,17 @@ async def light():
                         info.percent_done = info.curr_sub_beat / info.length
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
+                        info.looped = looped
                         infos_for_this_sub_beat.append(info)
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
+        # Finding 0-100 levels based on simple and complex effects
         grid_levels = [0] * LIGHT_COUNT
         for i in range(LIGHT_COUNT):
             level = 0
-            for j in range(len(curr_effects)):
-                effect_name = curr_effects[j][0]
-                index = beat_index + curr_effects[j][1]
+            for effect_name, start_index in curr_effects:
+                index = beat_index + start_index
 
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
@@ -930,20 +938,13 @@ async def light():
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
+        # Rendering grid
         if clear_grid_at_start:
             grid_helpers.reset()
         
         if grid_fill_from_old:
-            pass
-            # chris said this
             grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
             grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-
-            # grid_helpers.grid[:grid_helpers.GRID_WIDTH // 2][:] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:][:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
-
-            # grid_helpers.grid[:][:grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]]
-            # grid_helpers.grid[grid_helpers.GRID_WIDTH // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]]
         
         for info in infos_for_this_sub_beat:
             try:
@@ -957,6 +958,7 @@ async def light():
         if args.local:
             print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
 
+        # check on youtube downloads
         if download_thread is not None:
             if not download_thread.is_alive():
                 await send_client_queue_config()
@@ -1293,7 +1295,7 @@ def load_effects_config_from_disk():
         effects_config.update(globals()[module_name].effects)
 
     prep_loaded_effects(list(effects_config.keys()))
-    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}')
+    print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}, imported {len(found_paths)} modules')
 
 
 def set_effect_defaults(name, effect):
@@ -1415,7 +1417,7 @@ def calculate_complex_effect_length(effect):
         calced_effect_length = max(calced_effect_length, start_beat + component[2])
     return calced_effect_length
 
-
+@profile
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
 
@@ -1634,7 +1636,7 @@ def signal_handler(sig, frame):
 
 def fuzzy_find(search, collection):
     import thefuzz.process
-    print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
+    # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
     before_fuzz = time.time()
     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
     print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
@@ -1686,7 +1688,7 @@ def try_download_video(show_name):
     raise Exception('Couldnt download video')
 
 
-def debug_channel_lut_info(effect_name):
+def debug_grid_info_effect_name(effect_name):
     if effect_name not in effects_config:
         print_red(f'Couldnt find effect {effect_name}')
         return
@@ -1932,11 +1934,11 @@ if __name__ == '__main__':
                 print_red(f'Couldnt find effect named "{args.show}" in any profile')
 
         compile_all_luts_from_effects_config()
-        # debug_channel_lut_info('TETRIS THEME SONG (OFFICIAL TRAP REMIX) - DaBrozz')
-        # debug_channel_lut_info('tech effect testing')
-        # debug_channel_lut_info('tech effect testing sub')
-        # debug_channel_lut_info('5 hours intro')
-        # exit()
+        debug_grid_info_effect_name('Lemaitre - Blue Shift')
+        debug_grid_info_effect_name('twinkle white')
+        # debug_grid_info_effect_name('tech effect testing sub')
+        # debug_grid_info_effect_name('5 hours intro')
+        exit()
 
         if args.show:
             print_blue('Found in CLI:', args.show)
@@ -1946,6 +1948,7 @@ if __name__ == '__main__':
         asyncio.create_task(light())
 
         print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')
+
         await dj_socket_server.wait_closed() and queue_socket_server.wait_closed() and rekordbox_bridge_server.wait_closed()
 
     asyncio.run(start_async())

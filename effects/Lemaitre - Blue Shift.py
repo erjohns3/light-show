@@ -54,14 +54,12 @@ light_blue = (0, 50, 100)
 light_green = (50, 100, 0)
 
 
-
-@profile
 def twinkle(grid_info):
     num_twinkles = grid_info.num_twinkles
     twinkle_length = grid_info.twinkle_length
     twinkle_lower_wait = grid_info.twinkle_lower_wait
     twinkle_upper_wait = grid_info.twinkle_upper_wait
-    if getattr(grid_info, 'twinkles', None) is None:
+    if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
         grid_info.twinkles = [None] * num_twinkles
         for index in range(len(grid_info.twinkles)):
             grid_info.twinkles[index] = time.time() + (random.random() * (twinkle_upper_wait - twinkle_lower_wait))
@@ -316,7 +314,10 @@ effects = {
             # grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
             # b(1, name="blue shift - circle pulse 1", length=32, offset=1),
             # b(1, name="blue shift - circle pulse 2", length=32),
-            b(1, name="twinkle white", length=32),
+            b(1, name="twinkle white", length=1),
+            b(3, name="twinkle blue", length=1),
+            b(5, name="twinkle white", length=1),
+            b(7, name="twinkle blue", length=1),
             # b(name="twinkle blue", length=32),
         ],
     }

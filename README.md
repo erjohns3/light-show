@@ -124,6 +124,48 @@ channel_lut = {
 
 
 ## random links
+* use sqllite studio with sqlciper
+* djmdContent looks like right table
+  * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"
+  * C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\share\PIONEER\USBANLZ
+  * for fileformat https://github.com/dylanljones/pyrekordbox
+  * https://pyrekordbox.readthedocs.io/en/stable/formats/anlz.html
+* DB C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox
+  db.run("PRAGMA cipher_compatibility = 4");
+  db.run("PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497'");
+
+        db.serialize(function () {
+            db.run("PRAGMA cipher_compatibility = 4");
+            db.run("PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497'");
+            db.each(`select 
+                    h.created_at, 
+                    ifnull(c.Title, '') as Track, 
+                    ifnull(c.Subtitle, '') as Mix, 
+                    ifnull(l.Name, '') as Label, 
+                    ifnull(a.Name, '') as Artist
+                    from djmdSongHistory as h
+                    join djmdContent as c on h.ContentID = c.ID
+                    left join djmdArtist as a on c.ArtistID = a.ID
+                    left join djmdLabel as l on l.ID = c.LabelID
+                    order by h.created_at desc
+                    limit 1;`, function (err, row) {
+
+                let artist = row['Artist'].toUpperCase();
+                let track = row['Track'].toUpperCase();
+                let label = row['Label'].toUpperCase();
+                let remix = row['Mix'].toUpperCase();
+
+                _this.currentTrackDetails['artist'] = artist;
+                _this.currentTrackDetails['track'] = track;
+                _this.currentTrackDetails['label'] = label;
+                _this.currentTrackDetails['remix'] = remix;
+
+            });
+        });
+        db.close();
+
+
+
 * USE REKORDBOX 6.6.4
   * https://rekordbox.com/en/support/faq/v6/#faq-q600141
     * direct link: https://cdn.rekordbox.com/files/20220623164635/Install_rekordbox_x64_6_6_4.zip?_ga=2.16932921.1467977363.1685931086-1211040754.1685660184

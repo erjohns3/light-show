@@ -8,20 +8,25 @@ from PIL import Image, ImageSequence, ImageFont, ImageDraw
 
 from helpers import *
 
+
 if is_doorbell():
     import serial
+    grid_serial = serial.Serial(
+        port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
+        baudrate = 2000000,
+        parity=serial.PARITY_NONE,
+        stopbits=serial.STOPBITS_ONE,
+        bytesize=serial.EIGHTBITS,
+        timeout=0,
+        write_timeout=0
+    )
 
 try:
     profile
 except NameError:
     profile = lambda x: x
 
-
-grid_serial = None
-
 # !TODO dvd logo bouncing around
-
-
 
 GRID_WIDTH = 20
 GRID_HEIGHT = 32
@@ -122,12 +127,11 @@ def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_t
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
     else:
-        grid_out = get_serial().out_waiting
-        grid_in = get_serial().in_waiting
+        grid_in = grid_serial.in_waiting
 
-        if grid_out == 0 and grid_in > 0:
-            get_serial().read(grid_in)
-            get_serial().write(grid_pack())
+        if grid_in > 0 and grid_serial.out_waiting == 0:
+            grid_serial.read(grid_in)
+            grid_serial.write(grid_pack())
 
 
 def visible_coord(pos):
@@ -141,7 +145,6 @@ def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
 
 
-
 def fill(to_fill):
     if type(to_fill) in [float, int]:
         return grid.fill(0)
@@ -149,33 +152,8 @@ def fill(to_fill):
         for rgb_index, value in enumerate(to_fill):
             grid[x][y][rgb_index] = value
 
-
 def reset():
     grid.fill(0)
-
-
-def get_serial():
-    global grid_serial
-    if grid_serial is None: 
-        try:
-            grid_serial = serial.Serial(
-                port='/dev/ttyS0', #Replace ttyS0 with ttyAM0 for Pi1,Pi2,Pi0
-                baudrate = 2000000,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_ONE,
-                bytesize=serial.EIGHTBITS,
-                timeout=0,
-                write_timeout=0
-            )
-            get_serial().write(grid_pack())
-        except Exception as e:
-            if is_doorbell():
-                raise e
-            print_stacktrace()
-            raise Exception('You probably need to add --local to your command line to make work, real exception printed above')
-    return grid_serial
-
-
 
 # ====== image stuff ======
 

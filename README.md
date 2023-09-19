@@ -124,6 +124,9 @@ channel_lut = {
 
 
 ## random links
+* installing on windows pysqlcipher3
+  * git clone https://github.com/rigglemania/pysqlcipher3
+  * follow https://github.com/rigglemania/pysqlcipher3/issues/34
 * use sqllite studio with sqlciper
 * djmdContent looks like right table
   * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"

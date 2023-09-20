@@ -9,12 +9,11 @@ sys.path.append(str(this_file_directory.parent))
 
 from helpers import *
 
+# !TODO assumes all real are mp3s (should we)
 
-# for ray
-    # T:\programming\random\sqlcipher\bld\sqlite3.exe C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\master.db "PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';" ".clone decrypted.db" ".exit"
 
-# for dj
-    # T:\programming\random\sqlcipher\bld\sqlite3.exe C:\Users\dj\AppData\Roaming\Pioneer\rekordbox\master.db "PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';" ".clone decrypted.db"
+# for ray: T:\programming\random\sqlcipher\bld\sqlite3.exe C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\master.db "PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';" ".clone decrypted.db" ".exit"
+# for dj: T:\programming\random\sqlcipher\bld\sqlite3.exe C:\Users\dj\AppData\Roaming\Pioneer\rekordbox\master.db "PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';" ".clone decrypted.db"
 
 path_to_sqcipher_exe = get_ray_directory().joinpath('programming', 'random', 'sqlcipher', 'bld', 'sqlite3.exe')
 

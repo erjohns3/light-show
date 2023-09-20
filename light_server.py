@@ -1187,7 +1187,7 @@ def add_dependancies(effect_names):
         # graph[effect_name] = list(graph[effect_name])
 
 
-def add_song_to_config(song_path):
+def add_song_to_config(song_path, quiet=True):
     song_path = pathlib.Path(str(song_path).replace('\\', '/'))
     relative_path = song_path
     if relative_path.is_absolute():
@@ -1204,6 +1204,7 @@ def add_song_to_config(song_path):
             'artist': artist,
             'duration': duration
         }
+        if not quiet: print(f'Added song to config: {relative_path}, {str(relative_path.as_posix())}')
     else:
         print_red(f'add_song_to_config: CANNOT READ FILETYPE {song_path.suffix} in {song_path}')
 

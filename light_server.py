@@ -55,11 +55,9 @@ parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
-parser.add_argument('--print_beat', dest='print_beat', default=False, action='store_true')
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
-parser.add_argument('--enter', dest='enter', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
@@ -83,17 +81,14 @@ effects_dir = this_file_directory.joinpath('effects')
 pi = None
 
 LED_PINS = [5, 6, 13, 19, 24, 25, 8, 7, 26, 16, 2, 3, 4, 17, 27, 22]
-
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ
+LIGHT_COUNT = len(LED_PINS)
 
 SUB_BEATS = 24
-LIGHT_COUNT = len(LED_PINS)
 
 curr_effects = []
 song_queue = []
-
-originals = {}
 
 curr_bpm = 121
 time_start = time.time()
@@ -1000,8 +995,6 @@ async def light():
 
         if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
-            if args.print_beat and not args.local:
-                print(f'Beat: {(beat_index // SUB_BEATS) + 1}, Seconds: {time_diff:.3f}')
         
         time_diff = time.time() - time_start
 
@@ -1338,9 +1331,6 @@ def set_effect_defaults(name, effect):
             print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
             exit()
         
-        if name in originals:
-            effect['delay_lights'] = originals[name]['delay_lights']
-
         effect['delay_lights'] = effect.get('delay_lights', 0)
         if not args.local:
             effect['delay_lights'] += 0.08
@@ -1756,31 +1746,6 @@ if __name__ == '__main__':
                 laser_mode = True
 
     load_effects_config_from_disk()
-
-    for effect_name, effect in effects_config.items():
-        if 'song_path' in effect:
-            originals[effect_name] = {
-                'skip_song': effects_config[effect_name]['skip_song'],
-                'delay_lights': effects_config[effect_name]['delay_lights'],
-                'bpm': effects_config[effect_name]['bpm'],
-                'song_path': effects_config[effect_name]['song_path'],
-            }
-    print_cyan(f'Up through copying effects to originals: {time.time() - first_start_time:.3f}')
-
-    def detailed_output_on_enter():
-        while True:
-            input()
-            all_effect_names = []
-            curr_beat = (beat_index / SUB_BEATS) + 1
-            for effect in curr_effects:
-                if has_song(effect[0]):
-                    all_effect_names += get_sub_effect_names(effect[0], curr_beat)
-                else:
-                    all_effect_names.append(effect[0])
-            print(f'beat: {curr_beat:2f}, current_effects playing: {all_effect_names}')
-
-    if args.enter:
-        x = threading.Thread(target=detailed_output_on_enter).start()
 
     if args.load_new_rekordbox_shows_live:
         from watchdog.observers import Observer

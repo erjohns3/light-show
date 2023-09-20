@@ -831,16 +831,10 @@ def print_current_beat():
     print(f'Beat: {curr_beat:.1f}\n' * 25)
 
 
-cleard_beat_file = None
+tap_beat_file_path = get_temp_dir().joinpath(f'beat_output_file_{random_letters(8)}.dat')
 def output_current_beat():
-    global cleard_beat_file
-
-    if cleard_beat_file is None:
-        cleard_beat_file = open('beat_output_file.dat', 'w')
-        cleard_beat_file.close()
-
-
-    with open('beat_output_file.dat', 'a') as f:
+    print_red(f'OUTPUTTING BEATS TO: {tap_beat_file_path}\n' * 10)
+    with open(tap_beat_file_path, 'a') as f:
         curr_beat = (beat_index / SUB_BEATS) + 1
         f.writelines([str(round(curr_beat, 2)), '\n'])
 
@@ -1075,17 +1069,18 @@ def add_effect(new_effect_name):
     curr_effects.append([new_effect_name, offset])
 
 
-def play_song(effect_name, print_out=True):
+def play_song(effect_name, quiet=False):
     global take_rekordbox_input, song_playing
     # print('Disabling rekordbox input')
     take_rekordbox_input = False
     # print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
-    if print_out:
-        print_blue(f'Starting music "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume')
+    if not quiet: print_blue(f'Starting music from {effect_name}: "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume')
+    if not quiet: print(json.dumps(effects_config[effect_name], indent=4))
+    # if not quiet: print_yellow(json.dumps(songs_config[song_path], indent=4))
 
-
+    dev_timing = time.time()
     pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path(song_path))
 
@@ -1094,6 +1089,7 @@ def play_song(effect_name, print_out=True):
     # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
     pygame.mixer.music.play(start=start_time)
     song_playing = True
+    print_cyan(f'play_song: {time.time() - dev_timing:.3f} seconds')
 
 def stop_song():
     global song_playing
@@ -1303,6 +1299,7 @@ def load_effects_config_from_disk():
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}, imported {len(found_paths)} modules')
 
 
+song_specific_adjusted = set()
 def set_effect_defaults(name, effect):
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
@@ -1324,20 +1321,27 @@ def set_effect_defaults(name, effect):
         effect['profiles'].append('Autogen effects')
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
+    
+    # !warning this screws with --speed parameter, uh this can only be run once...
     if 'song_path' in effect and effect['song_path'] in songs_config:
         if 'bpm' not in effect:
             print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
             exit()
         
-        effect['delay_lights'] = effect.get('delay_lights', 0)
-        if not args.local:
-            effect['delay_lights'] += 0.08
-        if args.delay_seconds:
-            effect['delay_lights'] += args.delay_seconds
-        if 'length' not in effect:
-            effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
-        if 'loop' not in effect:
-            effect['loop'] = False
+        # !TODO this is nonsense
+        if name in song_specific_adjusted:
+            print_yellow(f'set_effect_defaults ALREADY RAN ON {name}, THIS IS RIDICULOUS')
+        else:
+            effect['delay_lights'] = effect.get('delay_lights', 0)
+            if not args.local:
+                effect['delay_lights'] += 0.08
+            if args.delay_seconds:
+                effect['delay_lights'] += args.delay_seconds
+            if 'length' not in effect:
+                effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
+            if 'loop' not in effect:
+                effect['loop'] = False
+            song_specific_adjusted.add(name)
     else:
         if 'loop' not in effect:
             effect['loop'] = True
@@ -1644,13 +1648,14 @@ def fuzzy_find(search, collection):
     return choices[0][0]
 
 
-def restart_show(skip=0, abs_time=None):
+def restart_show(skip=0, abs_time=None, quiet=False):
     global song_time
     time_to_skip_to = max(0, (time.time() - time_start) + skip)
     if abs_time is not None:
         time_to_skip_to = abs_time
     song_time = time_to_skip_to
 
+    if not quiet: print(f'restarting show at {time_to_skip_to:.3f} seconds')
     if curr_effects:
         effect_name = curr_effects[0][0]
         if not has_song(effect_name):
@@ -1659,7 +1664,7 @@ def restart_show(skip=0, abs_time=None):
         stop_song()
         add_effect(effect_name)
         try:
-            play_song(effect_name, print_out=False)
+            play_song(effect_name, quiet=False)
         except:
             print_red('play_song errored, running stop_song + clear_effects and continuing')
             clear_effects()
@@ -1803,10 +1808,14 @@ if __name__ == '__main__':
         keyboard_dict = {
             # 'd': 'Red top',
             # 'f': 'Cyan top',
-            'n': output_current_beat,
+            '`': output_current_beat,
             'b': print_current_beat,
-            'j': lambda: restart_show(skip=-skip_time),
-            ';': lambda: restart_show(skip=skip_time),
+            # 'k': lambda: restart_show(skip=-2),
+            # 'l': lambda: restart_show(skip=2),
+            # 'j': lambda: restart_show(skip=-skip_time),
+            # ';': lambda: restart_show(skip=skip_time),
+            'up': lambda: restart_show(skip=2),
+            'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             'cmd_r': lambda: restart_show(skip=-skip_time),
@@ -1893,12 +1902,25 @@ if __name__ == '__main__':
 
             if args.show in effects_config:
                 if args.speed != 1 and 'song_path' in effects_config[args.show]:
-                    effects_config[args.show]['bpm'] *= args.speed
-                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed))
-                    args.skip_show_seconds *= 1 / args.speed
-                    args.delay_seconds *= 1 / args.speed
-                    effects_config[args.show]['skip_song'] *= 1 / args.speed
-                    effects_config[args.show]['delay_lights'] *= 1 / args.speed
+                    print_yellow(f'BEFORE bpm {effects_config[args.show]["bpm"]}, song_path {effects_config[args.show]["song_path"]}')
+                    print_yellow(f'BEFORE skip_song {effects_config[args.show]["skip_song"]}, delay_lights {effects_config[args.show]["delay_lights"]}')
+                    print_yellow(f'BEFORE args.skip_show_seconds {args.skip_show_seconds}, args.delay_seconds {args.delay_seconds}')
+                    # effects_config[args.show]['bpm'] *= args.speed
+                    print_yellow(f'Before path {effects_config[args.show]["song_path"]}')
+                    print_yellow(sound_video_helpers.get_ffprobe_streams(effects_config[args.show]['song_path']))
+                    # Starting music "/home/andrew/programming/python/light-show/temp/RIOT - Overkill [Monstercat Release]_asetrate_0.999.ogg" at 4.487245866556211 seconds at 30% volum
+                    # Starting music "songs/RIOT - Overkill [Monstercat Release].ogg" at 4.482758620689656 seconds at 30% volume
+                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, cache=True))
+                    add_song_to_config(effects_config[args.show]['song_path'])
+                    print_red(sound_video_helpers.get_ffprobe_streams(effects_config[args.show]['song_path']))
+                    print_red(f'After path {effects_config[args.show]["song_path"]}')
+                    # args.skip_show_seconds *= 1 / args.speed
+                    # args.delay_seconds *= 1 / args.speed
+                    # effects_config[args.show]['skip_song'] *= 1 / args.speed
+                    # effects_config[args.show]['delay_lights'] *= 1 / args.speed
+                    print_red(f'Adjusted bpm to {effects_config[args.show]["bpm"]}, song_path to {effects_config[args.show]["song_path"]}')
+                    print_red(f'Adjusted skip_song to {effects_config[args.show]["skip_song"]}, delay_lights to {effects_config[args.show]["delay_lights"]}')
+                    print_red(f'Adjusted args.skip_show_seconds to {args.skip_show_seconds}, args.delay_seconds to {args.delay_seconds}')
                 if args.skip_show_beats:
                     args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / effects_config[args.show]['bpm'])
                 if args.skip_show_seconds:

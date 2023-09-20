@@ -55,16 +55,21 @@ def separate_stem(audio_path, stem, desintation_folder=get_temp_dir()):
 
 wanted_stems = ['vocals']
 
-music_folder_name = 'StreamerGames'
+# music_folder_name = 'StreamerGames'
+music_folder_name = 'caschoener'
 music_folder = get_ray_directory().joinpath('music_creation', 'downloaded_songs', music_folder_name)
+if not music_folder.exists():
+    print_red(f'folder "{music_folder}" doesnt exist')
+    exit()
+
 stem_destination_folder = make_if_not_exist(music_folder.parent.joinpath(f'{music_folder_name}_STEMS'))
 
 audio_paths = list(get_all_paths(music_folder, allowed_extensions=['.mp3', '.wav', '.ogg']))
 actual_paths_to_use = []
 for _, audio_path in audio_paths:
     length = sound_video_helpers.get_length(audio_path)
-    if length > 60 * 5:
-        print_yellow(f'Skipping "{audio_path}" because its longer than 5 minutes')
+    if length > 60 * 10 or length < 60:
+        print_yellow(f'Skipping "{audio_path}" because its longer than 10 minutes or shorter than 1 minute')
         continue
     actual_paths_to_use.append(audio_path)
 

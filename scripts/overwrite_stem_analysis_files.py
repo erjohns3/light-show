@@ -1,3 +1,4 @@
+import shutil
 import sys
 import pathlib
 
@@ -32,8 +33,6 @@ retcode, stdout, stderr = run_command_blocking([
 if retcode != 0:
     print_red(f'error decrypting: {retcode=} {stdout=} {stderr=}')
     sys.exit(1)
-exit()
-
 
 
 unencrypted_db_path = this_file_directory.joinpath('decrypted.db')
@@ -97,8 +96,7 @@ for folder, (all_stem_paths, real_music_folder) in folder_to_stems_and_music.ite
             continue
         copy_from = song_to_analysis[real_path]
         copy_to = song_to_analysis[stem_path]
-        print_green(f'copying {stem_path} to {real_path} - {copy_from=} to {copy_to=}')
-        import shutil
+        print_green(f'copying {real_path} to {stem_path}')
         shutil.copy(copy_from, copy_to)
 
 # from pysqlcipher3 import dbapi2 as sqlite

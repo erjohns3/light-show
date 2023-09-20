@@ -10,17 +10,29 @@ from helpers import *
 
 
 # T:\programming\random\sqlcipher\bld\sqlite3.exe C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\master.db "PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';" ".clone decrypted.db" ".exit"
-retcode, stdout, stderr = run_command_blocking([
-    'T:\programming\random\sqlcipher\bld\sqlite3.exe',
-    'C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\master.db',
-    '"PRAGMA key = \'402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497\';"',
-    '".clone decrypted.db"',
-    '".exit"',
-])
 
+path_to_sqcipher_exe = get_ray_directory().joinpath('programming', 'random', 'sqlcipher', 'bld', 'sqlite3.exe')
+
+path_to_master_db = pathlib.Path('C:\\Users\\Ray\\AppData\\Roaming\\Pioneer\\rekordbox\\master.db')
+if not is_ray():
+    # path_to_master_db = FILL IN ME
+    print_red('LOOK AT THE CODE AND FILL IN THE PATH TO THE MASTER DB')
+    exit()
+
+decrypted_db_output_path = this_file_directory.joinpath('decrypted.db').absolute().resolve()
+cursed_conversion = str(decrypted_db_output_path).replace(':', '\\:')
+
+retcode, stdout, stderr = run_command_blocking([
+    path_to_sqcipher_exe,
+    path_to_master_db,
+    'PRAGMA key = \'402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497\'',
+    f'.clone {cursed_conversion}',
+    '.exit',
+])
 if retcode != 0:
     print_red(f'error decrypting: {retcode=} {stdout=} {stderr=}')
     sys.exit(1)
+exit()
 
 
 

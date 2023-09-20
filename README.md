@@ -42,9 +42,9 @@ Just copy either into your browser, and you'll be able to control the show from 
   * building sqlcipher
     * https://www.domstamand.com/compiling-sqlcipher-sqlite-encrypted-for-windows-using-visual-studio-2022/
     * C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
-    * T:\programming\random\sqlcipher\bld\sqlite.exe
+    * T:\programming\random\sqlcipher\bld\sqlite3.exe
       * PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';
-      * .output decrypted_master.db 
+      * .output decrypted_master.db
       * .exit
 
 

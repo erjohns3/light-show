@@ -32,6 +32,23 @@ Just copy either into your browser, and you'll be able to control the show from 
     * chris's idea - changing some effects but not all - on non-high delta changes
 
 
+#### stem stuff
+* djmdContent looks like right table
+  * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"
+    * C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\share\PIONEER\USBANLZ
+      * for fileformat https://github.com/dylanljones/pyrekordbox
+      * https://pyrekordbox.readthedocs.io/en/stable/formats/anlz.html
+* unencrypting db:
+  * building sqlcipher
+    * https://www.domstamand.com/compiling-sqlcipher-sqlite-encrypted-for-windows-using-visual-studio-2022/
+    * C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
+    * T:\programming\random\sqlcipher\bld\sqlite3.exe
+      * PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';
+      * .output decrypted_master.db
+      * .exit
+
+
+
 # To autogenerate
 ### Note that the --show parameter here fuzzy finds the filename
 `python light_server.py --local --autogen shelter`
@@ -124,16 +141,7 @@ channel_lut = {
 
 
 ## random links
-* use sqllite studio with sqlciper
-* djmdContent looks like right table
-  * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"
-  * C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\share\PIONEER\USBANLZ
-  * for fileformat https://github.com/dylanljones/pyrekordbox
-  * https://pyrekordbox.readthedocs.io/en/stable/formats/anlz.html
 * DB C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox
-  db.run("PRAGMA cipher_compatibility = 4");
-  db.run("PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497'");
-
         db.serialize(function () {
             db.run("PRAGMA cipher_compatibility = 4");
             db.run("PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497'");

@@ -4,7 +4,8 @@ import pathlib
 
 import sqlite3
 
-import sys
+this_file_directory = pathlib.Path(__file__).parent.absolute()
+sys.path.append(str(this_file_directory.parent))
 
 from helpers import *
 

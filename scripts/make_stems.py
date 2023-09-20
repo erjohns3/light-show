@@ -1,8 +1,9 @@
 import pathlib
+import sys
 import shutil
 
-import script_helpers
-script_helpers.make_directory_above_importable()
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory.parent))
 
 from helpers import *
 import sound_video_helpers

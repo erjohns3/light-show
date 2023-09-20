@@ -4,8 +4,7 @@ import pathlib
 
 import sqlite3
 
-this_file_directory = pathlib.Path(__file__).parent.absolute()
-sys.path.append(str(this_file_directory.parent))
+import sys
 
 from helpers import *
 
@@ -77,7 +76,6 @@ for _, path in get_all_paths(rekordbox_songs_folder):
 
 
 # for song_path, analysis_path in song_to_analysis.items():
-
 
 for folder, (all_stem_paths, real_music_folder) in folder_to_stems_and_music.items():
     print(f'{folder=}')

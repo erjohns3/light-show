@@ -50,7 +50,7 @@ print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 
 parser = argparse.ArgumentParser(description = '')
-parser.add_argument('--local', dest='local', default=True, action='store_true')
+parser.add_argument('--local', dest='local', default=False, action='store_true')
 parser.add_argument('--show', dest='show', type=str, default='')
 parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
@@ -70,9 +70,8 @@ if is_doorbell():
     args.local = False
     if args.keyboard:
         raise Exception('Keyboard mode is not supported on the doorbell')
-elif args.local:
-    print_yellow('--local is deprecated, you dont have to add it anymore')
-
+else:
+    args.local = True
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')

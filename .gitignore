@@ -14,6 +14,7 @@ click_file_for_essentia.mp3
 okaerinasai.mp3
 data/nonsense/
 fonts/
+youtube_cache.json
 *.mp3
 *.ogg
 *.webm

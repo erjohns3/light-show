@@ -56,7 +56,17 @@ def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_le
 
     last_youtube_searched_time = time.time()
 
-def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, codec='vorbis'):
+def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, codec='vorbis', cache_path=None):
+    cache = {}
+    if cache_path:
+        cache_path = pathlib.Path(cache_path)
+        if cache_path.exists():
+            with open(cache_path, 'r') as f:
+                cache = json.loads(f.read())
+            if url in cache:
+                print_green(f'Using cached url: {url}')
+                return pathlib.Path(cache[url])
+
     if url is None:
         url = input('Enter the URL you want to download:\n')
 
@@ -99,6 +109,11 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
         print(f'Couldnt download url {url} due to {e}')
         print_cyan(f'You probably need to run "pip install --upgrade yt_dlp"')
         return None
+
+    if cache_path is not None:
+        cache[url] = str(downloaded_filepath.absolute())
+        with open(cache_path, 'w') as f:
+            f.write(json.dumps(cache, indent=4))
 
     return downloaded_filepath
 
@@ -230,7 +245,9 @@ if __name__ == '__main__':
         print_yellow(f'Downloading youtube video to {output_directory} and NOT generating show file (use --show if you meant to do that)')    
     time.sleep(.1)
 
-    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds)
+    this_file_directory = pathlib.Path(__file__).parent
+    cache_path = this_file_directory.joinpath('youtube_cache.json')
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds, cache_path=cache_path)
     if downloaded_filepath is None:
         print('Couldnt download video')
         exit()

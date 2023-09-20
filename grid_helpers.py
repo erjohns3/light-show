@@ -1,4 +1,3 @@
-print('top of grid_helpers')
 import sys
 import random
 

@@ -1,11 +1,13 @@
 import time
 import sys
 import pathlib
+import os
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 above_file_directory = this_file_directory.parent.resolve()
 sys.path.insert(0, str(above_file_directory))
 
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
 from helpers import *

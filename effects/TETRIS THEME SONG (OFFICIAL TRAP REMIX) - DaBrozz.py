@@ -1,7 +1,5 @@
-import pygame
-
 from effects.compiler import *
-from scripts import tetris_grid
+from effects.grid_games import tetris_grid
 import joystick_and_keyboard_helpers
 
 

@@ -9,8 +9,8 @@ import json
 # import keyboard
 from sshkeyboard import listen_keyboard
 
-import script_helpers
-script_helpers.make_directory_above_importable()
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory.parent))
 
 import grid_helpers
 from effects.compiler import GridInfo

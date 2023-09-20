@@ -3,8 +3,8 @@ import sys
 import pathlib
 from tinytag import TinyTag
 
-import script_helpers
-script_helpers.make_directory_above_importable()
+this_file_directory = pathlib.Path(__file__).parent.absolute()
+sys.path.append(str(this_file_directory.parent))
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()

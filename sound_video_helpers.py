@@ -451,17 +451,16 @@ def change_speed_audio_asetrate(input_filepath, speed, cache=True, quiet=False):
         '-i', input_filepath,
         '-filter:a',
         f'asetrate={input_samplerate * speed},aresample={input_samplerate}:resampler=soxr',
-        # !TODO fix
-        '-b:a', '499821',
         output_filepath,
     ])
 
     if retcode:
         return print_red(f'change_speed_audio_asetrate: Couldnt change speed due to: {stderr}')
-    input_length = get_length(input_filepath, exact=True)
-    output_length = get_length(output_filepath, exact=True)
-    print_yellow(f'change_speed_audio_asetrate: {input_length=}, {output_length=}, ratio is {input_length / output_length:.4f}')
-    print_yellow(f'Samplerate before {tinytag.TinyTag.get(input_filepath).samplerate}, samplerate after: {tinytag.TinyTag.get(output_filepath).samplerate}')
+    if not quiet:
+        input_length = get_length(input_filepath, exact=True)
+        output_length = get_length(output_filepath, exact=True)
+        print_yellow(f'change_speed_audio_asetrate: {input_length=}, {output_length=}, ratio is {input_length / output_length:.4f}')
+        print_yellow(f'Samplerate before {tinytag.TinyTag.get(input_filepath).samplerate}, samplerate after: {tinytag.TinyTag.get(output_filepath).samplerate}')
 
     return output_filepath
 

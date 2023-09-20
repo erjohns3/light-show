@@ -61,6 +61,8 @@ def is_andrews_laptop():
 def is_doorbell():
     return get_hostname() in ['doorbell']
 
+def is_dj():
+    return get_hostname() in ['DESKTOP-6HUD9AG']
 
 def is_screensaver_running():
     if not is_ray():
@@ -84,7 +86,7 @@ def is_screensaver_running():
 ray_is_active_andrew = False
 def get_ray_directory():
     global ray_is_active_andrew
-    if is_ray() or is_erics_laptop():
+    if is_ray() or is_erics_laptop() or is_dj():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/ray_network_share')
@@ -99,6 +101,8 @@ def get_ray_directory():
         else:
             print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
             exit()
+    elif is_windows():
+        return pathlib.Path(r'\\Ray\T')
     else:
         print_red('doesnt know how contact ray_directory')
 
@@ -410,7 +414,7 @@ def make_if_not_exist(output_dir, quiet=False):
     if not output_dir.exists():
         if not quiet:
             print_yellow(f'Creating {output_dir} since it didn\'t exist')
-        os.mkdir(output_dir)
+        os.makedirs(output_dir)
     return output_dir
 
 

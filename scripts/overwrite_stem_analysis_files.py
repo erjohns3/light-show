@@ -125,7 +125,7 @@ for folder, (all_stem_paths, real_music_folder) in folder_to_stems_and_music.ite
         copy_from = song_to_analysis[real_path]
         copy_to = song_to_analysis[stem_path]
         print_green(f'copying {real_path} to {stem_path}')
-        # shutil.copy(copy_from, copy_to)
+        shutil.copy(copy_from, copy_to)
         success.append(stem_path)
 
 total_fail = len(no_stem_analysis) + len(no_real_path) + len(no_real_analysis)

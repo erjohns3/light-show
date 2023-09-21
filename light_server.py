@@ -941,8 +941,7 @@ async def light():
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local:
-                if not infos_for_this_sub_beat:
-                    await send_to_terminal_output(level_between_0_and_1, i)
+                await send_to_terminal_output(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')

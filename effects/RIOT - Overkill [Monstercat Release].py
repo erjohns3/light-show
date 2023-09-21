@@ -34,10 +34,11 @@ effects = {
     "over - Overkill chant bottom": {
         'length': 8,
         'beats': [
-            b(3, name='Blue bottom', length=1, intensity=.3),
-            b(4, name='Blue bottom', length=1, intensity=.3),
-            b(5, name='Red bottom', length=1, intensity=.3),
-            b(6, name='Red bottom', length=2, intensity=(.3, 0)),
+            b(1, name='Red top', length=8),
+            b(3, name='Blue bottom', length=1),
+            b(4, name='Blue bottom', length=1),
+            b(5, name='Red bottom', length=1),
+            b(6, name='Red bottom', length=2, intensity=(.4, 0)),
         ]
     },
 
@@ -68,7 +69,9 @@ effects = {
             # b(16, name='over - Red quarters', length=64),
             *spawn_half_fallers(16, 64, start_color=GColor.blue, end_color=GColor.green, intensity=.3),
             *spawn_half_fallers(80, 64, start_color=GColor.red, end_color=GColor.red, intensity=1),
+            
             b(80, name='over - Overkill chant bottom', length=64),
+
             b(144, name='over - Green quarters', length=64),
 
             b(176, name='over - drum eighths', length=32),

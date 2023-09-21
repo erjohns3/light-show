@@ -468,7 +468,7 @@ effects = {
         "skip_song": 0.0,
         "beats": [ 
             # grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
-            # grid_f(1, filename='ricardo.gif', length=100),
+            grid_f(1, filename='ricardo.gif', length=100),
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),

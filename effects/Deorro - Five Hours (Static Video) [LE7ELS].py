@@ -114,7 +114,7 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
         y_index = 1 - y_index
         # print(f'creating at {beat}, for length {next_beat - beat}')
         # if speed == 1:
-        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.01))    
+        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.05))    
         # if speed == 3:
         #     sub_or_add = 1
         #     if y_index == 1:
@@ -467,7 +467,7 @@ effects = {
         "delay_lights": 0.37665,
         "skip_song": 0.0,
         "beats": [ 
-            grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
+            # grid_f(1, filename='nyan.webp', rotate_90=True, length=100),
             # grid_f(1, filename='ricardo.gif', length=100),
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
@@ -475,7 +475,7 @@ effects = {
             b(177, name='5 hours box combine', length=64),
             b(241, name='5 hours pinwheel grid', length=64),
             b(305, name='5 hours grid chorus', length=64),
-            grid_f(369, function=clear_grid, length=.01),
+            grid_f(369, function=clear_grid, length=.04),
             b(369, name='5 hours rotate circle 1', length=32),
             b(391, name='5 hours rotate circle 2', length=64),
         ]

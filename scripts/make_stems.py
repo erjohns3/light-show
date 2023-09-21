@@ -2,6 +2,8 @@ import pathlib
 import sys
 import shutil
 
+import demucs.separate
+
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory.parent))
 
@@ -14,6 +16,9 @@ this_file_folder = pathlib.Path(__file__).parent.resolve()
 # !TODO DO THIS I THINK PROBABLY WAY FASTER:
 # import demucs.separate
 # demucs.separate.main(["--mp3", "--two-stems", "vocals", "-n", "mdx_extra", "track with space.mp3"])
+
+
+
 
 def separate_stem(audio_path, stem, desintation_folder=get_temp_dir()):
     avail_stems = ['vocals', 'drums', 'bass', 'other']
@@ -32,17 +37,24 @@ def separate_stem(audio_path, stem, desintation_folder=get_temp_dir()):
     expected_demucs_output_stem = get_temp_dir().joinpath(separation_model, audio_path.stem, f'{stem}.mp3')
     expected_demucs_output_no_stem = get_temp_dir().joinpath(separation_model, audio_path.stem, f'no_{stem}.mp3')
     if not expected_demucs_output_stem.exists():
-        ret_code, stdout, stderr = run_command_blocking([
-            'demucs',
+        demucs.separate.main([
             '-n', separation_model,
-            audio_path,
-            '--two-stems', stem,
+            '--two-stems', 'stem', 
             '-o', get_temp_dir(),
-            '--mp3',
-        ], stdout_pipe=None, stderr_pipe=None, debug=False)
-        if ret_code:
-            print_red(f'error running demucs, you probably need to install it with "pip install demucs": {stderr}')
-            exit()
+            '--mp3', 
+            str(audio_path),
+        ])
+        # ret_code, stdout, stderr = run_command_blocking([
+        #     'demucs',
+        #     '-n', separation_model,
+        #     audio_path,
+        #     '--two-stems', stem,
+        #     '-o', get_temp_dir(),
+        #     '--mp3',
+        # ], stdout_pipe=None, stderr_pipe=None, debug=False)
+        # if ret_code:
+        #     print_red(f'error running demucs, you probably need to install it with "pip install demucs": {stderr}')
+        #     exit()
     
     if not expected_demucs_output_stem.exists() or not expected_demucs_output_no_stem.exists():
         return None, print_red(f'expected separated output "{expected_demucs_output_stem}" or "{expected_demucs_output_no_stem}" doesnt exist')

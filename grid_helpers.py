@@ -95,10 +95,8 @@ def move_wrap(vector):
         grid = np.roll(grid, shift=vector[1], axis=1)
 
 
-def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_terminal=False):
+def render(terminal=False, reset_terminal=True, rotate_terminal=False):
     if terminal:
-        if skip_if_terminal:
-            return
         to_print_grid = grid * 2.55
         to_print_grid = to_print_grid.astype(int)
         if not rotate_terminal:
@@ -114,6 +112,8 @@ def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_t
 
             if reset_terminal:
                 print('\033[F' * GRID_WIDTH, end='')
+            else:
+                return GRID_WIDTH
         else:
             for y in range(GRID_HEIGHT):
                 column_parts = []
@@ -125,6 +125,8 @@ def render(terminal=False, skip_if_terminal=False, reset_terminal=True, rotate_t
             # [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
+            else:
+                return GRID_HEIGHT
     else:
         grid_in = grid_serial.in_waiting
 

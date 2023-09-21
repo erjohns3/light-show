@@ -41,19 +41,6 @@ TWINKLE_SPEED = 10
 #     return twinkle_beats
 
 
-white = (100, 100, 100)
-blue = (0, 0, 100)
-red = (100, 0, 0)
-green = (0, 100, 0)
-purple = (100, 0, 100)
-yellow = (100, 100, 0)
-cyan = (0, 100, 100)
-orange = (100, 50, 0)
-pink = (100, 0, 50)
-light_blue = (0, 50, 100)
-light_green = (50, 100, 0)
-
-
 def twinkle(grid_info):
     num_twinkles = grid_info.num_twinkles
     twinkle_length = grid_info.twinkle_length
@@ -87,7 +74,7 @@ def twinkle(grid_info):
         grid_helpers.grid[curr_x][curr_y] += color
 
 
-def twinkle_forever(color=white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
+def twinkle_forever(color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         1,
         function=twinkle,
@@ -193,29 +180,18 @@ def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat % speed == 0:
         grid_info.trail.append([grid_info.pos, grid_info.color])
 
-white = (100, 100, 100)
-blue = (0, 0, 100)
-red = (100, 0, 0)
-green = (0, 100, 0)
-purple = (100, 0, 100)
-yellow = (100, 100, 0)
-cyan = (0, 100, 100)
-orange = (100, 50, 0)
-pink = (100, 0, 50)
-light_blue = (0, 50, 100)
-light_green = (50, 100, 0)
 effects = {
-    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=white)},
-    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=blue)},
-    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=green)},
-    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=red)},
-    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=purple)},
-    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=yellow)},
-    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=cyan)},
-    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=orange)},
-    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=pink)},
-    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=light_blue)},
-    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=light_green)},
+    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.white)},
+    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.blue)},
+    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.green)},
+    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.red)},
+    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.purple)},
+    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.yellow)},
+    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.cyan)},
+    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.orange)},
+    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.pink)},
+    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.light_blue)},
+    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.light_green)},
 
     
     "trail ball fast": {
@@ -255,7 +231,7 @@ effects = {
             grid_f(
                 1,
                 function=our_transform,
-                object=get_centered_circle_numpy(radius=10, color=blue, offset_y=-8),
+                object=get_centered_circle_numpy(radius=10, color=GColor.blue, offset_y=-8),
                 name='Ok 1',
                 start_pos=(0, 0),
                 # start_color=random.choice(hard_colors),
@@ -283,7 +259,7 @@ effects = {
             grid_f(
                 1,
                 function=our_transform,
-                object=get_centered_circle_numpy(radius=10, color=green, offset_y=8),
+                object=get_centered_circle_numpy(radius=10, color=GColor.green, offset_y=8),
                 name='Ok 2',
                 start_pos=(0, 0),
                 # start_color=random.choice(hard_colors),

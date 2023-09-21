@@ -20,12 +20,29 @@ from PIL import Image
 import grid_helpers
 from helpers import *
 
+
+class GColor:
+    white = (100, 100, 100)
+    blue = (0, 0, 100)
+    red = (100, 0, 0)
+    green = (0, 100, 0)
+    purple = (100, 0, 100)
+    yellow = (100, 100, 0)
+    cyan = (0, 100, 100)
+    orange = (100, 50, 0)
+    pink = (100, 0, 50)
+    light_blue = (0, 50, 100)
+    light_green = (50, 100, 0)
+
+
+
 useful_attrs = set([
     'text',
 ])
 class GridInfo:
     def __init__(self):
         self.grid_function = None
+        self.copy = False
 
     def reset(self):
         pass
@@ -99,6 +116,10 @@ def interpolate_float(f1, f2, percent_done):
 
 def interpolate_vectors_float(v1, v2, percent_done):
     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
+
+
+def scale_vector(vector, scale):
+    return tuple(vector[i] * scale for i in range(len(vector)))
 
 
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):

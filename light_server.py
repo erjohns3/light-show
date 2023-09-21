@@ -9,6 +9,7 @@ import importlib
 import pathlib
 import asyncio
 import argparse
+import copy
 import os
 import colorsys
 import random
@@ -726,6 +727,7 @@ Beat {curr_beat:.1f}, \
 
     to_fill = terminal_size - len(useful_info)
     print(useful_info + (' ' * to_fill))
+    return 2
 
 
 
@@ -735,9 +737,9 @@ purple = [153, 50, 204]
 laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
-async def render_non_grid_terminal(all_levels):
+async def render_terminal(light_levels):
     global laser_stage, disco_pos
-    rows_to_print = []
+
     character = '▆'
     try:
         terminal_size = os.get_terminal_size().columns
@@ -746,7 +748,7 @@ async def render_non_grid_terminal(all_levels):
 
     line_length = terminal_size - 1
 
-    levels_255 = list(map(lambda x: int(x * 255), all_levels))
+    levels_255 = list(map(lambda x: int(x * 255), light_levels))
     top_front_rgb = levels_255[0:3]
     top_back_rgb = levels_255[3:6]
     bottom_rgb = levels_255[6:9]
@@ -770,7 +772,7 @@ async def render_non_grid_terminal(all_levels):
         laser_style = [0, 0, 0]
 
     if any(disco_color_rgb):
-        disco_chars = [' '] * 14 
+        disco_chars = [' '] * 14
         for rgb_index in range(3):
             if disco_color_rgb[rgb_index]:
                 style_for_color = [0, 0, 0]
@@ -781,7 +783,7 @@ async def render_non_grid_terminal(all_levels):
     else:
         disco_chars = ' ' * 14
 
-    if all_levels[12] != 0:
+    if light_levels[12] != 0:
         laser_stage += int(max(1, laser_motor_value // 10))
         laser_stage %= 110
 
@@ -790,11 +792,8 @@ async def render_non_grid_terminal(all_levels):
         disco_pos -= 14
 
     
-    top_light_row = [
-        ' ' + rgb_ansi(character * 2, purple_scaled),
-        rgb_ansi(character * 5, top_front_rgb),
-        rgb_ansi(character * 5, top_back_rgb),
-        rgb_ansi(character * 2, purple_scaled),
+    top_uv_row = [
+        rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
         # terminal_buffer,
     ]
     bottom_light_row = [
@@ -810,27 +809,26 @@ async def render_non_grid_terminal(all_levels):
         # terminal_buffer,
     ]
 
+    # printing
+    top_lines_to_reset = print_info_terminal_lines()
+
     # actually i bet this really doesn't work because of invisible ansi characters... and cutting off doesnt work because they have length, we need to just keep track
-    rows_to_print = [
-        ''.join(top_light_row),
-        ''.join(laser_row),
-        ''.join(bottom_light_row),
-        ''.join(disco_row),
-    ]
+    print(''.join(top_uv_row))
+    grid_rows_to_reset = grid_helpers.render(terminal=True, reset_terminal=False)
+    print(''.join(laser_row))
+    print(''.join(bottom_light_row))
+    print(''.join(disco_row), end='')
 
-    for index, row in enumerate(rows_to_print):
-        ender = '\n'
-        if index == len(rows_to_print) - 1:
-            ender = ''
-        print(row, end=ender)
-    sys.stdout.write('\033[F' * 6)
+    # print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
+    sys.stdout.write('\033[F' * (7 + grid_rows_to_reset + top_lines_to_reset))
 
 
-all_levels = [0] * LIGHT_COUNT
-async def non_grid_terminal(level, i):
-    all_levels[i] = level
-    if i == LIGHT_COUNT - 1:
-        await render_non_grid_terminal(all_levels)
+light_levels = [0] * LIGHT_COUNT
+async def send_to_terminal_output(light_level_or_signal, i):
+    if light_level_or_signal == None:
+        await render_terminal(light_levels)
+    else:
+        light_levels[i] = light_level_or_signal
 
 
 ####################################
@@ -867,9 +865,6 @@ async def light():
         rate = curr_bpm / 60 * SUB_BEATS
         time_diff = time.time() - time_start
         beat_index = int(time_diff * rate)
-
-        if args.local:
-            print_info_terminal_lines()
 
         if song_playing and not pygame.mixer.music.get_busy():
             remove_effect_name(song_queue[0][0])
@@ -947,7 +942,7 @@ async def light():
 
             if args.local:
                 if not infos_for_this_sub_beat:
-                    await non_grid_terminal(level_between_0_and_1, i)
+                    await send_to_terminal_output(level_between_0_and_1, i)
             else:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
@@ -968,9 +963,10 @@ async def light():
                 print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                 return False
 
-        grid_helpers.render(terminal=args.local, skip_if_terminal=not bool(infos_for_this_sub_beat), rotate_terminal=args.rotate_grid_terminal)
         if args.local:
-            print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
+            await send_to_terminal_output(None, None)
+        else:
+            grid_helpers.render()
 
         # check on youtube downloads
         if download_thread is not None:
@@ -1547,6 +1543,8 @@ def compile_lut(local_effects_config):
             
                 if isinstance(ref_channel_all_infos, GridInfo):
                     ref_grid_info = ref_channel_all_infos
+                    if ref_grid_info.copy:
+                        ref_grid_info = copy.deepcopy(ref_grid_info)
                     curr_channel['info'].append(
                         [
                             start_beat,
@@ -1556,6 +1554,8 @@ def compile_lut(local_effects_config):
                     )
                 else:
                     for (ref_start_beat, ref_end_beat, ref_grid_info) in ref_channel_all_infos:
+                        if ref_grid_info.copy:
+                            ref_grid_info = copy.deepcopy(ref_grid_info)
                         # !TODO idk if this is right...
                         if offset:
                             # print_cyan(f'  offsetting by {offset=}')

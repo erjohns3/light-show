@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 from pilmoji import Pilmoji
-from PIL import Image, ImageSequence, ImageFont, ImageDraw
+from PIL import Image, ImageSequence, ImageFont, ImageDraw, ImageOps
 
 from helpers import *
 
@@ -215,11 +215,18 @@ resize_cache_dir = get_temp_dir().joinpath('image_resize_cache')
 make_if_not_exist(resize_cache_dir)
 
 static_image_cache = {}
-def load_image_to_grid(image_filepath, rotate_90=False):
+static_image_cache_color = {}
+def load_image_to_grid(image_filepath, color=None, rotate_90=False):
     if image_filepath not in static_image_cache:
         with Image.open(image_filepath) as image_file:
             static_image_cache[image_filepath] = PIL_image_to_numpy_arr(image_file, rotate_90=rotate_90)
-    grid[:] = static_image_cache[image_filepath]
+    if color is not None:
+        key = (image_filepath, color)
+        if key not in static_image_cache_color:
+            static_image_cache_color[key] = static_image_cache[image_filepath] * color
+        grid[:] = static_image_cache_color[key]
+    else:
+        grid[:] = static_image_cache[image_filepath]
 
 
 animation_cache = {}
@@ -308,11 +315,11 @@ def is_animated(filepath):
     return True
 
 
-def fill_grid_from_image_filepath(filepath, rotate_90=False):
+def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False):
     if filepath.suffix.lower() in ['.webp', '.gif']:
         load_animation_to_grid(filepath, rotate_90=rotate_90)
     elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
-        load_image_to_grid(filepath, rotate_90=rotate_90)
+        load_image_to_grid(filepath, color=color, rotate_90=rotate_90)
     else:
         print_red(f'file suffix {filepath.suffix} not supported')
 
@@ -341,7 +348,7 @@ def get_font_path(font_filename):
         return local_font_directory.joinpath(font_filename)
     try:
         return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
-    except Exception as e:
+    except Exception:
         print("Skipping emoji generation, couldn't find font")
         return ''
 
@@ -350,8 +357,9 @@ run_once_text_image = set()
 def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_color=(255, 255, 255), use_cache=True):
     hash_filename = hash((text, font_size, rotate_90))
     output_filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-    if output_filepath.exists() and (use_cache or output_filepath in run_once_text_image):
-        return output_filepath
+    if output_filepath.exists():
+        if use_cache or hash_filename in run_once_text_image:
+            return output_filepath
 
     if not rotate_90:
         width, height = 32, 20
@@ -382,15 +390,10 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
 
             if not rotate_90:
                 image = image.rotate(90, expand=True)
+            if not is_doorbell():
+                image = ImageOps.flip(image)
 
         image.save(output_filepath, format='png')
-        # run_command_blocking([
-        #     'feh',
-        #     '--borderless',
-        #     '--force-aliasing',
-        #     '-F',
-        #     str(output_filepath),
-        # ])
         print(f'saved "{text}" to image {output_filepath}')
         run_once_text_image.add(hash_filename)
     return output_filepath
@@ -434,8 +437,6 @@ if __name__ == '__main__':
             for y in range(height):
                 to_print.append(rgb_ansi('█', arr[x][y]))
             print(''.join(to_print))
-
-
     run_command_blocking([
         'feh',
         '--borderless',

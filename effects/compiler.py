@@ -63,6 +63,19 @@ class GridInfo:
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
 
+def sidechain_grid(grid_info):
+    intensity = getattr(grid_info, 'intensity', 1)
+
+    if type(intensity) not in [list, tuple]:
+        start_intensity = intensity
+        end_intensity = intensity
+    else:
+        start_intensity, end_intensity = intensity
+    
+    current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+    for x, y in grid_helpers.coords():
+        grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], current_intesity)
+
 
 
 # ==== eric and andrews transformation matrix stuff
@@ -152,6 +165,9 @@ def load_object(info):
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
         info.end_color = getattr(info, 'end_color', info.start_color)
 
+        if info.end_color:
+            info.color = True
+
         object_memory[info.name][1] = (info.end_pos, info.end_scale, info.end_rot, info.end_color)
     else:
         info.start_pos = getattr(info, 'start_pos', (0, 0))
@@ -214,7 +230,6 @@ def our_transform(info):
     if getattr(info, 'color', None) is not None:
         current_color = interpolate_vectors_float(info.start_color, info.end_color, percent_done)
         colored_object = change_to_color(info.object, current_color)
-    
     transformed_image = transform_scale_rotation_and_translation(colored_object, size, midpoint, scale, rot, pos)
     
     arr_version = np.array(transformed_image)
@@ -454,8 +469,9 @@ def fill_grid_from_image_filepath(info):
 
 
 def fill_grid_from_text(info):
-    filepath = grid_helpers.create_image_from_text_pilmoji(info.text, font_size=info.font_size, rotate_90=info.rotate_90, use_cache=False)    
-    grid_helpers.fill_grid_from_image_filepath(filepath, rotate_90=info.rotate_90)
+    color = getattr(info, 'color', None)
+    filepath = grid_helpers.create_image_from_text_pilmoji(info.text, font_size=info.font_size, rotate_90=info.rotate_90, use_cache=False)
+    grid_helpers.fill_grid_from_image_filepath(filepath, color=color, rotate_90=info.rotate_90)
 
 
 def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):

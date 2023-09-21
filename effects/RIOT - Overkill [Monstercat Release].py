@@ -30,14 +30,51 @@ def spawn_half_fallers(start_beat, total_beats, start_color, end_color, intensit
     return building
 
 
+def get_growing_circle_freeze_after(name, start_beat, start_scale, end_scale, freeze_after, length, color):
+    return [
+        grid_f(
+            start_beat,
+            function=our_transform,
+            object=name,
+            start_color=color,
+            start_scale=start_scale,
+            end_scale=end_scale,
+            length=freeze_after,
+        ),
+        grid_f(
+            start_beat + freeze_after,
+            function=our_transform,
+            object=name,
+            length=length - freeze_after,
+        ),
+    ]
+
+
+def get_wub(start_beat):
+    random_name = random_letters(7)
+    return [
+        grid_f(
+            start_beat,
+            function=our_transform,
+            object=get_centered_circle_numpy(radius=10),
+            name=random_name,
+            start_scale = (.01, .01),
+            length=.04,
+        ),
+        *get_growing_circle_freeze_after(random_name, start_beat, (.01, .01), (.5, .5), 3, 4, color=GColor.blue),
+        *get_growing_circle_freeze_after(random_name, start_beat + 4, (.01, .01), (1, 1), 3, 4, color=GColor.green),
+        *get_growing_circle_freeze_after(random_name, start_beat + 8, (.25, .25), (1.5, 1.5), 3, 4, color=GColor.red),
+    ]
+
+
 effects = {
     "over - Overkill chant bottom": {
         'length': 8,
         'beats': [
             b(3, name='Blue bottom', length=.4, intensity=.3),
             b(4, name='Blue bottom', length=.4, intensity=.3),
-            b(5, name='Red bottom', length=1, intensity=.6),
-            b(6, name='Red bottom', length=2, intensity=(.6, 0)),
+            b(5, name='Orange bottom', length=1, intensity=.6),
+            b(6, name='Orange bottom', length=2, intensity=(.6, 0)),
         ]
     },
 
@@ -45,17 +82,21 @@ effects = {
     "over - Blue quarters": {'length': 0.5, 'beats': [b(1, name='Blue top', length=.25)]},
     "over - Green quarters": {'length': 0.5, 'beats': [b(1, name='Green top', length=.25)]},
 
-    "over - Blue bottom eighths": {'length': 0.25, 'beats': [b(1, name='Blue bottom', length=.125)]},
+    "over - Red bottom eighths": {
+        'length': 0.25,
+        'beats': [
+            b(1, name='Red bottom', length=.125),
+            grid_f(1, function=sidechain_grid, length=.125, intensity=0),
+        ],
+    },
 
     "over - drum eighths": {
         'length': 8,
         'beats': [
-            b(1, name='over - Blue bottom eighths', length=.75),
-            b(2.5, name='over - Blue bottom eighths', length=.75),
+            b(1, name='over - Red bottom eighths', length=.75),
+            b(2.5, name='over - Red bottom eighths', length=.75),
         ]
     },
-
-
 
     
 
@@ -66,33 +107,50 @@ effects = {
         "skip_song": 0.0,
         "beats": [
             # b(16, name='over - Red quarters', length=64),
-            *spawn_half_fallers(16, 64, start_color=GColor.blue, end_color=GColor.green, intensity=.3),
-            *spawn_half_fallers(80, 64, start_color=GColor.red, end_color=GColor.orange, intensity=1),
+            *spawn_half_fallers(16, 64, start_color=GColor.blue, end_color=GColor.purple, intensity=.3),
+            *spawn_half_fallers(80, 64, start_color=GColor.orange, end_color=GColor.pink, intensity=1),
             
             b(80, name='over - Overkill chant bottom', length=128),
 
+            *spawn_half_fallers(144, 64, start_color=GColor.orange, end_color=GColor.pink, intensity=1),
             # *spawn_half_fallers(144, 64, start_color=GColor.green, end_color=GColor.red, intensity=1),
 
             b(176, name='over - drum eighths', length=32),
 
-            b(208, name='over - Red quarters', length=32),
-
-            b(240, name='over - Blue quarters', length=32),
+            b(192, name='Red disco', length=16),
 
 
-            b(240, name='over - Blue quarters', length=28),
+            # b(208, name='over - Red quarters', length=32),
 
-            # women: "kill them all"
-            b(268, name='Green top', length=4),
+            # b(240, name='over - Blue quarters', length=32),
+
+
+            # b(240, name='over - Blue quarters', length=28),
+
+            # # women: "kill them all"
+            grid_f(268, text='kill', font_size=8, length=1),
+            grid_f(269.5, text='them', font_size=8, length=1),
+            grid_f(271, text='all', font_size=8, length=1),
+            # b(268, name='Green top', length=4),
             
-            # breakdown before drop
-            b(272, name='over - Blue quarters', length=28),
+            # # breakdown before drop
+            # b(272, name='over - Blue quarters', length=28),
             
-            # man: "kill them all"
-            b(300, name='Green top', length=4),
+            # # man: "kill them all"
+            grid_f(300, text='kill', font_size=8, color=GColor.red, length=1),
+            grid_f(301.5, text='them', font_size=8, color=GColor.red, length=1),
+            grid_f(303, text='all', font_size=8, color=GColor.red, length=1.5),
+            # b(300, name='Green top', length=4),
 
-            # drop
-            b(304, name='over - Blue quarters', length=32),
+            # # drop
+            # b(304, name='over - Blue quarters', length=32),
+
+            *get_wub(307),
+
+
+            grid_f(325, text='bussin', font_size=5, color=GColor.green, length=1.5),
+
+
 
             # b(238.79, name='Red top', length=1),
             # b(270.75, name='Blue top', length=1),

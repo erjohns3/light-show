@@ -820,7 +820,7 @@ async def render_terminal(light_levels):
     print(''.join(disco_row), end='')
 
     # print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
-    sys.stdout.write('\033[F' * (7 + grid_rows_to_reset + top_lines_to_reset))
+    sys.stdout.write('\033[F' * (6 + grid_rows_to_reset + top_lines_to_reset))
 
 
 light_levels = [0] * LIGHT_COUNT

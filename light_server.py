@@ -718,10 +718,12 @@ Beat {curr_beat:.1f}, \
 {change_str}\
 """
     useful_info += f'{show_specific}'
+    useful_info = useful_info[:terminal_size]
 
     effect_string = f'Effects: {", ".join(all_effect_names)}'
-    to_fill = terminal_size - len(effect_string)
+    effect_string = effect_string[:terminal_size]
 
+    to_fill = terminal_size - len(effect_string)
     effect_print = ''.join([effect_string, (' ' * to_fill)])
     print(effect_print)
 

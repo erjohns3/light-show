@@ -1,8 +1,8 @@
 from effects.compiler import *
 import grid_helpers
 
-def arrow_down(grid_info):
-    if getattr(grid_info, 'y', None) is None:
+def bar_down(grid_info):
+    if getattr(grid_info, 'y', None) is None or grid_info.curr_sub_beat == 0:
         grid_info.y = grid_helpers.GRID_HEIGHT - 1
 
     if grid_info.y < 0:
@@ -24,8 +24,8 @@ def spawn_half_fallers(start_beat, total_beats, start_color, end_color, intensit
         curr_color = interpolate_vectors_float(start_color, end_color, percent_done)
         curr_color = scale_vector(curr_color, intensity)
         building += [
-            grid_f(beat, function=arrow_down, length=8, x_range=range(half_x), color=curr_color),
-            grid_f(beat + .5, function=arrow_down, length=8, x_range=range(half_x, grid_helpers.GRID_WIDTH), color=curr_color),
+            grid_f(beat, function=bar_down, length=8, x_range=range(half_x), color=curr_color),
+            grid_f(beat + .5, function=bar_down, length=8, x_range=range(half_x, grid_helpers.GRID_WIDTH), color=curr_color),
         ]
     return building
 
@@ -34,11 +34,10 @@ effects = {
     "over - Overkill chant bottom": {
         'length': 8,
         'beats': [
-            b(1, name='Red top', length=8),
-            b(3, name='Blue bottom', length=1),
-            b(4, name='Blue bottom', length=1),
-            b(5, name='Red bottom', length=1),
-            b(6, name='Red bottom', length=2, intensity=(.4, 0)),
+            b(3, name='Blue bottom', length=.4, intensity=.3),
+            b(4, name='Blue bottom', length=.4, intensity=.3),
+            b(5, name='Red bottom', length=1, intensity=.6),
+            b(6, name='Red bottom', length=2, intensity=(.6, 0)),
         ]
     },
 
@@ -68,11 +67,11 @@ effects = {
         "beats": [
             # b(16, name='over - Red quarters', length=64),
             *spawn_half_fallers(16, 64, start_color=GColor.blue, end_color=GColor.green, intensity=.3),
-            *spawn_half_fallers(80, 64, start_color=GColor.red, end_color=GColor.red, intensity=1),
+            *spawn_half_fallers(80, 64, start_color=GColor.red, end_color=GColor.orange, intensity=1),
             
-            b(80, name='over - Overkill chant bottom', length=64),
+            b(80, name='over - Overkill chant bottom', length=128),
 
-            b(144, name='over - Green quarters', length=64),
+            # *spawn_half_fallers(144, 64, start_color=GColor.green, end_color=GColor.red, intensity=1),
 
             b(176, name='over - drum eighths', length=32),
 

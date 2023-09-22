@@ -3,9 +3,9 @@ import grid_helpers
 
 def bar_down(grid_info):
     if getattr(grid_info, 'y', None) is None or grid_info.curr_sub_beat == 0:
-        grid_info.y = grid_helpers.GRID_HEIGHT - 1
+        grid_info.y = 0
 
-    if grid_info.y < 0:
+    if grid_info.y > grid_helpers.GRID_HEIGHT - 1:
         return
 
     for x in grid_info.x_range:
@@ -13,7 +13,7 @@ def bar_down(grid_info):
 
     speed = int(1 / getattr(grid_info, 'speed', 1))
     if grid_info.curr_sub_beat % speed == 0:
-        grid_info.y -= 1
+        grid_info.y += 1
 
 
 def spawn_half_fallers(start_beat, total_beats, start_color, end_color, intensity=1):
@@ -154,9 +154,11 @@ effects = {
         'beats': [
             b(1, name='laser motor', length=2),
             b(1, name='Red disco', length=.25),
-            b(1.5, name='green laser', length=.25),
+            # b(1.5, name='green laser', length=.25),
+            b(1.5, name='Green disco', length=.25),
             b(2, name='Blue disco', length=.25),
-            b(2.5, name='green laser', length=.25),
+            # b(2.5, name='green laser', length=.25),
+            b(2.5, name='Green disco', length=.25),
         ]
     },
 

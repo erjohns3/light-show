@@ -69,8 +69,8 @@ def spawn_line(start_beat, pos, color, length):
     return grid_f(start_beat, function=ok, length=.04)
 
 
-def make_marchers_and_move(start_beat, length):
-    arr = [
+def get_marchers(start_beat, length):
+    return [
         grid_f(start_beat, function=lambda x: x, clear=False, length=length),
         spawn_line(start_beat, (-7, 12), color=GColor.blue, length=5),
         spawn_line(start_beat, (-3, 5), color=GColor.red, length=5),
@@ -78,12 +78,28 @@ def make_marchers_and_move(start_beat, length):
         spawn_line(start_beat, (5, -3), color=GColor.red, length=5),
         spawn_line(start_beat, (9, -10), color=GColor.blue, length=5),
     ]
+
+def make_marchers_and_move(start_beat, vector=(0, 1), move_length=.25, length=1):
+    arr = get_marchers(start_beat, length)
     for o in range(length):
-        # o = o / 2
         curr_beat = start_beat + o
-        arr.append(
-            grid_f(curr_beat, function=move_grid, vector=(0, 1), wrap=True, length=.25)
-        )
+        arr.append(grid_f(curr_beat, function=move_grid, vector=vector, wrap=True, length=move_length))
+    return arr
+
+def just_move_marchers(start_beat, skip_beat, vector=(0, 1), move_length=.25, length=1):
+    arr = []
+    for o in range(0, length, skip_beat):
+        curr_beat = start_beat + o
+        arr.append(grid_f(curr_beat, function=move_grid, vector=vector, wrap=True, length=move_length))
+        arr.append(grid_f(curr_beat + 1.5, function=move_grid, vector=vector, wrap=True, length=move_length))
+    return arr
+
+
+def just_move_marchers_on_beat(start_beat, vector=(0, 1), move_length=.25, length=1):
+    arr = []
+    for o in range(0, length):
+        curr_beat = start_beat + o
+        arr.append(grid_f(curr_beat, function=move_grid, vector=vector, wrap=True, length=move_length))
     return arr
 
 
@@ -171,14 +187,9 @@ effects = {
 
             # b(208, name='over - Red quarters', length=32),
 
-            grid_f(240, function=lambda x: x, clear=False, length=32),
-            *make_marchers_and_move(240, length=28),
-            # b(240, name='over - Blue quarters', length=32),
+            grid_f(240, function=lambda x: x, clear=False, length=60),
+            *make_marchers_and_move(240, vector=(0, 2), move_length=.25, length=28),
 
-
-            # b(240, name='over - Blue quarters', length=28),
-
-            # # women: "kill them all"
             grid_f(268, text='kill', font_size=8, length=.04),
 
             grid_f(269.5, text='kill', subtract=True, font_size=8, length=.04),
@@ -186,8 +197,13 @@ effects = {
             
             grid_f(271, text='them', subtract=True, font_size=8, length=.04),
             grid_f(271, text='all', font_size=8, length=.04),
-            # b(268, name='Green top', length=4),
             
+            grid_f(272, text='all', subtract=True, font_size=8, length=.04),
+
+            *just_move_marchers(272, skip_beat=4, vector=(0, -2), move_length=.4, length=16),
+            *just_move_marchers(288, skip_beat=4, vector=(0, -3), move_length=.4, length=8),
+            *just_move_marchers_on_beat(296, vector=(0, -6), move_length=.6, length=4),
+
             # # breakdown before drop
             # b(272, name='over - Blue quarters', length=28),
             

@@ -13,6 +13,7 @@
 import pathlib
 import time
 import math
+import random
 
 import numpy as np
 from PIL import Image
@@ -77,6 +78,51 @@ def sidechain_grid(grid_info):
         grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], current_intesity)
 
 
+def twinkle(grid_info):
+    num_twinkles = grid_info.num_twinkles
+    twinkle_length = grid_info.twinkle_length
+    twinkle_lower_wait = grid_info.twinkle_lower_wait
+    twinkle_upper_wait = grid_info.twinkle_upper_wait
+    if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
+        grid_info.twinkles = [None] * num_twinkles
+        for index in range(len(grid_info.twinkles)):
+            grid_info.twinkles[index] = time.time() + (random.random() * (twinkle_upper_wait - twinkle_lower_wait))
+
+    for index, state_or_next_time in enumerate(grid_info.twinkles):
+        if isinstance(state_or_next_time, float):
+            if time.time() < state_or_next_time:
+                continue
+
+            new_x, new_y = grid_helpers.random_coord()
+            grid_info.twinkles[index] = (new_x, new_y, time.time(), twinkle_length)
+        
+        curr_x, curr_y, curr_start_time, curr_length = grid_info.twinkles[index]
+
+        percent_done = (time.time() - curr_start_time) / curr_length
+        if percent_done > 1:
+            grid_info.twinkles[index] = time.time() + twinkle_lower_wait + (random.random() * twinkle_upper_wait)
+            continue
+
+        percent_done * 2
+        if percent_done <= .5:
+            color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
+        else:
+            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
+        grid_helpers.grid[curr_x][curr_y] += color
+
+
+def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
+    return [grid_f(
+        start_beat,
+        function=twinkle,
+        color=color,
+        num_twinkles=num_twinkles,
+        twinkle_lower_wait=twinkle_lower_wait,
+        twinkle_upper_wait=twinkle_upper_wait, 
+        twinkle_length=twinkle_length,
+        length=length,
+    )]
+
 
 # ==== eric and andrews transformation matrix stuff
 
@@ -96,6 +142,20 @@ def get_centered_circle_numpy(radius, offset_x=0, offset_y=0, color=(100, 100, 1
 
     return circle
 
+
+def get_down_line_numpy(length, offset_x=0, offset_y=0, color=(100, 100, 100)):
+    grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
+    
+    circle = np.zeros((grid_width, grid_height, 3), dtype=np.double)
+
+    mid_x = (grid_width // 2) + offset_x
+    mid_y = (grid_height // 2) + offset_y
+
+    print(f'{mid_x}, {mid_y}, {length}, {offset_x}, {offset_y}')
+    for i in range(length):
+        circle[mid_x][mid_y + i] = color
+
+    return circle
 
 def get_point_numpy(point, color=(100, 100, 100)):
     rectangle = np.array(np.zeros((grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT, 3)), np.double)
@@ -138,7 +198,7 @@ def scale_vector(vector, scale):
 def transform_scale_rotation_and_translation(object_image, size, midpoint, scale, rot, pos):
     center_matrix = np.array([[1, 0, midpoint[0]], [0, 1, midpoint[1]], [0,0,1]])
     uncenter_matrix = np.array([[1, 0, -midpoint[0]], [0, 1, -midpoint[1]], [0,0,1]])
-    translate_matrix = np.array([[1, 0, pos[0]], [0, 1, pos[1]], [0,0,1]])
+    translate_matrix = np.array([[1, 0, pos[1]], [0, 1, pos[0]], [0,0,1]])
     scale_matrix = np.array([[1/scale[0], 0, 0], [0, 1/scale[1], 0], [0,0,1]])
     rotation_matrix = np.array([[math.cos(rot), -math.sin(rot), 0], [math.sin(rot), math.cos(rot), 0], [0,0,1]])
 
@@ -181,6 +241,7 @@ def load_object(info):
         info.end_color = getattr(info, 'end_color', None)
 
         info.end_pos = getattr(info, 'end_pos', info.start_pos)
+
         info.end_scale = getattr(info, 'end_scale', info.start_scale)
         info.end_rot = getattr(info, 'end_rot', info.start_rot)
         if isinstance(info.object, np.ndarray): # is a numpy array            
@@ -424,7 +485,7 @@ def move_grid(info):
     if getattr(info, 'beat_divide', None) is None:
         info.beat_divide = 1
     if info.curr_sub_beat % info.beat_divide == 0:
-        if info.wrap:
+        if getattr(info, 'wrap', None):
             grid_helpers.move_wrap(info.vector)
         else:
             grid_helpers.move(info.vector)

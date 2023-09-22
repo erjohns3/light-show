@@ -41,51 +41,6 @@ TWINKLE_SPEED = 10
 #     return twinkle_beats
 
 
-def twinkle(grid_info):
-    num_twinkles = grid_info.num_twinkles
-    twinkle_length = grid_info.twinkle_length
-    twinkle_lower_wait = grid_info.twinkle_lower_wait
-    twinkle_upper_wait = grid_info.twinkle_upper_wait
-    if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
-        grid_info.twinkles = [None] * num_twinkles
-        for index in range(len(grid_info.twinkles)):
-            grid_info.twinkles[index] = time.time() + (random.random() * (twinkle_upper_wait - twinkle_lower_wait))
-
-    for index, state_or_next_time in enumerate(grid_info.twinkles):
-        if isinstance(state_or_next_time, float):
-            if time.time() < state_or_next_time:
-                continue
-
-            new_x, new_y = grid_helpers.random_coord()
-            grid_info.twinkles[index] = (new_x, new_y, time.time(), twinkle_length)
-        
-        curr_x, curr_y, curr_start_time, curr_length = grid_info.twinkles[index]
-
-        percent_done = (time.time() - curr_start_time) / curr_length
-        if percent_done > 1:
-            grid_info.twinkles[index] = time.time() + twinkle_lower_wait + (random.random() * twinkle_upper_wait)
-            continue
-
-        percent_done * 2
-        if percent_done <= .5:
-            color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
-        else:
-            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
-        grid_helpers.grid[curr_x][curr_y] += color
-
-
-def twinkle_forever(color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
-    return [grid_f(
-        1,
-        function=twinkle,
-        color=color,
-        num_twinkles=num_twinkles,
-        twinkle_lower_wait=twinkle_lower_wait,
-        twinkle_upper_wait=twinkle_upper_wait, 
-        twinkle_length=twinkle_length,
-        length=1,
-    )]
-
 
 def random_color():
     b = random.randint(0, 100)
@@ -181,17 +136,17 @@ def fire_ball_fade(grid_info):
         grid_info.trail.append([grid_info.pos, grid_info.color])
 
 effects = {
-    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.white)},
-    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.blue)},
-    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.green)},
-    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.red)},
-    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.purple)},
-    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.yellow)},
-    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.cyan)},
-    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.orange)},
-    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.pink)},
-    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.light_blue)},
-    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": twinkle_forever(color=GColor.light_green)},
+    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.white)},
+    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.blue)},
+    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.green)},
+    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.red)},
+    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.purple)},
+    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.yellow)},
+    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.cyan)},
+    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.orange)},
+    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.pink)},
+    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.light_blue)},
+    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.light_green)},
 
     
     "trail ball fast": {

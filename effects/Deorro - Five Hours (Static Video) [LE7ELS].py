@@ -256,7 +256,7 @@ effects = {
                 beat_lengths=1,
                 object=get_rectangle_numpy(1, 1, color=(0, 100, 0)),
                 poses=[
-                    [(15, 0), None],
+                    [(0, 15), None],
                     None,
                 ],
                 scales=widen_2_beat,
@@ -271,7 +271,7 @@ effects = {
                 object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
                 beat_lengths=1,
                 poses=[
-                    [(-16, 0), None],
+                    [(0, -16), None],
                     None,
                 ],
                 scales=widen_2_beat,
@@ -291,7 +291,7 @@ effects = {
                 beat_lengths=1,
                 object=get_rectangle_numpy(1, 1, color=(100, 0, 0)),
                 poses=[
-                    [(15, 0), None],
+                    [(0, 15), None],
                     None,
                 ],
                 scales=widen_2_beat,
@@ -306,7 +306,7 @@ effects = {
                 object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
                 beat_lengths=1,
                 poses=[
-                    [(-16, 0), None],
+                    [(0, -16), None],
                     None,
                 ],
                 scales=widen_2_beat,

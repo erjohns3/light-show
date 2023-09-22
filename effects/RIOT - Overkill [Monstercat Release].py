@@ -30,12 +30,12 @@ def spawn_half_fallers(start_beat, total_beats, start_color, end_color, intensit
     return building
 
 
-def get_growing_circle_freeze_after(name, start_beat, start_scale, end_scale, freeze_after, length, color):
+def get_growing_circle_freeze_after(start_beat, start_scale, end_scale, freeze_after, length, color):
     return [
         grid_f(
             start_beat,
             function=our_transform,
-            object=name,
+            object=get_centered_circle_numpy(radius=10),
             start_color=color,
             start_scale=start_scale,
             end_scale=end_scale,
@@ -44,27 +44,47 @@ def get_growing_circle_freeze_after(name, start_beat, start_scale, end_scale, fr
         grid_f(
             start_beat + freeze_after,
             function=our_transform,
-            object=name,
+            object=get_centered_circle_numpy(radius=10),
+            start_color=color,
+            start_scale=end_scale,
             length=length - freeze_after,
         ),
     ]
 
 
 def get_wub(start_beat):
-    random_name = random_letters(7)
     return [
-        grid_f(
-            start_beat,
-            function=our_transform,
-            object=get_centered_circle_numpy(radius=10),
-            name=random_name,
-            start_scale = (.01, .01),
-            length=.04,
-        ),
-        *get_growing_circle_freeze_after(random_name, start_beat, (.01, .01), (.5, .5), 3, 4, color=GColor.blue),
-        *get_growing_circle_freeze_after(random_name, start_beat + 4, (.01, .01), (1, 1), 3, 4, color=GColor.green),
-        *get_growing_circle_freeze_after(random_name, start_beat + 8, (.25, .25), (1.5, 1.5), 3, 4, color=GColor.red),
+        *get_growing_circle_freeze_after(start_beat, (.01, .01), (.5, .5), 3, 4, color=GColor.blue),
+        *get_growing_circle_freeze_after(start_beat + 4, (.01, .01), (1, 1), 3, 4, color=GColor.green),
+        *get_growing_circle_freeze_after(start_beat + 8, (.25, .25), (1.5, 1.5), 3, 8, color=GColor.red),
     ]
+
+
+def spawn_line(start_beat, pos, color, length):
+    def ok(info):
+        x, y = pos
+        for i in range(length):
+            final_y = (y + i) % grid_helpers.GRID_HEIGHT
+            grid_helpers.grid[x][final_y] = color
+    return grid_f(start_beat, function=ok, length=.04)
+
+
+def make_marchers(start_beat, length):
+    arr = [
+        grid_f(start_beat, function=lambda x: x, clear=False, length=length),
+        spawn_line(start_beat, (-7, 12), color=GColor.blue, length=5),
+        spawn_line(start_beat, (-3, 5), color=GColor.red, length=5),
+        spawn_line(start_beat, (1, 8), color=GColor.blue, length=5),
+        spawn_line(start_beat, (5, -3), color=GColor.red, length=5),
+        spawn_line(start_beat, (9, -10), color=GColor.blue, length=5),
+    ]
+    for o in range(length):
+        # o = o / 2
+        curr_beat = start_beat + o
+        arr.append(
+            grid_f(curr_beat, function=move_grid, vector=(0, 2), wrap=True, length=.50)
+        )
+    return arr
 
 
 effects = {
@@ -78,9 +98,16 @@ effects = {
         ]
     },
 
-    "over - Red quarters": {'length': 0.5, 'beats': [b(1, name='Red top', length=.25)]},
-    "over - Blue quarters": {'length': 0.5, 'beats': [b(1, name='Blue top', length=.25)]},
-    "over - Green quarters": {'length': 0.5, 'beats': [b(1, name='Green top', length=.25)]},
+    "over - Red halfs": {'length': 1, 'beats': [b(1, name='Red bottom', length=.5)]},
+    "over - Blue halfs": {'length': 1, 'beats': [b(1, name='Blue bottom', length=.5)]},
+    "over - Green halfs": {'length': 1, 'beats': [b(1, name='Green bottom', length=.5)]},
+    "over - sidechain grid halfs": {'length': 1, 'beats': [b(1, name='sidechain grid', length=.5)]},
+
+
+    "over - Red quarters": {'length': 0.5, 'beats': [b(1, name='Red bottom', length=.25)]},
+    "over - Blue quarters": {'length': 0.5, 'beats': [b(1, name='Blue bottom', length=.25)]},
+    "over - Green quarters": {'length': 0.5, 'beats': [b(1, name='Green bottom', length=.25)]},
+    "over - sidechain grid quarters": {'length': .5, 'beats': [b(1, name='sidechain grid', length=.25)]},
 
     "over - Red bottom eighths": {
         'length': 0.25,
@@ -90,11 +117,27 @@ effects = {
         ],
     },
 
+    "sidechain grid": {
+        'length': 1,
+        'beats': [
+            grid_f(1, function=sidechain_grid, length=1, intensity=0),
+        ],
+    },
+
+
     "over - drum eighths": {
         'length': 8,
         'beats': [
             b(1, name='over - Red bottom eighths', length=.75),
             b(2.5, name='over - Red bottom eighths', length=.75),
+        ]
+    },
+
+    "over - strobe flash": {
+        'length': 1,
+        'beats': [
+            b(1, name='Red disco', length=.25),
+            b(1.5, name='Blue disco', length=.25),
         ]
     },
 
@@ -118,10 +161,14 @@ effects = {
             b(176, name='over - drum eighths', length=32),
 
             b(192, name='Red disco', length=16),
+            
+            
+            # *make_twinkle(start_beat=208, length=64, color=GColor.blue, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4),
 
 
             # b(208, name='over - Red quarters', length=32),
 
+            *make_marchers(240, length=28),
             # b(240, name='over - Blue quarters', length=32),
 
 
@@ -147,9 +194,21 @@ effects = {
 
             *get_wub(307),
 
-
+            b(318, name='over - sidechain grid quarters', length=1.5),
+            b(319.5, name='over - sidechain grid halfs', length=3),
+            
             grid_f(325, text='bussin', font_size=5, color=GColor.green, length=1.5),
 
+            b(327, name='over - strobe flash', length=12),
+            grid_f(339, text='bop', font_size=5, color=GColor.green, length=.75),
+            b(349, name='over - strobe flash', length=5),
+
+            b(354, name='Red bottom', length=1, intensity=(1, 0)),
+            b(355, name='Blue bottom', length=1, intensity=(1, 0)),
+
+            grid_f(357, text='bop', font_size=5, color=GColor.green, length=.25),
+            grid_f(357.5, text='bop', font_size=5, color=GColor.green, length=.25),
+            grid_f(358, text='bop', font_size=5, color=GColor.green, length=.5),
 
 
             # b(238.79, name='Red top', length=1),

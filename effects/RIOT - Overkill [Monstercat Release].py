@@ -69,7 +69,7 @@ def spawn_line(start_beat, pos, color, length):
     return grid_f(start_beat, function=ok, length=.04)
 
 
-def make_marchers(start_beat, length):
+def make_marchers_and_move(start_beat, length):
     arr = [
         grid_f(start_beat, function=lambda x: x, clear=False, length=length),
         spawn_line(start_beat, (-7, 12), color=GColor.blue, length=5),
@@ -82,7 +82,7 @@ def make_marchers(start_beat, length):
         # o = o / 2
         curr_beat = start_beat + o
         arr.append(
-            grid_f(curr_beat, function=move_grid, vector=(0, 2), wrap=True, length=.50)
+            grid_f(curr_beat, function=move_grid, vector=(0, 1), wrap=True, length=.25)
         )
     return arr
 
@@ -134,10 +134,13 @@ effects = {
     },
 
     "over - strobe flash": {
-        'length': 1,
+        'length': 2,
         'beats': [
+            b(1, name='laser motor', length=2),
             b(1, name='Red disco', length=.25),
-            b(1.5, name='Blue disco', length=.25),
+            b(1.5, name='green laser', length=.25),
+            b(2, name='Blue disco', length=.25),
+            b(2.5, name='green laser', length=.25),
         ]
     },
 
@@ -168,16 +171,21 @@ effects = {
 
             # b(208, name='over - Red quarters', length=32),
 
-            *make_marchers(240, length=28),
+            grid_f(240, function=lambda x: x, clear=False, length=32),
+            *make_marchers_and_move(240, length=28),
             # b(240, name='over - Blue quarters', length=32),
 
 
             # b(240, name='over - Blue quarters', length=28),
 
             # # women: "kill them all"
-            grid_f(268, text='kill', font_size=8, length=1),
-            grid_f(269.5, text='them', font_size=8, length=1),
-            grid_f(271, text='all', font_size=8, length=1),
+            grid_f(268, text='kill', font_size=8, length=.04),
+
+            grid_f(269.5, text='kill', subtract=True, font_size=8, length=.04),
+            grid_f(269.5, text='them', font_size=8, length=.04),
+            
+            grid_f(271, text='them', subtract=True, font_size=8, length=.04),
+            grid_f(271, text='all', font_size=8, length=.04),
             # b(268, name='Green top', length=4),
             
             # # breakdown before drop
@@ -201,6 +209,11 @@ effects = {
 
             b(327, name='over - strobe flash', length=12),
             grid_f(339, text='bop', font_size=5, color=GColor.green, length=.75),
+            
+            b(339, name='laser motor', length=3),
+            # what
+            b(340, name='green laser', length=2),
+            
             b(349, name='over - strobe flash', length=5),
 
             b(354, name='Red bottom', length=1, intensity=(1, 0)),

@@ -216,18 +216,24 @@ make_if_not_exist(resize_cache_dir)
 
 static_image_cache = {}
 static_image_cache_color = {}
-def load_image_to_grid(image_filepath, color=None, rotate_90=False):
+def load_image_to_grid(image_filepath, color=None, rotate_90=False, subtract=None):
+    global grid
     if image_filepath not in static_image_cache:
         with Image.open(image_filepath) as image_file:
             static_image_cache[image_filepath] = PIL_image_to_numpy_arr(image_file, rotate_90=rotate_90)
+    to_add = None
     if color is not None:
         key = (image_filepath, color)
         if key not in static_image_cache_color:
             static_image_cache_color[key] = static_image_cache[image_filepath] * color
-        grid[:] = static_image_cache_color[key]
+        to_add = static_image_cache_color[key]
     else:
-        grid[:] = static_image_cache[image_filepath]
-
+        to_add = static_image_cache[image_filepath]
+    if subtract:
+        grid[:] -= to_add
+    else:
+        grid[:] += to_add
+    # grid = np.clip(grid, a_min=0, a_max=100)
 
 animation_cache = {}
 # @profile
@@ -315,11 +321,11 @@ def is_animated(filepath):
     return True
 
 
-def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False):
+def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False, subtract=None):
     if filepath.suffix.lower() in ['.webp', '.gif']:
         load_animation_to_grid(filepath, rotate_90=rotate_90)
     elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
-        load_image_to_grid(filepath, color=color, rotate_90=rotate_90)
+        load_image_to_grid(filepath, color=color, rotate_90=rotate_90, subtract=subtract)
     else:
         print_red(f'file suffix {filepath.suffix} not supported')
 

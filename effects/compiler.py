@@ -531,8 +531,9 @@ def fill_grid_from_image_filepath(info):
 
 def fill_grid_from_text(info):
     color = getattr(info, 'color', None)
+    subtract = getattr(info, 'subtract', None)
     filepath = grid_helpers.create_image_from_text_pilmoji(info.text, font_size=info.font_size, rotate_90=info.rotate_90, use_cache=False)
-    grid_helpers.fill_grid_from_image_filepath(filepath, color=color, rotate_90=info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(filepath, color=color, rotate_90=info.rotate_90, subtract=subtract)
 
 
 def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):

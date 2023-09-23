@@ -154,10 +154,10 @@ effects = {
         'beats': [
             b(1, name='laser motor', length=2),
             b(1, name='Red disco', length=.25),
-            # b(1.5, name='green laser', length=.25),
+            b(1.5, name='green laser', length=.25),
             b(1.5, name='Green disco', length=.25),
             b(2, name='Blue disco', length=.25),
-            # b(2.5, name='green laser', length=.25),
+            b(2.5, name='green laser', length=.25),
             b(2.5, name='Green disco', length=.25),
         ]
     },

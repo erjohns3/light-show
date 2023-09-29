@@ -1,6 +1,9 @@
 import os
 import pathlib
 import subprocess
+import sys
+import platform
+import time
 
 try:
     profile
@@ -9,19 +12,6 @@ except NameError:
 
 helper_file_folder = pathlib.Path(__file__).parent.resolve()
 
-def is_windows():
-    import platform
-    return platform.system() == "Windows"
-
-
-def is_linux():
-    import platform
-    return platform.system() == "Linux"
-
-
-def is_macos():
-    import platform
-    return platform.system() == "Darwin"
 
 def get_datetime_str():
     import datetime
@@ -38,31 +28,17 @@ def get_hostname():
     import socket
     return socket.gethostname()
 
-def is_marias_computer():
-    return get_hostname() in ['DESKTOP-IKO6828']
+is_windows = lambda: platform.system() == "Windows"
+is_linux = lambda: platform.system() == "Linux"
+is_macos = lambda: platform.system() == "Darwin"
 
-
-def is_ray():
-    return get_hostname() in ['ray']
-
-
-def is_erics_laptop():
-    return get_hostname() in ['Eric-Laptop']
-
-
-def is_andrews_main_computer():
-    return get_hostname() in ['zetai']
-
-
-def is_andrews_laptop():
-    return get_hostname() in ['DESKTOP-754BOFE']
-
-
-def is_doorbell():
-    return get_hostname() in ['doorbell']
-
-def is_dj():
-    return get_hostname() in ['DESKTOP-6HUD9AG']
+is_marias_computer = lambda: get_hostname() == 'DESKTOP-IKO6828'
+is_ray = lambda: get_hostname() == 'ray'
+is_erics_laptop = lambda: get_hostname() == 'Eric-Laptop'
+is_andrews_main_computer = lambda: get_hostname() == 'zetai'
+is_andrews_laptop = lambda: get_hostname() == 'DESKTOP-754BOFE'
+is_doorbell = lambda: get_hostname() == 'doorbell'
+is_dj = lambda: get_hostname() == 'DESKTOP-6HUD9AG'
 
 def is_screensaver_running():
     if not is_ray():
@@ -83,55 +59,51 @@ def is_screensaver_running():
     return False
 
 
-ray_is_active_andrew = False
+def get_eric_directory():
+    if is_andrews_main_computer():
+        mount_path = pathlib.Path('/mnt/eric_network_share')
+        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
+        if stdout: 
+            return mount_path
+        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //ERIC-DESKTOP/Network /mnt/eric_network_share"')
+        exit()
+    elif is_windows(): 
+        return pathlib.Path(r'\\ERIC-DESKTOP\Network')
+    print_red('doesnt know how contact eric_directory')
+
 def get_ray_directory():
-    global ray_is_active_andrew
     if is_ray() or is_erics_laptop() or is_dj():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/ray_network_share')
-        if ray_is_active_andrew:
-            return mount_path
-        _, stdout, _ = run_command_blocking([
-            'ls',
-            str(mount_path),
-        ])
+        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
         if stdout:
             return mount_path
-        else:
-            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=${USER},password=${PASSWORD},uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
-            exit()
+        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
+        exit()
     elif is_windows():
         return pathlib.Path(r'\\Ray\T')
-    else:
-        print_red('doesnt know how contact ray_directory')
+    print_red('doesnt know how contact ray_directory')
 
-nas_is_active_andrew = False
+
 def get_nas_directory():
-    global nas_is_active_andrew
     if is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/nas')
-        if nas_is_active_andrew:
-            return mount_path
-        _, stdout, _ = run_command_blocking([
-            'ls',
-            str(mount_path),
-        ])
+        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
         if stdout:
             return mount_path
         else:
             print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
             exit()
-    else:
-        print_red('doesnt know how contact nas_directory')
+    print_red('doesnt know how contact nas_directory')
 
 
-def get_stack_trace() -> str:
+def get_stack_trace():
     import traceback
     return traceback.format_exc()
 
 
-def print_stacktrace() -> None:
+def print_stacktrace():
     print_red(get_stack_trace())
 
 
@@ -215,24 +187,32 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+def rgb_ansi(text, rgb): # I think this is called "true color" which is 24 bit color
+    rgb_style = f'38;2;{rgb[0]};{rgb[1]};{rgb[2]}'
+    return f'\033[{rgb_style}m{text}\033[0m'
 
-def yellow(s):
-    return f'{bcolors.WARNING}{s}{bcolors.ENDC}'
+def disable_color():
+    global bcolors, rgb_ansi
+    bcolors.HEADER = ''
+    bcolors.OKBLUE = ''
+    bcolors.OKCYAN = ''
+    bcolors.OKGREEN = ''
+    bcolors.WARNING = ''
+    bcolors.FAIL = ''
+    bcolors.ENDC = ''
+    bcolors.BOLD = ''
+    bcolors.UNDERLINE = ''
+    rgb_ansi = lambda text, rgb: text
 
-def green(s):
-    return f'{bcolors.OKGREEN}{s}{bcolors.ENDC}'
+if not sys.stdout.isatty(): # if outputting to file
+    disable_color()
 
-def cyan(s):
-    return f'{bcolors.OKCYAN}{s}{bcolors.ENDC}'
-
-def bold(s):
-    return f'{bcolors.BOLD}{s}{bcolors.ENDC}'
-
-def blue(s):
-    return f'{bcolors.OKBLUE}{s}{bcolors.ENDC}'
-
-def red(s):
-    return f'{bcolors.FAIL}{s}{bcolors.ENDC}'
+yellow = lambda s: f'{bcolors.WARNING}{s}{bcolors.ENDC}'
+green = lambda s: f'{bcolors.OKGREEN}{s}{bcolors.ENDC}'
+cyan = lambda s: f'{bcolors.OKCYAN}{s}{bcolors.ENDC}'
+bold = lambda s: f'{bcolors.BOLD}{s}{bcolors.ENDC}'
+blue = lambda s: f'{bcolors.OKBLUE}{s}{bcolors.ENDC}'
+red = lambda s: f'{bcolors.FAIL}{s}{bcolors.ENDC}'
 
 
 color_tracker = 0
@@ -245,50 +225,24 @@ def next_color(s, skip=None):
             break
     return avail_colors[color_tracker][0](s)
 
-# I think this is called "true color" which is 24 bit color
-# @profile
-def rgb_ansi(text, rgb_tuple):
-    rgb_style = f'38;2;{rgb_tuple[0]};{rgb_tuple[1]};{rgb_tuple[2]}'
-    return f'\033[{rgb_style}m{text}\033[0m'
-
-
-
-def disable_color():
-    global bcolors
-    bcolors.HEADER = ''
-    bcolors.OKBLUE = ''
-    bcolors.OKCYAN = ''
-    bcolors.OKGREEN = ''
-    bcolors.WARNING = ''
-    bcolors.FAIL = ''
-    bcolors.ENDC = ''
-    bcolors.BOLD = ''
-    bcolors.UNDERLINE = ''
-
 
 def print_yellow(*args, **kwargs):
-    args = map(str, args)
-    print(yellow(' '.join(args)), **kwargs)
+    print(yellow(' '.join(map(str, args))), **kwargs)
 
 def print_green(*args, **kwargs):
-    args = map(str, args)
-    print(green(' '.join(args)), **kwargs)
+    print(green(' '.join(map(str, args))), **kwargs)
 
 def print_cyan(*args, **kwargs):
-    args = map(str, args)
-    print(cyan(' '.join(args)), **kwargs)
+    print(cyan(' '.join(map(str, args))), **kwargs)
 
 def print_bold(*args, **kwargs):
-    args = map(str, args)
-    print(bold(' '.join(args)), **kwargs)
+    print(bold(' '.join(map(str, args))), **kwargs)
 
 def print_blue(*args, **kwargs):
-    args = map(str, args)
-    print(blue(' '.join(args)), **kwargs)
+    print(blue(' '.join(map(str, args))), **kwargs)
 
 def print_red(*args, **kwargs):
-    args = map(str, args)
-    print(red(' '.join(args)), **kwargs)
+    print(red(' '.join(map(str, args))), **kwargs)
 
 
 def get_no_duplicate_spaces(s):
@@ -296,10 +250,11 @@ def get_no_duplicate_spaces(s):
     return re.sub(r"\s+", " ", s)
 
 
-def random_letters(num_chars: int) -> str:
+def random_letters(num_chars):
     import random
     letters = [chr(ord('a') + a) for a in range(26)]
     return ''.join(random.sample(letters, num_chars))
+
 
 def get_all_paths(directory, only_files=False, exclude_names=None, recursive=False, allowed_extensions=None, quiet=False):
     directory = pathlib.Path(directory)
@@ -342,32 +297,47 @@ def start_http_server_async(port, filepath_to_serve):
 
 
 def is_python_32_bit():
-    import sys
     return sys.maxsize > 2**32
-
-def start_video_in_mpv_async(video_path, volume=70):
-    print(f'start_video_in_mpv: starting "{video_path}"')
-    run_command_async([
-        'mpv', 
-        str(video_path), 
-        '--no-resume-playback',
-        '--sid=no',
-        '--title=mpv_vtuber_window',
-        '--x11-name=mpv_vtuber_window',
-        f'--volume={volume}',
-    ], debug=True)
 
 def is_linux_root():
     return is_linux() and os.geteuid() == 0
 
+
+def make_if_not_exist(output_dir, quiet=False):
+    output_dir = pathlib.Path(output_dir)
+    if not output_dir.exists():
+        if not quiet:
+            print_yellow(f'Creating {output_dir} since it didn\'t exist')
+        os.makedirs(output_dir)
+    return output_dir
+
+
+def get_temp_dir(inner_dir_name=None):
+    temp_dir = make_if_not_exist(pathlib.Path(__file__).parent.joinpath('temp'))
+    if inner_dir_name is None:
+        return temp_dir
+    return make_if_not_exist(temp_dir.joinpath(inner_dir_name)) 
+
+def get_sub_temp_dir(name=None):
+    if name is None:
+        name = random_letters(15)
+    return make_if_not_exist(get_temp_dir().joinpath(name))
+
+def get_temp_file(name=None, suffix=None):
+    if name is None:
+        name = random_letters(15)
+    if suffix is not None:
+        return get_temp_dir().joinpath(name).with_suffix(suffix)
+    return get_temp_dir().joinpath(name)
+
+
 def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe=None, stdout_pipe=subprocess.PIPE, stderr_pipe=subprocess.PIPE, timing=False):
-    import time 
     start_time = time.time()
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
             if not isinstance(cmd, pathlib.Path):
-                print_yellow(f'WARNING: the parameter "cmd" was not a str, casting and continuing')
+                print_yellow(f'WARNING: the parameter "{cmd}" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():
@@ -386,9 +356,11 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe
         print(f'Finished execution, return code was {process.returncode}')
 
     if stdout is not None:
-        stdout = stdout.decode("utf-8")
+        # !TODO this might be bad, i read somewhere online that this is more encompassing than utf8 idk tho probably not lol
+        stdout = stdout.decode("ISO-8859-1") 
     if stderr is not None:
-        stderr = stderr.decode("utf-8")
+        stderr = stderr.decode("ISO-8859-1")
+        
 
     if debug:
         if process.returncode:
@@ -409,36 +381,12 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe
     return process.returncode, stdout, stderr
 
 
-def make_if_not_exist(output_dir, quiet=False):
-    output_dir = pathlib.Path(output_dir)
-    if not output_dir.exists():
-        if not quiet:
-            print_yellow(f'Creating {output_dir} since it didn\'t exist')
-        os.makedirs(output_dir)
-    return output_dir
-
-
-def get_temp_dir():
-    return make_if_not_exist(pathlib.Path(__file__).parent.joinpath('temp'))
-
-def get_sub_temp_dir(name=None):
-    if name is None:
-        name = random_letters(15)
-    return make_if_not_exist(get_temp_dir().joinpath(name))
-
-def get_temp_file(name=None):
-    if name is None:
-        name = random_letters(15)
-    return get_temp_dir().joinpath(name)
-
-
 def run_command_async(full_command_arr, debug=False, stdin=None):
-    import subprocess
-
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
-            print_yellow(f'the parameter "cmd" was not a str, casting and continuing')
+            if not isinstance(cmd, pathlib.Path):
+                print_yellow(f'WARNING: the parameter "{cmd}" was not a str, casting and continuing')
             full_command_arr[index] = str(full_command_arr[index])
 
     if is_windows():
@@ -504,10 +452,9 @@ def hmsm_string_to_seconds(string):
     return hours * 3600 + minutes * 60 + seconds + milliseconds / 100
 
 
-def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False):
+def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False, quit_on_end=False):
     cmd = [
-        'mpv', 
-        video_path, 
+        'mpv', video_path, 
         '--no-resume-playback',
         '--no-pause',
         '--load-scripts=no',
@@ -516,10 +463,11 @@ def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False):
         cmd.append('--sid=no')
     if volume is not None:
         cmd.append(f'--volume={volume}')
+    if run_async or quit_on_end:
+        cmd.append(f'--keep-open=no') # prevents zombie processes if you have that flag up
     if run_async:
         return run_command_async(cmd)
-    else:
-        run_command_blocking(cmd, stdout_pipe=None, stderr_pipe=None)
+    run_command_blocking(cmd, stdout_pipe=None, stderr_pipe=None)
 
 
 
@@ -536,7 +484,6 @@ def kill_self(seconds=0):
         print(f'{i}: running to kill: "{kill_string}"')
         os.system(kill_string)
     print_red('THIS SHOULD BE UNREACHABLE')
-
 
 
 def path_is_local(path):
@@ -573,18 +520,12 @@ def dump_text_to_file(text, output_directory=get_temp_dir()):
     return filepath
 
 
-# import sys
-# import pathlib
-# sys.path.insert(0, str(pathlib.Path(__file__).parent.joinpath('..').resolve()))
-
 
 # go up a line: '\033[A'
 # up a line and begining: '\033[F'
-
 
 # disabling std out
 # if is_windows():
 #     null_std_out = open('nul', 'w')
 # elif is_linux() or is_macos():
 #     null_std_out = open('/dev/null', 'w')
-

@@ -11,7 +11,11 @@ from helpers import *
 
 ydl_search_opts = {
     'format': 'bestaudio/best',
-    'noplaylist':'True',
+    'noplaylist': True,
+    'download': False,
+    # 'skip_download': True,
+    # 'player_client': ['web'],
+    # 'getid': True,
     'quiet': True,
     'postprocessors': [{
         'key': 'FFmpegExtractAudio',
@@ -27,9 +31,34 @@ last_youtube_searched_time = None
 
 minimum_youtube_api_wait_time_seconds = 1
 
+
+# todo look into one of these, i the JS intepretor is being run in yt_download which is ridiculous: 
+    # https://github.com/andrscyv/fast_youtube_search/blob/master/fast_youtube_search/search.py
+    # https://github.com/alexmercerind/youtube-search-python
+    # https://github.com/damonwonghv/youtube-search-api
+def youtube_search_new(search_phrase, timing=False):
+    time_start = time.time()
+    num_requests = 1
+    retcode, stdout, stderr = run_command_blocking([
+        'yt-dlp',
+        '--max-downloads', '1',
+        '--flat-playlist',
+        f'ytsearch{num_requests}:{search_phrase}',
+        '--get-id',
+        '--get-title',
+        '--skip-download',
+    ], stderr_pipe=subprocess.PIPE, stdout_pipe=subprocess.PIPE)
+    if retcode:
+        return print_red(f'Couldnt download "{search_phrase}" due to {get_stack_trace()}')
+    _title, video_id = [line.strip() for line in stdout.splitlines() if line.strip()]
+    if timing: print_blue(f'youtube_search_new took {time.time() - time_start} seconds')
+    return f'https://www.youtube.com/watch?v={video_id}'
+
+
 # variables to control search
-results_to_consider = 3
+results_to_consider = 1
 def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_length_of_video_seconds=1000):
+    # idk think about all this stuff
     global last_youtube_searched_time
     import yt_dlp
     if yt_dlp.version.__version__ < '2023.07.06':
@@ -38,25 +67,33 @@ def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_le
 
     if last_youtube_searched_time:
         time_to_wait = max(0, minimum_youtube_api_wait_time_seconds - (time.time() - last_youtube_searched_time))
+        print(f'youtube_search: Sleeping {time_to_wait}')
         time.sleep(time_to_wait)
 
-    curr_ydl_opts = deepcopy(ydl_search_opts) 
+    curr_ydl_opts = deepcopy(ydl_search_opts)
     try:
         with yt_dlp.YoutubeDL(curr_ydl_opts) as ydl:
             # This line can throw a DownloadError, somehow split it up to consider the other results?
-            all_results = ydl.extract_info(f"ytsearch{results_to_consider}:{search_phrase}", download=False)
+            to_search = f'ytsearch{results_to_consider}:{search_phrase}'
+            print_blue(f'yt-dlp "{to_search}"')
+            all_results = ydl.extract_info(to_search, download=False)
             for entry in all_results['entries']:
                 if 'title' not in entry or 'webpage_url' not in entry:
                     print_red(f'Somehow title or webpage_url arent in this object {entry}')
                 if 'duration' in entry and entry['duration'] >= minimum_length_of_video_seconds and entry['duration'] <= maximum_length_of_video_seconds:
+                    tmp = get_temp_file()
+                    with open(tmp, 'w') as f:
+                        f.write(json.dumps(entry, indent=4))
+                        print(f'Wrote search entry to {tmp}')
                     return entry
     except yt_dlp.DownloadError as e:
         # maybe i misread this, this can throw a DownloadError?
-        print_red(f'Couldnt download "{search_phrase}" due to {get_stacktrace()}')
+        print_red(f'Couldnt download "{search_phrase}" due to {get_stack_trace()}')
 
     last_youtube_searched_time = time.time()
 
-def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, codec='vorbis', cache_path=None):
+# https://www.youtube.com/watch?v=2JpmVcJVfdQ
+def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max_length_seconds=None, codec='vorbis', cache_path=None):
     cache = {}
     if cache_path:
         cache_path = pathlib.Path(cache_path)
@@ -76,6 +113,7 @@ def download_youtube_url(url=None, dest_path=None, max_length_seconds=None, code
     ydl_opts = {
         'format': 'vorbis/bestaudio/best',
         'outtmpl': f'{str(inject_path_prefix) + os.path.sep}%(title)s.%(ext)s',
+        'restrictfilenames': restrict_filenames,
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
         'postprocessors': [{  # Extract audio using ffmpeg
             'key': 'FFmpegExtractAudio',
@@ -233,7 +271,7 @@ if __name__ == '__main__':
     make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument('url', type=str)
-    parser.add_argument('--no_show', dest='gen_show', default=True, action='store_false')
+    parser.add_argument('--no_show', dest='gen_show', default=False, action='store_false')
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
     args = parser.parse_args()
 
@@ -245,50 +283,10 @@ if __name__ == '__main__':
         print_yellow(f'Downloading youtube video to {output_directory} and NOT generating show file (use --show if you meant to do that)')    
     time.sleep(.1)
 
-    this_file_directory = pathlib.Path(__file__).parent
-    cache_path = this_file_directory.joinpath('youtube_cache.json')
-    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds, cache_path=cache_path)
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds)
     if downloaded_filepath is None:
         print('Couldnt download video')
         exit()
-
-
-    if args.gen_show:
-        import autogen
-        print_blue('Generating show file for the downloaded file')
-        relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
-        output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
-        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = autogen.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
-        output_filepath = autogen.write_effect_to_file_pretty(
-            output_filepath, 
-            {
-                downloaded_filepath.stem: {
-                    'bpm': bpm_guess,
-                    'song_path': str(relative_downloaded_filepath),
-                    'delay_lights': delay,
-                    'skip_song': 0.0,
-                    'beats': [
-                        # 'b(1, "RBBB 1 bar", 500),'
-                    ],
-                }
-            },
-            write_compiler=True,
-            # rip_out_char='"',
-        )
-
-    remote_folder = pathlib.Path('/home/pi/light-show/songs')
-    print('Starting scp to doorbell')
-    try:
-        scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
-    except:
-        print_stacktrace()
-        print_yellow('The above error means the scp of the song failed scping to the doorbell, but the song was still downloaded to the local machine and the show was made. You will have to manually scp the song file over at some point')
-
-    if args.gen_show:
-        print_green(bold(f'\nStart editing your show here: "{output_filepath}"'))
-
-
-
 
 
 

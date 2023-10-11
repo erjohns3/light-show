@@ -93,7 +93,7 @@ def youtube_search(search_phrase, minimum_length_of_video_seconds=50, maximum_le
     last_youtube_searched_time = time.time()
 
 # https://www.youtube.com/watch?v=2JpmVcJVfdQ
-def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max_length_seconds=None, codec='vorbis', cache_path=None):
+def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max_length_seconds=None, codec='vorbis', keep_video=False, cache_path=None):
     cache = {}
     if cache_path:
         cache_path = pathlib.Path(cache_path)
@@ -111,17 +111,20 @@ def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max
     
     # all ydl opts: https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/YoutubeDL.py#L128-L278
     ydl_opts = {
-        'format': 'vorbis/bestaudio/best',
+        'format': f'{codec}/bestaudio/best',
         'outtmpl': f'{str(inject_path_prefix) + os.path.sep}%(title)s.%(ext)s',
         'restrictfilenames': restrict_filenames,
+        'noplaylist': True,
         # See help(yt_dlp.postprocessor) for a list of available Postprocessors and their arguments
-        'postprocessors': [{  # Extract audio using ffmpeg
+        'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': codec,
             'preferredquality': '0',
-        }],
-        'noplaylist': True,
+        }]
     }
+    if keep_video:
+        ydl_opts['format'] = 'mp4/bestvideo/best' # !todo figure out if this is sacking video quality
+        del ydl_opts['postprocessors']
     import yt_dlp
 
     try:
@@ -273,6 +276,7 @@ if __name__ == '__main__':
     parser.add_argument('url', type=str)
     parser.add_argument('--no_show', dest='gen_show', default=False, action='store_false')
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
+    parser.add_argument('--video', dest='keep_video', default=False, action='store_true')
     args = parser.parse_args()
 
 
@@ -283,7 +287,7 @@ if __name__ == '__main__':
         print_yellow(f'Downloading youtube video to {output_directory} and NOT generating show file (use --show if you meant to do that)')    
     time.sleep(.1)
 
-    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds)
+    downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds, keep_video=args.keep_video)
     if downloaded_filepath is None:
         print('Couldnt download video')
         exit()

@@ -15,38 +15,25 @@ import colorsys
 import random
 import traceback
 import sys
-import pigpio
 
 print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 
-from helpers import *
-from effects.compiler import GridInfo
-import effects.compiler
-import joystick_and_keyboard_helpers
-
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
 # os.environ['SDL_AUDIODRIVER'] = 'jack'
-
-# also i tried
-    # sudo apt-get update
-    # sudo apt-get install alsa-utils
-    # sudo modprobe snd_bcm2835
-    # sudo apt-get install avahi-utils
-    # sudo reboot
-try:
-    profile
-except NameError:
-    profile = lambda x: x
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
+import pigpio
 import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
-print_cyan(f'Up to custom import: {time.time() - first_start_time:.3f}')
 import sound_video_helpers
 import youtube_download_helpers
 from users import users
 import grid_helpers
+from helpers import *
+from effects.compiler import GridInfo
+import effects.compiler
+import joystick_and_keyboard_helpers
 print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 

@@ -10,6 +10,7 @@ from copy import deepcopy
 import random
 import traceback
 import sys
+import shutil
 
 from scipy.signal import find_peaks
 from aubio import source, pvoc, filterbank
@@ -118,6 +119,49 @@ def get_src_bpm_offset_multiprocess(song_filepath, use_boundaries):
     except Exception as e:
         print_red(f'{traceback.format_exc()}')
         raise e
+
+
+def separate_stem(audio_path, part, model=None, cache=True):
+    if not part:
+        return audio_path
+    
+    if model is None:
+        if is_andrews_main_computer():
+            model = 'htdemucs_ft'
+            print(f'separate_stem: Defaulting model to htdemucs_ft. This is highest quality but over 4x slower than the next best')
+        else:
+            model = 'htdemucs'
+            print(f'separate_stem: Defaulting model to htdemucs. This is second highest quality model but fast')
+
+    avail_parts = ['vocals', 'drums', 'bass', 'other']
+    if part:
+        part = part.lower()
+        if part not in avail_parts:
+            print_red(f'invalid separation part "{part}", need to choose from {avail_parts}')
+            exit()
+        separated_dir = make_if_not_exist(get_temp_dir().joinpath('separated')) 
+        expected_folder_output = separated_dir.joinpath(model, audio_path.stem)
+        if not cache or not expected_folder_output.exists():
+            import demucs.separate
+            print(f'separating {audio_path.stem}')
+            cmd = [
+                '--mp3', 
+                '-n', model,
+                '-o', str(separated_dir),
+            ]
+            if is_macos(): # apple silicon GPU backend
+                cmd += ['-d', 'mps']
+            cmd.append(part)
+            cmd.append(str(audio_path))
+            demucs.separate.main(cmd)
+        full_path = expected_folder_output.joinpath(f'{part}.mp3')
+        if not full_path.exists():
+            print_red(f'expected separated output "{full_path}" doesnt exist, but "{expected_folder_output}" does exist. weird...')
+            exit()
+        better_named_path = get_temp_dir().joinpath(f'{audio_path.stem}_{part}.mp3')
+        if not better_named_path.exists():
+            shutil.copy(full_path, better_named_path)
+        return better_named_path
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):

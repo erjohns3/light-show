@@ -3,7 +3,7 @@ import random
 
 import numpy as np
 from pilmoji import Pilmoji
-from PIL import Image, ImageSequence, ImageFont, ImageDraw, ImageOps
+from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
 

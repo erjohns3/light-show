@@ -8,7 +8,7 @@ def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GCo
         before_color = interpolate_vectors_float(start_color, end_color, i / total)
         after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
         arr.append(grid_f(
-            start_beat + (i * .125),
+            start_beat + (i * .15),
             function=our_transform,
             object=get_centered_circle_numpy_nofill(radius=i+1),
             start_color=before_color,
@@ -109,10 +109,10 @@ effects = {
         ]
     },
     "circle pulse": {
-        "length": 6,
+        "length": 8,
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=4, start_color=GColor.cyan, end_color=GColor.pink),
+            *get_circle_pulse_beats(start_beat=5, start_color=GColor.cyan, end_color=GColor.pink),
         ],
     },
 
@@ -147,7 +147,6 @@ effects = {
             b(145, name='ll pre chorus', length=8),
             b(153, name='circle pulse', length=32),
             b(153, name='ll bass', length=32),
-            b(175, name="twinkle white", length=152),
             b(185, name='ll bass', length=48),
             b(191.5, name='ll clap', length=2),
             b(196, name='ll fill', length=6),
@@ -161,7 +160,7 @@ effects = {
             b(292, name='ll fill', length=6),
             b(313, name='Blue disco pulse', length=32),
             b(345, name='Rgb disco pulse', length=32),
-            b(380, name="twinkle white", length=28),
+            b(380, name="twinkle blue", length=28),
             b(380, name='Strobe bottom', length=28, sat_shift=.2, intensity=(0, 1)),
             b(372, name='ll fill', length=6),
             b(388, name='ll fill', length=6),

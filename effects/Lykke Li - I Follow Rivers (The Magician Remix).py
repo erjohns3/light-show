@@ -18,6 +18,7 @@ def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GCo
     return arr
 
 
+
 effects = {
     "ll bass" : {
         "length": 2,

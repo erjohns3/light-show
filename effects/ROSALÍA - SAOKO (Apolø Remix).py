@@ -74,16 +74,10 @@ effects = {
         "beats": [
             b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
             b(2.75, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
-            b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1,0)),        
+            b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
         ],
     },
-    "sidechain motor halfs": {
-        'length': 1,
-        "beats": [
-            b(1.15, name='Sidechain motor', length=.85),
-        ]
-    },
-     "chorus laser": {
+     "S chorus laser": {
         'length': 16,
         'autogen': 'laser long',
         "beats": [
@@ -92,7 +86,7 @@ effects = {
             b(1, name='red laser', length=16),
         ]
     },
-    "circle pulse": {
+    "S circle pulse": {
         "length": 4,
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
@@ -105,41 +99,32 @@ effects = {
         "skip_song": 0.0,
         "beats": [
             # start
-            grid_f(5, filename='thunder.gif', rotate_90=False, length=44),
             b(5, name='saoko bass', length=42),
             # 17 chica que dices
-            b(17, name='Orange top', length=4),
-            #saoko papi
-            b(21, name='Yellow top', length=4),
-            b(29, name='Red top', length=4),
-            # chica que dices
-            b(32, name='Orange top', length=4),
-            b(37, name='Yellow top', length=4),
-            # Verse
+            grid_f(17, filename='thunder.gif', rotate_90=True, length=28),
+            # 21 saoko papi
+            # 32 chica que dices
+            # transition
+            b(45, name='S circle pulse', length=4),
+            # 49 Verse
             b(49, name='saoko verse', length=32),
-            # transformo
-            b(81, name='chorus laser', length=32),
-            b(81, name='circle pulse', length=32),
+            # 81 transformo
+            b(81, name='S chorus laser', length=28),
+            b(81, name='saoko bass', length=32),
+            # transition
+            b(109, name='S circle pulse', length=4),
+            b(109, name='Strobe bottom', length=4),
+            # 113 quiet moment
+            b(113, name='saoko bass', length=48),
+            grid_f(113, filename='fire.gif', rotate_90=True, length=48),
             # quiet moment
-            b(113, name='saoko bass', length=42),
-            grid_f(113, filename='fire.gif', rotate_90=False, length=44),
-            b(120, name='Strobe bottom', length=9),
-            # go go go go 
-            b(129, name='UV pulse', length=15),
-            # quiet moment
-            b(145, name='Orange top', length=15),
             # que algo
-            b(161, name='Yellow top', length=4),
+            b(160, name='S circle pulse', length=4),
+            b(164, name="Strobe bottom", length=12, sat_shift=.2, intensity=(0, 1)),
+            b(172, name='S circle pulse', length=4),
             # bump
             b(176, name='saoko verse', length=64),
-            # 
-            b(193, name='Orange top', length=8),
-            # bump
-            b(209, name='Yellow top', length=8),
-            #
-            b(225, name='Red top', length=8),
-            #end
-            b(241, name='Orange top', length=8),
+            b(176, name='S chorus laser', length=64),
         ]
     }
 }

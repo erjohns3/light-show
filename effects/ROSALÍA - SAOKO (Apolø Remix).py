@@ -72,6 +72,10 @@ effects = {
     "saoko bass" : {
         "length": 4,
         "beats": [
+            # andrew timing debugging
+            # b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
+            # b(2.5, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
+            # b(4, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
             b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
             b(2.75, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
             b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
@@ -95,7 +99,7 @@ effects = {
     "ROSALÍA - SAOKO (Apolø Remix)": {
         "bpm": 118,
         "song_path": "songs/ROSALÍA - SAOKO (Apolø Remix).ogg",
-        "delay_lights": 0.0,
+        "delay_lights": 0.05,
         "skip_song": 0.0,
         "beats": [
             # start

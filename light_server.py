@@ -1342,6 +1342,7 @@ def set_effect_defaults(name, effect):
                 effect['delay_lights'] += 0.08
             if args.delay_seconds:
                 effect['delay_lights'] += args.delay_seconds
+                # print_red(f'{name}: WHEN AM I ADDED')
             if 'length' not in effect:
                 effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
             if 'loop' not in effect:

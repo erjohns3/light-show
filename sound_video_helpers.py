@@ -5,7 +5,6 @@ import os
 import pathlib
 import time
 import sys
-import json
 
 from helpers import *
 
@@ -138,53 +137,6 @@ def remove_audio(path, output_directory=get_temp_dir(), cache=True):
     ])
     if retcode:
         return print_red(f'remove_audio: Couldnt remove audio due to: {stderr}')
-    return output_filepath
-
-
-def slowed_video_ffmpeg_bitstream(path, speed, output_directory=get_temp_dir(), cache=True, quiet=False):
-    # ffmpeg -i input.mp4 -map 0:v -c:v copy -bsf:v hevc_mp4toannexb raw.h265
-    path = pathlib.Path(path)
-    if speed == 1.0 or speed == 1:
-        return path
-
-    output_filepath = output_directory.joinpath(f'{path.stem}_filter_bitstream_{speed}{path.suffix}')
-    if cache and output_filepath.exists():
-        return output_filepath
-
-    video_stream = get_video_streams(path)[0]
-    input_fps = video_stream['r_frame_rate']
-    output_fps = eval(input_fps) * speed
-    if not quiet:
-        print_green(f'Converting "{path}" with fps of {input_fps} to speed {speed} (fps: {output_fps}) using filter bitstream, final output is {output_filepath}. This strips audio.')
-    intermediary_path = output_filepath.with_suffix('.h264')
-    
-    # ffmpeg -i input.mp4 -map 0:v -c:v copy -bsf:v h264_mp4toannexb raw.h264
-    retcode, _stdout, stderr = run_command_blocking([
-        'ffmpeg', '-hide_banner', '-y',
-        '-i', str(path),
-        '-map', '0:v',
-        '-c:v', 'copy',
-        '-an',
-        '-bsf:v', 'h264_mp4toannexb',
-        intermediary_path,
-    ])
-    if retcode:
-        return print_red(f'slowed_video: Couldnt slow video in bitstream conversion: {stderr}')
-
-    # ffmpeg -fflags +genpts -r 30 -i raw.h264 -c:v copy output.mp4
-    retcode, _stdout, stderr = run_command_blocking([
-        'ffmpeg', '-hide_banner', '-y',
-        '-fflags', '+genpts',
-        '-r', str(output_fps),
-        '-i', intermediary_path,
-        '-c:v', 'copy',
-        output_filepath,
-    ])
-    if retcode:
-        return print_red(f'slowed_video: Couldnt slow video muxing to container: {stderr}')
-
-
-
     return output_filepath
 
 
@@ -364,13 +316,13 @@ def convert_to_mp3(input_filepath, output_directory=get_temp_dir(), cache=True, 
     return output_filepath
 
 
-def change_speed_audio_asetrate(input_filepath, speed, quiet=False):
+def change_speed_audio_asetrate(input_filepath, speed, cache=True, quiet=False):
     input_filepath = pathlib.Path(input_filepath)
 
     if speed == 1.0 or speed == 1:
         return input_filepath
     output_filepath = get_temp_dir().joinpath(f'{input_filepath.stem}_asetrate_{speed}{input_filepath.suffix}')
-    if output_filepath.exists():
+    if cache and output_filepath.exists():
         return output_filepath
     
     import tinytag

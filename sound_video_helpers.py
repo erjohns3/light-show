@@ -316,7 +316,7 @@ def convert_to_mp3(input_filepath, output_directory=get_temp_dir(), cache=True, 
     return output_filepath
 
 
-def change_speed_audio_asetrate(input_filepath, speed, cache=True, quiet=False):
+def change_speed_audio_asetrate(input_filepath, speed, output_samplerate=48000, cache=True, quiet=False):
     input_filepath = pathlib.Path(input_filepath)
 
     if speed == 1.0 or speed == 1:
@@ -327,16 +327,15 @@ def change_speed_audio_asetrate(input_filepath, speed, cache=True, quiet=False):
     
     import tinytag
     if not quiet:
-        print(f'{bcolors.OKGREEN}Converting "{input_filepath} to speed {speed} using asetrate{bcolors.ENDC}"')
-    run_command_blocking([
-        'ffmpeg',
-        '-i',
-        input_filepath,
-        '-filter:a',
-        f'asetrate={tinytag.TinyTag.get(input_filepath).samplerate * speed}',
-        '-y',
+        print_green(f'Converting "{input_filepath} to speed {speed} using asetrate"')
+    retcode, _stdout, stderr = run_command_blocking([
+        'ffmpeg', '-hide_banner', '-y',
+        '-i', input_filepath,
+        '-filter:a', f'asetrate={tinytag.TinyTag.get(input_filepath).samplerate * speed},aresample=48000',
         output_filepath,
-    ], debug=False)
+    ])
+    if retcode:
+        return print_red(f'change_speed_audio_asetrate: Couldnt change speed due to: {stderr}')
     return output_filepath
 
 

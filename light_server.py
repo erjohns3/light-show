@@ -1918,7 +1918,7 @@ if __name__ == '__main__':
                     # print_yellow(f'Before path {effects_config[args.show]["song_path"]}')
                     # Starting music "/home/andrew/programming/python/light-show/temp/RIOT - Overkill [Monstercat Release]_asetrate_0.999.ogg" at 4.487245866556211 seconds at 30% volum
                     # Starting music "songs/RIOT - Overkill [Monstercat Release].ogg" at 4.482758620689656 seconds at 30% volume
-                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, cache=True))
+                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, cache=False))
                     effects_config[args.show]['song_path'] = add_song_to_config(effects_config[args.show]['song_path'], quiet=False)
                     print_red(f'After path {effects_config[args.show]["song_path"]}')
                     args.skip_show_seconds *= 1 / args.speed

@@ -1194,7 +1194,7 @@ def add_song_to_config(song_path, quiet=True):
     relative_path = song_path
     if relative_path.is_absolute():
         relative_path = relative_path.relative_to(this_file_directory)
-        print(f'relative_path is {relative_path}')
+        if not quiet: print(f'relative_path is {relative_path}')
 
     if song_path.suffix in ['.mp3', '.ogg', '.wav']:
         name, artist, duration, samplerate, _song_path = sound_video_helpers.get_song_metadata_info(song_path)
@@ -1914,17 +1914,20 @@ if __name__ == '__main__':
                     # print_yellow(f'BEFORE bpm {effects_config[args.show]["bpm"]}, song_path {effects_config[args.show]["song_path"]}')
                     # print_yellow(f'BEFORE skip_song {effects_config[args.show]["skip_song"]}, delay_lights {effects_config[args.show]["delay_lights"]}')
                     # print_yellow(f'BEFORE args.skip_show_seconds {args.skip_show_seconds}, args.delay_seconds {args.delay_seconds}')
-                    effects_config[args.show]['bpm'] *= args.speed
+                    print_yellow(f'Speed was set to {args.speed} changing...')
+                    print_cyan(f'    Old - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}')
                     # print_yellow(f'Before path {effects_config[args.show]["song_path"]}')
                     # Starting music "/home/andrew/programming/python/light-show/temp/RIOT - Overkill [Monstercat Release]_asetrate_0.999.ogg" at 4.487245866556211 seconds at 30% volum
                     # Starting music "songs/RIOT - Overkill [Monstercat Release].ogg" at 4.482758620689656 seconds at 30% volume
-                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, cache=False))
-                    effects_config[args.show]['song_path'] = add_song_to_config(effects_config[args.show]['song_path'], quiet=False)
-                    print_red(f'After path {effects_config[args.show]["song_path"]}')
+                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, quiet=True))
+                    effects_config[args.show]['bpm'] *= args.speed
+                    effects_config[args.show]['song_path'] = add_song_to_config(effects_config[args.show]['song_path'], quiet=True)
                     args.skip_show_seconds *= 1 / args.speed
                     args.delay_seconds *= 1 / args.speed
                     effects_config[args.show]['skip_song'] *= 1 / args.speed
                     effects_config[args.show]['delay_lights'] *= 1 / args.speed
+                    print_cyan(f'    New - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}, path: {effects_config[args.show]["song_path"]}')
+
                     # print_red(f'Adjusted bpm to {effects_config[args.show]["bpm"]}, song_path to {effects_config[args.show]["song_path"]}')
                     # print_red(f'Adjusted skip_song to {effects_config[args.show]["skip_song"]}, delay_lights to {effects_config[args.show]["delay_lights"]}')
                     # print_red(f'Adjusted args.skip_show_seconds to {args.skip_show_seconds}, args.delay_seconds to {args.delay_seconds}')

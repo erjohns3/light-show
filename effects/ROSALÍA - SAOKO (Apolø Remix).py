@@ -124,8 +124,8 @@ effects = {
             b(164, name="Strobe bottom", length=12, sat_shift=.2, intensity=(0, 1)),
             b(172, name='S circle pulse', length=4),
             # bump
-            b(176, name='saoko verse', length=64),
-            b(176, name='S chorus laser', length=64),
+            b(177, name='saoko verse', length=64),
+            b(177, name='S chorus laser', length=64),
         ]
     }
 }

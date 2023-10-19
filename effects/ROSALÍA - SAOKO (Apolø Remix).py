@@ -111,6 +111,7 @@ effects = {
             # 81 transformo
             b(81, name='S chorus laser', length=28),
             b(81, name='saoko bass', length=32),
+            b(81, name='S circle pulse', length=28),
             # transition
             b(109, name='S circle pulse', length=4),
             b(109, name='Strobe bottom', length=4),

@@ -135,6 +135,83 @@ def fire_ball_fade(grid_info):
     if grid_info.curr_sub_beat % speed == 0:
         grid_info.trail.append([grid_info.pos, grid_info.color])
 
+
+
+def rain(grid_info):
+    if getattr(grid_info, 'rains', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
+        grid_info.rains = [None] * grid_info.num_rains
+        for index in range(len(grid_info.rains)):
+            grid_info.rains[index] = time.time() + grid_info.lower_wait + (random.random() * grid_info.upper_wait)
+        grid_info.explosions = []
+
+    for index, state_or_next_time in enumerate(grid_info.rains):
+        if isinstance(state_or_next_time, float):
+            if time.time() < state_or_next_time:
+                continue
+
+            new_x = random.randint(0, grid_helpers.GRID_WIDTH - 1)
+            grid_info.rains[index] = (new_x, 0, time.time(), grid_info.speed)
+        
+        curr_x, curr_y, curr_start_time, curr_length = grid_info.rains[index]
+
+        percent_done = (time.time() - curr_start_time) / curr_length
+        if percent_done > .9:
+            grid_info.rains[index] = time.time() + grid_info.lower_wait + (random.random() * grid_info.upper_wait)
+            grid_info.explosions.append((curr_x, time.time(), .13))
+            continue
+        
+        curr_y = int(percent_done * grid_helpers.GRID_HEIGHT)
+
+        grid_helpers.grid[curr_x][curr_y] += grid_info.color
+        scale = .02
+        for i in range(1, 3):
+            new_y = curr_y - i
+            if new_y < 0:
+                break
+            grid_helpers.grid[curr_x][new_y] += scale_vector(GColor.blue, scale)
+            scale /= 1.2
+
+    index = 0
+    while index < len(grid_info.explosions):         
+        curr_x, curr_start_time, curr_length = grid_info.explosions[index]
+
+        percent_done = (time.time() - curr_start_time) / curr_length
+        if percent_done > 1:
+            del grid_info.explosions[index]
+            continue
+        
+        radius = int(percent_done * 4)
+        inner_radius = radius - 1
+
+        grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
+        
+        mid_x = curr_x
+        mid_y = grid_helpers.GRID_HEIGHT - 1
+        for x in range(grid_width):
+            for y in range(grid_height):
+                if random.randint(1, 4) != 1:
+                    continue
+                distance = (x - mid_x) ** 2 + (y - mid_y) ** 2
+                distance = math.sqrt(distance)
+                if distance <= radius and distance >= inner_radius:
+                    grid_helpers.grid[x][y] += scale_vector(GColor.blue, .05)        
+        index += 1
+
+
+def make_rain(start_beat=1, length=1, lower_wait=1, upper_wait=6):
+    return [grid_f(
+        start_beat,
+        function=rain,
+        num_rains=20,
+        color=GColor.blue,
+        lower_wait=lower_wait,
+        upper_wait=upper_wait, 
+        speed=1.2,
+        length=length,
+    )]
+
+
+
 effects = {
     "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.white)},
     "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.blue)},
@@ -244,11 +321,11 @@ effects = {
         "beats": [
             # grid_f(1, function=trail_ball_fade, length=64, speed=1, clear=False),
             # b(1, name="blue shift - circle pulse 1", length=32, offset=1),
-            # b(1, name="blue shift - circle pulse 2", length=32),
-            b(1, name="twinkle white", length=1),
-            b(3, name="twinkle blue", length=1),
-            b(5, name="twinkle white", length=1),
-            b(7, name="twinkle blue", length=1),
+            *make_rain(length=108),
+            # b(1, name="twinkle white", length=1),
+            # b(3, name="twinkle blue", length=1),
+            # b(5, name="twinkle white", length=1),
+            # b(7, name="twinkle blue", length=1),
             # b(name="twinkle blue", length=32),
         ],
     }

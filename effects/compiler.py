@@ -110,7 +110,6 @@ def twinkle(grid_info):
             color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
         grid_helpers.grid[curr_x][curr_y] += color
 
-
 def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,
@@ -122,6 +121,22 @@ def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, n
         twinkle_length=twinkle_length,
         length=length,
     )]
+
+def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
+    arr = []
+    total = 20
+    for i in range(total):
+        before_color = interpolate_vectors_float(start_color, end_color, i / total)
+        after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
+        arr.append(grid_f(
+            start_beat + (i / 10),
+            function=our_transform,
+            object=get_centered_circle_numpy_nofill(radius=(i+1)),
+            start_color=before_color,
+            end_color=after_color,
+            length=1/10,
+        ))
+    return arr
 
 
 # ==== eric and andrews transformation matrix stuff

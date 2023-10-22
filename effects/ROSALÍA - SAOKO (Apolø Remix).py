@@ -1,21 +1,5 @@
 from effects.compiler import *
 
-def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
-    arr = []
-    total = 20
-    for i in range(total):
-        before_color = interpolate_vectors_float(start_color, end_color, i / total)
-        after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
-        arr.append(grid_f(
-            start_beat + (i / 10),
-            function=our_transform,
-            object=get_centered_circle_numpy_nofill(radius=(i+1)),
-            start_color=before_color,
-            end_color=after_color,
-            length=1/10,
-        ))
-    return arr
-
 def squares_up(info):
     if getattr(info, 'filled_to', None) is None:
         info.filled_to = 0

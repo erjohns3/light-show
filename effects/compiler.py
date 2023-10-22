@@ -236,6 +236,10 @@ def interpolate_vectors_float(v1, v2, percent_done):
     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
 
 
+# def add_vecc(v1, v2, percent_done):
+#     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
+
+
 def scale_vector(vector, scale):
     return tuple(vector[i] * scale for i in range(len(vector)))
 

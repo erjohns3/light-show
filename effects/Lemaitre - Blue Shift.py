@@ -157,7 +157,7 @@ def rain(grid_info):
         percent_done = (time.time() - curr_start_time) / curr_length
         if percent_done > .9:
             grid_info.rains[index] = time.time() + grid_info.lower_wait + (random.random() * grid_info.upper_wait)
-            grid_info.explosions.append((curr_x, time.time(), .13))
+            grid_info.explosions.append((curr_x, time.time(), .24))
             continue
         
         curr_y = int(percent_done * grid_helpers.GRID_HEIGHT)
@@ -189,12 +189,13 @@ def rain(grid_info):
         mid_y = grid_helpers.GRID_HEIGHT - 1
         for x in range(grid_width):
             for y in range(grid_height):
-                if random.randint(1, 4) != 1:
+                if random.randint(1, 5) != 1:
                     continue
                 distance = (x - mid_x) ** 2 + (y - mid_y) ** 2
                 distance = math.sqrt(distance)
                 if distance <= radius and distance >= inner_radius:
-                    grid_helpers.grid[x][y] += scale_vector(GColor.blue, .05)        
+                    grid_helpers.grid[x][y] += scale_vector(GColor.blue, .04)
+                    grid_helpers.grid[x][y] += scale_vector(GColor.white, .02)
         index += 1
 
 
@@ -213,6 +214,8 @@ def make_rain(start_beat=1, length=1, lower_wait=1, upper_wait=6):
 
 
 effects = {
+    "rain": {"profiles": ['Twinkle'], "loop": True, "beats": make_rain()},
+
     "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.white)},
     "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.blue)},
     "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.green)},

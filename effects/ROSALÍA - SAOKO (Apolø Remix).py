@@ -2,17 +2,17 @@ from effects.compiler import *
 
 def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
     arr = []
-    total = 16
+    total = 20
     for i in range(total):
         before_color = interpolate_vectors_float(start_color, end_color, i / total)
         after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
         arr.append(grid_f(
-            start_beat + (i * .15),
+            start_beat + (i / 10),
             function=our_transform,
-            object=get_centered_circle_numpy_nofill(radius=i+1),
+            object=get_centered_circle_numpy_nofill(radius=(i+1)),
             start_color=before_color,
             end_color=after_color,
-            length=1,
+            length=1/10,
         ))
     return arr
 
@@ -76,9 +76,9 @@ effects = {
             # b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
             # b(2.5, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
             # b(4, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
-            b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
-            b(2.75, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),
-            b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
+            b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),
+            b(2.75, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),
+            b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),        
         ],
     },
      "S chorus laser": {
@@ -91,7 +91,7 @@ effects = {
         ]
     },
     "S circle pulse": {
-        "length": 4,
+        "length": 2,
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
         ],
@@ -121,7 +121,7 @@ effects = {
             b(109, name='Strobe bottom', length=4),
             # 113 quiet moment
             b(113, name='saoko bass', length=48),
-            grid_f(113, filename='fire.gif', rotate_90=True, length=48),
+            grid_f(113, filename='fire.gif', color=.04, rotate_90=True, length=48),
             # quiet moment
             # que algo
             b(160, name='S circle pulse', length=4),

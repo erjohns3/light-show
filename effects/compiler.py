@@ -150,10 +150,23 @@ def get_centered_circle_numpy_nofill(radius, offset_x=0, offset_y=0, color=(100,
     mid_x = (grid_width // 2) + offset_x
     mid_y = (grid_height // 2) + offset_y
 
+    inner_radius = radius - 1
     for x in range(grid_width):
         for y in range(grid_height):
-            if (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2) and (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2:
+            distance = (x - mid_x) ** 2 + (y - mid_y) ** 2
+            distance = math.sqrt(distance)
+            
+            if distance <= radius and distance >= inner_radius:
                 circle[x][y] = color
+            # if (outer_radius - circle_width) ** 2 <= distance <= outer_radius ** 2:
+            #     circle[x][y] = color
+
+    # for x in range(grid_width):
+    #     for y in range(grid_height):
+    #         first =  (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2)
+    #         second = (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2
+    #         if first and second:
+    #             circle[x][y] = color
 
     return circle
 
@@ -543,7 +556,7 @@ def fill_grid_from_image_filepath(info):
     cached_filepath = grid_helpers.get_cached_converted_filepath(info.filename, dimensions, use_cache=False)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
-    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(cached_filepath, getattr(info, 'color', None), rotate_90=info.rotate_90)
 
 
 def fill_grid_from_text(info):

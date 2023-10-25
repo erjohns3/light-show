@@ -237,7 +237,7 @@ def load_image_to_grid(image_filepath, color=None, rotate_90=False, subtract=Non
 
 animation_cache = {}
 # @profile
-def try_load_into_animation_cache(filepath, rotate_90=False):
+def try_load_into_animation_cache(filepath, color=None, rotate_90=False):
     with Image.open(filepath) as animation_file:
         print(f'loading animation {filepath.name}, {animation_file.info=}')
         if not animation_file.is_animated:
@@ -251,15 +251,17 @@ def try_load_into_animation_cache(filepath, rotate_90=False):
             duration = frame.info["duration"] / 1000
             total_duration += duration
 
-            all_frames.append([PIL_image_to_numpy_arr(frame, rotate_90=rotate_90), duration])
+            if color is None:
+                color = 1
+            all_frames.append([PIL_image_to_numpy_arr(frame, rotate_90=rotate_90) * color, duration])
         animation_cache[filepath] = [0, all_frames, total_duration]
         print(f'loaded animation {filepath.name}, {total_duration=}, {len(all_frames)=}, shape {all_frames[0][0].shape}')
         # exit()
 
 
-def load_animation_to_grid(filepath, rotate_90=False):
+def load_animation_to_grid(filepath, color=None, rotate_90=False):
     if filepath not in animation_cache:
-        try_load_into_animation_cache(filepath, rotate_90=rotate_90)
+        try_load_into_animation_cache(filepath, color, rotate_90=rotate_90)
     index = animation_cache[filepath][0]
     frames = animation_cache[filepath][1]
     grid[:] = frames[index][0]
@@ -323,7 +325,7 @@ def is_animated(filepath):
 
 def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False, subtract=None):
     if filepath.suffix.lower() in ['.webp', '.gif']:
-        load_animation_to_grid(filepath, rotate_90=rotate_90)
+        load_animation_to_grid(filepath, color=color, rotate_90=rotate_90)
     elif filepath.suffix.lower() in ['.jpg', '.jpeg', '.png']:
         load_image_to_grid(filepath, color=color, rotate_90=rotate_90, subtract=subtract)
     else:

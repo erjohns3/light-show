@@ -25,6 +25,35 @@ effects = {
     # },
 
 
+    "autogen twinkle": {
+        "length": 8,
+        "autogen": "complex grid",
+        "intensity": "low",
+        "beats": [
+            *make_twinkle(color=GColor.white, length=8)
+        ],
+    },
+
+    "autogen s circle": {
+        "length": 2,
+        "autogen": "complex grid",
+        "intensity": "low",
+        "beats": [
+            *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
+        ],
+    },
+
+    "autogen s circle 2": {
+        "length": 2,
+        "autogen": "complex grid",
+        "intensity": "low",
+        "beats": [
+            *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.red),
+        ],
+    },
+
+
+
 
     # dimmers
     "z_dimmer all": {
@@ -709,7 +738,7 @@ hard_colors = [
 ]
 
 
-for i in range(25):
+for i in range(0):
     beats = []
     
     for j in range(2):

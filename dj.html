@@ -38,6 +38,9 @@
     <div id="page-label">0/0</div>
     <div id="page-down" class="button">Dn</div>
 
+
+    <div id="beat-sens-up" class="button">Beat up</div>
+    <div id="beat-sens-down" class="button">Beat down</div>
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
@@ -585,6 +588,9 @@
         }, {passive: true});
     }
 
+    var beatSensUpElem = document.getElementById('beat-sens-up');
+    var beatSensDownElem = document.getElementById('beat-sens-down');
+
     var refreshElem = document.getElementById('refresh');
     var laserModeElem = document.getElementById('laser-mode');
     var clearElem = document.getElementById('clear');
@@ -911,13 +917,45 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
+    
+    #beat-sens-up{
+        position: absolute;
+        left: 0.5vw;
+        /* margin: 0.5vw; */
+        bottom: calc(16vh + 1vw);
+        width: 9.25vw;
+        height: 7vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(210, 100%, 40%, 0.5);
+    }
+    #beat-sens-down{
+        position: absolute;
+        left: 10.25vw;
+        /* margin: 0.5vw; */
+        bottom: calc(16vh + 1vw);
+        width: 9.25vw;
+        height: 7vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(210, 100%, 40%, 0.5);
+    }
+
     #refresh{
         position: absolute;
         left: 0.5vw;
         /* margin: 0.5vw; */
-        bottom: calc(10vh + 1vw);
+        bottom: calc(8vh + 1vw);
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -931,9 +969,9 @@
         position: absolute;
         left: 10.25vw;
         /* margin: 0.5vw; */
-        bottom: calc(10vh + 1vw);
+        bottom: calc(8vh + 1vw);
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -948,7 +986,7 @@
         left: 0.5vw;
         bottom: 0.5vw;
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -963,7 +1001,7 @@
         left: 10.25vw;
         bottom: 0.5vw;
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;

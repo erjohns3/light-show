@@ -1,14 +1,33 @@
-This only supports linux for now (both x86_64 and aarch64)
+This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
+
+# requirements
+* cmake
+* SDL version 2.16 or higher
+* GSL shaders
 
 # installation
 * `git clone https://github.com/aduerig/projectm`
 * `git clone https://github.com/projectM-visualizer/presets-cream-of-the-crop`
     * inside the projectm/presets folder
-* build everything:
+
+
+#### ON x86_64:
+* building the c++ and python interop module
 ```
-rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
+rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=.
 ```
+* run `python test_winamp_visual.py`
+
+#### ON OUR RASP PI (aarch64):
+* building the c++ and python interop module
+```
+rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build . -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=projectm/src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu
+```
+* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py`
+
+
+* running 
 
 
 

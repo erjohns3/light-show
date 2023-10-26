@@ -7,7 +7,7 @@ effects = {
         "delay_lights": 0.23099999999999998,
         "skip_song": 0.0,
         "beats": [
-            grid_f(1, function=winamp, preset='202.milk', length=400),
+            # grid_f(1, function=winamp, preset='202.milk', length=400),
         ]
     }
 }

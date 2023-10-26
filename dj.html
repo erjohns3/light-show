@@ -208,6 +208,7 @@
             } else {
                 this.addEventListener('mousedown', this.press, {passive: true});
                 this.addEventListener('mouseup', this.release, {passive: true});
+                this.addEventListener('wheel', this.wheel, {passive: true});
             }
         }
 
@@ -266,6 +267,14 @@
                     removeEffect(this.effect);
                 }
                 this.classList.remove('effect-button-pressed');
+            }
+        }
+
+        wheel(event) {
+            if (event.deltaY > 0) {
+                pageDown();
+            } else if (event.deltaY < 0) {
+                pageUp();
             }
         }
 
@@ -455,6 +464,7 @@
     var effectButtonIndex = {};
 
     var profileBox = document.getElementById('profile-box');
+
     var effectsBox = document.getElementById('effects-box');
     var effectsTables = effectsBox.querySelectorAll('.effects-table');
 

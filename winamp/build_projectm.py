@@ -2,15 +2,11 @@
     # puts so in current directory
 
 
-# rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
 
-# LD_LIBRARY_PATH=src/libprojectM ld winamp_visual.cpython-311-x86_64-linux-gnu.so
-
-# LD_LIBRARY_PATH=src/libprojectM gdb python
-
-
-# windows?
-    # called by: python .\driver\build_c_module_for_python.py build --compiler=mingw32
+# building just python module and run
+    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
+    # LD_LIBRARY_PATH=src/libprojectM ld winamp_visual.cpython-311-x86_64-linux-gnu.so
+    # LD_LIBRARY_PATH=src/libprojectM gdb python
 
 
 from setuptools import setup, Extension

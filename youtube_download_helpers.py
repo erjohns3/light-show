@@ -9,6 +9,8 @@ import subprocess
 from helpers import *
 
 
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+
 ydl_search_opts = {
     'format': 'bestaudio/best',
     'noplaylist': True,
@@ -270,26 +272,62 @@ def get_info_from_youtube_playlist(url, write_files=True):
 
 
 
+
+
 if __name__ == '__main__':
+    print(this_file_directory.stem)
+    default_for_this_dir = this_file_directory.stem == 'light-show'
+
     make_if_not_exist(pathlib.Path(__file__).resolve().parent.joinpath('songs'))
     parser = argparse.ArgumentParser(description = '')
     parser.add_argument('url', type=str)
-    parser.add_argument('--no_show', dest='gen_show', default=False, action='store_false')
+    parser.add_argument('--no_show', dest='gen_show', default=default_for_this_dir, action='store_false')
     parser.add_argument('--max_seconds', dest='max_seconds', default=None, type=float)
     parser.add_argument('--video', dest='keep_video', default=False, action='store_true')
     args = parser.parse_args()
 
-
     output_directory = pathlib.Path(__file__).parent.joinpath('songs')
-    if args.gen_show:
-        print_green(f'Downloading youtube video to {output_directory} and then generating show file')
-    else:
-        print_yellow(f'Downloading youtube video to {output_directory} and NOT generating show file (use --show if you meant to do that)')    
 
+    print(f'Downloading youtube video to {output_directory}')
     downloaded_filepath = download_youtube_url(url=args.url, dest_path=output_directory, max_length_seconds=args.max_seconds, keep_video=args.keep_video)
     if downloaded_filepath is None:
         print('Couldnt download video')
         exit()
+
+    if args.gen_show:
+        print_blue('Generating show file for the downloaded file')
+        import autogen
+        relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)
+        output_filepath = pathlib.Path(__file__).parent.joinpath('effects').joinpath(downloaded_filepath.stem + '.py')
+        _song_length, bpm_guess, delay, _boundary_beats, chunk_levels = autogen.get_src_bpm_offset(downloaded_filepath, use_boundaries=False)
+        output_filepath = autogen.write_effect_to_file_pretty(
+            output_filepath, 
+            {
+                downloaded_filepath.stem: {
+                    'bpm': bpm_guess,
+                    'song_path': str(relative_downloaded_filepath),
+                    'delay_lights': delay,
+                    'skip_song': 0.0,
+                    'beats': [
+                        # 'b(1, "RBBB 1 bar", 500),'
+                    ],
+                }
+            },
+            write_compiler=True,
+            # rip_out_char='"',
+        )
+
+    remote_folder = pathlib.Path('/home/pi/light-show/songs')
+    print('Starting scp to doorbell')
+    try:
+        scp_to_doorbell(local_filepath=downloaded_filepath, remote_folder=remote_folder)
+    except:
+        print_stacktrace()
+        print_yellow('The above error means the scp of the song failed scping to the doorbell, but the song was still downloaded to the local machine and the show was made. You will have to manually scp the song file over at some point')
+
+    if args.gen_show:
+        print_green(bold(f'\nStart editing your show here: "{output_filepath}"'))
+
 
 
 

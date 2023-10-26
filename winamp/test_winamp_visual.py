@@ -2,10 +2,10 @@
     # LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
 
 # partial 
-    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
+    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
 
 # full
-    # rm CMakeCache.txt; rm src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
+    # rm CMakeCache.txt; rm src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
 
 # must be on 311..., not b311
 
@@ -14,9 +14,9 @@
     # RUNNING ONLY:
         # MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
     # PARTIAL BUILD:
-        # rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
+        # rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
     # FULL BUILD:
-        # rm CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_c_module_for_python.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
+        # rm CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
 
 
 
@@ -27,13 +27,21 @@ import random
 import threading
 import collections
 import argparse
+import ctypes
 
 import numpy as np
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
+sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
+
+
+
+project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
+wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
+ctypes.cdll.LoadLibrary(str(wanted_so))
 
 import winamp_visual
 winamp_visual.setup_winamp()
@@ -126,11 +134,11 @@ def next_preset():
     load_preset(preset_path)
 
 
-presets_directory = this_file_directory.joinpath('presets')
+presets_directory = this_file_directory.joinpath('projectm', 'presets')
 presets_drawing_liquid_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Drawing', 'Liquid')
 presets_dancer_glowsticks_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror')
 
-all_presets = list(get_all_paths(presets_dancer_glowsticks_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))
+all_presets = list(get_all_paths(presets_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))
 
 def load_preset(preset_path):
     better_print = preset_path.relative_to(presets_directory)

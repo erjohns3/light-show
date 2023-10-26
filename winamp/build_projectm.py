@@ -21,20 +21,23 @@ sys.path.insert(0, str(this_file_directory.joinpath('..')))
 from helpers import *
 
 
-release_mode = 'release'
-print_cyan(f'building with {release_mode=}, {this_file_directory=}')
 
-src_folder = this_file_directory.joinpath('src')
+projectm_directory = this_file_directory.joinpath('projectm')
+
+release_mode = 'release'
+print_cyan(f'building with {release_mode=}, {projectm_directory=}')
+
+src_folder = projectm_directory.joinpath('src')
 src_libprojectM_folder = src_folder.joinpath('libprojectM')
 
-vendor_folder = this_file_directory.joinpath('vendor')
+vendor_folder = projectm_directory.joinpath('vendor')
 extra_compile_args=['-std=c++14', '-g']
 
 
-include_dir_api_1 = this_file_directory.joinpath('src', 'api', 'include')
-include_dir_api_2 = this_file_directory.joinpath('src', 'playlist', 'api')
-include_dir_api_3 = this_file_directory.joinpath('src', 'playlist', 'include')
-include_dir_api_4 = this_file_directory.joinpath('src', 'api', 'include', 'projectM-4')
+include_dir_api_1 = projectm_directory.joinpath('src', 'api', 'include')
+include_dir_api_2 = projectm_directory.joinpath('src', 'playlist', 'api')
+include_dir_api_3 = projectm_directory.joinpath('src', 'playlist', 'include')
+include_dir_api_4 = projectm_directory.joinpath('src', 'api', 'include', 'projectM-4')
 
 
 numpy_lib_path = os.path.join(numpy.__path__[0], 'core', 'lib')

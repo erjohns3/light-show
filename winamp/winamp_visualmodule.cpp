@@ -22,7 +22,6 @@
 #include <SDL2/SDL_hints.h>
 
 
-#include <projectM-4/playlist.h>
 #include <projectM-4/projectM.h>
 
 #include <numpy/arrayobject.h>  // For the numpy C-API
@@ -58,7 +57,6 @@ winamp_visual_systemcall(PyObject* self, PyObject* args) {
 //     at ../sysdeps/unix/sysv/linux/aarch64/clone.S:78
 
 projectm_handle _projectM{nullptr};
-projectm_playlist_handle _playlist{nullptr};
 void audioInputCallbackF32(void *userdata, unsigned char *stream, int len) {
     // projectm_handle *_projectM = (projectm_handle *) userdata;
 

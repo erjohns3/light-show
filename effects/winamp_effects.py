@@ -40,7 +40,7 @@ else:
         effects[preset_name] = {
             'length': 1,
             'loop': True,
-            'profiles': [profile_name],
+            'profiles': profiles,
             'beats': [
                 grid_f(1, function=winamp, preset=preset_name, length=1),
             ],

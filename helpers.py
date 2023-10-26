@@ -10,7 +10,7 @@ try:
 except NameError:
     profile = lambda x: x
 
-helper_file_folder = pathlib.Path(__file__).parent.resolve()
+helpers_directory = pathlib.Path(__file__).parent.resolve()
 
 
 def get_datetime_str():
@@ -62,40 +62,33 @@ def is_screensaver_running():
 def get_eric_directory():
     if is_andrews_main_computer():
         mount_path = pathlib.Path('/mnt/eric_network_share')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout: 
-            return mount_path
-        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //ERIC-DESKTOP/Network /mnt/eric_network_share"')
-        exit()
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
     elif is_windows(): 
         return pathlib.Path(r'\\ERIC-DESKTOP\Network')
-    print_red('doesnt know how contact eric_directory')
+    print_red('dont know how contact ray_directory')
 
 def get_ray_directory():
     if is_ray() or is_erics_laptop() or is_dj():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/ray_network_share')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout:
-            return mount_path
-        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
-        exit()
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
     elif is_windows():
         return pathlib.Path(r'\\Ray\T')
-    print_red('doesnt know how contact ray_directory')
+    print_red('dont know how contact ray_directory')
 
 
 def get_nas_directory():
     if is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/nas')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout:
-            return mount_path
-        else:
-            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
-            exit()
-    print_red('doesnt know how contact nas_directory')
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
+    print_red('dont know how contact nas_directory')
 
 
 def get_stack_trace():
@@ -381,7 +374,7 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe
     return process.returncode, stdout, stderr
 
 
-def run_command_async(full_command_arr, debug=False, stdin=None):
+def run_command_async(full_command_arr, debug=False, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
@@ -394,7 +387,7 @@ def run_command_async(full_command_arr, debug=False, stdin=None):
             full_command_arr[0] += '.exe'
 
     full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
-    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
+    process = subprocess.Popen(full_command_arr, stdout=stdout, stderr=stderr, stdin=stdin)
     
     if debug:
         print(f'started process with "{full_call}"')
@@ -518,6 +511,13 @@ def dump_text_to_file(text, output_directory=get_temp_dir()):
     filepath = output_directory.joinpath(random_letters(15) + '.txt')
     filepath.write_text(text)
     return filepath
+
+def bytes_to_human_readable_string(size, decimal_places=2):
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0 or unit == 'TB':  # stop at TB for simplicity
+            break
+        size /= 1024.0
+    return f"{size:.{decimal_places}f} {unit}"
 
 
 

@@ -1,30 +1,9 @@
-# building just python, then running
-    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
-
-# building c++ library, python library, and running
-    # rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
-
-# must be on 311..., not b311
-
-
-# FOR RASPERRY PI:
-    # RUNNING ONLY:
-        # MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
-    # PARTIAL BUILD:
-        # rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
-    # FULL BUILD:
-        # rm CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu && MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=src/libprojectM:/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp_visual.py
-
-
-
 import sys
 import time
 import pathlib
-import random
 import threading
 import collections
 import argparse
-import ctypes
 
 import numpy as np
 
@@ -33,16 +12,12 @@ this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
 sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
+import winamp_wrapper
 
 
-
-project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
-wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
-ctypes.cdll.LoadLibrary(str(wanted_so))
-
-import winamp_visual
-winamp_visual.setup_winamp()
-
+if not winamp_wrapper.try_load_winamp_cxx_module():
+    print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
+    exit()
 
 
 parser = argparse.ArgumentParser()
@@ -50,8 +25,6 @@ parser.add_argument('--real', default=False, action='store_true')
 args = parser.parse_args()
 
 keys_to_proccess = collections.deque([])
-
-
 def start_listen_keys():
     if is_andrews_main_computer():
         from pynput.keyboard import Listener, KeyCode
@@ -108,55 +81,6 @@ def start_listen_keys():
         threading.Thread(target=listen_for_keystrokes_ssh, args=[], daemon=True).start()
 
 
-
-preset_history = collections.deque([])
-preset_index = -1
-def last_preset():
-    global preset_index
-    if preset_index <= 0:
-        return
-    preset_index -= 1
-    preset_path = preset_history[preset_index]
-    print(f'Preset index is at {preset_index}/{len(preset_history) - 1} now')
-    load_preset(preset_path)
-
-
-def next_preset():
-    global preset_index
-    if preset_index >= len(preset_history) - 1:
-        return
-    preset_index += 1
-    preset_path = preset_history[preset_index]
-    print(f'Preset index is at {preset_index}/{len(preset_history) - 1} now')
-    load_preset(preset_path)
-
-
-presets_directory = this_file_directory.joinpath('projectm', 'presets')
-presets_drawing_liquid_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Drawing', 'Liquid')
-presets_dancer_glowsticks_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror')
-
-all_presets = list(get_all_paths(presets_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))
-
-def load_preset(preset_path):
-    better_print = preset_path.relative_to(presets_directory)
-    better_print = better_print.relative_to(better_print.parts[0])
-    print_blue(f'Python: loading preset {better_print}')
-    winamp_visual.load_preset(str(preset_path))
-load_preset(presets_directory.joinpath('tests', '001-line.milk'))
-
-
-print_green(f'{len(all_presets):,} milk visualizer presets to choose from')
-def random_preset():
-    global preset_index
-    preset_path = random.choice(all_presets)[1]
-
-    preset_history.append(preset_path)
-    preset_index = len(preset_history) - 1
-    print(f'Python: randomly loading preset, preset index at {preset_index}/{len(preset_history) - 1} now')
-
-    load_preset(preset_path)
-
-
 if args.real:
     import serial
     grid_serial = serial.Serial(
@@ -192,27 +116,22 @@ def render_grid(terminal=True):
             grid_serial.write(grid_pack())
 
 
-def increase_beat_sensitivity():
-    winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() + .01)
-    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
-
-def decrease_beat_sensitivity():
-    winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() - .01)
-    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
-
 
 keyboard_dict = {
-    'r': lambda: random_preset(),
-    'b': lambda: print(winamp_visual.get_beat_sensitivity()),
-    'up': lambda: increase_beat_sensitivity(),
-    'down': lambda: decrease_beat_sensitivity(),
+    'r': lambda: winamp_wrapper.random_preset(),
+    'b': lambda: print(winamp_wrapper.get_beat_sensitivity()),
+    'up': lambda: winamp_wrapper.increase_beat_sensitivity(),
+    'down': lambda: winamp_wrapper.decrease_beat_sensitivity(),
 
-    'left': lambda: last_preset(),
-    'right': lambda: next_preset(),
+    'left': lambda: winamp_wrapper.last_preset(),
+    'right': lambda: winamp_wrapper.next_preset(),
     # 'left': lambda: restart_show(skip=-skip_time),
     # 'right': lambda: restart_show(skip=skip_time),
     # 'space': 'UV',
 }
+
+winamp_wrapper.load_preset(winamp_wrapper.presets_directory.joinpath('tests', '001-line.milk'))
+
 
 start_listen_keys()
 while True:
@@ -223,9 +142,9 @@ while True:
             keyboard_dict[key]()
         else:
             print_red(f'Python: unknown key {key}')
-    winamp_visual.render_frame()
-    winamp_visual.load_into_numpy_array(grid)
+    winamp_wrapper.compute_frame()
+    winamp_wrapper.load_into_numpy_array(grid)
     render_grid(terminal=not args.real)
 
-    # winamp_visual.print_to_terminal_higher_level()
+    # winamp_wrapper.print_to_terminal_higher_level()
     time.sleep(1/24)

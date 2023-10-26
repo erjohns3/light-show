@@ -38,6 +38,9 @@
     <div id="page-label">0/0</div>
     <div id="page-down" class="button">Dn</div>
 
+    <div id="beat-sens" class="text">Beat Sens: N/A</div>
+    <div id="beat-sens-up" class="button">Beat up</div>
+    <div id="beat-sens-down" class="button">Beat down</div>
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
@@ -124,6 +127,9 @@
             }
 
             if(msg.status){
+                if (msg.status.beat_sens_string) {
+                    beatSensElem.textContent = msg.status.beat_sens_string;
+                }
                 if ('effects' in msg.status){
                     let effectsPrev = effectsCurr;
                     effectsCurr = {};
@@ -208,6 +214,7 @@
             } else {
                 this.addEventListener('mousedown', this.press, {passive: true});
                 this.addEventListener('mouseup', this.release, {passive: true});
+                this.addEventListener('wheel', this.wheel, {passive: true});
             }
         }
 
@@ -266,6 +273,14 @@
                     removeEffect(this.effect);
                 }
                 this.classList.remove('effect-button-pressed');
+            }
+        }
+
+        wheel(event) {
+            if (event.deltaY > 0) {
+                pageDown();
+            } else if (event.deltaY < 0) {
+                pageUp();
             }
         }
 
@@ -455,6 +470,7 @@
     var effectButtonIndex = {};
 
     var profileBox = document.getElementById('profile-box');
+
     var effectsBox = document.getElementById('effects-box');
     var effectsTables = effectsBox.querySelectorAll('.effects-table');
 
@@ -575,6 +591,10 @@
         }, {passive: true});
     }
 
+    var beatSensElem = document.getElementById('beat-sens');
+    var beatSensUpElem = document.getElementById('beat-sens-up');
+    var beatSensDownElem = document.getElementById('beat-sens-down');
+
     var refreshElem = document.getElementById('refresh');
     var laserModeElem = document.getElementById('laser-mode');
     var clearElem = document.getElementById('clear');
@@ -584,6 +604,14 @@
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
     }
     
+    beatSensUpElem.onclick = function () {
+        beatSensUp();
+    }
+
+    beatSensDownElem.onclick = function () {
+        beatSensDown();
+    }
+
     refreshElem.onclick = function () {
         location.reload();
     }
@@ -605,6 +633,20 @@
     //     event.stopPropagation();
     //     return false;
     // };
+
+    function beatSensUp() {
+        let msg = {
+            type: 'beat_sens_up',
+        };
+        socket.send(JSON.stringify(msg));
+    }
+    
+    function beatSensDown() {
+        let msg = {
+            type: 'beat_sens_down',
+        };
+        socket.send(JSON.stringify(msg));
+    }
 
     function paintBackground(){
         let background = document.getElementById('background');
@@ -901,13 +943,61 @@
         color: hsla(0, 0%, 100%, 0.4);
     }
 
+    
+    #beat-sens{
+        position: absolute;
+        left: .5vw;
+        /* margin: 0.5vw; */
+        bottom: calc(22.5vh + .5vw);
+        width: 18vw;
+        height: 7vh;
+        /* border-radius: 0.5vw; */
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        /* background-color: hsla(210, 100%, 40%, 0.5); */
+    }
+
+    #beat-sens-up{
+        position: absolute;
+        left: 0.5vw;
+        /* margin: 0.5vw; */
+        bottom: calc(16vh + .5vw);
+        width: 9.25vw;
+        height: 7vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(210, 100%, 40%, 0.5);
+    }
+    #beat-sens-down{
+        position: absolute;
+        left: 10.25vw;
+        /* margin: 0.5vw; */
+        bottom: calc(16vh + .5vw);
+        width: 9.25vw;
+        height: 7vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(210, 100%, 40%, 0.5);
+    }
+
     #refresh{
         position: absolute;
         left: 0.5vw;
         /* margin: 0.5vw; */
-        bottom: calc(10vh + 1vw);
+        bottom: calc(8vh + .5vw);
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -921,9 +1011,9 @@
         position: absolute;
         left: 10.25vw;
         /* margin: 0.5vw; */
-        bottom: calc(10vh + 1vw);
+        bottom: calc(8vh + .5vw);
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -938,7 +1028,7 @@
         left: 0.5vw;
         bottom: 0.5vw;
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;
@@ -953,7 +1043,7 @@
         left: 10.25vw;
         bottom: 0.5vw;
         width: 9.25vw;
-        height: 10vh;
+        height: 7vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;

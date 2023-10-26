@@ -45,25 +45,35 @@ parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, defa
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
-parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
-parser.add_argument('--winamp', dest='winamp_visualizer', default=False, action='store_true')
+parser.add_argument('--winamp', dest='winamp', default=False, action='store_true')
 args = parser.parse_args()
 
 if is_doorbell():
     args.local = False
-    if args.keyboard:
-        raise Exception('Keyboard mode is not supported on the doorbell')
+    args.keyboard = False
 else:
     args.local = True
+    args.keyboard = True
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+
+beat_sens_string = 'Beat Sens: N/A'
+if args.winamp:
+    if not grid_helpers.try_load_winamp():
+        print_red(f'Failed to load winamp, exiting')
+        exit()
+    result = grid_helpers.winamp_wrapper.get_beat_sensitivity()
+    if result is not None:
+        beat_sens_string = f'Beat Sens: {result}'
+
 
 pi = None
 
@@ -203,10 +213,10 @@ async def init_rekordbox_bridge_client(websocket, path):
                     rekordbox_bpm = min(-.1, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
                 time_start = time.time() - ((rekordbox_time - effects_config[rekordbox_effect_name]['delay_lights']) * (rekordbox_original_bpm / rekordbox_bpm))
-                            
+
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -216,6 +226,7 @@ async def init_dj_client(websocket, path):
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     dump = json.dumps(message)
@@ -239,6 +250,7 @@ async def init_dj_client(websocket, path):
 
         msg = json.loads(msg_string)
 
+        beat_sens_number = 'N/A'
         if 'type' in msg:
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg['effect'])
@@ -251,6 +263,22 @@ async def init_dj_client(websocket, path):
                 #     stop_song()
                 #     broadcast_song_status = True
                 remove_effect_name(effect_name)
+
+            elif msg['type'] == 'beat_sens_up':
+                result = grid_helpers.winamp_wrapper.increase_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_up, {beat_sens_string=}')
+                broadcast_light_status = True
+
+            elif msg['type'] == 'beat_sens_down':
+                result = grid_helpers.winamp_wrapper.decrease_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_down, {beat_sens_string=}')
+                broadcast_light_status = True
 
             elif msg['type'] == 'clear_effects':
                 clear_effects()
@@ -340,6 +368,7 @@ async def init_queue_client(websocket, path):
     print('Song Queue: made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
+    # !TODO here and the other place we need to gzip effects_config_queue_client i think
     message = {
         'effects': effects_config_queue_client,
         'songs': songs_config,
@@ -554,27 +583,28 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
-async def send_client_queue_config():
-    queue_message = {
-        'effects': effects_config_queue_client,
-        'songs': songs_config,
-    }
-    await broadcast(song_sockets, json.dumps(queue_message))
+# async def send_client_queue_config():
+#     queue_message = {
+#         'effects': effects_config_queue_client,
+#         'songs': songs_config,
+#     }
+#     await broadcast(song_sockets, json.dumps(queue_message))
 
-async def send_client_dj_config():
-    dj_message = {
-        'effects': effects_config_dj_client,
-        'songs': songs_config,
-    }
-    await broadcast(light_sockets, json.dumps(dj_message))
+# async def send_client_dj_config():
+#     dj_message = {
+#         'effects': effects_config_dj_client,
+#         'songs': songs_config,
+#     }
+#     await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
-    global broadcast_light_status
+    global broadcast_light_status, beat_sens_string
     message = {
         'status': {
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     await broadcast(light_sockets, json.dumps(message))
@@ -1055,6 +1085,15 @@ def add_effect(new_effect_name):
     if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and get_effect_index(new_effect_name) is not False:
         return
 
+    if new_effect_name in grid_helpers.winamp_wrapper.preset_name_to_filepath:
+        index = 0
+        while index < len(curr_effects):
+            existing_name = curr_effects[index][0]
+            if existing_name in grid_helpers.winamp_wrapper.preset_name_to_filepath:
+                curr_effects.pop(index)
+            else:
+                index += 1
+
     if 'bpm' in effect:
         clear_effects()
         time_start = time.time() + effect['delay_lights'] - song_time
@@ -1356,7 +1395,6 @@ def set_effect_defaults(name, effect):
     #     effect['profiles'].append('All Effects')
 
 
-
 def compile_all_luts_from_effects_config():
     global channel_lut
     compile_all_luts_start_time = time.time()
@@ -1377,12 +1415,30 @@ def compile_all_luts_from_effects_config():
             # commenting this is a perf test, comment to slow down the dj client
             if 'Generated Shows' in effect['profiles']:
                 effects_config_clients = [effects_config_queue_client]
+            
+            needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated']
+            # # dj.html
+            # profiles
+            # loop
+            # trigger
+            # bpm
+            # length
 
+            # # queue.html
+            # was_autogenerated
+            # song_path
+            # bpm
+            # length
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {}
                 for key, value in effect.items():
-                    if key != 'beats':
+                    # if key != 'beats':
+                    if key in needed_fields:
                         effects_config_client[effect_name][key] = value
+    # print(effects_config_dj_client)
+    # from pympler import asizeof
+    # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
+    # exit()
 
     # TODO andrew: replace with is_doorbell()
     if False and is_doorbell():

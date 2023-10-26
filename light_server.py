@@ -1411,6 +1411,7 @@ def compile_all_luts_from_effects_config():
                     # if key != 'beats':
                     if key in needed_fields:
                         effects_config_client[effect_name][key] = value
+    # print(effects_config_dj_client)
     # from pympler import asizeof
     # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
     # exit()

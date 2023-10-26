@@ -346,6 +346,7 @@ async def init_queue_client(websocket, path):
     print('Song Queue: made connection to new client')
 
     # this is a lot going over the wire, should we minimize?
+    # !TODO here and the other place we need to gzip effects_config_queue_client i think
     message = {
         'effects': effects_config_queue_client,
         'songs': songs_config,
@@ -560,19 +561,19 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
-async def send_client_queue_config():
-    queue_message = {
-        'effects': effects_config_queue_client,
-        'songs': songs_config,
-    }
-    await broadcast(song_sockets, json.dumps(queue_message))
+# async def send_client_queue_config():
+#     queue_message = {
+#         'effects': effects_config_queue_client,
+#         'songs': songs_config,
+#     }
+#     await broadcast(song_sockets, json.dumps(queue_message))
 
-async def send_client_dj_config():
-    dj_message = {
-        'effects': effects_config_dj_client,
-        'songs': songs_config,
-    }
-    await broadcast(light_sockets, json.dumps(dj_message))
+# async def send_client_dj_config():
+#     dj_message = {
+#         'effects': effects_config_dj_client,
+#         'songs': songs_config,
+#     }
+#     await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
     global broadcast_light_status

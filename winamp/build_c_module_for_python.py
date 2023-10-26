@@ -13,52 +13,34 @@
     # called by: python .\driver\build_c_module_for_python.py build --compiler=mingw32
 
 
-
-
 from setuptools import setup, Extension
 import sys
 import pathlib
+import os
+
+import numpy
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
-
-sys.path.insert(0, str(this_file_directory))
+sys.path.insert(0, str(this_file_directory.joinpath('..')))
 from helpers import *
 
-release_mode = 'release'
-# if '--debug' in sys.argv:
-#     del sys.argv[sys.argv.index('--debug')]
-# if '--release' in sys.argv:
-#     release_mode = 'release'
-#     del sys.argv[sys.argv.index('--release')]
 
+release_mode = 'release'
 print_cyan(f'building with {release_mode=}, {this_file_directory=}')
 
 src_folder = this_file_directory.joinpath('src')
 src_libprojectM_folder = src_folder.joinpath('libprojectM')
 
-# for copying but just using LD_LIBRARY_PATH for now
-# for _, path in get_all_paths(src_libprojectM_folder):
-#     if '.so' in path.name:
-#     # if '.a' in path.name:
-#         final_lib_path = this_file_directory.joinpath(path.name)
-#         shutil.copy(path, final_lib_path)
-#         extra_link_args.append(str(final_lib_path))
-
 vendor_folder = this_file_directory.joinpath('vendor')
-# glm_folder = vendor_folder.joinpath('glm')
-
 extra_compile_args=['-std=c++14', '-g']
-if release_mode == 'debug':
-    extra_compile_args += ['-g']
-# else:
-#     extra_compile_args += ['-Ofast']
+
 
 include_dir_api_1 = this_file_directory.joinpath('src', 'api', 'include')
 include_dir_api_2 = this_file_directory.joinpath('src', 'playlist', 'api')
 include_dir_api_3 = this_file_directory.joinpath('src', 'playlist', 'include')
 include_dir_api_4 = this_file_directory.joinpath('src', 'api', 'include', 'projectM-4')
 
-import numpy, os
+
 numpy_lib_path = os.path.join(numpy.__path__[0], 'core', 'lib')
 numpy_include_dir = numpy.get_include()
 
@@ -128,3 +110,24 @@ setup(
     version = '1.0',
     ext_modules = [the_module]
 )
+
+
+
+
+# for copying but just using LD_LIBRARY_PATH for now
+# for _, path in get_all_paths(src_libprojectM_folder):
+#     if '.so' in path.name:
+#     # if '.a' in path.name:
+#         final_lib_path = this_file_directory.joinpath(path.name)
+#         shutil.copy(path, final_lib_path)
+#         extra_link_args.append(str(final_lib_path))
+
+
+
+# if '--debug' in sys.argv:
+#     del sys.argv[sys.argv.index('--debug')]
+# if '--release' in sys.argv:
+#     release_mode = 'release'
+#     del sys.argv[sys.argv.index('--release')]
+# if release_mode == 'debug':
+#     extra_compile_args += ['-g']

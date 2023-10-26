@@ -1408,13 +1408,12 @@ def compile_all_luts_from_effects_config():
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {}
                 for key, value in effect.items():
-                    if key != 'beats':
-                    # if key in needed_fields:
+                    # if key != 'beats':
+                    if key in needed_fields:
                         effects_config_client[effect_name][key] = value
-
-    from pympler import asizeof
-    print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
-    exit()
+    # from pympler import asizeof
+    # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
+    # exit()
 
     # TODO andrew: replace with is_doorbell()
     if False and is_doorbell():

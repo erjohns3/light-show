@@ -1,11 +1,9 @@
 import sys
 import time
 import pathlib
-import random
 import threading
 import collections
 import argparse
-import ctypes
 
 import numpy as np
 
@@ -16,6 +14,10 @@ sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 import winamp_wrapper
 
+
+if not winamp_wrapper.try_load_winamp_cxx_module():
+    print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
+    exit()
 
 
 parser = argparse.ArgumentParser()
@@ -140,7 +142,7 @@ while True:
             keyboard_dict[key]()
         else:
             print_red(f'Python: unknown key {key}')
-    winamp_wrapper.render_frame()
+    winamp_wrapper.compute_frame()
     winamp_wrapper.load_into_numpy_array(grid)
     render_grid(terminal=not args.real)
 

@@ -86,14 +86,17 @@ effects = {
         'delay_lights': 0.12,
         'skip_song': 0.0,
         'beats': [
-            b(1, name='porter flubs phrase rotating', length=80),
-            b(17, name='porter piano melody', length=32),
-            b(49, name='porter piano melody', length=32, hue_shift=.15),
-            b(81, name='porter piano melody', length=64),
-            b(81, name='porter piano melody', length=32, hue_shift=.45, sat_shift=-.2),
-            b(113, name='porter piano melody', length=32),
-            # [81, 'Red top', 1],
-            [145, 'Red top', 1], # kicks
+            grid_f(1, function=winamp, preset_path=winamp_preset_dir.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror', '203.milk'), length=400),
+
+
+
+            # b(1, name='porter flubs phrase rotating', length=80),
+            # b(17, name='porter piano melody', length=32),
+            # b(49, name='porter piano melody', length=32, hue_shift=.15),
+            # b(81, name='porter piano melody', length=64),
+            # b(81, name='porter piano melody', length=32, hue_shift=.45, sat_shift=-.2),
+            # b(113, name='porter piano melody', length=32),
+            # [145, 'Red top', 1], # kicks
         ],
     }
 }

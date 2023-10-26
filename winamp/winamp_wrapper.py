@@ -18,14 +18,11 @@
 
 
 import sys
-import time
 import pathlib
 import random
 import collections
 import ctypes
-
-import numpy as np
-
+import importlib
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
@@ -33,12 +30,32 @@ sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 
 
-project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
-wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
-ctypes.cdll.LoadLibrary(str(wanted_so))
 
-import winamp_visual
-winamp_visual.setup_winamp()
+
+winamp_visual_loaded = False
+def try_load_winamp_cxx_module():
+    global winamp_visual_loaded
+    project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
+    if not project_m_build_dir.exists():
+        return print_red(f'project_m {project_m_build_dir} directory does not exist')
+
+    wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
+    if not wanted_so.exists():
+        return print_red(f'project_m c++ library: {wanted_so} does not exist')
+
+    ctypes.cdll.LoadLibrary(str(wanted_so))
+
+    import winamp_visual
+    globals()[winamp_visual.__name__] = winamp_visual
+    try:
+        winamp_visual.setup_winamp()
+    except:
+        print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
+        return None
+    print_green(f'winamp_visual.setup_winamp() succeeded')
+    winamp_visual_loaded = True
+    return True
+
 
 
 preset_history = collections.deque([])
@@ -66,18 +83,38 @@ def next_preset():
 presets_directory = this_file_directory.joinpath('projectm', 'presets')
 presets_drawing_liquid_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Drawing', 'Liquid')
 presets_dancer_glowsticks_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror')
-
 all_presets = list(get_all_paths(presets_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))
 print_green(f'{len(all_presets):,} milk visualizer presets to choose from')
 
-def load_preset(preset_path):
-    better_print = preset_path.relative_to(presets_directory)
+preset_name_to_filepath = {}
+for _, filepath in all_presets:
+    if filepath.name in preset_name_to_filepath:
+        print_red(f'{seen_times} OVERLAPS {filepath.name}')
+        exit()
+    preset_name_to_filepath[filepath.stem] = filepath
+    preset_name_to_filepath[filepath.name] = filepath
+
+
+current_preset_path = None
+def load_preset(preset_path_or_string):
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot load preset')
+    
+    preset_path_to_load = preset_path_or_string
+    if isinstance(preset_path_or_string, str):
+        preset_path_to_load = preset_name_to_filepath.get(preset_path_or_string, None)
+        if preset_path_to_load is None:
+            return print_red(f'preset name {preset_path_or_string} not found')
+
+    global current_preset_path
+    if current_preset_path == preset_path_to_load:
+        return
+    better_print = preset_path_to_load.relative_to(presets_directory)
     better_print = better_print.relative_to(better_print.parts[0])
     print_blue(f'Python: loading preset {better_print}')
-    winamp_visual.load_preset(str(preset_path))
+    current_preset_path = preset_path_to_load
+    winamp_visual.load_preset(str(preset_path_to_load))
 
-
-print_green(f'{len(all_presets):,} milk visualizer presets to choose from')
 def random_preset():
     global preset_index
     preset_path = random.choice(all_presets)[1]
@@ -89,25 +126,43 @@ def random_preset():
     load_preset(preset_path)
 
 def increase_beat_sensitivity():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot increase beat sensitivity')
+    
     winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() + .01)
     print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
 
 def decrease_beat_sensitivity():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot decrease beat sensitivity')
+    
     winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() - .01)
     print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
 
 
 def get_beat_sensitivity():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot get beat sensitivity')
+    
     return winamp_visual.get_beat_sensitivity()
 
 
 def compute_frame():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot compute frame')
+    
     winamp_visual.render_frame()
 
 
 def load_into_numpy_array(np_arr):
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot load into numpy array')
+    
     winamp_visual.load_into_numpy_array(np_arr)
 
 
 def print_to_terminal_higher_level():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot print to terminal')
+    
     winamp_visual.print_to_terminal_higher_level()

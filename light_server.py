@@ -51,7 +51,7 @@ parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #b
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
-parser.add_argument('--winamp', dest='winamp_visualizer', default=False, action='store_true')
+parser.add_argument('--winamp', dest='winamp', default=False, action='store_true')
 args = parser.parse_args()
 
 if is_doorbell():
@@ -63,6 +63,13 @@ else:
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+
+if args.winamp:
+    if not grid_helpers.try_load_winamp():
+        print_red(f'Failed to load winamp, exiting')
+        exit()
+
 
 pi = None
 

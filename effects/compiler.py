@@ -585,7 +585,7 @@ def fill_grid_from_text(info):
     grid_helpers.fill_grid_from_image_filepath(filepath, color=color, rotate_90=info.rotate_90, subtract=subtract)
 
 
-def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):
+def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, length=None, **kwargs):
     info = GridInfo()
     if filename is not None:
         info.filename = filename
@@ -686,4 +686,8 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     return final
 
 
-# beat(1, 'porter flubs phrase', length=16, intensity=(1, 1), skip=2, hue_shift=, sat_shift=, bright_shift=),
+winamp_preset_dir = grid_helpers.winamp_wrapper.presets_directory
+def winamp(grid_info):
+    grid_helpers.winamp_wrapper.load_preset(grid_info.preset_path)
+    grid_helpers.winamp_wrapper.compute_frame()
+    grid_helpers.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

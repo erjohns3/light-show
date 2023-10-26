@@ -7,6 +7,10 @@ from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
 
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory.joinpath('winamp')))
+import winamp_wrapper
+
 
 if is_doorbell():
     import serial
@@ -419,6 +423,10 @@ def get_2d_arr_from_text(*args, **kwargs):
     with Image.open(filepath) as image:
         return PIL_image_to_numpy_arr(image)
         # return image
+
+
+def try_load_winamp():
+    return winamp_wrapper.try_load_winamp_cxx_module()
 
 
 if __name__ == '__main__':

@@ -65,10 +65,14 @@ this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
 
+beat_sens_string = 'Beat Sens: N/A'
 if args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()
+    result = grid_helpers.winamp_wrapper.get_beat_sensitivity()
+    if result is not None:
+        beat_sens_string = f'Beat Sens: {result}'
 
 
 pi = None
@@ -209,10 +213,10 @@ async def init_rekordbox_bridge_client(websocket, path):
                     rekordbox_bpm = min(-.1, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
                 time_start = time.time() - ((rekordbox_time - effects_config[rekordbox_effect_name]['delay_lights']) * (rekordbox_original_bpm / rekordbox_bpm))
-                            
+
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -222,6 +226,7 @@ async def init_dj_client(websocket, path):
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     dump = json.dumps(message)
@@ -245,6 +250,7 @@ async def init_dj_client(websocket, path):
 
         msg = json.loads(msg_string)
 
+        beat_sens_number = 'N/A'
         if 'type' in msg:
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg['effect'])
@@ -257,6 +263,22 @@ async def init_dj_client(websocket, path):
                 #     stop_song()
                 #     broadcast_song_status = True
                 remove_effect_name(effect_name)
+
+            elif msg['type'] == 'beat_sens_up':
+                result = grid_helpers.winamp_wrapper.increase_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_up, {beat_sens_string=}')
+                broadcast_light_status = True
+
+            elif msg['type'] == 'beat_sens_down':
+                result = grid_helpers.winamp_wrapper.decrease_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_down, {beat_sens_string=}')
+                broadcast_light_status = True
 
             elif msg['type'] == 'clear_effects':
                 clear_effects()
@@ -576,12 +598,13 @@ async def broadcast(sockets, msg):
 #     await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
-    global broadcast_light_status
+    global broadcast_light_status, beat_sens_string
     message = {
         'status': {
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     await broadcast(light_sockets, json.dumps(message))

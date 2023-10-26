@@ -122,20 +122,23 @@ def random_preset():
 
     load_preset(preset_path)
 
-def increase_beat_sensitivity():
+def increase_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot increase beat sensitivity')
     
-    winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() + .01)
+    new_val = winamp_visual.get_beat_sensitivity() + amt
+    winamp_visual.set_beat_sensitivity(new_val)
     print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
+    return new_val
 
-def decrease_beat_sensitivity():
+def decrease_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot decrease beat sensitivity')
-    
-    winamp_visual.set_beat_sensitivity(winamp_visual.get_beat_sensitivity() - .01)
-    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
 
+    new_val = winamp_visual.get_beat_sensitivity() - amt
+    winamp_visual.set_beat_sensitivity(new_val)
+    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
+    return new_val
 
 def get_beat_sensitivity():
     if not winamp_visual_loaded:

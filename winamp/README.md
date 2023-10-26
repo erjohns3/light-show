@@ -24,8 +24,8 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projectm -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=.
 ```
-* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp.py`
 
+* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/ python test_winamp.py`
 
 
 # presets
@@ -56,6 +56,11 @@ good in basement
         Dancer/Glowsticks Mirror/drugsincombat - liquifried squid i.milk
 
 
+
+
+
+#### old cmds that might be needed
+* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp.py`
 
 
 

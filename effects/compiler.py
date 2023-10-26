@@ -685,8 +685,6 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     ]
     return final
 
-
-winamp_preset_dir = grid_helpers.winamp_wrapper.presets_directory
 def winamp(grid_info):
     grid_helpers.winamp_wrapper.load_preset(grid_info.preset)
     grid_helpers.winamp_wrapper.compute_frame()

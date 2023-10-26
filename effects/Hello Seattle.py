@@ -6,6 +6,8 @@ effects = {
         "song_path": "songs/Hello Seattle.ogg",
         "delay_lights": 0.23099999999999998,
         "skip_song": 0.0,
-        "beats": []
+        "beats": [
+            grid_f(1, function=winamp, preset='202.milk', length=400),
+        ]
     }
 }

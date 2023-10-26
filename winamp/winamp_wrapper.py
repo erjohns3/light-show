@@ -22,14 +22,11 @@ import pathlib
 import random
 import collections
 import ctypes
-import importlib
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
 sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
-
-
 
 
 winamp_visual_loaded = False
@@ -89,7 +86,7 @@ print_green(f'{len(all_presets):,} milk visualizer presets to choose from')
 preset_name_to_filepath = {}
 for _, filepath in all_presets:
     if filepath.name in preset_name_to_filepath:
-        print_red(f'{seen_times} OVERLAPS {filepath.name}')
+        print_red(f'OVERLAPS IN PRESET FILEPNAMES: {filepath.name}')
         exit()
     preset_name_to_filepath[filepath.stem] = filepath
     preset_name_to_filepath[filepath.name] = filepath

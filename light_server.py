@@ -45,7 +45,6 @@ parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, defa
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
-parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
@@ -57,10 +56,10 @@ args = parser.parse_args()
 
 if is_doorbell():
     args.local = False
-    if args.keyboard:
-        raise Exception('Keyboard mode is not supported on the doorbell')
+    args.keyboard = False
 else:
     args.local = True
+    args.keyboard = True
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')

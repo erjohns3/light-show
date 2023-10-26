@@ -5,8 +5,10 @@ This only supports linux for now (both x86_64 and aarch64)
 * `git clone https://github.com/aduerig/projectm`
 * `git clone https://github.com/projectM-visualizer/presets-cream-of-the-crop`
     * inside the projectm/presets folder
-* probably not needed
-    * `git submodule update --init --recursive`
+* build everything:
+```
+rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
+```
 
 
 

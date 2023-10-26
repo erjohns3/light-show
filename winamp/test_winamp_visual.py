@@ -1,11 +1,8 @@
-# no build
-    # LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
+# building just python, then running
+    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
 
-# partial 
-    # rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
-
-# full
-    # rm CMakeCache.txt; rm src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release && cmake --build . -- -j && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
+# building c++ library, python library, and running
+    # rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=. && python test_winamp_visual.py
 
 # must be on 311..., not b311
 

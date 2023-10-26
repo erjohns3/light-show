@@ -26,11 +26,6 @@
 
 #include <numpy/arrayobject.h>  // For the numpy C-API
 
-// glfw
-// #include <GLFW/glfw3.h>
-
-// egl
-// #include <EGL/egl.h>
 
 using namespace std;
 

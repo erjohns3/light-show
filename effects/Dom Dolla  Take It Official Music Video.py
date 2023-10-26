@@ -4,7 +4,7 @@ effects = {
     "dom sidechain motor halfs": {
         'length': 1,
         "beats": [
-            b(1.15, name='Sidechain motor', length=.85),
+            b(1.15, name='Sidechain motor', length=.55),
         ]
     },
     "dom chorus laser": {

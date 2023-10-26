@@ -1,24 +1,6 @@
 from effects.compiler import *
 import grid_helpers
 
-def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
-    arr = []
-    total = 16
-    for i in range(total):
-        before_color = interpolate_vectors_float(start_color, end_color, i / total)
-        after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
-        arr.append(grid_f(
-            start_beat + (i * .15),
-            function=our_transform,
-            object=get_centered_circle_numpy_nofill(radius=i+1),
-            start_color=before_color,
-            end_color=after_color,
-            length=1,
-        ))
-    return arr
-
-
-
 effects = {
     "ll bass" : {
         "length": 2,
@@ -110,10 +92,10 @@ effects = {
         ]
     },
     "circle pulse": {
-        "length": 8,
+        "length": 4,
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=5, start_color=GColor.cyan, end_color=GColor.pink),
+            *get_circle_pulse_beats(start_beat=3, start_color=GColor.cyan, end_color=GColor.pink),
         ],
     },
 
@@ -128,23 +110,18 @@ effects = {
             #grid_f(1, filename='ricardo.gif', rotate_90=False, length=32),
             # grid_f(1, filename='nyan.webp', rotate_90=True, length=8),
             # grid_f(1, function=lambda info: print('hello'), length=16),
-
             # grid_f(1, text='buy\n  it', font_size=8, length=8),
-            b(1, name="twinkle white", length=36),
+
+            *make_twinkle(color=GColor.white, length=35),
             b(9, name='ll bass', length=144),
             b(36, name='ll fill', length=6),
-            b(42, name="twinkle white", length=26),
+            *make_twinkle(42, color=GColor.white, length=26),
             b(68, name='ll fill', length=6),
             b(73, name='verse disco', length=72),
-            b(73, name='twinkle white', length=11),
             b(84, name='ll fill', length=6),
-            b(90, name='twinkle white', length=10),
             b(100, name='ll fill', length=6),
-            b(106, name='twinkle white', length=10),
             b(116, name='ll fill', length=6),
-            b(124, name='twinkle white', length=10),
             b(132, name='ll fill', length=6),
-            b(138, name='twinkle white', length=7),
             b(145, name='ll pre chorus', length=8),
             b(153, name='circle pulse', length=32),
             b(153, name='ll bass', length=32),
@@ -155,13 +132,13 @@ effects = {
             b(212, name='ll fill', length=6),
             b(223.5, name='ll clap', length=2),
             b(225, name='ll pre chorus', length=8),
+            b(233, name='ll bass', length=32),
             b(233, name='circle pulse', length=32),
             b(265, name='ll bridge', length=48),
             b(276, name='ll fill', length=6),
             b(292, name='ll fill', length=6),
             b(313, name='Blue disco pulse', length=32),
             b(345, name='Rgb disco pulse', length=32),
-            b(380, name="twinkle blue", length=28),
             b(380, name='Strobe bottom', length=28, sat_shift=.2, intensity=(0, 1)),
             b(372, name='ll fill', length=6),
             b(388, name='ll fill', length=6),

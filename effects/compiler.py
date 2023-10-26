@@ -110,7 +110,6 @@ def twinkle(grid_info):
             color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
         grid_helpers.grid[curr_x][curr_y] += color
 
-
 def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,
@@ -122,6 +121,22 @@ def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, n
         twinkle_length=twinkle_length,
         length=length,
     )]
+
+def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
+    arr = []
+    total = 20
+    for i in range(total):
+        before_color = interpolate_vectors_float(start_color, end_color, i / total)
+        after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
+        arr.append(grid_f(
+            start_beat + (i / 10),
+            function=our_transform,
+            object=get_centered_circle_numpy_nofill(radius=(i+1)),
+            start_color=before_color,
+            end_color=after_color,
+            length=1/10,
+        ))
+    return arr
 
 
 # ==== eric and andrews transformation matrix stuff
@@ -150,10 +165,23 @@ def get_centered_circle_numpy_nofill(radius, offset_x=0, offset_y=0, color=(100,
     mid_x = (grid_width // 2) + offset_x
     mid_y = (grid_height // 2) + offset_y
 
+    inner_radius = radius - 1
     for x in range(grid_width):
         for y in range(grid_height):
-            if (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2) and (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2:
+            distance = (x - mid_x) ** 2 + (y - mid_y) ** 2
+            distance = math.sqrt(distance)
+            
+            if distance <= radius and distance >= inner_radius:
                 circle[x][y] = color
+            # if (outer_radius - circle_width) ** 2 <= distance <= outer_radius ** 2:
+            #     circle[x][y] = color
+
+    # for x in range(grid_width):
+    #     for y in range(grid_height):
+    #         first =  (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2)
+    #         second = (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2
+    #         if first and second:
+    #             circle[x][y] = color
 
     return circle
 
@@ -206,6 +234,10 @@ def interpolate_float(f1, f2, percent_done):
 
 def interpolate_vectors_float(v1, v2, percent_done):
     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
+
+
+# def add_vecc(v1, v2, percent_done):
+#     return tuple((1 - percent_done) * v1[i] + percent_done * v2[i] for i in range(len(v1)))
 
 
 def scale_vector(vector, scale):
@@ -543,7 +575,7 @@ def fill_grid_from_image_filepath(info):
     cached_filepath = grid_helpers.get_cached_converted_filepath(info.filename, dimensions, use_cache=False)
     if grid_helpers.is_animated(cached_filepath):
         grid_helpers.seek_to_animation_time(cached_filepath, time_in_pattern)
-    grid_helpers.fill_grid_from_image_filepath(cached_filepath, rotate_90=info.rotate_90)
+    grid_helpers.fill_grid_from_image_filepath(cached_filepath, getattr(info, 'color', None), rotate_90=info.rotate_90)
 
 
 def fill_grid_from_text(info):

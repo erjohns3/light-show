@@ -28,41 +28,8 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 * run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/ python test_winamp.py`
 
 
-# presets
-
-good in basement
-    Supernova/Stars/PieturP - HSL-tunnelvisions_morphing3.milk
-    Reaction/Liquid Blobby/$$$ Royal - Mashup (236).milk
-    Dancer/Glowsticks Mirror/203.milk
-    Dancer/Murky/mrt ei cynical engineers working for a backward system unite in circle jerk oink.milk
-    Dancer/Glowsticks Mirror/389.milk
-    Fractal/Lattice/EoS - skylight a3 [trip colors flux2]_phat_Multi_shaped2_zoe_colours3.milk
-    Dancer/Whirl/Adam Fx 2 Zylot -  FierceFX Glowworld 7.milk
-
-    Waveform/Spectrum/suksma - negative infinity for not flinching - thr.milk
-    Waveform/Wire Mirror/Serge + Jc - Neon Star Formation003.milk
-    Sparkle/Mass Circles/suksma - dotes hostile undertake - fake rivals real2.milk
-    Drawing/Trails Mirror/fiShbRaiN - witchcraft (metropolish remix) - test - tillex  - bob boyce' 'the cell', pulstar, singh grooves, motor up, pre-filter cyclone.milk
-
-    ./presets/presets-cream-of-the-crop/Waveform/Wire Mirror/suksma - ignore butte des mortes prayer heap.milk
-
-    Drawing/Liquid/suksma - satanic teleprompter - sth shd - salientanic FLE.milk
-
-    Dancer/Glowsticks Mirror/200.milk
-    Dancer/Glowsticks Mirror/207 mrt get out to where the shooting's going on.milk
-    ./presets/presets-cream-of-the-crop/Waveform/Wire Circular/Geiss - Skin Dots 6 (Jelly).milk
-
-    talking:
-        Dancer/Glowsticks Mirror/drugsincombat - liquifried squid i.milk
-
-
-
-
-
 #### old cmds that might be needed
 * run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp.py`
-
-
 
 
 #### old notes

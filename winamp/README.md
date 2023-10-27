@@ -3,24 +3,25 @@ This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
 # requirements
 * cmake
-* SDL version 2.16 or higher
-* GSL shaders
+* SDL version (2.16 or higher) (probably just "apt-get install `libsdl2-dev`")
+* GLSL shaders (version 3.3 or higher) 
 
 # installation
 * `git clone https://github.com/aduerig/projectm`
+    * run in this directory
 * `git clone https://github.com/projectM-visualizer/presets-cream-of-the-crop`
-    * inside the projectm/presets folder
+    * run inside the projectm/presets directory
 
 
 #### ON x86_64:
-* building the c++ and python interop module
+* building the c++ and python interop module (run in this directory)
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=.
 ```
 * run `python test_winamp.py`
 
 #### ON OUR RASP PI (aarch64):
-* building the c++ and python interop module
+* building the c++ and python interop module (run in this directory)
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projectm -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=.
 ```

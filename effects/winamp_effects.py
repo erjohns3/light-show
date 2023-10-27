@@ -42,6 +42,6 @@ else:
             'loop': True,
             'profiles': profiles,
             'beats': [
-                grid_f(1, function=winamp, preset=preset_name, length=1),
+                grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
             ],
         }

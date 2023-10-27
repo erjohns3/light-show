@@ -680,7 +680,7 @@ def get_sub_effect_names(effect_name, beat):
 #     last_called_grid_render = False
 
 # in light
-# if args.local and bool(infos_for_this_sub_beat):
+# if args.local and bool():
 #     last_called_grid_render = True
 
 
@@ -878,7 +878,7 @@ async def light():
     download_thread = None
     search_thread = None 
     while True:
-        infos_for_this_sub_beat = []
+        infos_for_this_sub_beat = {}
         grid_fill_from_old = True
         clear_grid_at_start = True
 
@@ -935,7 +935,12 @@ async def light():
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
                         info.looped = looped
-                        infos_for_this_sub_beat.append(info)
+                        
+                        priority = getattr(info, 'priority', 0)
+                        if priority not in infos_for_this_sub_beat:
+                            infos_for_this_sub_beat[priority] = []
+                        infos_for_this_sub_beat[priority].append(info)
+
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
@@ -979,13 +984,14 @@ async def light():
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
             # grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
         
-        for info in infos_for_this_sub_beat:
-            try:
-                info.grid_function(info)
-            except Exception as e:
-                print_stacktrace()
-                print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
-                return False
+        for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
+            for info in info_arr:
+                try:
+                    info.grid_function(info)
+                except Exception:
+                    print_stacktrace()
+                    print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                    return False
 
         if args.local:
             await send_to_terminal_output(None, None)

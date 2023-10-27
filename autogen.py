@@ -165,8 +165,16 @@ def separate_stem(audio_path, part, model=None, cache=True):
 
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
+    to_delete_after = []
     if is_windows():
-        song_filepath = sound_video_helpers.convert_to_wav(song_filepath)
+        song_filepath_maybe_utf_8 = sound_video_helpers.convert_to_wav(song_filepath)
+        clean_name = song_filepath_maybe_utf_8.name.encode('ascii', 'ignore').decode('ascii')
+        if clean_name != song_filepath_maybe_utf_8.name:
+            song_filepath = song_filepath_maybe_utf_8.with_name(clean_name)
+            shutil.move(song_filepath_maybe_utf_8, song_filepath)
+        else:
+            song_filepath = song_filepath_maybe_utf_8
+        to_delete_after.append(song_filepath)
 
     win_s = 512                 # fft size
     hop_s = win_s // 2          # hop size
@@ -264,10 +272,9 @@ def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     else:
         boundary_beats, chunk_levels = 'DISABLED', []
     print(f'autogen: {song_filepath.stem} - Guessing BPM as {bpm_guess} delay as {delay} beat_length as {beat_length}, boundary_beats as {boundary_beats}')
-    if is_windows():
-        src.close()
-        if song_filepath.suffix == '.wav':
-            song_filepath.unlink()
+    src.close()
+    for path in to_delete_after:
+        path.unlink()
     if queue:
         queue.put([total_frames / src.samplerate, bpm_guess, delay, boundary_beats, chunk_levels])
     else:

@@ -694,6 +694,6 @@ def winamp(grid_info):
 
     # red and blue channels raise to 2
     # green raise to 2.3
-    temp[:, :, 0] = np.power(temp[:, :, 0], 2)
-    temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
-    grid_helpers.grid = np.power(temp[:, :, 2], 2)
+    # temp[:, :, 0] = np.power(temp[:, :, 0], 2)
+    # temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
+    # grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)

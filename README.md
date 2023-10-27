@@ -1,5 +1,18 @@
 # Club time
 ## TLDR:
+
+# calibration
+
+* red
+  * 25 light -> 50 term
+    * maybe 30 light -> 50 term
+* green
+  * 20 light -> 50 term
+* blue
+  * 25 light -> 50 term
+
+
+
 ### Requirements
 * Install ffmpeg, and have avaliable on your path
 * `pip install -r requirements.txt`

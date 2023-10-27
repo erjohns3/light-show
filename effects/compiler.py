@@ -689,3 +689,11 @@ def winamp(grid_info):
     grid_helpers.winamp_wrapper.load_preset(grid_info.preset)
     grid_helpers.winamp_wrapper.compute_frame()
     grid_helpers.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)
+
+    temp = grid_helpers.grid / 100
+
+    # red and blue channels raise to 2
+    # green raise to 2.3
+    temp[:, :, 0] = np.power(temp[:, :, 0], 2)
+    temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
+    grid_helpers.grid = np.power(temp[:, :, 2], 2)

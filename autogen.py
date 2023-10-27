@@ -1,7 +1,6 @@
 import pathlib
 import json
 import math
-import os
 import importlib
 import time
 from collections import Counter
@@ -9,7 +8,6 @@ import multiprocessing
 from copy import deepcopy
 import random
 import traceback
-import sys
 import shutil
 
 from scipy.signal import find_peaks
@@ -182,7 +180,6 @@ def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     try:
         src = aubio.source(str(song_filepath), 0, hop_s)
     except Exception as e:
-        import shutil
         print_stacktrace()
         print_yellow(f'failed to open {song_filepath}')
         if not song_filepath.exists():

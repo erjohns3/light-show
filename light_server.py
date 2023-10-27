@@ -583,12 +583,12 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
-# async def send_client_queue_config():
-#     queue_message = {
-#         'effects': effects_config_queue_client,
-#         'songs': songs_config,
-#     }
-#     await broadcast(song_sockets, json.dumps(queue_message))
+async def send_client_queue_config():
+    queue_message = {
+        'effects': effects_config_queue_client,
+        'songs': songs_config,
+    }
+    await broadcast(song_sockets, json.dumps(queue_message))
 
 # async def send_client_dj_config():
 #     dj_message = {

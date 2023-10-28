@@ -42,12 +42,18 @@ known_good_set_2 = set([
     'suksma - n13.milk',
     'martin - crystal palace nz+',
     'Shiroijin - Unicorn Hell, Warp 9 Mr Crusher!!!',
+    'EoS - 7th galaxy',
+    'EoS - glowsticks v2 05 and proton lights (+Krash\'s beat code) _Phat_remix02c',
 ])
 
 
 known_good_set_2_standalone = set([
     'AkashaDude & Geiss - Phahlsce Pseye kniqmbatlech way lots calmer',
     'suksma - dotes hostile undertake + demonlord - blood in your eyes again - flacc',
+    'suksma - coal drapes - mrt fsh behooval roam3- nz+ gene phreqshough passive suggestive',
+    'suksma - arrange-a-tang - shf radial tripolar swung',
+    'Goody + martin - crystal palace - Schizotoxin - The Wild Iris Bloom - mess2 nz+ gordichuck',
+    'suksma - satanic teleprompter - lusb',
 ])
 
 
@@ -62,11 +68,10 @@ def fuzzy_find(search, collection):
 
 all_titles = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.keys())
 # should_exit = True
-for name in known_good_set_2_standalone:
+for name in known_good_set_2:
     result = fuzzy_find(name, all_titles)
     if result != name:
         print(f'{cyan(str(result))}\n{red(str(name))}')
-
 # exit()
 
 # note this code is almost all duped from below

@@ -26,6 +26,7 @@ from helpers import *
 class GColor:
     white = (100, 100, 100)
     blue = (0, 0, 100)
+    blue_some_green = (0, 30, 100)
     red = (100, 0, 0)
     green = (0, 100, 0)
     purple = (100, 0, 100)
@@ -84,7 +85,7 @@ def twinkle(grid_info):
     twinkle_length = getattr(grid_info, 'twinkle_length', 1)
     twinkle_lower_wait = getattr(grid_info, 'twinkle_lower_wait', 1)
     twinkle_upper_wait = getattr(grid_info, 'twinkle_upper_wait', 4)
-    color = getattr(grid_info, 'color', GColor.green)
+    overall_color = getattr(grid_info, 'color', GColor.green)
     if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
         grid_info.twinkles = [None] * num_twinkles
         for index in range(len(grid_info.twinkles)):
@@ -107,13 +108,13 @@ def twinkle(grid_info):
 
         percent_done * 2
         if percent_done <= .5:
-            color = interpolate_vectors_float((0, 0, 0), color, percent_done * 2)
+            interpol_color = interpolate_vectors_float((0, 0, 0), overall_color, percent_done * 2)
         else:
-            color = interpolate_vectors_float(color, (0, 0, 0), (percent_done * 2) - 1)
-        grid_helpers.grid[curr_x][curr_y] += color
+            interpol_color = interpolate_vectors_float(overall_color, (0, 0, 0), (percent_done * 2) - 1)
+        grid_helpers.grid[curr_x][curr_y] += interpol_color
 
 
-def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
+def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=20, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,
         function=twinkle,
@@ -501,6 +502,13 @@ def get_smallest_equivilent_vectors(vector):
         needed_x -= should_x
         needed_y -= should_y
     return all_vectors
+
+
+def move_left(info):
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        grid_helpers.move([-1, 0])
 
 
 def move_until_y_occupy(info):

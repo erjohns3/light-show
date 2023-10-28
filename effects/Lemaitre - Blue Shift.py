@@ -91,7 +91,7 @@ def rain(grid_info):
     if getattr(grid_info, 'rains', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
         grid_info.rains = [None] * grid_info.num_rains
         for index in range(len(grid_info.rains)):
-            grid_info.rains[index] = time.time() + grid_info.lower_wait + (random.random() * grid_info.upper_wait)
+            grid_info.rains[index] = time.time() + (random.random() * grid_info.upper_wait)
         grid_info.explosions = []
 
     for index, state_or_next_time in enumerate(grid_info.rains):
@@ -149,34 +149,38 @@ def rain(grid_info):
         index += 1
 
 
-def make_rain(start_beat=1, length=1, lower_wait=1, upper_wait=6):
+def make_rain(start_beat=1, length=1, speed=1.2, lower_wait=1, upper_wait=6, color=GColor.blue_some_green, num_rains=20):
     return [grid_f(
         start_beat,
         function=rain,
-        num_rains=20,
-        color=GColor.blue,
+        num_rains=num_rains,
+        color=color,
         lower_wait=lower_wait,
         upper_wait=upper_wait, 
-        speed=1.2,
+        speed=speed,
         length=length,
     )]
 
 
 
 effects = {
-    "rain": {"profiles": ['Twinkle'], "loop": True, "beats": make_rain()},
+    "Rain": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain()},
+    "Rain fast": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6)},
+    "Rain fast lots": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6, num_rains=40)},
+    # "Move Left": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_left, length=1)]},
 
-    "twinkle white": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.white)},
-    "twinkle blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.blue)},
-    "twinkle green": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.green)},
-    "twinkle red": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.red)},
-    "twinkle purple": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.purple)},
-    "twinkle yellow": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.yellow)},
-    "twinkle cyan": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.cyan)},
-    "twinkle orange": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.orange)},
-    "twinkle pink": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.pink)},
-    "twinkle light_blue": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.light_blue)},
-    "twinkle light_green": {"profiles": ['Twinkle'], "loop": True, "beats": make_twinkle(color=GColor.light_green)},
+
+    "twinkle white": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.white)},
+    "twinkle blue": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.blue)},
+    "twinkle green": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.green)},
+    "twinkle red": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.red)},
+    "twinkle purple": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.purple)},
+    "twinkle yellow": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.yellow)},
+    "twinkle cyan": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.cyan)},
+    "twinkle orange": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.orange)},
+    "twinkle pink": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.pink)},
+    "twinkle light_blue": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.light_blue)},
+    "twinkle light_green": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.light_green)},
 
     
     "trail ball fast": {

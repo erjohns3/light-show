@@ -59,7 +59,7 @@ def send_rekordbox_effects_to_doorbell():
         # '-T'
         'pi@192.168.86.55',
         'cd light-show && tar xvzf -',
-    ], stdin=process.stdout)
+    ], stdin_pipe=process.stdout)
     print(f'Result was {ret_code}. Finished sending rekordbox effects to doorbell in {time.time() - start_time} seconds')
 
 

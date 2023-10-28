@@ -79,15 +79,15 @@ for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_f
 
     autogen_category = None
     if preset_name in known_good_set_1: # not forced on in production
-        profiles.append('winamp_good_1')
+        profiles.append('Winamp Good 1')
         autogen_category = 'winamp top need sidechained'
 
     if preset_name in known_good_set_2: # not forced on in production
-        profiles.append('winamp_good_2')
+        profiles.append('Winamp Good 2')
         autogen_category = 'winamp top need sidechained'
 
     if preset_name in known_good_set_2_standalone: # not forced on in production
-        profiles.append('winamp_good_standalone')
+        profiles.append('Winamp Alone')
         autogen_category = 'winamp top alone'
 
 

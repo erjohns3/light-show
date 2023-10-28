@@ -3,6 +3,7 @@ import signal
 import argparse
 import time
 
+import light_server
 from helpers import *
 import grid_helpers
 import autogen

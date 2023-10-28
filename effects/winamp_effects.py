@@ -1,7 +1,5 @@
 from effects.compiler import *
 
-import random
-
 
 
 effects = {
@@ -65,7 +63,6 @@ known_good_set_2_standalone = set([
 #     # print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
 #     return choices[0][0]
 
-
 # all_titles = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.keys())
 # # should_exit = True
 # for name in known_good_set_2:
@@ -73,6 +70,7 @@ known_good_set_2_standalone = set([
 #     if result != name:
 #         print(f'{cyan(str(result))}\n{red(str(name))}')
 # exit()
+
 
 for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
     profiles = ['winamp_all']
@@ -97,7 +95,8 @@ for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_f
         'length': 1,
         'loop': True,
         'profiles': profiles,
-        "autogen": autogen_category if autogen_category else None,
+        'intensity': 'low',
+        'autogen': autogen_category if autogen_category else None,
         'beats': [
             grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
         ],

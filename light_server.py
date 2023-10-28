@@ -21,6 +21,7 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
 # os.environ['SDL_AUDIODRIVER'] = 'jack'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import numpy as np
 import pygame
 import pigpio
 import websockets
@@ -583,12 +584,12 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
-# async def send_client_queue_config():
-#     queue_message = {
-#         'effects': effects_config_queue_client,
-#         'songs': songs_config,
-#     }
-#     await broadcast(song_sockets, json.dumps(queue_message))
+async def send_client_queue_config():
+    queue_message = {
+        'effects': effects_config_queue_client,
+        'songs': songs_config,
+    }
+    await broadcast(song_sockets, json.dumps(queue_message))
 
 # async def send_client_dj_config():
 #     dj_message = {
@@ -680,7 +681,7 @@ def get_sub_effect_names(effect_name, beat):
 #     last_called_grid_render = False
 
 # in light
-# if args.local and bool(infos_for_this_sub_beat):
+# if args.local and bool():
 #     last_called_grid_render = True
 
 
@@ -878,7 +879,7 @@ async def light():
     download_thread = None
     search_thread = None 
     while True:
-        infos_for_this_sub_beat = []
+        infos_for_this_sub_beat = {}
         grid_fill_from_old = True
         clear_grid_at_start = True
 
@@ -935,7 +936,12 @@ async def light():
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
                         info.looped = looped
-                        infos_for_this_sub_beat.append(info)
+                        
+                        priority = getattr(info, 'priority', 0)
+                        if priority not in infos_for_this_sub_beat:
+                            infos_for_this_sub_beat[priority] = []
+                        infos_for_this_sub_beat[priority].append(info)
+
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
@@ -971,25 +977,67 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
+            # fill by scaling the number of rows based on brightness.
+            #  
+
+
+            def grid_fill_fancy(rgbs, centerpoint):
+                # bright_to_go is initally brightness percentage out of 100.
+                bright_to_go = max(rgbs)
+                rgbs = [rgbs[0], rgbs[1], rgbs[2]]
+                # max_per_bucket determines what percent each bucket can contribute.
+                # ideally would add to 100%
+                max_per_bucket = [14.25, 13.75, 13.25, 12.75, 12.25, 11.75, 11.25, 10.75] # there are 8 rows available, including center
+                rgb_outs = []
+                # center is special case:
+                row_bright = min(bright_to_go, max_per_bucket[0])
+                bright_to_go -= row_bright
+                rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
+                counter = 1
+                while bright_to_go > 0:
+                    row_bright = min(bright_to_go, max_per_bucket[counter])
+                    bright_to_go -= row_bright*2
+                    rgb_outs.append([x*row_bright/9 for x in rgbs])
+                    counter+=1
+
+                for i, rgb in enumerate(rgb_outs):
+                    if i == 0:
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
+                    else:
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
+            grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
+            grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
+            
+            #todo also top
+
             # semi fill (looks like pre-grid)
-            grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-            grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
+            # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
+            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
         
             # full fill (overbearing because entire grid)
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
             # grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
         
-        for info in infos_for_this_sub_beat:
-            try:
-                info.grid_function(info)
-            except Exception as e:
-                print_stacktrace()
-                print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
-                return False
+        for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
+            for info in info_arr:
+                try:
+                    info.grid_function(info)
+                except Exception:
+                    print_stacktrace()
+                    print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                    return False
 
         if args.local:
             await send_to_terminal_output(None, None)
         else:
+            temp = grid_helpers.grid / 100
+            # red and blue channels raise to 2
+            # green raise to 2.3
+            temp[:, :, 0] = np.power(temp[:, :, 0], 2)
+            temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
+            grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
+
             grid_helpers.render()
 
         # check on youtube downloads
@@ -1095,7 +1143,14 @@ def add_effect(new_effect_name):
                 index += 1
 
     if 'bpm' in effect:
-        clear_effects()
+        if 'downloaded_songs' in str(effect.get('song_path', 'downloaded_songs')):
+            print_yellow('Only clearing other effects with songs because i think this is a rekordbox switch')
+            for effect_name, start_index in curr_effects:
+                if effects_config[effect_name].get('was_autogenerated', False):
+                    remove_effect_name(effect_name)
+        else:
+            clear_effects()
+        
         time_start = time.time() + effect['delay_lights'] - song_time
         # print('effect will have time_start of:', effect['delay_lights'] - song_time)
         curr_bpm = effect['bpm']

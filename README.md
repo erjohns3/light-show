@@ -1,5 +1,37 @@
 # Club time
 ## TLDR:
+
+# calibration
+
+* red
+  * 25 light -> 50 term
+    * maybe 30 light -> 50 term
+* green
+  * 20 light -> 50 term
+* blue
+  * 25 light -> 50 term
+
+
+good
+  Phat_Zylot_EoS Come fly with me video nz digitalia dildoniq law divorcement.mlk
+  stahlrefen hypnotron v 0-5
+  hexcollie melodic pulsing les mash00000 vegas doesnt make life less poinltess
+  shifter crosshatch colony beta6 nglasch id knightf fuckfart
+  Evet targus
+  xtramartin (961)
+  flexi + geiss bipolarvs reaction diffusion mirror scoped jelly 5-5 threx isoceles edit     (really good according to chris)
+  ORB Smoke and fire reflecto fuckup
+  suksma - n3.milk
+  martin - crystal palace nz+
+  Shiroijin - unicorn hell warp 9 mr crusher
+
+
+on own:
+  AkashaDude & geiss phalasche pseue kniqmbatlech way lots calmer
+  suksama - dotes hostile undertake + demonlord - blood in your eues again - flacc
+
+
+
 ### Requirements
 * Install ffmpeg, and have avaliable on your path
 * `pip install -r requirements.txt`

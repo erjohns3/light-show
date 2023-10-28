@@ -655,3 +655,16 @@ effects = {
         ],
     },
 }
+
+
+for color in ['Red', 'Blue', 'Green']:
+    for amt in range(1, 101):
+        if amt == 1 or amt % 5 == 0:
+            effects[color + f' {amt}'] = {
+                'length': 1,
+                'profiles': [f'All {color}'],
+                'beats': [
+                    b(1, f'{color} top', length=1, intensity=.01 * amt),
+                ],
+            }
+

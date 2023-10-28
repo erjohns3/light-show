@@ -455,38 +455,47 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                 effect_types_to_name[effect['autogen']] = []
             effect_types_to_name[effect['autogen']].append(name)
     
+    # TBD.  winamp effects with negative sidechain
+    # either just double the ceiling brightness or do something more complex
+
     scenes = [
-        [8, ['complex grid', 'downbeat bottom']],
-        [8, ['complex grid', 'downbeat bottom', 'disco']],
-        [8, ['complex grid']],
+        # [8, ['winamp top', 'winamp sidechain', 'downbeat bottom']],
+        # [8, ['winamp top', 'winamp sidechain']],
+        # [8, ['winamp top', 'winamp sidechain', 'disco strobe']],
+        # [8, ['winamp top', 'winamp sidechain', 'UV pulse']],
+
+        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'downbeat bottom', 'disco']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top', 'disco strobe']],
+        [8, ['downbeat bottom']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed']],
+        [8, ['downbeat mixed', 'disco']],
+        [8, ['downbeat mixed', 'disco strobe']],
+        [8, ['downbeat mixed', 'UV pulse']],
+        [8, ['downbeat mixed', 'UV']],
+        [8, ['downbeat top', 'downbeat bottom', 'UV']],
+        [8, ['downbeat top', 'UV']],
+        [8, ['downbeat bottom', 'UV']],
+        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'disco strobe']],
+        [8, ['disco strobe']],
+        [2, ['filler']],
+        [2, ['UV pulse']],
+        [2, ['disco']],
         [1, ['filler']],
-
-
-        # [8, ['downbeat top', 'downbeat bottom']],
-        # [8, ['downbeat top', 'downbeat bottom', 'disco']],
-        # [8, ['downbeat top']],
-        # [8, ['downbeat top']],
-        # [8, ['downbeat top', 'disco strobe']],
-        # [8, ['downbeat bottom']],
-        # [8, ['downbeat mixed']],
-        # [8, ['downbeat mixed']],
-        # [8, ['downbeat mixed', 'disco']],
-        # [8, ['downbeat mixed', 'disco strobe']],
-        # [8, ['downbeat mixed', 'UV pulse']],
-        # [8, ['downbeat mixed', 'UV']],
-        # [8, ['downbeat top', 'downbeat bottom', 'UV']],
-        # [8, ['downbeat top', 'UV']],
-        # [8, ['downbeat bottom', 'UV']],
-        # [8, ['downbeat top', 'downbeat bottom']],
-        # [8, ['downbeat top', 'disco strobe']],
-        # [8, ['disco strobe']],
-        # [2, ['filler']],
-        # [2, ['UV pulse']],
-        # [2, ['disco']],
-        # [1, ['filler']],
-        # [1, ['filler', 'disco strobe']],
-        # [1, ['UV pulse single']],
+        [1, ['filler', 'disco strobe']],
+        [1, ['UV pulse single']],
     ]
+
+    # from andrew's testing
+    # [8, ['complex grid', 'downbeat bottom']],
+    # [8, ['complex grid', 'downbeat bottom', 'disco']],
+    # [8, ['complex grid']],
+    # [1, ['filler']],
+
 
     if mode == 'lasers':
         for scene in scenes:
@@ -565,8 +574,8 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                         # if random_color and effect_type != 'dimmers':
                         if effect_type != 'dimmers': # we never finished the dimming code
                             hue_shift=random.random()
-                            bright_shift = -0.2
-                            grid_bright_shift = -0.3
+                            bright_shift = 0.0
+                            grid_bright_shift = 0.0
 
                         new_prev_effects.append(effect_name)
                         the_length = length

@@ -221,7 +221,7 @@ effects = {
 
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),
-            grid_f(112.5, function=squares_up, length=.5),
+            grid_f(112.25, function=squares_up, length=.45),
         ],
     },
 
@@ -254,7 +254,7 @@ effects = {
             *make_transforms(
                 1, 
                 beat_lengths=1,
-                object=get_rectangle_numpy(1, 1, color=(0, 100, 0)),
+                object=get_rectangle_numpy(1, 1, color=(0, 24, 0)),
                 poses=[
                     [(0, 15), None],
                     None,
@@ -268,7 +268,7 @@ effects = {
             ),
             *make_transforms(
                 1,
-                object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
+                object=get_rectangle_numpy(1, 1, color=(0, 0, 24)),
                 beat_lengths=1,
                 poses=[
                     [(0, -16), None],
@@ -289,7 +289,7 @@ effects = {
             *make_transforms(
                 1, 
                 beat_lengths=1,
-                object=get_rectangle_numpy(1, 1, color=(100, 0, 0)),
+                object=get_rectangle_numpy(1, 1, color=(24, 0, 0)),
                 poses=[
                     [(0, 15), None],
                     None,
@@ -303,7 +303,7 @@ effects = {
             ),
             *make_transforms(
                 1,
-                object=get_rectangle_numpy(1, 1, color=(0, 0, 100)),
+                object=get_rectangle_numpy(1, 1, color=(0, 0, 24)),
                 beat_lengths=1,
                 poses=[
                     [(0, -16), None],
@@ -319,12 +319,25 @@ effects = {
         ]
     },
 
+    'grid color pulse': {
+        'length': 1,
+        'beats': [
+            grid_f(1, function=sidechain_grid, length=.3, intensity=(1, .4), priority=5000),
+            grid_f(1.3, function=sidechain_grid, length=.7, intensity=.4, priority=5000),
+        ],
+    },
+
     # !TODO IF YOU SET LENGTH LOWER THAN 4, IT WILL ERROR
     '5 hours box combine': {
         'length': 8, 
         'beats': [
+            b(1, name='grid color pulse', length=8),
             b(1, name='5 hours box combine color 1', length=4),
             b(5, name='5 hours box combine color 2', length=4),
+            
+
+            # grid_f(5, function=sidechain_grid, length=.5, intensity=(1, .5)),
+            # grid_f(5.5, function=sidechain_grid, length=3.5, intensity=.5),
         ]
     },
 
@@ -436,14 +449,14 @@ effects = {
         ]
     },
 
-    '5 hours box combine ': {
-        'length': 64,
-        'beats': [
-            # grid_f(1, function=clear_grid, length=0.01),
-            grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
-            grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
-        ]
-    },
+    # '5 hours box combine ': {
+    #     'length': 64,
+    #     'beats': [
+    #         # grid_f(1, function=clear_grid, length=0.01),
+    #         grid_f(1, function=spawn_row_then_move, y=0, clear=True, bounce=True, color=blue_c, vector=(0, 1), length=64),
+    #         grid_f(1, function=spawn_col_then_move, x=0, bounce=True, color=red_c, vector=(1, 0), length=64),
+    #     ]
+    # },
 
     '5 hours rotate circle 1': {
         'length': 32,
@@ -473,11 +486,18 @@ effects = {
             b(1, name='5 hours grid intro', length=113),
             b(113, name='5 hours grid chorus', length=64),
             b(177, name='5 hours box combine', length=64),
-            b(241, name='5 hours pinwheel grid', length=64),
+            b(241, name='5 hours pinwheel grid', length=63.25),
+            
+            grid_f(304.25, function=lambda x: x, clear=False, length=.75),
+            grid_f(304.25, function=squares_up, length=.45),
+
             b(305, name='5 hours grid chorus', length=64),
             grid_f(369, function=clear_grid, length=.04),
+
             b(369, name='5 hours rotate circle 1', length=32),
-            b(391, name='5 hours rotate circle 2', length=64),
+
+            b(401, name='grid color pulse', length=64),
+            b(401, name='5 hours rotate circle 2', length=64),
         ]
     }
 }

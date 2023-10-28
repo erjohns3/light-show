@@ -976,9 +976,39 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
+            # fill by scaling the number of rows based on brightness.
+            #  
+
+
+            # each row can produce 20% of total brightness i.e. to get 100%,
+            # you need 5 rows on. scaling is additive linear as more rows go on
+            bright_to_go = 100*(grid_levels[0] + grid_levels[1] + grid_levels[2])/(256*3)
+            rgbs = [grid_levels[0], grid_levels[1], grid_levels[2]]
+            max_per_bucket = range(10, 2, -1)
+            rgb_outs = []
+            # center is special case:
+            row_bright = min(bright_to_go, max_per_bucket[0])
+            bright_to_go -= row_bright
+            rgb_outs.append([x*row_bright/100 for x in rgbs])
+            counter = 1
+            while bright_to_go > 0:
+                row_bright = min(bright_to_go, max_per_bucket[counter])
+                bright_to_go -= row_bright*2
+                rgb_outs.append([x*row_bright/100 for x in rgbs])
+                counter+=1
+
+            for i, rgb in enumerate(rgb_outs):
+                if i == 0:
+                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
+                else:
+                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
+                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
+
+            #todo also top
+
             # semi fill (looks like pre-grid)
-            grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-            grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
+            # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
+            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
         
             # full fill (overbearing because entire grid)
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front

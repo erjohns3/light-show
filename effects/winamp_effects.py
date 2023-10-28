@@ -56,7 +56,7 @@ else:
         
         if preset_name in known_good:
             profiles.append('winamp_good')
-            
+
         autogenable = False
         if preset_name in known_good:
             profiles.append('winamp_good')

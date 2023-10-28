@@ -981,7 +981,7 @@ async def light():
 
 
             # bright_to_go is initally brightness percentage out of 100
-            bright_to_go = 100*(grid_levels[0] + grid_levels[1] + grid_levels[2])/(256*3)
+            bright_to_go = 100*(grid_levels[0] + grid_levels[1] + grid_levels[2])/(100*3)
             rgbs = [grid_levels[0], grid_levels[1], grid_levels[2]]
             # max_per_bucket determines what percent each bucket can contribute.
             # ideally would add to 100%
@@ -990,12 +990,12 @@ async def light():
             # center is special case:
             row_bright = min(bright_to_go, max_per_bucket[0])
             bright_to_go -= row_bright
-            rgb_outs.append([x for x in rgbs]) # x*row_bright/100
+            rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
             counter = 1
             while bright_to_go > 0:
                 row_bright = min(bright_to_go, max_per_bucket[counter])
                 bright_to_go -= row_bright*2
-                rgb_outs.append([x for x in rgbs])
+                rgb_outs.append([x*row_bright/9 for x in rgbs])
                 counter+=1
 
             for i, rgb in enumerate(rgb_outs):

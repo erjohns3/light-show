@@ -237,6 +237,7 @@ effects = {
         'length': 4,
         'beats': [
             grid_f(1, function=lambda x: x, clear=False, length=4),
+            # b(1, name='grid color pulse .7', length=4), # doesn't work due to clear
             b(1, name='5 hours Bottom bass bottom', length=4),
             b(1, name='Red disco pulse', length=3, offset=.5),
             b(4, name='Green disco pulse', length=1, offset=.5),
@@ -319,7 +320,24 @@ effects = {
         ]
     },
 
-    'grid color pulse': {
+
+
+    'grid color pulse twice .7': {
+        'length': .5,
+        'beats': [
+            grid_f(1, function=sidechain_grid, length=.2, intensity=(.5, .2), priority=5000),
+            grid_f(1.2, function=sidechain_grid, length=.3, intensity=.2, priority=5000),
+        ],
+    },
+
+    'grid color pulse .7': {
+        'length': 1,
+        'beats': [
+            grid_f(1, function=sidechain_grid, length=.3, intensity=(1, .7), priority=5000),
+            grid_f(1.3, function=sidechain_grid, length=.7, intensity=.7, priority=5000),
+        ],
+    },
+    'grid color pulse .4': {
         'length': 1,
         'beats': [
             grid_f(1, function=sidechain_grid, length=.3, intensity=(1, .4), priority=5000),
@@ -331,7 +349,7 @@ effects = {
     '5 hours box combine': {
         'length': 8, 
         'beats': [
-            b(1, name='grid color pulse', length=8),
+            b(1, name='grid color pulse .4', length=8),
             b(1, name='5 hours box combine color 1', length=4),
             b(5, name='5 hours box combine color 2', length=4),
             
@@ -484,6 +502,7 @@ effects = {
             # grid_f(1, filename='ricardo.gif', length=100),
             # b(1, name='five hours eggplant wrap', length=79),
             b(1, name='5 hours grid intro', length=113),
+
             b(113, name='5 hours grid chorus', length=64),
             b(177, name='5 hours box combine', length=64),
             b(241, name='5 hours pinwheel grid', length=63.25),
@@ -496,8 +515,19 @@ effects = {
 
             b(369, name='5 hours rotate circle 1', length=32),
 
-            b(401, name='grid color pulse', length=64),
-            b(401, name='5 hours rotate circle 2', length=64),
+            b(401, name='grid color pulse .4', length=96),
+            b(401, name='5 hours rotate circle 2', length=96),
+
+            grid_f(497, function=trail_ball_fade, length=64, speed=1, priority=10000),
+            grid_f(497, function=trail_ball_fade, length=64, speed=1, priority=10000),
+            grid_f(497, function=trail_ball_fade, length=64, speed=1, priority=10000),
+            b(497, name='blue shift - circle pulse 1', length=64, offset=1),
+            b(497, name='blue shift - circle pulse 2', length=64),
+            b(497, name='grid color pulse twice .7', length=64),
+
+            grid_f(560.25, function=lambda x: x, clear=False, length=.75),
+            grid_f(560.25, function=squares_up, length=.45),
+            b(561, name='5 hours grid chorus', length=64),
         ]
     }
 }

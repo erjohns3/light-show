@@ -24,11 +24,17 @@ good
   suksma - n3.milk
   martin - crystal palace nz+
   Shiroijin - unicorn hell warp 9 mr crusher
-
+  EoS - 7th galaxy
+  EoS - glowsticks v2 05 and proton lights + krash beat code _ phat remix02c
 
 on own:
   AkashaDude & geiss phalasche pseue kniqmbatlech way lots calmer
   suksama - dotes hostile undertake + demonlord - blood in your eues again - flacc
+  suksma - coal drapes - mrt fsh behooval roam3 nz  gene phreqshough passive suggestive
+  suksma - arrange-a-tang shf radial tripolar swung
+  Goody + martin crystal palace schizotoxin the wild iris bloom mess2 nz+
+  suksma - satanic teleprompter - lusb
+
 
 
 

@@ -52,7 +52,9 @@ parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #b
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
-parser.add_argument('--winamp', dest='winamp', default=False, action='store_true')
+parser.add_argument('--winamp', dest='winamp', default=None, action='store_true')
+parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
+
 args = parser.parse_args()
 
 if is_doorbell():
@@ -62,12 +64,29 @@ else:
     args.local = True
     args.keyboard = True
 
+if is_andrews_main_computer() and args.winamp == None:
+    args.winamp = True
+
+if args.winamp == None:
+    args.winamp = False
+
+
+
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
 
+    
+
+
+import effects.compiler
+
 beat_sens_string = 'Beat Sens: N/A'
-if args.winamp:
+if args.fake_winamp:
+    effects.compiler.winamp = effects.compiler.twinkle
+    grid_helpers.winamp_wrapper.winamp_visual_loaded = True
+
+elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()

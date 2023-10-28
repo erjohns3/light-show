@@ -58,24 +58,22 @@ known_good_set_2_standalone = set([
 
 
 
-def fuzzy_find(search, collection):
-    import thefuzz.process
-    # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
-    choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
-    # print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
-    return choices[0][0]
+# def fuzzy_find(search, collection):
+#     import thefuzz.process
+#     # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
+#     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
+#     # print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
+#     return choices[0][0]
 
 
-all_titles = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.keys())
-# should_exit = True
-for name in known_good_set_2:
-    result = fuzzy_find(name, all_titles)
-    if result != name:
-        print(f'{cyan(str(result))}\n{red(str(name))}')
+# all_titles = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.keys())
+# # should_exit = True
+# for name in known_good_set_2:
+#     result = fuzzy_find(name, all_titles)
+#     if result != name:
+#         print(f'{cyan(str(result))}\n{red(str(name))}')
 # exit()
 
-# note this code is almost all duped from below
-print('Making fake winamp effects because winamp is not running')
 for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
     profiles = ['winamp_all']
     if 'cream-of-the-crop' not in str(preset_filepath):
@@ -99,8 +97,8 @@ for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_f
         'length': 1,
         'loop': True,
         'profiles': profiles,
-        "autogen": "winamp top" if autogen_category else None,
+        "autogen": autogen_category if autogen_category else None,
         'beats': [
-            [1, "twinkle green", 1]
+            grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
         ],
     }

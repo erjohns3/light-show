@@ -464,17 +464,6 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         # [8, ['winamp top', 'winamp sidechain', 'disco strobe']],
         # [8, ['winamp top', 'winamp sidechain', 'UV pulse']],
 
-        [8, ['winamp top alone', 'downbeat bottom']],
-        [8, ['winamp top alone', 'downbeat bottom', 'disco']],
-        [8, ['winamp top alone']],
-        [8, ['winamp top alone']],
-        [8, ['winamp top alone', 'disco strobe']],
-        [8, ['winamp top alone', 'downbeat bottom', 'UV']],
-        [8, ['winamp top alone', 'UV']],
-        [8, ['winamp top alone', 'downbeat bottom']],
-        [8, ['winamp top alone', 'disco strobe']],
-
-
         [8, ['downbeat top', 'downbeat bottom']],
         [8, ['downbeat top', 'downbeat bottom', 'disco']],
         [8, ['downbeat top']],
@@ -501,11 +490,20 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         [1, ['UV pulse single']],
     ]
 
-    # from andrew's testing
-    # [8, ['complex grid', 'downbeat bottom']],
-    # [8, ['complex grid', 'downbeat bottom', 'disco']],
-    # [8, ['complex grid']],
-    # [1, ['filler']],
+    import winamp_wrapper
+    if winamp_wrapper.winamp_visual_loaded:
+        new_scenes = []
+        for scene in scenes:
+            new_scenes.append(deepcopy(scene))
+            
+            length, all_effect_types = scene
+            if 'downbeat top' in all_effect_types:
+                new_scenes.append([length, all_effect_types + ['winamp top alone']])
+
+        scenes = new_scenes
+    else:
+        print_red(f'autogen: winamp visual not loaded, skipping winamp scenes')
+        time.sleep(1.5)
 
 
     if mode == 'lasers':

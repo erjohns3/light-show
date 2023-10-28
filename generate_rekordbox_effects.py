@@ -4,6 +4,7 @@ import argparse
 import time
 
 from helpers import *
+import grid_helpers
 import autogen
 
 
@@ -67,7 +68,19 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Generate rekordbox effects')
     parser.add_argument('--skip_generation', dest='generate_shows', action='store_false', default=True, help='Skip generation of effects')
+    parser.add_argument('--winamp', dest='winamp', default=None, action='store_true')
     args = parser.parse_args()
+
+    if is_andrews_main_computer() and args.winamp == None:
+        args.winamp = True
+
+    if args.winamp == None:
+        args.winamp = False
+
+    if args.winamp:
+        if not grid_helpers.try_load_winamp():
+            print_red(f'Failed to load winamp, exiting')
+            exit()
 
     # if is_andrews_main_computer():
     #     print_yellow('On andrews computer so using local song path')

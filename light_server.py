@@ -21,6 +21,7 @@ print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL
 # os.environ['SDL_AUDIODRIVER'] = 'jack'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import numpy as np
 import pygame
 import pigpio
 import websockets

@@ -980,21 +980,22 @@ async def light():
             #  
 
 
-            # each row can produce 20% of total brightness i.e. to get 100%,
-            # you need 5 rows on. scaling is additive linear as more rows go on
+            # bright_to_go is initally brightness percentage out of 100
             bright_to_go = 100*(grid_levels[0] + grid_levels[1] + grid_levels[2])/(256*3)
             rgbs = [grid_levels[0], grid_levels[1], grid_levels[2]]
-            max_per_bucket = range(10, 2, -1)
+            # max_per_bucket determines what percent each bucket can contribute.
+            # ideally would add to 100%
+            max_per_bucket = [9,8.5,8,7.5,7,6.5,6,5.5] # there are 8 rows available, including center
             rgb_outs = []
             # center is special case:
             row_bright = min(bright_to_go, max_per_bucket[0])
             bright_to_go -= row_bright
-            rgb_outs.append([x*row_bright/100 for x in rgbs])
+            rgb_outs.append([x for x in rgbs]) # x*row_bright/100
             counter = 1
             while bright_to_go > 0:
                 row_bright = min(bright_to_go, max_per_bucket[counter])
                 bright_to_go -= row_bright*2
-                rgb_outs.append([x*row_bright/100 for x in rgbs])
+                rgb_outs.append([x for x in rgbs])
                 counter+=1
 
             for i, rgb in enumerate(rgb_outs):

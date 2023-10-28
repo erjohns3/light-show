@@ -574,7 +574,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
                         # if random_color and effect_type != 'dimmers':
                         if effect_type != 'dimmers': # we never finished the dimming code
                             hue_shift=random.random()
-                            bright_shift = -0.2
+                            bright_shift = 0.0
                             grid_bright_shift = 0.0
 
                         new_prev_effects.append(effect_name)

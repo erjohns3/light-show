@@ -981,13 +981,13 @@ async def light():
             #  
 
 
-            # bright_to_go is initally brightness percentage out of 100
             def grid_fill_fancy(rgbs, centerpoint):
-                bright_to_go = 100*(rgbs[0] + rgbs[1] + rgbs[2])/(100*3)
+                # bright_to_go is initally brightness percentage out of 100.
+                bright_to_go = max(rgbs)
                 rgbs = [rgbs[0], rgbs[1], rgbs[2]]
                 # max_per_bucket determines what percent each bucket can contribute.
                 # ideally would add to 100%
-                max_per_bucket = [9,8.5,8,7.5,7,6.5,6,5.5] # there are 8 rows available, including center
+                max_per_bucket = [14.25, 13.75, 13.25, 12.75, 12.25, 11.75, 11.25, 10.75] # there are 8 rows available, including center
                 rgb_outs = []
                 # center is special case:
                 row_bright = min(bright_to_go, max_per_bucket[0])

@@ -27,7 +27,27 @@ known_good = set([
 ])
 
 if not grid_helpers.winamp_wrapper.winamp_visual_loaded:
-    print('Not generating winamp effects because winamp_visual module not loaded')
+    # note this code is almost all duped from below
+    print('Making fake winamp effects because winamp is not running')
+    for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
+        profiles = ['winamp_all']
+        if 'cream-of-the-crop' not in str(preset_filepath):
+            profiles.append('winamp_tests')
+
+        autogenable = False
+        if preset_name in known_good or True: # not forced on in production
+            profiles.append('winamp_good')
+            autogenable = True
+        
+        effects[preset_name] = {
+            'length': 1,
+            'loop': True,
+            'profiles': profiles,
+            "autogen": "winamp top" if autogenable else None,
+            'beats': [
+                [1, "twinkle green", 1]
+            ],
+        }
 else:
     for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
         profiles = ['winamp_all']
@@ -36,11 +56,16 @@ else:
         
         if preset_name in known_good:
             profiles.append('winamp_good')
-        
+            
+        autogenable = False
+        if preset_name in known_good:
+            profiles.append('winamp_good')
+            autogenable = True
         effects[preset_name] = {
             'length': 1,
             'loop': True,
             'profiles': profiles,
+            "autogen": "winamp top" if autogenable else None,
             'beats': [
                 grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
             ],

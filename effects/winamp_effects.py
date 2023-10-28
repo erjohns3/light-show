@@ -1,5 +1,8 @@
 from effects.compiler import *
 
+import random
+
+
 
 effects = {
 
@@ -49,7 +52,9 @@ if not grid_helpers.winamp_wrapper.winamp_visual_loaded:
             ],
         }
 else:
-    for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
+    lmdao = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.items())
+    random.shuffle(lmdao)
+    for preset_name, preset_filepath in lmdao:
         profiles = ['winamp_all']
         if 'cream-of-the-crop' not in str(preset_filepath):
             profiles.append('winamp_tests')

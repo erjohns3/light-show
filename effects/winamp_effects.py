@@ -9,7 +9,7 @@ effects = {
 }
 
 
-known_good = set([
+known_good_set_1 = set([
     'PieturP - HSL-tunnelvisions_morphing3.milk',
     '$$$ Royal - Mashup (236).milk',
     '203.milk',
@@ -29,49 +29,73 @@ known_good = set([
     'drugsincombat - liquifried squid i.milk',
 ])
 
-if not grid_helpers.winamp_wrapper.winamp_visual_loaded:
-    # note this code is almost all duped from below
-    print('Making fake winamp effects because winamp is not running')
-    for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
-        profiles = ['winamp_all']
-        if 'cream-of-the-crop' not in str(preset_filepath):
-            profiles.append('winamp_tests')
 
-        autogenable = False
-        if preset_name in known_good or True: # not forced on in production
-            profiles.append('winamp_good')
-            autogenable = True
-        
-        effects[preset_name] = {
-            'length': 1,
-            'loop': True,
-            'profiles': profiles,
-            "autogen": "winamp top" if autogenable else None,
-            'beats': [
-                [1, "twinkle green", 1]
-            ],
-        }
-else:
-    lmdao = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.items())
-    random.shuffle(lmdao)
-    for preset_name, preset_filepath in lmdao:
-        profiles = ['winamp_all']
-        if 'cream-of-the-crop' not in str(preset_filepath):
-            profiles.append('winamp_tests')
-        
-        if preset_name in known_good:
-            profiles.append('winamp_good')
+known_good_set_2 = set([
+    'flexi + geiss - bipolar vs- reaction diffusion [mirror scoped] (Jelly 5-5) threx --- Isosceles edit', # really good according to chris
+    'Phat_Zylot_EoS Come_fly_with_me_vidio_echo_v2 nz+ digitalia dildoniq law divorcement.milk',
+    'stahlregen - hypnotron v 0-5',
+    'Hexcollie - Melodic pulsing leds - mash0000 - vegas doesn\'t make life less pointless',
+    'shifter - crosshatch colony beta6 - nglasch i\'d knighthf fuckfart',
+    'EVET - Targus',
+    'xtramartin (961)',
+    'ORB - Smoke and Fire (reflecto fuckup)',
+    'suksma - n13.milk',
+    'martin - crystal palace nz+',
+    'Shiroijin - Unicorn Hell, Warp 9 Mr Crusher!!!',
+])
 
-        autogenable = False
-        if preset_name in known_good:
-            profiles.append('winamp_good')
-            autogenable = True
-        effects[preset_name] = {
-            'length': 1,
-            'loop': True,
-            'profiles': profiles,
-            "autogen": "winamp top" if autogenable else None,
-            'beats': [
-                grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
-            ],
-        }
+
+known_good_set_2_standalone = set([
+    'AkashaDude & Geiss - Phahlsce Pseye kniqmbatlech way lots calmer',
+    'suksma - dotes hostile undertake + demonlord - blood in your eyes again - flacc',
+])
+
+
+
+def fuzzy_find(search, collection):
+    import thefuzz.process
+    # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
+    choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
+    # print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
+    return choices[0][0]
+
+
+all_titles = list(grid_helpers.winamp_wrapper.preset_name_to_filepath.keys())
+# should_exit = True
+for name in known_good_set_2_standalone:
+    result = fuzzy_find(name, all_titles)
+    if result != name:
+        print(f'{cyan(str(result))}\n{red(str(name))}')
+
+# exit()
+
+# note this code is almost all duped from below
+print('Making fake winamp effects because winamp is not running')
+for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
+    profiles = ['winamp_all']
+    if 'cream-of-the-crop' not in str(preset_filepath):
+        profiles.append('winamp_tests')
+
+    autogenable = False
+    if preset_name in known_good_set_1: # not forced on in production
+        profiles.append('winamp_good_1')
+        autogenable = True
+
+    if preset_name in known_good_set_2: # not forced on in production
+        profiles.append('winamp_good_2')
+        autogenable = True
+
+    if preset_name in known_good_set_2_standalone: # not forced on in production
+        profiles.append('winamp_good_standalone')
+        autogenable = True
+
+
+    effects[preset_name] = {
+        'length': 1,
+        'loop': True,
+        'profiles': profiles,
+        "autogen": "winamp top" if autogenable else None,
+        'beats': [
+            [1, "twinkle green", 1]
+        ],
+    }

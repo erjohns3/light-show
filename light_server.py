@@ -76,10 +76,6 @@ this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
 
-    
-
-
-import effects.compiler
 
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:

@@ -463,11 +463,11 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     # either just double the ceiling brightness or do something more complex
 
     scenes = [
-        [8, ['winamp top', 'downbeat bottom']],
-        [8, ['winamp top']],
-        [8, ['winamp top', 'disco strobe']],
-        [8, ['winamp top']],
-        [8, ['winamp top', 'disco strobe']],
+        [8, ['winamp top alone', 'downbeat bottom']],
+        [8, ['winamp top alone']],
+        [8, ['winamp top alone', 'disco strobe']],
+        [8, ['winamp top alone']],
+        [8, ['winamp top alone', 'disco strobe']],
 
         [8, ['downbeat top', 'downbeat bottom']],
         [8, ['downbeat top', 'downbeat bottom', 'disco']],

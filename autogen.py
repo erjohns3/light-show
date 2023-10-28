@@ -43,7 +43,11 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
     from concurrent.futures import ProcessPoolExecutor, as_completed
 
     all_song_name_and_paths = get_all_paths(autogen_song_directory, recursive=True, allowed_extensions=set(['.ogg', '.mp3', '.wav']), only_files=True)
-    all_song_paths = [path for _name, path in all_song_name_and_paths]
+    all_song_paths = []
+
+    for _name, path in all_song_name_and_paths:
+        if 'STEM_' not in str(path):
+            all_song_paths.append(path)
 
     if is_macos():
         import multiprocessing

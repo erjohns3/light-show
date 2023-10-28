@@ -80,10 +80,11 @@ def sidechain_grid(grid_info):
 
 
 def twinkle(grid_info):
-    num_twinkles = grid_info.num_twinkles
-    twinkle_length = grid_info.twinkle_length
-    twinkle_lower_wait = grid_info.twinkle_lower_wait
-    twinkle_upper_wait = grid_info.twinkle_upper_wait
+    num_twinkles = getattr(grid_info, 'num_twinkles', 40)
+    twinkle_length = getattr(grid_info, 'twinkle_length', 1)
+    twinkle_lower_wait = getattr(grid_info, 'twinkle_lower_wait', 1)
+    twinkle_upper_wait = getattr(grid_info, 'twinkle_upper_wait', 4)
+    color = getattr(grid_info, 'color', GColor.green)
     if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
         grid_info.twinkles = [None] * num_twinkles
         for index in range(len(grid_info.twinkles)):
@@ -106,9 +107,9 @@ def twinkle(grid_info):
 
         percent_done * 2
         if percent_done <= .5:
-            color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
+            color = interpolate_vectors_float((0, 0, 0), color, percent_done * 2)
         else:
-            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
+            color = interpolate_vectors_float(color, (0, 0, 0), (percent_done * 2) - 1)
         grid_helpers.grid[curr_x][curr_y] += color
 
 

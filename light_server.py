@@ -1027,6 +1027,13 @@ async def light():
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                     return False
 
+        temp = grid_helpers.grid / 100
+        # red and blue channels raise to 2
+        # green raise to 2.3
+        temp[:, :, 0] = np.power(temp[:, :, 0], 2)
+        temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
+        grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
+
         if args.local:
             await send_to_terminal_output(None, None)
         else:

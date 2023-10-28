@@ -981,30 +981,33 @@ async def light():
 
 
             # bright_to_go is initally brightness percentage out of 100
-            bright_to_go = 100*(grid_levels[0] + grid_levels[1] + grid_levels[2])/(100*3)
-            rgbs = [grid_levels[0], grid_levels[1], grid_levels[2]]
-            # max_per_bucket determines what percent each bucket can contribute.
-            # ideally would add to 100%
-            max_per_bucket = [9,8.5,8,7.5,7,6.5,6,5.5] # there are 8 rows available, including center
-            rgb_outs = []
-            # center is special case:
-            row_bright = min(bright_to_go, max_per_bucket[0])
-            bright_to_go -= row_bright
-            rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
-            counter = 1
-            while bright_to_go > 0:
-                row_bright = min(bright_to_go, max_per_bucket[counter])
-                bright_to_go -= row_bright*2
-                rgb_outs.append([x*row_bright/9 for x in rgbs])
-                counter+=1
+            def grid_fill_fancy(rgbs, centerpoint):
+                bright_to_go = 100*(rgbs[0] + rgbs[1] + rgbs[2])/(100*3)
+                rgbs = [rgbs[0], rgbs[1], rgbs[2]]
+                # max_per_bucket determines what percent each bucket can contribute.
+                # ideally would add to 100%
+                max_per_bucket = [9,8.5,8,7.5,7,6.5,6,5.5] # there are 8 rows available, including center
+                rgb_outs = []
+                # center is special case:
+                row_bright = min(bright_to_go, max_per_bucket[0])
+                bright_to_go -= row_bright
+                rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
+                counter = 1
+                while bright_to_go > 0:
+                    row_bright = min(bright_to_go, max_per_bucket[counter])
+                    bright_to_go -= row_bright*2
+                    rgb_outs.append([x*row_bright/9 for x in rgbs])
+                    counter+=1
 
-            for i, rgb in enumerate(rgb_outs):
-                if i == 0:
-                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
-                else:
-                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
-                    grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
-
+                for i, rgb in enumerate(rgb_outs):
+                    if i == 0:
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
+                    else:
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
+                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
+            grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
+            grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
+            
             #todo also top
 
             # semi fill (looks like pre-grid)

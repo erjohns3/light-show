@@ -88,8 +88,12 @@ if __name__ == '__main__':
                 f.writelines([file_str])
 
         if not already_downloaded:
-            print('nothing downloaded')
-
-        seconds_to_sleep = random.randint(10, 20)
-        print(f'Sleeping for {seconds_to_sleep} seconds)...')
-        time.sleep(seconds_to_sleep)
+            print('nothing downloaded, long sleep')
+            seconds_to_sleep = random.randint(59, 190)
+            print(f'Sleeping for {seconds_to_sleep} seconds)...')
+            time.sleep(seconds_to_sleep)
+        else:
+            print('downloaded something, short sleep')
+            seconds_to_sleep = random.randint(1, 10)
+            print(f'Sleeping for {seconds_to_sleep} seconds)...')
+            time.sleep(seconds_to_sleep)

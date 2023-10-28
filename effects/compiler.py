@@ -504,11 +504,49 @@ def get_smallest_equivilent_vectors(vector):
     return all_vectors
 
 
-def move_left(info):
+def move_x_wrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+        print('RESTART')
     if getattr(info, 'beat_divide', None) is None:
         info.beat_divide = 1
     if info.curr_sub_beat % info.beat_divide == 0:
-        grid_helpers.move([-1, 0])
+        print(f'{info.running}')
+        grid_helpers.move_wrap([info.running, 0])
+        info.running += info.by
+
+def move_x(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+        print('RESTART')
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        print(f'{info.running}')
+        grid_helpers.move([info.running, 0])
+        info.running += info.by
+
+
+def move_y_wrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        print(f'{info.running}')
+        grid_helpers.move_wrap([0, info.running])
+        info.running += info.by
+
+def move_y(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        print(f'{info.running}')
+        grid_helpers.move([0, info.running])
+        info.running += info.by
+
 
 
 def move_until_y_occupy(info):

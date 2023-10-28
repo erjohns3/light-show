@@ -71,24 +71,24 @@ def copy_of_grid():
     return np.array(grid)
 
 
+
 def move(vector):
     global grid
+
     if vector[0]:
         if vector[0] > 0:
-            for x in range(1, vector[0] + 1):
-                grid[-x:, :] = 0
+            grid[-vector[0]:, :] = 0
         else:
-            for x in range(-vector[0]):
-                grid[x:, :] = 0
+            grid[:abs(vector[0]), :] = 0
         grid = np.roll(grid, shift=vector[0], axis=0)
+
     if vector[1]:
         if vector[1] > 0:
-            for y in range(1, vector[1] + 1):
-                grid[:, -y] = 0
+            grid[:, -vector[1]:] = 0
         else:
-            for y in range(-vector[1]):
-                grid[:, y] = 0
+            grid[:, :abs(vector[1])] = 0
         grid = np.roll(grid, shift=vector[1], axis=1)
+
 
 
 def move_wrap(vector):

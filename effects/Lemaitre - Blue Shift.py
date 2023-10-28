@@ -167,7 +167,17 @@ effects = {
     "Rain": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain()},
     "Rain fast": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6)},
     "Rain fast lots": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6, num_rains=40)},
-    # "Move Left": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_left, length=1)]},
+    
+    "Move Left": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x, length=1, by=1)]},
+    "Move Right": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x, length=1, by=-1)]},
+    "Move Up": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_y, length=1, by=1)]},
+    "Move Down": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_y, length=1, by=-1)]},
+
+
+    "Move Left Wrap": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x_wrap, length=1, by=1)]},
+    "Move Right Wrap": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x_wrap, length=1, by=-1)]},
+    "Move Up Wrap": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_y_wrap, length=1, by=1)]},
+    "Move Down Wrap": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_y_wrap, length=1, by=-1)]},
 
 
     "twinkle white": {"profiles": ['Fun Grid'], "loop": True, "beats": make_twinkle(color=GColor.white)},

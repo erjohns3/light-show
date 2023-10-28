@@ -464,6 +464,17 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         # [8, ['winamp top', 'winamp sidechain', 'disco strobe']],
         # [8, ['winamp top', 'winamp sidechain', 'UV pulse']],
 
+        [8, ['winamp top alone', 'downbeat bottom']],
+        [8, ['winamp top alone', 'downbeat bottom', 'disco']],
+        [8, ['winamp top alone']],
+        [8, ['winamp top alone']],
+        [8, ['winamp top alone', 'disco strobe']],
+        [8, ['winamp top alone', 'downbeat bottom', 'UV']],
+        [8, ['winamp top alone', 'UV']],
+        [8, ['winamp top alone', 'downbeat bottom']],
+        [8, ['winamp top alone', 'disco strobe']],
+
+
         [8, ['downbeat top', 'downbeat bottom']],
         [8, ['downbeat top', 'downbeat bottom', 'disco']],
         [8, ['downbeat top']],

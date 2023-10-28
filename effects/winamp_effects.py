@@ -81,25 +81,25 @@ for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_f
     if 'cream-of-the-crop' not in str(preset_filepath):
         profiles.append('winamp_tests')
 
-    autogenable = False
+    autogen_category = None
     if preset_name in known_good_set_1: # not forced on in production
         profiles.append('winamp_good_1')
-        autogenable = True
+        autogen_category = 'winamp top need sidechained'
 
     if preset_name in known_good_set_2: # not forced on in production
         profiles.append('winamp_good_2')
-        autogenable = True
+        autogen_category = 'winamp top need sidechained'
 
     if preset_name in known_good_set_2_standalone: # not forced on in production
         profiles.append('winamp_good_standalone')
-        autogenable = True
+        autogen_category = 'winamp top alone'
 
 
     effects[preset_name] = {
         'length': 1,
         'loop': True,
         'profiles': profiles,
-        "autogen": "winamp top" if autogenable else None,
+        "autogen": "winamp top" if autogen_category else None,
         'beats': [
             [1, "twinkle green", 1]
         ],

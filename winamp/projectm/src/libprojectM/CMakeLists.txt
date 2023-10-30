@@ -76,6 +76,10 @@ if(APPLE)
         $<TARGET_OBJECTS:projectM_main>
         $<TARGET_OBJECTS:projectM::Eval>
     )
+    target_link_libraries(projectM_main
+            PUBLIC
+            "-framework CoreFoundation"
+            )
 else()
     add_library(projectM
         ${PROJECTM_DUMMY_SOURCE_FILE} # CMake needs at least one "real" source file.

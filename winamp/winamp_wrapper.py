@@ -53,10 +53,9 @@ def try_load_winamp_cxx_module():
         print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
         return None
 
-    print_green(f'winamp_visual.setup_winamp() succeeded, and inited audio device')
+    print_green(f'winamp_visual.setup_winamp() succeeded')
     winamp_visual_loaded = True
     return True
-
 
 
 preset_history = collections.deque([])

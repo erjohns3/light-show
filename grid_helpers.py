@@ -450,6 +450,10 @@ def try_load_winamp():
                 break
         else:
             print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
+    elif is_macos():
+        loaded_id = winamp_wrapper.init_audio_id(0)
+        if loaded_id != -1:
+            print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
     else:
         print_yellow(f'Trying to load default audio device (-1)')
         loaded_id = winamp_wrapper.init_audio_id(-1) # !TODO i think this says to load the default

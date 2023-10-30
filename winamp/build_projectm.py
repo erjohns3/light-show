@@ -132,14 +132,14 @@ sources = [
 # ProjectM::ProjectM() before
 # zsh: floating point exception (core dumped)  LD_LIBRARY_PATH=src/libprojectM python test_winamp_visual.py
 
-def get_python_config(flag):
-    return subprocess.check_output(['python3-config', flag]).decode('utf-8').strip().split()
+# def get_python_config(flag):
+#     return subprocess.check_output(['python3-config', flag]).decode('utf-8').strip().split()
 
-python_extra_compile_args = get_python_config('--cflags')
-python_extra_link_args = get_python_config('--ldflags')
+# python_extra_compile_args = get_python_config('--cflags')
+# python_extra_link_args = get_python_config('--ldflags')
 
 
-libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'asound', 'pulse-simple', 'pulse', 'm', 'pthread', 'EGL'], # 'pthread' # glfw 
+libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'asound', 'pulse-simple', 'pulse', 'm', 'pthread', 'EGL'] # 'pthread' # glfw 
 if not is_macos():
     libraries.append('GLESv2')
 
@@ -153,8 +153,12 @@ the_module = Extension(
     library_dirs=library_dirs,
     # tries to do a .so (dynamic) build with this
     libraries=libraries, 
-    extra_compile_args=extra_compile_args + python_extra_compile_args,
-    extra_link_args=extra_link_args + python_extra_link_args,
+
+    extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
+
+    # extra_compile_args=extra_compile_args + python_extra_compile_args,
+    # extra_link_args=extra_link_args + python_extra_link_args,
 )
 
 setup(

@@ -135,7 +135,9 @@ sources = [
 
 
 libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'm', 'pthread'] # 'pthread' # glfw 
-if not is_macos():
+if is_macos():
+    libraries.append('OpenGL3')
+else:
     libraries.append('GLESv2')
     libraries.append('asound')
     libraries.append('pulse-simple')

@@ -122,6 +122,7 @@ else()
     message(STATUS "Building for OpenGL Core Profile (i think just macos)")
     find_package(OpenGL REQUIRED)
     set(PROJECTM_OPENGL_LIBRARIES OpenGL::GL)
+
     # GLX is required by SOIL2 on platforms with the X Window System (e.g. most Linux distributions)
     if(TARGET OpenGL::GLX)
         list(APPEND PROJECTM_OPENGL_LIBRARIES OpenGL::GLX)

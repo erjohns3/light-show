@@ -69,6 +69,57 @@ if is_doorbell():
     library_dirs.append(str(pathlib.Path('/usr/lib/aarch64-linux-gnu/libGLESv2.so')))
     include_dirs.append(str(pathlib.Path('/usr/include/GLES3/')))
 
+# -I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 
+if is_macos():
+    include_dirs.append('/Library/Frameworks/SDL2.framework/Headers')
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('SDL2')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('OpenGL')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('OpenAL')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('Cocoa')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('CoreAudio')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('CoreVideo')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('CoreFoundation')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('Carbon')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('IOKit')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('ForceFeedback')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args.append('Metal')
+
+    library_dirs.append('/Library/Frameworks')
+    extra_compile_args.append('-framework')
+    extra_compile_args
+
 
 sources = [
     str(this_file_directory.joinpath('winamp_visualmodule.cpp')),

@@ -1,7 +1,5 @@
 This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
--I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 
-
 # requirements
 * cmake
 * SDL version (2.16 or higher) (probably just "apt-get install `libsdl2-dev`")

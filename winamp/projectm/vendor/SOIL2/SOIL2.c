@@ -89,7 +89,7 @@
 	#endif
 #elif defined(__APPLE__) || defined(__APPLE_CC__)
 	/*	I can't test this Apple stuff!	*/
-	#include <OpenGL/gl3.h>
+	#include <OpenGL/gl.h>
 	#include <Carbon/Carbon.h>
 	#define APIENTRY
 #elif defined( SOIL_X11_PLATFORM )

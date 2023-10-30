@@ -138,6 +138,12 @@ def get_python_config(flag):
 python_extra_compile_args = get_python_config('--cflags')
 python_extra_link_args = get_python_config('--ldflags')
 
+
+libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'asound', 'pulse-simple', 'pulse', 'm', 'pthread', 'EGL'], # 'pthread' # glfw 
+if not is_macos():
+    libraries.append('GLESv2')
+
+
 # extra_link_args = ['-rpath']
 extra_link_args = []
 the_module = Extension(
@@ -146,10 +152,7 @@ the_module = Extension(
     include_dirs=include_dirs,
     library_dirs=library_dirs,
     # tries to do a .so (dynamic) build with this
-    # needs numpy!!
-    libraries = ['projectM-4', 'GLESv2', 'SDL2', 'SDL2main', 'dl', 'asound', 'pulse-simple', 'pulse', 'm', 'pthread', 'EGL'], # 'pthread' # glfw 
-
-    # libraries = ['projectM-4', 'GLES', 'SDL2', 'SDL2main', 'dl', 'asound', 'pulse-simple', 'pulse', 'm', 'X11', 'Xext', 'Xcursor', 'Xinerama', 'Xi', 'Xrandr', 'Xss', 'Xxf86vm', 'rt', 'EGL', 'pthread'], # 'pthread' # glfw 
+    libraries=libraries, 
     extra_compile_args=extra_compile_args + python_extra_compile_args,
     extra_link_args=extra_link_args + python_extra_link_args,
 )

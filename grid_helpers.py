@@ -436,7 +436,7 @@ def try_load_winamp():
     if len(audio_devices) == 0:
         return print_red('Init successful, but no audio devices found')
     
-    # !TODO fix, this is hardcoded
+    loaded_id = -1
     if is_doorbell():
         loaded_id = winamp_wrapper.init_audio_id(2)
         if loaded_id != -1:
@@ -448,7 +448,8 @@ def try_load_winamp():
                 if loaded_id != -1:
                     print_green(f'Loaded audio device id: {loaded_id}')
                 break
-
+        else:
+            print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
     else:
         print_yellow(f'Trying to load default audio device (-1)')
         loaded_id = winamp_wrapper.init_audio_id(-1) # !TODO i think this says to load the default

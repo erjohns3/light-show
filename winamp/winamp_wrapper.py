@@ -49,7 +49,8 @@ def try_load_winamp_cxx_module():
     except:
         print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
         return None
-    print_green(f'winamp_visual.setup_winamp() succeeded')
+
+    print_green(f'winamp_visual.setup_winamp() succeeded, and inited audio device')
     winamp_visual_loaded = True
     return True
 
@@ -86,7 +87,7 @@ print_green(f'{len(all_presets):,} milk visualizer presets to choose from')
 preset_name_to_filepath = {}
 for _, filepath in all_presets:
     if filepath.name in preset_name_to_filepath:
-        print_red(f'OVERLAPS IN PRESET FILEPNAMES: {filepath.name}')
+        print_red(f'OVERLAPS IN WINAMP PRESET FILENAMES: {filepath.name}')
         exit()
     preset_name_to_filepath[filepath.stem] = filepath
     preset_name_to_filepath[filepath.name] = filepath
@@ -131,38 +132,47 @@ def increase_beat_sensitivity(amt=.01):
     print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
     return new_val
 
+
 def decrease_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot decrease beat sensitivity')
-
     new_val = winamp_visual.get_beat_sensitivity() - amt
     winamp_visual.set_beat_sensitivity(new_val)
     print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
     return new_val
 
+
 def get_beat_sensitivity():
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot get beat sensitivity')
-    
     return winamp_visual.get_beat_sensitivity()
 
 
 def compute_frame():
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot compute frame')
-    
     winamp_visual.render_frame()
 
 
 def load_into_numpy_array(np_arr):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot load into numpy array')
-    
     winamp_visual.load_into_numpy_array(np_arr)
 
 
 def print_to_terminal_higher_level():
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot print to terminal')
-    
     winamp_visual.print_to_terminal_higher_level()
+
+
+def get_audio_devices():
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot print to terminal')
+    return winamp_visual.get_audio_devices()
+
+
+def init_audio_id(id):
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot print to terminal')
+    return winamp_visual.init_audio_id(id)

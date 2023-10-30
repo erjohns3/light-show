@@ -41,9 +41,9 @@ ProjectM::ProjectM()
     , m_workerSync(std::make_unique<BackgroundWorkerSync>())
 #endif
 {
-    std::cout << "ProjectM::ProjectM() before" << std::endl;
+    // std::cout << "ProjectM::ProjectM() before" << std::endl;
     Initialize();
-    std::cout << "ProjectM::ProjectM() after" << std::endl;
+    // std::cout << "ProjectM::ProjectM() after" << std::endl;
 }
 
 ProjectM::~ProjectM()
@@ -222,7 +222,7 @@ GLubyte* ProjectM::GetAndrewPixels() {
 
 void ProjectM::Initialize()
 {
-    std::cout << "ProjectM::Initialize" << std::endl;
+    // std::cout << "ProjectM::Initialize" << std::endl;
 
     /** Initialise start time */
     m_timeKeeper = std::make_unique<TimeKeeper>(m_presetDuration,
@@ -236,7 +236,7 @@ void ProjectM::Initialize()
     /** We need to initialise this before the builtin param db otherwise bass/mid etc won't bind correctly */
     assert(!m_beatDetect);
 
-    std::cout << "Before bprojectM::Audio::BeatDet" << std::endl;
+    // std::cout << "Before bprojectM::Audio::BeatDet" << std::endl;
     m_beatDetect = std::make_unique<libprojectM::Audio::BeatDetect>(m_pcm);
 
     m_renderer = std::make_unique<Renderer>(m_windowWidth, m_windowHeight);
@@ -247,12 +247,12 @@ void ProjectM::Initialize()
 
     /* Set the seed to the current time in seconds */
     srand(time(nullptr));
-    std::cout << "Before ResetEngine" << std::endl;
+    // std::cout << "Before ResetEngine" << std::endl;
 
     ResetEngine();
     LoadIdlePreset();
 
-    std::cout << "Before #if PROJECTM_USE_THREADS" << std::endl;
+    // std::cout << "Before #if PROJECTM_USE_THREADS" << std::endl;
 
 #if PROJECTM_USE_THREADS
     m_workerSync->Reset();

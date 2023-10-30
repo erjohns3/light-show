@@ -80,10 +80,7 @@ void audioInputCallbackF32(void *userdata, unsigned char *stream, int len) {
 char hostname[1024];
 
 int initAudioInput(int selected_device) {
-    SDL_AudioSpec want, have;
-
-    // requested format
-    // https://wiki.libsdl.org/SDL_AudioSpec#Remarks
+    SDL_AudioSpec want, have; // requested format: https://wiki.libsdl.org/SDL_AudioSpec#Remarks
     SDL_zero(want);
     want.freq = 44100;
     want.format = AUDIO_F32;  // float
@@ -92,7 +89,7 @@ int initAudioInput(int selected_device) {
     want.callback = audioInputCallbackF32;
     want.userdata = _projectM;
 
-    // index -1 means "system deafult", which is used if we pass deviceName == NULL
+    // index -1 means "system default", which is used if we pass deviceName == NULL
     const char *deviceName = selected_device == -1 ? NULL : SDL_GetAudioDeviceName(selected_device, true);
     if (deviceName == NULL) {
         std::cout << "python/c++: WARNING Wasnt able to see the device id: " << selected_device << std::endl;
@@ -120,51 +117,49 @@ int initAudioInput(int selected_device) {
     return audioDeviceId;
 }
 
-void openAudioInput() {
+
+int actual_audio_device_id_opened = -1;
+static PyObject*
+winamp_visual_get_audio_devices(PyObject* self, PyObject* args) {
     const char* driver_name = SDL_GetCurrentAudioDriver();
     std::cout << "python/c++: Using audio driver: " << driver_name << SDL_GetError() << std::endl;
 
-
     unsigned int _numAudioDevices = SDL_GetNumAudioDevices(true);
-    std::cout << "python/c++: Found " << _numAudioDevices << " audio capture devices" << std::endl;
+    PyObject* dict = PyDict_New();
     for (unsigned int i = 0; i < _numAudioDevices; i++) {
-        std::cout << "python/c++: Found audio capture device: " << i << ", " << SDL_GetAudioDeviceName(i, true) << std::endl;
+        PyDict_SetItem(dict, PyLong_FromLong(i), PyUnicode_FromString(SDL_GetAudioDeviceName(i, true)));
     }
-
-    // We start with the system default capture device (index -1).
-    // Note: this might work even if NumAudioDevices == 0 (example: if only a
-    // monitor device exists, and SDL_HINT_AUDIO_INCLUDE_MONITORS is not set).
-    // So we always try it, and revert to fakeAudio if the default fails _and_ NumAudioDevices == 0.
-    
-    if (_numAudioDevices == 0) {
-        std::cout << "python/c++: No audio capture devices found" << std::endl;
-
-    }
-
-    int device_id_to_open;
-    if (strcmp(hostname, "doorbell") == 0) {
-        std::cout << "This machine's hostname is doorbell!" << std::endl;
-        device_id_to_open = 2;
-    } else {
-        std::cout << "This machine's hostname is not doorbell!" << std::endl;
-        device_id_to_open = 3;
-    }
-
-    int actual_audio_device_id_opened = initAudioInput(device_id_to_open);
-    if (actual_audio_device_id_opened != -1) {
-        std::cout << "python/c++: Opened audio capture device" << std::endl;
-        SDL_PauseAudioDevice(actual_audio_device_id_opened, false);
-    }
-    else {
-        std::cout << "python/c++: Failed to open audio capture device" << std::endl;
-    }
+    return dict;
 }
 
-// when it ends...
-// void endAudioCapture() {
-//     SDL_PauseAudioDevice(_audioDeviceId, true);
-//     SDL_CloseAudioDevice(_audioDeviceId);
-// }
+void endAudioCapture(int audioDeviceId) {
+    SDL_PauseAudioDevice(audioDeviceId, true);
+    SDL_CloseAudioDevice(audioDeviceId);
+}
+
+static PyObject*
+winamp_visual_init_audio_id(PyObject* self, PyObject* args) {
+    int device_id_to_open;
+    if(!PyArg_ParseTuple(args, "i", &device_id_to_open)) {
+        return NULL;
+    }
+
+    if (actual_audio_device_id_opened != -1 && actual_audio_device_id_opened != device_id_to_open) {
+        cout << "python/c++: Closing audio capture device: " << actual_audio_device_id_opened << endl;
+        endAudioCapture(actual_audio_device_id_opened);
+    }
+
+    actual_audio_device_id_opened = initAudioInput(device_id_to_open);
+    if (actual_audio_device_id_opened == -1) {
+        PyErr_SetString(PyExc_ValueError, "initAudioInput() failed");
+        return NULL;
+    }
+    std::cout << "python/c++: Opened audio capture device" << std::endl;
+    SDL_PauseAudioDevice(actual_audio_device_id_opened, false);
+
+    return Py_BuildValue("i", actual_audio_device_id_opened);
+}
+
 
 struct GlslVersion {
     int major{}; //!< Major OpenGL shading language version
@@ -203,8 +198,7 @@ GlslVersion QueryGlslVersion() {
         strcpy(cstr, glslVersionString.c_str());
 
         /* scan the anything before the number */
-        while (position < versionLength)
-        {
+        while (position < versionLength) {
             char ch = cstr[position];
             if ((ch >= '0') && (ch <= '9'))
             {
@@ -213,51 +207,41 @@ GlslVersion QueryGlslVersion() {
             position++;
         }
 
-        /* scan the first number */
         {
             int possible_major = 0;
-            while (position < versionLength)
-            {
+            while (position < versionLength) {
                 char ch = cstr[position];
-                if ((ch >= '0') && (ch <= '9'))
-                {
+                if ((ch >= '0') && (ch <= '9')) {
                     possible_major = (possible_major * 10) + ch - '0';
                 }
-                else if (ch == '.')
-                { /* got the minor */
+                else if (ch == '.') { /* got the minor */
                     int possible_minor = 0;
                     position++;
-                    while (position < versionLength)
-                    {
+                    while (position < versionLength) {
                         ch = cstr[position];
-                        if ((ch >= '0') && (ch <= '9'))
-                        {
+                        if ((ch >= '0') && (ch <= '9')) {
                             possible_minor = (possible_minor * 10) + ch - '0';
                         }
                         else
                             break;
                         position++;
                     } /* while scanning the minor version */
-                    if (possible_major)
-                    { /* set the minor version only if the major number is valid */
+                    if (possible_major) { /* set the minor version only if the major number is valid */
                         minor = possible_minor;
                     }
                     break; // We scanned it
                 }
-                else
-                { /* not a number or period */
+                else { /* not a number or period */
                     break;
                 }
                 position++;
             } /* while scanning the major number */
-            if (possible_major)
-            {
+            if (possible_major) {
                 major = possible_major;
             }
         } /* scanning block */
         delete[] cstr;
     } /* if there is a string to parse */
-
     return {major, minor};
 }
 
@@ -274,15 +258,14 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     // }
 
     // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); //OpenGL core profile
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
-    SDL_GL_SetAttribute (SDL_GL_CONTEXT_MINOR_VERSION, 3); //OpenGL 3.3
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); //OpenGL core profile
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3); //OpenGL 3.3
 
 
     SDL_version linked;
     SDL_GetVersion(&linked);
-    // std::cout << "C++ - Python Extension: Using SDL version " << linked.major << "." << linked.minor << "." << linked.patch << "\n";
-    SDL_Log("Using SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
+    SDL_Log("C++ Python extension: Using SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
 
 
     SDL_SetHint(SDL_HINT_AUDIO_INCLUDE_MONITORS, "1"); // this allows listening to speakers
@@ -300,7 +283,7 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     }
 
     // SDL
-    std::cout << "C++ - Python Extension: setting up sdl window" << std::endl;
+    // std::cout << "C++ - Python Extension: setting up sdl window" << std::endl;
     SDL_Window* window = SDL_CreateWindow("", 0, 0, 32, 20, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     SDL_GL_CreateContext(window);
 
@@ -309,7 +292,7 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     cout << "C++ - Python Extension: Using OpenGL shader language version " << m_GLSLVersion.major << "." << m_GLSLVersion.minor << "\n";
 
 
-    std::cout << "C++ - Python Extension: setting up winamp" << std::endl;
+    // std::cout << "C++ - Python Extension: setting up winamp" << std::endl;
     _projectM = projectm_create();
     if (_projectM == nullptr) {
         std::cout << "C++ - Python Extension: projectm_create() failed" << std::endl;
@@ -317,11 +300,6 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
         return NULL;
     }
     projectm_set_window_size(_projectM, 32, 20);
-
-
-    std::cout << "C++ - Python Extension: opening audio" << std::endl;
-    openAudioInput();
-
 
     // GLFW
     // int return_val = glfwInit();
@@ -368,27 +346,27 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     // EGLContext context = eglCreateContext(display, config, EGL_NO_CONTEXT, NULL);
     // eglMakeCurrent(display, surface, surface, context);
 
-    cout << "C++ - Python Extension: AFTER SETUP" << endl;
+    // cout << "C++ - Python Extension: AFTER SETUP" << endl;
     return Py_BuildValue("");
 }
 
 
 static PyObject*
 winamp_visual_load_preset(PyObject* self, PyObject* args) {
-    // std::cout << "C++ - Python Extension: loading preset" << std::endl;
-
     char* preset_path_c_str;
     if(!PyArg_ParseTuple(args, "s", &preset_path_c_str)) {
         return NULL;
     }
-    // cout << "C++ - Python Extension: before loading preset: " << preset_path_c_str << endl;
-
     projectm_load_preset_file(_projectM, preset_path_c_str, false);
     return Py_BuildValue("");
 }
 
 static PyObject*
 winamp_visual_render_frame(PyObject* self, PyObject* args) {
+    if (actual_audio_device_id_opened == -1) {
+        PyErr_SetString(PyExc_ValueError, "audio device not initialized");
+        return NULL;
+    }
     projectm_opengl_render_frame(_projectM);
     return Py_BuildValue("");
 }
@@ -476,7 +454,7 @@ winamp_visual_load_into_numpy_array(PyObject* self, PyObject* args) {
     }
 
     // load from andrew_pixels (RGBA values) into numpy_array (RGB)
-    // remember that andrew_pixels is ubyte, and we need to load into numpy correctly
+    // !TODO do this
     for (int y = 0; y < grab_height; y++) {
         for (int x = 0; x < grab_width; x++) {
             int index = (y * grab_width + x) * 4;  // Index for andrew_pixels (RGBA)
@@ -495,23 +473,10 @@ winamp_visual_load_into_numpy_array(PyObject* self, PyObject* args) {
     return Py_BuildValue("");
 }
 
-    // GLubyte* numpy_data = (GLubyte*) PyArray_DATA(numpy_array);
-    // for (int y = 0; y < grab_height; y++) {
-    //     for (int x = 0; x < grab_width; x++) {
-    //         int andrew_pixels_index = (y * grab_width + x) * 4;
-    //         int numpy_index = (y * grab_width + x) * 3;
-    //         numpy_data[numpy_index] = andrew_pixels[andrew_pixels_index];
-    //         numpy_data[numpy_index + 1] = andrew_pixels[andrew_pixels_index + 1];
-    //         numpy_data[numpy_index + 2] = andrew_pixels[andrew_pixels_index + 2];
-    //     }
-    // }
-
-
 
 static PyObject*
 winamp_visual_print_to_terminal(PyObject* self, PyObject* args) {
     projectm_print_to_terminal(_projectM);
-
     return Py_BuildValue("");
 }
 
@@ -525,6 +490,8 @@ static PyMethodDef winamp_visual_methods[] = {
     {"print_to_terminal", winamp_visual_print_to_terminal, METH_VARARGS, ""},
     {"print_to_terminal_higher_level", winamp_visual_print_to_terminal_higher_level, METH_VARARGS, ""},
     {"load_into_numpy_array", winamp_visual_load_into_numpy_array, METH_VARARGS, ""},
+    {"get_audio_devices", winamp_visual_get_audio_devices, METH_VARARGS, ""},
+    {"init_audio_id", winamp_visual_init_audio_id, METH_VARARGS, ""},
     {NULL, NULL, 0, NULL},
 };
 

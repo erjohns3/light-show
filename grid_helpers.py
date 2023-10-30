@@ -426,7 +426,38 @@ def get_2d_arr_from_text(*args, **kwargs):
 
 
 def try_load_winamp():
-    return winamp_wrapper.try_load_winamp_cxx_module()
+    if not winamp_wrapper.try_load_winamp_cxx_module():
+        return False
+    
+    audio_devices = winamp_wrapper.get_audio_devices()
+    for id, device_name in audio_devices.items():
+        print(f'{id=}, {device_name=}')
+    
+    if len(audio_devices) == 0:
+        return print_red('Init successful, but no audio devices found')
+    
+    # !TODO fix, this is hardcoded
+    if is_doorbell():
+        loaded_id = winamp_wrapper.init_audio_id(2)
+        if loaded_id != -1:
+            print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
+    elif is_andrews_main_computer():
+        for id, device_name in audio_devices.items():
+            if 'Monitor of henry' in device_name:
+                loaded_id = winamp_wrapper.init_audio_id(id)
+                if loaded_id != -1:
+                    print_green(f'Loaded audio device id: {loaded_id}')
+                break
+
+    else:
+        print_yellow(f'Trying to load default audio device (-1)')
+        loaded_id = winamp_wrapper.init_audio_id(-1) # !TODO i think this says to load the default
+        if loaded_id != -1:
+            print_green(f'Loaded audio device id: {loaded_id}')
+    
+    if loaded_id == -1:
+        return print_red('Init successful, but couldnt load audio device id')
+    return True
 
 
 if __name__ == '__main__':

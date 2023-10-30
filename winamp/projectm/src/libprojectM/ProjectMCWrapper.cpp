@@ -61,9 +61,9 @@ projectm_handle projectm_create()
 {
     try
     {
-        std::cout << "ProjectMCWrapper: projectm_create before new projectMInstance" << std::endl;
+        // std::cout << "ProjectMCWrapper: projectm_create before new projectMInstance" << std::endl;
         auto projectMInstance = new projectMWrapper();
-        std::cout << "ProjectMCWrapper: projectm_create after new projectMInstance" << std::endl;
+        // std::cout << "ProjectMCWrapper: projectm_create after new projectMInstance" << std::endl;
         return reinterpret_cast<projectm_handle>(projectMInstance);
     }
     catch (...)

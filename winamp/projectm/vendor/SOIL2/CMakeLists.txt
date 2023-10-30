@@ -1,4 +1,7 @@
-add_library(SOIL2 OBJECT
+if(APPLE)
+    option(ENABLE_GLES "Enable OpenGL ES support" OFF)
+else()
+        add_library(SOIL2 OBJECT
         etc1_utils.c
         etc1_utils.h
         image_DXT.c
@@ -21,28 +24,30 @@ add_library(SOIL2 OBJECT
         stbi_pvr_c.h
         )
 
-target_include_directories(SOIL2
+        target_include_directories(SOIL2
         PUBLIC
         "."
         )
 
-target_link_libraries(SOIL2
+        target_link_libraries(SOIL2
         PUBLIC
         ${PROJECTM_OPENGL_LIBRARIES}
         )
 
-if(USE_GLES)
-    target_compile_definitions(SOIL2
-            PRIVATE
-            SOIL_GLES3
-            SOIL_NO_EGL
-            )
-    target_link_libraries(SOIL2
-            PUBLIC
-            ${CMAKE_DL_LIBS}
-            )
-endif()
-        
-set_target_properties(SOIL2 PROPERTIES
+        if(USE_GLES)
+        target_compile_definitions(SOIL2
+        PRIVATE
+        SOIL_GLES3
+        SOIL_NO_EGL
+        )
+        target_link_libraries(SOIL2
+        PUBLIC
+        ${CMAKE_DL_LIBS}
+        )
+        endif()
+
+        set_target_properties(SOIL2 PROPERTIES
         FOLDER libprojectM
         )
+
+endif()

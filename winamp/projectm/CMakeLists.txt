@@ -64,6 +64,7 @@ if(APPLE)
     message(STATUS "APPLE")
     option(ENABLE_GLES "Enable OpenGL ES support" OFF)
 else()
+    message(STATUS "NOT APPLE")
     option(ENABLE_GLES "Enable OpenGL ES support" ON)
 endif()
 

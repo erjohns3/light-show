@@ -36,7 +36,10 @@ def try_load_winamp_cxx_module():
     if not project_m_build_dir.exists():
         return print_red(f'project_m {project_m_build_dir} directory does not exist')
 
-    wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
+    if is_linux():
+        wanted_so = project_m_build_dir.joinpath('libprojectM-4.so.4').resolve()
+    elif is_macos():
+        wanted_so = project_m_build_dir.joinpath('libprojectM-4.dylib').resolve()
     if not wanted_so.exists():
         return print_red(f'project_m c++ library: {wanted_so} does not exist')
 

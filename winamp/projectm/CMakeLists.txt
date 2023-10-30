@@ -96,10 +96,9 @@ endif()
 # find_package(OpenGL REQUIRED COMPONENTS GLES3 PATHS /usr/lib/aarch64-linux-gnu)
 
 if(ENABLE_GLES)
-    message(STATUS "Building for OpenGL Embedded Profile")
+    message(STATUS "Building for OpenGL Embedded Profile (linux only)")
     # We use a local find script for OpenGL::GLES3 until the proposed changes are merged upstream.
     
-
     execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
     if("${HOSTNAME}" STREQUAL "doorbell")
         message(STATUS "HOSTNAME IS DOORBELL!")
@@ -110,9 +109,7 @@ if(ENABLE_GLES)
         message(STATUS "HOSTNAME IS NOTTTTT DOORBELL!")
         list(APPEND CMAKE_MODULE_PATH "${PROJECTM_SOURCE_DIR}/cmake/gles")
         find_package(OpenGL REQUIRED COMPONENTS GLES3)
-        find_package(OpenGL REQUIRED COMPONENTS GLES3)
-
-        endif()
+    endif()
 
     if(NOT TARGET OpenGL::GLES3)
         message(FATAL_ERROR "No suitable GLES3 library was found.")
@@ -121,7 +118,7 @@ if(ENABLE_GLES)
     set(PROJECTM_OPENGL_LIBRARIES OpenGL::GLES3)
     set(USE_GLES ON)
 else()
-    message(STATUS "Building for OpenGL Core Profile")
+    message(STATUS "Building for OpenGL Core Profile (i think just macos)")
     find_package(OpenGL REQUIRED)
     set(PROJECTM_OPENGL_LIBRARIES OpenGL::GL)
     # GLX is required by SOIL2 on platforms with the X Window System (e.g. most Linux distributions)

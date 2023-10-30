@@ -1,5 +1,6 @@
 This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
+-I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 
 
 # requirements
 * cmake

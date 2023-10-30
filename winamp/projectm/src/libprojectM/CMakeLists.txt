@@ -36,7 +36,6 @@ add_library(projectM_main OBJECT
         )
 
 if(APPLE)
-    option(ENABLE_GLES "Enable OpenGL ES support" OFF)
     target_link_libraries(projectM_main
         PUBLIC
         MilkdropPreset
@@ -67,7 +66,18 @@ target_include_directories(projectM_main
 
 # CMake cannot combine multiple static libraries using target_link_libraries.
 # This syntax will pull in the compiled object files into the final library.
-add_library(projectM
+
+if(APPLE)
+    add_library(projectM
+        ${PROJECTM_DUMMY_SOURCE_FILE} # CMake needs at least one "real" source file.
+        $<TARGET_OBJECTS:MilkdropPreset>
+        $<TARGET_OBJECTS:Renderer>
+        $<TARGET_OBJECTS:hlslparser>
+        $<TARGET_OBJECTS:projectM_main>
+        $<TARGET_OBJECTS:projectM::Eval>
+    )
+else()
+    add_library(projectM
         ${PROJECTM_DUMMY_SOURCE_FILE} # CMake needs at least one "real" source file.
         $<TARGET_OBJECTS:MilkdropPreset>
         $<TARGET_OBJECTS:Renderer>
@@ -75,7 +85,9 @@ add_library(projectM
         $<TARGET_OBJECTS:SOIL2>
         $<TARGET_OBJECTS:projectM_main>
         $<TARGET_OBJECTS:projectM::Eval>
-        )
+    )
+endif()
+
 
 target_include_directories(projectM
         PUBLIC

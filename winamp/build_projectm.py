@@ -134,10 +134,11 @@ sources = [
 # python_extra_link_args = get_python_config('--ldflags')
 
 
-libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'pulse-simple', 'pulse', 'm', 'pthread', 'EGL'] # 'pthread' # glfw 
+libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'pulse', 'm', 'pthread', 'EGL'] # 'pthread' # glfw 
 if not is_macos():
     libraries.append('GLESv2')
     libraries.append('asound')
+    libraries.append('pulse-simple')
 
 
 # extra_link_args = ['-rpath']

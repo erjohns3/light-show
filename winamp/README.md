@@ -33,7 +33,8 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-39-darwin.so; python build_projectm.py build --build-lib=.
 ```
-* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/ python test_winamp.py`
+* !TODO i think with the right command below the GLSL shader version will be correct
+* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 python test_winamp.py`
 
 
 #### old cmds that might be needed

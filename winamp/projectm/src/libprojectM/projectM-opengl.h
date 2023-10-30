@@ -21,6 +21,9 @@
 #   include <OpenGL/gl3.h>
 #   include <OpenGL/glu.h>
 #   include <OpenGL/glext.h>
+#   define glGenVertexArrays glGenVertexArraysAPPLE
+#   define glBindVertexArray glBindVertexArrayAPPLE
+#   define glDeleteVertexArrays glDeleteVertexArraysAPPLE
 #  else
 #   include <GL/gl.h>
 #   include <GL/glu.h>

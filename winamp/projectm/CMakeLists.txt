@@ -90,7 +90,6 @@ endif()
 if(ENABLE_GLES)
     message(STATUS "Building for OpenGL Embedded Profile")
     # We use a local find script for OpenGL::GLES3 until the proposed changes are merged upstream.
-    # list(APPEND CMAKE_MODULE_PATH "${PROJECTM_SOURCE_DIR}/cmake/gles")
     
 
     execute_process(COMMAND hostname OUTPUT_VARIABLE HOSTNAME OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -101,6 +100,7 @@ if(ENABLE_GLES)
         target_link_libraries(OpenGL::GLES3 INTERFACE /usr/lib/aarch64-linux-gnu/libGLESv2.so)    
     else()
         message(STATUS "HOSTNAME IS NOTTTTT DOORBELL!")
+        list(APPEND CMAKE_MODULE_PATH "${PROJECTM_SOURCE_DIR}/cmake/gles")
         find_package(OpenGL REQUIRED COMPONENTS GLES3)
     endif()
 

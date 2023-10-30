@@ -71,7 +71,8 @@ if is_doorbell():
 
 # -I/Library/Frameworks/SDL2.framework/Headers -F/Library/Frameworks -framework SDL2 
 if is_macos():
-    include_dirs.append('/Library/Frameworks/SDL2.framework/Headers')
+    include_dirs.append('/opt/homebrew/opt/sdl2/include')
+    
     library_dirs.append('/Library/Frameworks')
     extra_compile_args.append('-framework')
     extra_compile_args.append('SDL2')

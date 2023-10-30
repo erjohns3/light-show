@@ -18,7 +18,7 @@
 #  include <GLES3/gl3.h>
 # else
 #  if defined(__APPLE__)
-#   include <OpenGL/gl.h>
+#   include <OpenGL/gl3.h>
 #   include <OpenGL/glu.h>
 #   include <OpenGL/glext.h>
 #  else

@@ -58,7 +58,15 @@ option(ENABLE_SDL_UI "Build the SDL2-based developer test UI" OFF)
 option(ENABLE_OPENMP "Enable OpenMP support if available" ON)
 option(ENABLE_THREADING "Enable multithreading support." ON) # !TODO I CHANGED THIS
 option(ENABLE_SYSTEM_GLM "Enable use of system-install GLM library" OFF)
-option(ENABLE_GLES "Enable OpenGL ES support" ON)
+
+# check if macos
+if(APPLE)
+    message(STATUS "APPLE")
+    option(ENABLE_GLES "Enable OpenGL ES support" OFF)
+else()
+    option(ENABLE_GLES "Enable OpenGL ES support" ON)
+endif()
+
 
 # Experimental/unsupported features
 option(ENABLE_LLVM "Enable experimental LLVM JIT support" OFF)
@@ -102,7 +110,9 @@ if(ENABLE_GLES)
         message(STATUS "HOSTNAME IS NOTTTTT DOORBELL!")
         list(APPEND CMAKE_MODULE_PATH "${PROJECTM_SOURCE_DIR}/cmake/gles")
         find_package(OpenGL REQUIRED COMPONENTS GLES3)
-    endif()
+        find_package(OpenGL REQUIRED COMPONENTS GLES3)
+
+        endif()
 
     if(NOT TARGET OpenGL::GLES3)
         message(FATAL_ERROR "No suitable GLES3 library was found.")

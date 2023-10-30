@@ -35,14 +35,25 @@ add_library(projectM_main OBJECT
         projectM-opengl.h
         )
 
-target_link_libraries(projectM_main
+if(APPLE)
+    option(ENABLE_GLES "Enable OpenGL ES support" OFF)
+    target_link_libraries(projectM_main
+        PUBLIC
+        MilkdropPreset
+        Renderer
+        hlslparser
+        libprojectM::API
+    )
+else()
+    target_link_libraries(projectM_main
         PUBLIC
         MilkdropPreset
         Renderer
         hlslparser
         SOIL2
         libprojectM::API
-        )
+    )
+endif()
 
 target_include_directories(projectM_main
         PRIVATE

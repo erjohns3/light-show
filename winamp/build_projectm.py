@@ -74,51 +74,51 @@ if is_macos():
     include_dirs.append('/opt/homebrew/opt/sdl2/include')
     
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('SDL2')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('OpenGL')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('OpenAL')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('Cocoa')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('CoreAudio')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('CoreVideo')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('CoreFoundation')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('Carbon')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('IOKit')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('ForceFeedback')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args.append('Metal')
 
     library_dirs.append('/Library/Frameworks')
-    extra_compile_args.append('-framework')
+    # extra_compile_args.append('-framework')
     extra_compile_args
 
 

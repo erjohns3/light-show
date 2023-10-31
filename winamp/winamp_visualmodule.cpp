@@ -248,18 +248,6 @@ GlslVersion QueryGlslVersion() {
 
 static PyObject*
 winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
-
-    // if (m_GLSLVersion.major == 0)
-    // {
-    //     throw std::runtime_error("Could not retrieve OpenGL shader language version. Is OpenGL available and the context initialized?");
-    // }
-    // if (m_GLSLVersion.major < 3)
-    // {
-    //     throw std::runtime_error("OpenGL shader language version 3 or higher is required, but not available in the current context.");
-    // }
-
-    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-
     SDL_version linked;
     SDL_GetVersion(&linked);
     SDL_Log("C++ Python extension: Using SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);

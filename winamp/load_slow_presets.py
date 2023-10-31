@@ -29,8 +29,8 @@ num_times = 300
 start_time = time.time()
 for index in range(num_times):
     t1 = time.time()
-    for _, path in tqdm(slow_presets):
-        winamp_wrapper.load_preset(path, quiet=True)
+    for path in tqdm(slow_presets):
+        winamp_wrapper.load_preset(pathlib.Path(path), quiet=True)
     runs[index] = time.time() - t1
 
 print_blue(f'First run took {runs[0]:.2f} seconds')

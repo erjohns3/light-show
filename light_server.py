@@ -148,9 +148,9 @@ def run_http_server_forever(directory_to_serve=this_file_directory):
     class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         def translate_path(self, path):
             return os.path.join(str(directory_to_serve), path.lstrip("/"))
-    httpd = http.server.ThreadingHTTPServer((local_ip, PORT), CustomHTTPRequestHandler)
     print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
-    httpd.serve_forever()
+    http.server.ThreadingHTTPServer(('', PORT), CustomHTTPRequestHandler).serve_forever()
+    # http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler).serve_forever()
 
 
 ########################################

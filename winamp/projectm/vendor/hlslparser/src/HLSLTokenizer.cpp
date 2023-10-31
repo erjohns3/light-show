@@ -126,8 +126,7 @@ static const char* _reservedWords[] =
 
 static bool GetIsSymbol(char c)
 {
-    switch (c)
-    {
+    switch (c) {
     case ';':
     case ':':
     case '(': case ')':
@@ -170,26 +169,22 @@ void HLSLTokenizer::Next(const bool EOLSkipping)
 {
     m_bufferPrevious = m_buffer;
 
-    while( SkipWhitespace(EOLSkipping) || SkipComment(&m_buffer, EOLSkipping) || ScanLineDirective() || SkipPragmaDirective() )
-    {
+    while( SkipWhitespace(EOLSkipping) || SkipComment(&m_buffer, EOLSkipping) || ScanLineDirective() || SkipPragmaDirective() ) {
     }
 
-    if (m_error)
-    {
+    if (m_error) {
         m_token = HLSLToken_EndOfStream;
         return;
     }
 
-    if (!EOLSkipping && m_buffer[0] == '\n')
-    {
+    if (!EOLSkipping && m_buffer[0] == '\n') {
         m_token = HLSLToken_EndOfLine;
         return;
     }
 
     m_tokenLineNumber = m_lineNumber;
 
-    if (m_buffer >= m_bufferEnd || *m_buffer == '\0')
-    {
+    if (m_buffer >= m_bufferEnd || *m_buffer == '\0') {
         m_token = HLSLToken_EndOfStream;
         return;
     }
@@ -197,91 +192,77 @@ void HLSLTokenizer::Next(const bool EOLSkipping)
     const char* start = m_buffer;
 
     // +=, -=, *=, /=, ==, <=, >=
-    if (m_buffer[0] == '+' && m_buffer[1] == '=')
-    {
+    if (m_buffer[0] == '+' && m_buffer[1] == '=') {
         m_token = HLSLToken_PlusEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '-' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '-' && m_buffer[1] == '=') {
         m_token = HLSLToken_MinusEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '*' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '*' && m_buffer[1] == '=') {
         m_token = HLSLToken_TimesEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '/' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '/' && m_buffer[1] == '=') {
         m_token = HLSLToken_DivideEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '=' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '=' && m_buffer[1] == '=') {
         m_token = HLSLToken_EqualEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '!' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '!' && m_buffer[1] == '=') {
         m_token = HLSLToken_NotEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '<' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '<' && m_buffer[1] == '=') {
         m_token = HLSLToken_LessEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '>' && m_buffer[1] == '=')
-    {
+    else if (m_buffer[0] == '>' && m_buffer[1] == '=') {
         m_token = HLSLToken_GreaterEqual;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '&' && m_buffer[1] == '&')
-    {
+    else if (m_buffer[0] == '&' && m_buffer[1] == '&') {
         m_token = HLSLToken_AndAnd;
         m_buffer += 2;
         return;
     }
-    else if (m_buffer[0] == '|' && m_buffer[1] == '|')
-    {
+    else if (m_buffer[0] == '|' && m_buffer[1] == '|') {
         m_token = HLSLToken_BarBar;
         m_buffer += 2;
         return;
     }
 
     // ++, --
-    if ((m_buffer[0] == '-' || m_buffer[0] == '+') && (m_buffer[1] == m_buffer[0]))
-    {
+    if ((m_buffer[0] == '-' || m_buffer[0] == '+') && (m_buffer[1] == m_buffer[0])) {
         m_token = (m_buffer[0] == '+') ? HLSLToken_PlusPlus : HLSLToken_MinusMinus;
         m_buffer += 2;
         return;
     }
 
     // Check for the start of a number.
-    if (ScanNumber())
-    {
+    if (ScanNumber()) {
         return;
     }
     
-    if (GetIsSymbol(m_buffer[0]))
-    {
+    if (GetIsSymbol(m_buffer[0])) {
         m_token = static_cast<unsigned char>(m_buffer[0]);
         ++m_buffer;
         return;
     }
 
     // Must be an identifier or a reserved word.
-    while (m_buffer < m_bufferEnd && m_buffer[0] != 0 && !GetIsSymbol(m_buffer[0]) && !isspace(m_buffer[0]))
-    {
+    while (m_buffer < m_bufferEnd && m_buffer[0] != 0 && !GetIsSymbol(m_buffer[0]) && !isspace(m_buffer[0])) {
         ++m_buffer;
     }
 
@@ -290,8 +271,7 @@ void HLSLTokenizer::Next(const bool EOLSkipping)
     m_identifier[length] = 0;
     
     const int numReservedWords = sizeof(_reservedWords) / sizeof(const char*);
-    for (int i = 0; i < numReservedWords; ++i)
-    {
+    for (int i = 0; i < numReservedWords; ++i) {
         if (strcmp(_reservedWords[i], m_identifier) == 0)
         {
             m_token = 256 + i;
@@ -312,8 +292,7 @@ const char* HLSLTokenizer::getLastPos(const bool trimmed)
 {
     const char * start = m_bufferPrevious;
 
-    if (trimmed)
-    {
+    if (trimmed) {
         // Skip white space
         while(isspace(start[0])) {
             start++;
@@ -328,8 +307,7 @@ bool HLSLTokenizer::SkipWhitespace(const bool EOLSkipping)
 {
     bool result = false;
     while (m_buffer < m_bufferEnd && isspace(m_buffer[0]) &&
-            (EOLSkipping || (!EOLSkipping && m_buffer[0] != '\n')))
-    {
+            (EOLSkipping || (!EOLSkipping && m_buffer[0] != '\n'))) {
         result = true;
         if (m_buffer[0] == '\n')
         {
@@ -343,8 +321,7 @@ bool HLSLTokenizer::SkipWhitespace(const bool EOLSkipping)
 bool HLSLTokenizer::SkipComment(const char** buffer, const bool EOLSkipping)
 {
     bool result = false;
-    if ((*buffer)[0] == '/')
-    {
+    if ((*buffer)[0] == '/') {
         if ((*buffer)[1] == '/')
         {
             // Single line comment.
@@ -420,14 +397,12 @@ bool HLSLTokenizer::ScanNumber()
 {
 
     // Don't treat the + or - as part of the number.
-    if (m_buffer[0] == '+' || m_buffer[0] == '-')
-    {
+    if (m_buffer[0] == '+' || m_buffer[0] == '-') {
         return false;
     }
 
     // Parse hex literals.
-    if (m_bufferEnd - m_buffer > 2 && m_buffer[0] == '0' && m_buffer[1] == 'x')
-    {
+    if (m_bufferEnd - m_buffer > 2 && m_buffer[0] == '0' && m_buffer[1] == 'x') {
         char*   hEnd = NULL;
         int     iValue = strtol(m_buffer+2, &hEnd, 16);
         if (GetIsNumberSeparator(hEnd[0]))
@@ -442,8 +417,7 @@ bool HLSLTokenizer::ScanNumber()
     char* fEnd = NULL;
     double fValue = String_ToDouble(m_buffer, &fEnd);
 
-    if (fEnd == m_buffer)
-    {
+    if (fEnd == m_buffer) {
         return false;
     }
 
@@ -464,8 +438,7 @@ bool HLSLTokenizer::ScanNumber()
         m_fValue = static_cast<float>(fValue);
         return true;
     }
-    else if (iEnd > m_buffer && GetIsNumberSeparator(iEnd[0]))
-    {
+    else if (iEnd > m_buffer && GetIsNumberSeparator(iEnd[0])) {
         m_buffer = iEnd;
         m_token  = HLSLToken_IntLiteral;
         m_iValue = iValue;
@@ -478,8 +451,7 @@ bool HLSLTokenizer::ScanNumber()
 bool HLSLTokenizer::ScanLineDirective()
 {
     
-    if (m_bufferEnd - m_buffer > 5 && strncmp(m_buffer, "#line", 5) == 0 && isspace(m_buffer[5]))
-    {
+    if (m_bufferEnd - m_buffer > 5 && strncmp(m_buffer, "#line", 5) == 0 && isspace(m_buffer[5])) {
 
         m_buffer += 5;
         
@@ -618,8 +590,7 @@ void HLSLTokenizer::Error(const char* format, ...)
     // It's not always convenient to stop executing when an error occurs,
     // so just track once we've hit an error and stop reporting them until
     // we successfully bail out of execution.
-    if (m_error)
-    {
+    if (m_error) {
         return;
     }
     m_error = true;
@@ -636,16 +607,13 @@ void HLSLTokenizer::Error(const char* format, ...)
 
 void HLSLTokenizer::GetTokenName(char buffer[s_maxIdentifier]) const
 {
-    if (m_token == HLSLToken_FloatLiteral)
-    {
+    if (m_token == HLSLToken_FloatLiteral) {
         sprintf(buffer, "%f", m_fValue);
     }
-    else if (m_token == HLSLToken_IntLiteral)
-    {
+    else if (m_token == HLSLToken_IntLiteral) {
         sprintf(buffer, "%d", m_iValue);
     }
-    else if (m_token == HLSLToken_Identifier)
-    {
+    else if (m_token == HLSLToken_Identifier) {
         strcpy(buffer, m_identifier);
     }
     else
@@ -656,13 +624,11 @@ void HLSLTokenizer::GetTokenName(char buffer[s_maxIdentifier]) const
 
 void HLSLTokenizer::GetTokenName(int token, char buffer[s_maxIdentifier])
 {
-    if (token < 256)
-    {
+    if (token < 256) {
         buffer[0] = (char)token;
         buffer[1] = 0;
     }
-    else if (token < HLSLToken_LessEqual)
-    {
+    else if (token < HLSLToken_LessEqual) {
         strcpy(buffer, _reservedWords[token - 256]);
     }
     else

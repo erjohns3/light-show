@@ -1,5 +1,27 @@
 This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
+gcc 
+-Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src/libprojectM 
+-I/home/andrew/programming/python/light-show/winamp/projectm/vendor 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src/api/include 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src/playlist/api 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src/playlist/include 
+-I/home/andrew/programming/python/light-show/winamp/projectm/src/api/include/projectM-4 
+-I/home/andrew/programming/python/envs/b311/lib/python3.11/site-packages/numpy/core/include 
+-I/home/andrew/programming/python/envs/b311/include 
+-I/home/andrew/programming/random/cpython/Include 
+-I/home/andrew/programming/random/cpython 
+-c /home/andrew/programming/python/light-show/winamp/winamp_visualmodule.cpp 
+-o build/temp.linux-x86_64-cpython-311/home/andrew/programming/python/light-show/winamp/winamp_visualmodule.o 
+-std=c++14 
+-g
+
+g++ -shared build/temp.linux-x86_64-cpython-311/home/andrew/programming/python/light-show/winamp/winamp_visualmodule.o -L/home/andrew/programming/python/light-show/winamp/projectm/src/libprojectM -lprojectM-4 -lSDL2 -lSDL2main -ldl -lm -lpthread -lGLESv2 -lasound -lpulse-simple -lpulse -lEGL -o ./winamp_visual.cpython-311-x86_64-linux-gnu.so
+
+
+
 # requirements
 * cmake
 * SDL version (2.16 or higher) (probably just "apt-get install `libsdl2-dev`")

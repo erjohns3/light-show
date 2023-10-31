@@ -58,6 +58,43 @@ def try_load_winamp_cxx_module():
     return True
 
 
+def try_load_audio_device():
+    audio_devices = get_audio_devices()
+    for id, device_name in audio_devices.items():
+        print(f'{id=}, {device_name=}')
+    
+    if len(audio_devices) == 0:
+        return print_red('Init successful, but no audio devices found')
+    
+    loaded_id = -1
+    if is_doorbell():
+        loaded_id = init_audio_id(2)
+        if loaded_id != -1:
+            print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
+    elif is_andrews_main_computer():
+        for id, device_name in audio_devices.items():
+            if 'Monitor of henry' in device_name:
+                loaded_id = init_audio_id(id)
+                if loaded_id != -1:
+                    print_green(f'Loaded audio device id: {loaded_id}')
+                break
+        else:
+            print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
+    elif is_macos():
+        loaded_id = init_audio_id(0)
+        if loaded_id != -1:
+            print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
+    else:
+        print_yellow(f'Trying to load default audio device (-1)')
+        loaded_id = init_audio_id(-1) # !TODO i think this says to load the default
+        if loaded_id != -1:
+            print_green(f'Loaded audio device id: {loaded_id}')
+    
+    if loaded_id == -1:
+        return print_red('Init successful, but couldnt load audio device id')
+    return True
+
+
 preset_history = collections.deque([])
 preset_index = -1
 def last_preset():
@@ -96,7 +133,7 @@ for _, filepath in all_presets:
 
 
 current_preset_path = None
-def load_preset(preset_path_or_string):
+def load_preset(preset_path_or_string, quiet=False):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot load preset')
     
@@ -111,7 +148,7 @@ def load_preset(preset_path_or_string):
         return
     better_print = preset_path_to_load.relative_to(presets_directory)
     better_print = better_print.relative_to(better_print.parts[0])
-    print_blue(f'Python: loading preset {better_print}')
+    if not quiet: print_blue(f'Python: loading preset {better_print}')
     current_preset_path = preset_path_to_load
     winamp_visual.load_preset(str(preset_path_to_load))
 

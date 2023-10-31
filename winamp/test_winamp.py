@@ -1,6 +1,3 @@
-# !TODO this is probably broken after the refactor
-
-
 import sys
 import time
 import pathlib
@@ -19,6 +16,10 @@ import winamp_wrapper
 
 
 if not winamp_wrapper.try_load_winamp_cxx_module():
+    print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
+    exit()
+
+if not winamp_wrapper.try_load_audio_device():
     print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
     exit()
 

@@ -1,43 +1,6 @@
 # Club time
 ## TLDR:
 
-# calibration
-
-* red
-  * 25 light -> 50 term
-    * maybe 30 light -> 50 term
-* green
-  * 20 light -> 50 term
-* blue
-  * 25 light -> 50 term
-
-
-good
-  Phat_Zylot_EoS Come fly with me video nz digitalia dildoniq law divorcement.mlk
-  stahlrefen hypnotron v 0-5
-  hexcollie melodic pulsing les mash00000 vegas doesnt make life less poinltess
-  shifter crosshatch colony beta6 nglasch id knightf fuckfart
-  Evet targus
-  xtramartin (961)
-  flexi + geiss bipolarvs reaction diffusion mirror scoped jelly 5-5 threx isoceles edit     (really good according to chris)
-  ORB Smoke and fire reflecto fuckup
-  suksma - n3.milk
-  martin - crystal palace nz+
-  Shiroijin - unicorn hell warp 9 mr crusher
-  EoS - 7th galaxy
-  EoS - glowsticks v2 05 and proton lights + krash beat code _ phat remix02c
-
-on own:
-  AkashaDude & geiss phalasche pseue kniqmbatlech way lots calmer
-  suksama - dotes hostile undertake + demonlord - blood in your eues again - flacc
-  suksma - coal drapes - mrt fsh behooval roam3 nz  gene phreqshough passive suggestive
-  suksma - arrange-a-tang shf radial tripolar swung
-  Goody + martin crystal palace schizotoxin the wild iris bloom mess2 nz+
-  suksma - satanic teleprompter - lusb
-
-
-
-
 ### Requirements
 * Install ffmpeg, and have avaliable on your path
 * `pip install -r requirements.txt`
@@ -119,6 +82,23 @@ It should be pretty good about auto downloading specific songs with the --show p
 
 ### youtube download on command line (don't use this)
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
+
+
+## light calibration
+
+#### grid
+* red
+  * 25 light -> 50 term
+    * maybe 30 light -> 50 term
+* green
+  * 20 light -> 50 term
+* blue
+  * 25 light -> 50 term
+
+
+## settiing up on new rasp pi
+* you HAVE to install pulse (or else audio will suck i think)
+* you have to compile SDL from source (unless updated) you need 2.0.16 i think (2.0.14 as of writing)
 
 
 ## andrew specific commands

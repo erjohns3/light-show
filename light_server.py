@@ -16,10 +16,18 @@ import random
 import traceback
 import sys
 
-print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory))
+from helpers import *
+if is_doorbell():
+    os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
+    os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
+    os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
+    print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
+    print_yellow(f'Assigning LD_LIBRARY_PATH override to use SDL version ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
 
-# https://wiki.libsdl.org/SDL2/FAQUsingSDL
-# os.environ['SDL_AUDIODRIVER'] = 'jack'
+
+# https://wiki.libsdl.org/SDL2/FAQUsingSDL os.environ['SDL_AUDIODRIVER'] = 'jack'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import numpy as np
 import pygame
@@ -31,7 +39,6 @@ import sound_video_helpers
 import youtube_download_helpers
 from users import users
 import grid_helpers
-from helpers import *
 from effects.compiler import GridInfo
 import effects.compiler
 import joystick_and_keyboard_helpers
@@ -71,15 +78,6 @@ if is_windows():
 
 if args.winamp == None:
     args.winamp = True
-
-
-if is_doorbell():
-    os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
-    os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
-    os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
-    print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
-    print_yellow(f'Assigning LD_LIBRARY_PATH override to use SDL version ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
-
 
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()

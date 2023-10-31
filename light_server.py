@@ -52,7 +52,7 @@ parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #b
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
-parser.add_argument('--winamp', dest='winamp', default=None, action='store_true')
+parser.add_argument('--no_winamp', dest='winamp', default=None, action='store_false')
 parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
 
 args = parser.parse_args()
@@ -64,11 +64,21 @@ else:
     args.local = True
     args.keyboard = True
 
-if is_andrews_main_computer() and args.winamp == None:
-    args.winamp = True
+if is_windows():
+    args.fake_winamp = True
+    args.winamp = False
+    print_red(f'Since this is windows we are forcing --fake_winamp and --no_winamp')
 
 if args.winamp == None:
-    args.winamp = False
+    args.winamp = True
+
+
+if is_doorbell():
+    os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
+    os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
+    os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
+    print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
+    print_yellow(f'Assigning LD_LIBRARY_PATH override to use SDL version ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
 
 
 

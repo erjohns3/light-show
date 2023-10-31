@@ -1,4 +1,6 @@
-This only supports linux for now (both x86_64 and aarch64 [rasp pi])
+This supports macos arm (M1, M2), and linux for now (both x86_64 and aarch64 [rasp pi])
+
+Windows will be harder. Need to reconstruct a bunch of makefile stuff and code I deleted from the OG repo.
 
 
 # requirements
@@ -34,7 +36,7 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-39-darwin.so; python build_projectm.py build --build-lib=.
 ```
-* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 python test_winamp.py`
+* run `python test_winamp.py`
 
 
 

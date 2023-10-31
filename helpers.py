@@ -33,6 +33,7 @@ is_linux = lambda: platform.system() == "Linux"
 is_macos = lambda: platform.system() == "Darwin"
 
 is_marias_computer = lambda: get_hostname() == 'DESKTOP-IKO6828'
+is_chris_macbook_air = lambda: get_hostname() == 'chriss-air.lan'
 is_ray = lambda: get_hostname() == 'ray'
 is_erics_laptop = lambda: get_hostname() == 'Eric-Laptop'
 is_andrews_main_computer = lambda: get_hostname() == 'zetai'

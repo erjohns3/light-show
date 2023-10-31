@@ -2002,7 +2002,7 @@ if __name__ == '__main__':
         if is_macos():
             time.sleep(.05)
 
-    http_server_async(9556, this_file_directory, ['', 'queue.html'])
+    http_server_async(9555, this_file_directory, ['', 'queue.html'])
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

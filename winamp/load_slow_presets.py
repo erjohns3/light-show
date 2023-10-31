@@ -2,8 +2,8 @@ import sys
 import time
 import pathlib
 import time
+
 from tqdm import tqdm
-import random
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
@@ -17,7 +17,7 @@ if not winamp_wrapper.try_load_winamp_cxx_module():
     exit()
 
 if not winamp_wrapper.try_load_audio_device():
-    print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
+    print_red(f'winamp_wrapper.try_load_audio_device() failed')
     exit()
 
 easy_preset_name = '210-wave-smooth-80'

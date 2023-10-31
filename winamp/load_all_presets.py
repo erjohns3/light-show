@@ -2,8 +2,9 @@ import sys
 import time
 import pathlib
 import time
-from tqdm import tqdm
 import random
+
+from tqdm import tqdm
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
@@ -17,7 +18,7 @@ if not winamp_wrapper.try_load_winamp_cxx_module():
     exit()
 
 if not winamp_wrapper.try_load_audio_device():
-    print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
+    print_red(f'winamp_wrapper.try_load_audio_device() failed')
     exit()
 
 
@@ -30,9 +31,11 @@ for index, (_, path) in enumerate(tqdm(winamp_wrapper.all_presets)):
     # if index > 100:
     #     break
     winamp_wrapper.load_preset(path, quiet=True)
+    winamp_wrapper.compute_frame()
 
     t1 = time.time()
     winamp_wrapper.load_preset(path, quiet=True)
+    winamp_wrapper.compute_frame()
     time_per_preset[path] = time.time() - t1
 
 for path, time_taken in sorted(time_per_preset.items(), key=lambda item: item[1]):

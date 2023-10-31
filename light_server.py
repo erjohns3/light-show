@@ -84,13 +84,13 @@ effects_dir = this_file_directory.joinpath('effects')
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
     effects.compiler.winamp = effects.compiler.twinkle
-    grid_helpers.winamp_wrapper.winamp_visual_loaded = True
+    winamp.winamp_wrapper.winamp_visual_loaded = True
 
 elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()
-    result = grid_helpers.winamp_wrapper.get_beat_sensitivity()
+    result = winamp.winamp_wrapper.get_beat_sensitivity()
     if result is not None:
         beat_sens_string = f'Beat Sens: {result}'
 
@@ -267,7 +267,7 @@ async def init_dj_client(websocket, path):
                 remove_effect_name(effect_name)
 
             elif msg['type'] == 'beat_sens_up':
-                result = grid_helpers.winamp_wrapper.increase_beat_sensitivity()
+                result = winamp.winamp_wrapper.increase_beat_sensitivity()
                 if result is not None:
                     beat_sens_number = f'{result:.2f}'
                 beat_sens_string = f'Beat Sens: {beat_sens_number}'
@@ -275,7 +275,7 @@ async def init_dj_client(websocket, path):
                 broadcast_light_status = True
 
             elif msg['type'] == 'beat_sens_down':
-                result = grid_helpers.winamp_wrapper.decrease_beat_sensitivity()
+                result = winamp.winamp_wrapper.decrease_beat_sensitivity()
                 if result is not None:
                     beat_sens_number = f'{result:.2f}'
                 beat_sens_string = f'Beat Sens: {beat_sens_number}'
@@ -1135,11 +1135,11 @@ def add_effect(new_effect_name):
     if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and get_effect_index(new_effect_name) is not False:
         return
 
-    if new_effect_name in grid_helpers.winamp_wrapper.preset_name_to_filepath:
+    if new_effect_name in winamp.winamp_wrapper.preset_name_to_filepath:
         index = 0
         while index < len(curr_effects):
             existing_name = curr_effects[index][0]
-            if existing_name in grid_helpers.winamp_wrapper.preset_name_to_filepath:
+            if existing_name in winamp.winamp_wrapper.preset_name_to_filepath:
                 curr_effects.pop(index)
             else:
                 index += 1

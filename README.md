@@ -23,6 +23,14 @@ Queue: http://YOUR_IP:9555
 Just copy either into your browser, and you'll be able to control the show from there.
 
 # TODO
+* winamp:
+  * support windows
+  * look into instead of `auto PresetFileParser::Read(const std::string& presetFile) -> bool` use:
+    * auto PresetFileParser::Read(std::istream& presetStream) -> bool
+  * ask on the discord about low res rendering
+  * milkdrop v2? not supported in projectM yet i think
+* look for inspiration:
+  * https://www.youtube.com/watch?app=desktop&v=Jrb5PqiDMSY
 * check that --speed .5 follows --delay .189
 * cubic bezier for custom curves
 * label intensity of some lights and cleanup

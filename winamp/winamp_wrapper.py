@@ -81,9 +81,14 @@ def try_load_audio_device():
         else:
             print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
     elif is_macos():
-        loaded_id = init_audio_id(0)
-        if loaded_id != -1:
-            print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
+        for id, device_name in audio_devices.items():
+            if 'blackhole' in device_name.lower():
+                loaded_id = init_audio_id(id)
+                if loaded_id != -1:
+                    print_green(f'Loaded audio device id: {loaded_id}')
+                break
+        else:
+            print_red('WARNING: COULDNT FIND BLACKHOLE AUDIO DEVICE. MAKE SURE TO README.md')
     else:
         print_yellow(f'Trying to load default audio device (-1)')
         loaded_id = init_audio_id(-1) # !TODO i think this says to load the default
@@ -130,7 +135,10 @@ for _, filepath in all_presets:
         exit()
     preset_name_to_filepath[filepath.stem] = filepath
     preset_name_to_filepath[filepath.name] = filepath
-
+    # detect if not ascii:
+    if not filepath.name.isascii():
+        print_red(f'{filepath.name} ISNT ASCII')
+        exit()
 
 current_preset_path = None
 def load_preset(preset_path_or_string, smooth_transition=False, quiet=False):
@@ -147,10 +155,12 @@ def load_preset(preset_path_or_string, smooth_transition=False, quiet=False):
     if current_preset_path == preset_path_to_load:
         return
     better_print = preset_path_to_load.relative_to(presets_directory)
-    better_print = better_print.relative_to(better_print.parts[0])
-    if not quiet: print_blue(f'Python: loading preset {better_print}')
+    if 'cream' in better_print.parts[0]:
+        better_print = better_print.relative_to(better_print.parts[0])
+    if not quiet: print_blue(f'Python: loading preset {better_print}, real path: {preset_path_to_load}')
     current_preset_path = preset_path_to_load
-    return winamp_visual.load_preset(str(preset_path_to_load), smooth_transition)
+    preset_path_str = str(preset_path_to_load)
+    return winamp_visual.load_preset(preset_path_str, smooth_transition)
 
 
 def random_preset():

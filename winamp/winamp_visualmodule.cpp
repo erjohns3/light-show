@@ -341,16 +341,37 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
 }
 
 
-static PyObject*
-winamp_visual_load_preset(PyObject* self, PyObject* args) {
-    bool smooth_transition = false; // default false
-    char* preset_path_c_str; // required
-    if(!PyArg_ParseTuple(args, "s|p", &preset_path_c_str, &smooth_transition)) {
+static PyObject* winamp_visual_load_preset(PyObject* self, PyObject* args) {
+    const char* preset_path_c_str;
+    PyObject* py_smooth_transition = NULL; // Use a PyObject pointer for the boolean
+    
+    if(!PyArg_ParseTuple(args, "s|O", &preset_path_c_str, &py_smooth_transition)) {
         return NULL;
     }
+
+    bool smooth_transition = false;
+    if (py_smooth_transition != NULL) {
+        smooth_transition = PyObject_IsTrue(py_smooth_transition);
+    }
+
+    cout << "C++ extension: Received " << string(preset_path_c_str) << ", and: " << smooth_transition << endl;
     projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition);
     return Py_BuildValue("");
 }
+
+
+
+// static PyObject*
+// winamp_visual_load_preset(PyObject* self, PyObject* args) {
+//     bool smooth_transition = false; // default false
+//     const char* preset_path_c_str; // required
+//     if(!PyArg_ParseTuple(args, "s|p", &preset_path_c_str, &smooth_transition)) {
+//         return NULL;
+//     }
+//     cout << "C++ extension: Recieved " << string(preset_path_c_str) << ", and: " << smooth_transition << endl;
+//     projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition);
+//     return Py_BuildValue("");
+// }
 
 static PyObject*
 winamp_visual_load_preset_using_raw_data(PyObject* self, PyObject* args) {

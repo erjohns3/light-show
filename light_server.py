@@ -24,7 +24,7 @@ if is_doorbell():
     os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
     os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
     print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
-    print_yellow(f'Assigning LD_LIBRARY_PATH override to use SDL version ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
+    print_yellow(f'note that in .zshrc the LD_LIBRARY_PATH is overriden to: ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
 
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL os.environ['SDL_AUDIODRIVER'] = 'jack'

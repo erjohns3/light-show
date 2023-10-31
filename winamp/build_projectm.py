@@ -133,10 +133,12 @@ sources = [
 # python_extra_compile_args = get_python_config('--cflags')
 # python_extra_link_args = get_python_config('--ldflags')
 
-
+extra_link_args = []
 libraries = ['projectM-4', 'SDL2', 'SDL2main', 'dl', 'm', 'pthread'] # 'pthread' # glfw 
 if is_macos():
-    libraries.append('OpenGL3')
+    # libraries.append('OpenGL')
+    extra_link_args.append('-framework')
+    extra_link_args.append('OpenGL')
 else:
     libraries.append('GLESv2')
     libraries.append('asound')
@@ -147,7 +149,7 @@ else:
 
 
 # extra_link_args = ['-rpath']
-extra_link_args = []
+
 the_module = Extension(
     'winamp_visual',
     sources=sources,

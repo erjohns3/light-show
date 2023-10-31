@@ -354,7 +354,6 @@ static PyObject* winamp_visual_load_preset(PyObject* self, PyObject* args) {
         smooth_transition = PyObject_IsTrue(py_smooth_transition);
     }
 
-    cout << "C++ extension: Received " << string(preset_path_c_str) << ", and: " << smooth_transition << endl;
     projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition);
     return Py_BuildValue("");
 }

@@ -29,12 +29,14 @@ start_time = time.time()
 for index, (_, path) in enumerate(tqdm(winamp_wrapper.all_presets)):
     # if index > 100:
     #     break
+    winamp_wrapper.load_preset(path, quiet=True)
+
     t1 = time.time()
     winamp_wrapper.load_preset(path, quiet=True)
     time_per_preset[path] = time.time() - t1
 
 for path, time_taken in sorted(time_per_preset.items(), key=lambda item: item[1]):
-    print(f'{time_taken:.2f} seconds, {path}')
+    print(f'{time_taken:.2f} seconds on second run, {path}')
 print_green(f'TOTAL load_all_presets.py took {time.time() - start_time:.2f} seconds')
 
 

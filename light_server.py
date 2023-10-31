@@ -18,13 +18,7 @@ import sys
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
-from helpers import *
-if is_doorbell():
-    os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
-    os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
-    os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
-    print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
-    print_yellow(f'note that in .zshrc the LD_LIBRARY_PATH is overriden to: ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
+import winamp.winamp_wrapper # must be loaded first because of MESA forcing
 
 
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL os.environ['SDL_AUDIODRIVER'] = 'jack'
@@ -35,6 +29,7 @@ import pigpio
 import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
+from helpers import *
 import sound_video_helpers
 import youtube_download_helpers
 from users import users

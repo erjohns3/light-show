@@ -28,6 +28,13 @@ sys.path.insert(0, str(this_file_directory))
 sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 
+if is_doorbell():
+    os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
+    os.environ['MESA_GLSL_VERSION_OVERRIDE'] = '330'
+    os.environ['LD_LIBRARY_PATH'] = '/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/'
+    print_yellow(f'Assigning MESA_GL and MESA_GLSL overrides to get GLSL 3')
+    print_yellow(f'note that in .zshrc the LD_LIBRARY_PATH is overriden to: ~/random/sdl_install/SDL-release-2.28.4/build/.libs/')
+
 
 winamp_visual_loaded = False
 def try_load_winamp_cxx_module():

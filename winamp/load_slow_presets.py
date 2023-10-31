@@ -32,7 +32,9 @@ for index in tqdm(range(num_times)):
     t1 = time.time()
     for preset_name in slow_presets:
         winamp_wrapper.load_preset(easy_preset_name, quiet=True)
+        winamp_wrapper.compute_frame()
         winamp_wrapper.load_preset(preset_name, quiet=True)
+        winamp_wrapper.compute_frame()
     runs[index] = time.time() - t1
 
 print_blue(f'First run took {runs[0]:.2f} seconds')

@@ -41,7 +41,8 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 * run `python test_winamp.py`
 
 
-
+#### real test on rasp pi
+* python light_server.py --skip_autogen --show seattle --termina
 
 
 

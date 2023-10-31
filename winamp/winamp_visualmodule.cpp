@@ -20,6 +20,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_hints.h>
+#include <SDL2/SDL_opengl.h>
 
 
 #include <projectM-4/projectM.h>
@@ -258,10 +259,6 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     // }
 
     // SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); //OpenGL core profile
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3); //OpenGL 3.3
-
 
     SDL_version linked;
     SDL_GetVersion(&linked);
@@ -281,6 +278,11 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
         PyErr_SetString(PyExc_ValueError, "look up at sdl error");
         return NULL;
     }
+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); //OpenGL core profile
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3); //OpenGL 3.3
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); //Enable forward compatibility
 
     // SDL
     // std::cout << "C++ - Python Extension: setting up sdl window" << std::endl;

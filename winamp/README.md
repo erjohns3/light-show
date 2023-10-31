@@ -1,26 +1,5 @@
 This only supports linux for now (both x86_64 and aarch64 [rasp pi])
 
-gcc 
--Wsign-compare -DNDEBUG -g -fwrapv -O3 -Wall -fPIC 
--I/home/andrew/programming/python/light-show/winamp/projectm/src 
--I/home/andrew/programming/python/light-show/winamp/projectm/src/libprojectM 
--I/home/andrew/programming/python/light-show/winamp/projectm/vendor 
--I/home/andrew/programming/python/light-show/winamp/projectm/src/api/include 
--I/home/andrew/programming/python/light-show/winamp/projectm/src/playlist/api 
--I/home/andrew/programming/python/light-show/winamp/projectm/src/playlist/include 
--I/home/andrew/programming/python/light-show/winamp/projectm/src/api/include/projectM-4 
--I/home/andrew/programming/python/envs/b311/lib/python3.11/site-packages/numpy/core/include 
--I/home/andrew/programming/python/envs/b311/include 
--I/home/andrew/programming/random/cpython/Include 
--I/home/andrew/programming/random/cpython 
--c /home/andrew/programming/python/light-show/winamp/winamp_visualmodule.cpp 
--o build/temp.linux-x86_64-cpython-311/home/andrew/programming/python/light-show/winamp/winamp_visualmodule.o 
--std=c++14 
--g
-
-g++ -shared build/temp.linux-x86_64-cpython-311/home/andrew/programming/python/light-show/winamp/winamp_visualmodule.o -L/home/andrew/programming/python/light-show/winamp/projectm/src/libprojectM -lprojectM-4 -lSDL2 -lSDL2main -ldl -lm -lpthread -lGLESv2 -lasound -lpulse-simple -lpulse -lEGL -o ./winamp_visual.cpython-311-x86_64-linux-gnu.so
-
-
 
 # requirements
 * cmake
@@ -55,8 +34,18 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 ```
 rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-39-darwin.so; python build_projectm.py build --build-lib=.
 ```
-* !TODO i think with the right command below the GLSL shader version will be correct
 * run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 python test_winamp.py`
+
+
+
+
+
+
+
+
+
+
+
 
 
 #### old cmds that might be needed

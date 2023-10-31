@@ -21,7 +21,7 @@ if not winamp_wrapper.try_load_audio_device():
     exit()
 
 slow_presets = [
-    '/home/andrew/programming/python/light-show/winamp/projectm/presets/presets-cream-of-the-crop/Drawing/Explosions/Flexi + geiss - botnet nz+ let us out fractal spiders2 pure opulenth pony.milk',
+    'presets-cream-of-the-crop/Drawing/Explosions/Flexi + geiss - botnet nz+ let us out fractal spiders2 pure opulenth pony.milk',
 ]
 
 runs = {}
@@ -29,8 +29,8 @@ num_times = 300
 start_time = time.time()
 for index in range(num_times):
     t1 = time.time()
-    for path in tqdm(slow_presets):
-        winamp_wrapper.load_preset(pathlib.Path(path), quiet=True)
+    for preset_name in tqdm(slow_presets):
+        winamp_wrapper.load_preset(preset_name, quiet=True)
     runs[index] = time.time() - t1
 
 print_blue(f'First run took {runs[0]:.2f} seconds')

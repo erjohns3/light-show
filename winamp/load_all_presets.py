@@ -30,11 +30,11 @@ start_time = time.time()
 for index, (_, path) in enumerate(tqdm(winamp_wrapper.all_presets)):
     # if index > 100:
     #     break
-    winamp_wrapper.load_preset(path, quiet=True)
+    winamp_wrapper.load_preset(path, timing=False, quiet=True)
     winamp_wrapper.compute_frame()
 
     t1 = time.time()
-    winamp_wrapper.load_preset(path, quiet=True)
+    winamp_wrapper.load_preset(path, timing=False, quiet=True)
     winamp_wrapper.compute_frame()
     time_per_preset[path] = time.time() - t1
 

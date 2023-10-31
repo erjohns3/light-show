@@ -363,7 +363,9 @@ def download_song(url, uuid):
         effects_config[show_name] = show
         add_dependancies({show_name: show})
 
+        set_effect_defaults(show_name, show)
         compile_lut({show_name: show})
+
         print(f'created show for: {show_name}')
 
         effects_config_queue_client[show_name] = {}
@@ -1632,7 +1634,7 @@ def compile_lut(local_effects_config):
 
         channel_lut[effect_name] = {
             'length': round(effect['length'] * SUB_BEATS),
-            'loop': effect['loop'],
+            'loop': effect.get('loop', None),
             'beats': [x[:] for x in [[0] * LIGHT_COUNT] * round(effect['length'] * SUB_BEATS)],
         }
         curr_channel = channel_lut[effect_name]

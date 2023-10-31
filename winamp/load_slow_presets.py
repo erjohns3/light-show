@@ -21,7 +21,7 @@ if not winamp_wrapper.try_load_audio_device():
     exit()
 
 slow_presets = [
-    'presets-cream-of-the-crop/Drawing/Explosions/Flexi + geiss - botnet nz+ let us out fractal spiders2 pure opulenth pony.milk',
+    'Flexi + geiss - botnet nz+ let us out fractal spiders2 pure opulenth pony.milk',
 ]
 
 runs = {}

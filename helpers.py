@@ -275,20 +275,37 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
             yield entry.name, entry
 
 
-def start_http_server_blocking(port, filepath_to_serve):
+def http_server_blocking(port, directory_to_serve, for_printing=['']):
+    import socket
     import http.server
-    import socketserver
 
-    Handler = http.server.SimpleHTTPRequestHandler
-    os.chdir(filepath_to_serve)
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
-        httpd.serve_forever()
+    try:
+        info = socket.gethostbyname_ex(socket.gethostname())
+        local_ip = info[2][0]
+    except:
+        local_ip = 'cant_resolve_hostbyname'
+
+    class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+        def translate_path(self, path):
+            return os.path.join(str(directory_to_serve), path.lstrip("/"))
+    for service in for_printing:
+        print_green(f'http://{local_ip}:{port}/{service}', flush=True)
+    http.server.ThreadingHTTPServer(('', port), CustomHTTPRequestHandler).serve_forever()
 
 
-def start_http_server_async(port, filepath_to_serve):
+    # old impl
+    # import http.server
+    # import socketserver
+
+    # Handler = http.server.SimpleHTTPRequestHandler
+    # os.chdir(filepath_to_serve)
+    # with socketserver.TCPServer(("", port), Handler) as httpd:
+    #     print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
+    #     httpd.serve_forever()
+
+def http_server_async(port, filepath_to_serve, for_printing=['']):
     import threading
-    threading.Thread(target=start_http_server_blocking, args=(port, filepath_to_serve,)).start()
+    threading.Thread(target=http_server_blocking, args=(port, filepath_to_serve, for_printing)).start()
 
 
 def is_python_32_bit():

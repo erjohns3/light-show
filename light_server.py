@@ -131,29 +131,6 @@ broadcast_dev_status = False
 download_queue, search_queue = [], []
 
 ########################################
-        
-PORT = 9555
-try:
-    info = socket.gethostbyname_ex(socket.gethostname())
-    # print(info)
-    local_ip = info[2][0]
-    # local_ip = socket.gethostbyname(socket.gethostname())
-except:
-    local_ip = 'cant_resolve_hostbyname'
-
-
-
-def run_http_server_forever(directory_to_serve=this_file_directory):
-    import http.server
-    class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
-        def translate_path(self, path):
-            return os.path.join(str(directory_to_serve), path.lstrip("/"))
-    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
-    http.server.ThreadingHTTPServer(('', PORT), CustomHTTPRequestHandler).serve_forever()
-    # http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler).serve_forever()
-
-
-########################################
 
 def add_effect_from_dj(effect_name):
     global song_time, broadcast_song_status
@@ -2024,7 +2001,8 @@ if __name__ == '__main__':
         keyboard_thread.start()
         if is_macos():
             time.sleep(.05)
-    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True).start()
+
+    http_server_async(9556, this_file_directory, ['', 'queue.html'])
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

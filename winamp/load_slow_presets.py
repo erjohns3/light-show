@@ -26,7 +26,7 @@ slow_presets = [
 ]
 
 runs = {}
-num_times = 300
+num_times = 70
 start_time = time.time()
 for index in tqdm(range(num_times)):
     t1 = time.time()

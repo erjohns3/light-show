@@ -141,9 +141,14 @@ try:
 except:
     local_ip = 'cant_resolve_hostbyname'
 
-def run_http_server_forever():
+
+
+def run_http_server_forever(directory_to_serve=this_file_directory):
     import http.server
-    httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
+    class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+        def translate_path(self, path):
+            return os.path.join(str(directory_to_serve), path.lstrip("/"))
+    httpd = http.server.ThreadingHTTPServer((local_ip, PORT), CustomHTTPRequestHandler)
     print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
     httpd.serve_forever()
 
@@ -2019,10 +2024,7 @@ if __name__ == '__main__':
         keyboard_thread.start()
         if is_macos():
             time.sleep(.05)
-
-
-    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True)
-    http_thread.start()
+    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True).start()
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)

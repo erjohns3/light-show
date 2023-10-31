@@ -545,6 +545,7 @@ void MilkdropShader::TranspileHLSLShader(const PresetState& presetState, std::st
     M4::Allocator allocator;
 
     M4::HLSLTree tree(&allocator);
+    std::cout << "Making HLSL parser..." << std::endl;
     M4::HLSLParser parser(&allocator, &tree);
 
     // Preprocess define macros

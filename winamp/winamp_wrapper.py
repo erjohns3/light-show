@@ -50,8 +50,7 @@ def try_load_winamp_cxx_module():
     try:
         winamp_visual.setup_winamp()
     except:
-        print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
-        return None
+        return print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
 
     print_green(f'winamp_visual.setup_winamp() succeeded')
     winamp_visual_loaded = True
@@ -180,18 +179,18 @@ def increase_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot increase beat sensitivity')
     
-    new_val = winamp_visual.get_beat_sensitivity() + amt
+    new_val = get_beat_sensitivity() + amt
     winamp_visual.set_beat_sensitivity(new_val)
-    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
+    print(f'beat sensitivity: {get_beat_sensitivity()}')
     return new_val
 
 
 def decrease_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot decrease beat sensitivity')
-    new_val = winamp_visual.get_beat_sensitivity() - amt
+    new_val = get_beat_sensitivity() - amt
     winamp_visual.set_beat_sensitivity(new_val)
-    print(f'beat sensitivity: {winamp_visual.get_beat_sensitivity()}')
+    print(f'beat sensitivity: {get_beat_sensitivity()}')
     return new_val
 
 

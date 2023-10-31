@@ -61,6 +61,7 @@ parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, acti
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
 parser.add_argument('--no_winamp', dest='winamp', default=None, action='store_false')
 parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
+parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -991,9 +992,9 @@ async def light():
             # level_scaled = round(pow(level_between_0_and_1, 2.2))
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
-            if args.local:
+            if args.local or args.force_terminal:
                 await send_to_terminal_output(level_between_0_and_1, i)
-            else:
+            if not args.local:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
                 # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
@@ -1053,16 +1054,15 @@ async def light():
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                     return False
 
-        if args.local:
+        if args.local or args.force_terminal:
             await send_to_terminal_output(None, None)
-        else:
+        if not args.local:
             temp = grid_helpers.grid / 100
             # red and blue channels raise to 2
             # green raise to 2.3
             temp[:, :, 0] = np.power(temp[:, :, 0], 2)
             temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
             grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
-
             grid_helpers.render()
 
         # check on youtube downloads

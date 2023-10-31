@@ -31,8 +31,7 @@ start_time = time.time()
 for index in range(num_times):
     t1 = time.time()
     for preset_name in tqdm(slow_presets):
-
-        winamp_wrapper.load_preset(easy_preset_name)
+        winamp_wrapper.load_preset(easy_preset_name, quiet=True)
         winamp_wrapper.load_preset(preset_name, quiet=True)
     runs[index] = time.time() - t1
 

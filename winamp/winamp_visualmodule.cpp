@@ -343,11 +343,23 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
 
 static PyObject*
 winamp_visual_load_preset(PyObject* self, PyObject* args) {
-    char* preset_path_c_str;
-    if(!PyArg_ParseTuple(args, "s", &preset_path_c_str)) {
+    bool smooth_transition = false; // default false
+    char* preset_path_c_str; // required
+    if(!PyArg_ParseTuple(args, "s|p", &preset_path_c_str, &smooth_transition)) {
         return NULL;
     }
-    projectm_load_preset_file(_projectM, preset_path_c_str, false);
+    projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition);
+    return Py_BuildValue("");
+}
+
+static PyObject*
+winamp_visual_load_preset_using_raw_data(PyObject* self, PyObject* args) {
+    bool smooth_transition = false; // default false
+    char* preset_data_c_str; // required
+    if(!PyArg_ParseTuple(args, "s|p", &preset_data_c_str, &smooth_transition)) {
+        return NULL;
+    }
+    projectm_load_preset_data(_projectM, preset_data_c_str, smooth_transition);
     return Py_BuildValue("");
 }
 
@@ -474,6 +486,7 @@ static PyMethodDef winamp_visual_methods[] = {
     {"systemcall",  winamp_visual_systemcall, METH_VARARGS, ""},
     {"setup_winamp", winamp_visual_setup_winamp, METH_VARARGS, ""},
     {"load_preset", winamp_visual_load_preset, METH_VARARGS, ""},
+    {"load_preset_using_raw_data", winamp_visual_load_preset_using_raw_data, METH_VARARGS, ""},
     {"render_frame", winamp_visual_render_frame, METH_VARARGS, ""},
     {"set_beat_sensitivity", winamp_visual_set_beat_sensitivity, METH_VARARGS, ""},
     {"get_beat_sensitivity", winamp_visual_get_beat_sensitivity, METH_VARARGS, ""},

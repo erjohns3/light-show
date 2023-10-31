@@ -133,7 +133,7 @@ for _, filepath in all_presets:
 
 
 current_preset_path = None
-def load_preset(preset_path_or_string, quiet=False):
+def load_preset(preset_path_or_string, smooth_transition=False, quiet=False):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot load preset')
     
@@ -150,7 +150,8 @@ def load_preset(preset_path_or_string, quiet=False):
     better_print = better_print.relative_to(better_print.parts[0])
     if not quiet: print_blue(f'Python: loading preset {better_print}')
     current_preset_path = preset_path_to_load
-    winamp_visual.load_preset(str(preset_path_to_load))
+    return winamp_visual.load_preset(str(preset_path_to_load), smooth_transition)
+
 
 def random_preset():
     global preset_index

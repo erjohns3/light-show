@@ -20,6 +20,7 @@ if not winamp_wrapper.try_load_audio_device():
     print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
     exit()
 
+easy_preset_name = '210-wave-smooth-80'
 slow_presets = [
     'Flexi + geiss - botnet nz+ let us out fractal spiders2 pure opulenth pony.milk',
 ]
@@ -30,6 +31,8 @@ start_time = time.time()
 for index in range(num_times):
     t1 = time.time()
     for preset_name in tqdm(slow_presets):
+
+        winamp_wrapper.load_preset(easy_preset_name, quiet=True)
         winamp_wrapper.load_preset(preset_name, quiet=True)
     runs[index] = time.time() - t1
 

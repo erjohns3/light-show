@@ -346,7 +346,7 @@ static PyObject* winamp_visual_load_preset(PyObject* self, PyObject* args) {
     PyObject* py_smooth_transition = NULL; // Use a PyObject pointer for the boolean
     PyObject* py_load_from_cache = NULL; // Use a PyObject pointer for the boolean
     
-    if(!PyArg_ParseTuple(args, "s|O|O", &preset_path_c_str, &py_smooth_transition)) {
+    if(!PyArg_ParseTuple(args, "s|OO", &preset_path_c_str, &py_smooth_transition, &py_load_from_cache)) {
         return NULL;
     }
 

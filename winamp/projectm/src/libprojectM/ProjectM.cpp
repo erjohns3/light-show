@@ -64,10 +64,10 @@ void ProjectM::PresetSwitchFailedEvent(const std::string&, const std::string&) c
 
 void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTransition, bool load_from_cache)
 {
-    // std::cout << "ProjectM::LoadPresetFile: " << presetFilename << std::endl;
     // If already in a transition, force immediate completion.
     if (m_transitioningPreset != nullptr) {
-        if (m_activePreset != nullptr) {
+        if (!load_from_cache && m_activePreset != nullptr) {
+            std::cout << "Andrew: deleting m_activePreset top of LoadPresetFile" << std::endl;
             delete m_activePreset;
         }
         m_activePreset = m_transitioningPreset;
@@ -88,7 +88,7 @@ void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTran
         else {
             preset_to_transition = m_presetFactoryManager->CreatePresetFromFile(presetFilename);
         }
-        StartPresetTransition(preset_to_transition, !smoothTransition);
+        StartPresetTransition(preset_to_transition, !smoothTransition, load_from_cache);
     }
     catch (const PresetFactoryException& ex) {
         std::cout << "LoadPresetFile Error: " << presetFilename << std::endl;
@@ -300,7 +300,7 @@ void ProjectM::ResetOpenGL(size_t width, size_t height)
     }
 }
 
-void ProjectM::StartPresetTransition(Preset* preset, bool hardCut)
+void ProjectM::StartPresetTransition(Preset* preset, bool hardCut, bool load_from_cache)
 {
     m_presetChangeNotified = m_presetLocked;
 
@@ -317,14 +317,16 @@ void ProjectM::StartPresetTransition(Preset* preset, bool hardCut)
     }
 
     if (hardCut) {
-        if (m_activePreset != nullptr) {
+        if (!load_from_cache && m_activePreset != nullptr) {
+            std::cout << "Andrew: deleting m_activePreset" << std::endl;
             delete m_activePreset;
         }
         m_activePreset = preset;
         m_timeKeeper->StartPreset();
     }
     else {
-        if (m_transitioningPreset != nullptr) {
+        if (!load_from_cache && m_transitioningPreset != nullptr) {
+            std::cout << "Andrew: deleting m_transitioningPreset" << std::endl;
             delete m_transitioningPreset;
         }
         m_transitioningPreset = preset;

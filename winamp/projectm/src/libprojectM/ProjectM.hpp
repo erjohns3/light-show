@@ -211,7 +211,7 @@ private:
 
     void ResetEngine();
 
-    void StartPresetTransition(Preset* preset, bool hardCut);
+    void StartPresetTransition(Preset* preset, bool hardCut, bool load_from_cache);
 
     void LoadIdlePreset();
 

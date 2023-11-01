@@ -79,10 +79,10 @@ void projectm_destroy(projectm_handle instance)
 }
 
 void projectm_load_preset_file(projectm_handle instance, const char* filename,
-                               bool smooth_transition)
+                               bool smooth_transition, bool load_from_cache)
 {
     auto projectMInstance = handle_to_instance(instance);
-    projectMInstance->LoadPresetFile(filename, smooth_transition);
+    projectMInstance->LoadPresetFile(filename, smooth_transition, load_from_cache);
 }
 
 void projectm_load_preset_data(projectm_handle instance, const char* data,

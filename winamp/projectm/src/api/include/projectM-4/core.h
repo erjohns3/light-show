@@ -80,7 +80,7 @@ PROJECTM_EXPORT void projectm_destroy(projectm_handle instance);
  * @param smooth_transition If true, the new preset is smoothly blended over.
  */
 PROJECTM_EXPORT void projectm_load_preset_file(projectm_handle instance, const char* filename,
-                                               bool smooth_transition);
+                                               bool smooth_transition, bool load_from_cache);
 
 /**
  * @brief Loads a preset from the data pointer.

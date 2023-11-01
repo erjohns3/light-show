@@ -344,8 +344,9 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
 static PyObject* winamp_visual_load_preset(PyObject* self, PyObject* args) {
     const char* preset_path_c_str;
     PyObject* py_smooth_transition = NULL; // Use a PyObject pointer for the boolean
+    PyObject* py_load_from_cache = NULL; // Use a PyObject pointer for the boolean
     
-    if(!PyArg_ParseTuple(args, "s|O", &preset_path_c_str, &py_smooth_transition)) {
+    if(!PyArg_ParseTuple(args, "s|O|O", &preset_path_c_str, &py_smooth_transition)) {
         return NULL;
     }
 
@@ -354,7 +355,12 @@ static PyObject* winamp_visual_load_preset(PyObject* self, PyObject* args) {
         smooth_transition = PyObject_IsTrue(py_smooth_transition);
     }
 
-    projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition);
+    bool load_from_cache = false;
+    if (py_load_from_cache != NULL) {
+        load_from_cache = PyObject_IsTrue(py_load_from_cache);
+    }
+
+    projectm_load_preset_file(_projectM, preset_path_c_str, smooth_transition, load_from_cache);
     return Py_BuildValue("");
 }
 

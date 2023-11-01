@@ -62,23 +62,31 @@ void ProjectM::PresetSwitchFailedEvent(const std::string&, const std::string&) c
 {
 }
 
-void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTransition)
+void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTransition, bool load_from_cache)
 {
     // std::cout << "ProjectM::LoadPresetFile: " << presetFilename << std::endl;
     // If already in a transition, force immediate completion.
     if (m_transitioningPreset != nullptr) {
+        if (m_activePreset != nullptr) {
+            delete m_activePreset;
+        }
         m_activePreset = m_transitioningPreset;
     }    
     try {
         m_textureManager->PurgeTextures();
 
         Preset* preset_to_transition;
-        // checks m_loaded_presets if its already loaded. if not, loads it.
-        if (m_loaded_presets.count(presetFilename) > 0) {
-            preset_to_transition = m_loaded_presets[presetFilename];
-        } else {
+
+        if (load_from_cache) {
+            if (m_loaded_presets.count(presetFilename) > 0) {
+                preset_to_transition = m_loaded_presets[presetFilename];
+            } else {
+                preset_to_transition = m_presetFactoryManager->CreatePresetFromFile(presetFilename);
+                m_loaded_presets[presetFilename] = m_activePreset;
+            }
+        }
+        else {
             preset_to_transition = m_presetFactoryManager->CreatePresetFromFile(presetFilename);
-            m_loaded_presets[presetFilename] = m_activePreset;
         }
         StartPresetTransition(preset_to_transition, !smoothTransition);
     }
@@ -93,18 +101,15 @@ void ProjectM::LoadPresetData(std::istream& presetData, bool smoothTransition)
     std::cout << "Andrew: I broke LoadPresetData, dont call it" << std::endl;
     return;
     // If already in a transition, force immediate completion.
-    if (m_transitioningPreset != nullptr)
-    {
+    if (m_transitioningPreset != nullptr) {
         // m_activePreset = std::move(m_transitioningPreset);
     }
 
-    try
-    {
+    try {
         m_textureManager->PurgeTextures();
         // StartPresetTransition(m_presetFactoryManager->CreatePresetFromStream(".milk", presetData), !smoothTransition);
     }
-    catch (const PresetFactoryException& ex)
-    {
+    catch (const PresetFactoryException& ex) {
         // m_activePreset.reset();
         PresetSwitchFailedEvent("", ex.message());
     }
@@ -129,8 +134,7 @@ void ProjectM::DumpDebugImageOnNextFrame(const std::string& outputFile)
 
 void ProjectM::ThreadWorker()
 {
-    while (true)
-    {
+    while (true) {
         if (!m_workerSync->WaitForWork())
         {
             return;
@@ -143,8 +147,7 @@ void ProjectM::ThreadWorker()
 
 void ProjectM::RenderFrame()
 {
-    if (m_windowWidth == 0 || m_windowHeight == 0)
-    {
+    if (m_windowWidth == 0 || m_windowHeight == 0) {
         return;
     }
 
@@ -156,8 +159,7 @@ void ProjectM::RenderFrame()
 #endif
 
     // Check if the preset isn't locked, and we've not already notified the user
-    if (!m_presetChangeNotified)
-    {
+    if (!m_presetChangeNotified) {
         // If preset is done and we're not already switching
         if (m_timeKeeper->PresetProgressA() >= 1.0 && !m_timeKeeper->IsSmoothing())
         {
@@ -173,8 +175,7 @@ void ProjectM::RenderFrame()
         }
     }
     // If no preset is active, load the idle preset.
-    if (!m_activePreset)
-    {
+    if (!m_activePreset) {
         LoadIdlePreset();
         if (!m_activePreset)
         {
@@ -185,8 +186,7 @@ void ProjectM::RenderFrame()
     }
 
     // ToDo: Encapsulate preset loading check and transition in Renderer?
-    if (m_timeKeeper->IsSmoothing() && m_transitioningPreset != nullptr)
-    {
+    if (m_timeKeeper->IsSmoothing() && m_transitioningPreset != nullptr) {
 #if PROJECTM_USE_THREADS
         m_workerSync->WakeUpBackgroundTask();
         // FIXME: Instead of waiting after a single render pass, check every frame if it's done.
@@ -271,7 +271,7 @@ void ProjectM::Initialize()
 
 void ProjectM::LoadIdlePreset()
 {
-    LoadPresetFile("idle://Geiss & Sperl - Feedback (projectM idle HDR mix).milk", false);
+    LoadPresetFile("idle://Geiss & Sperl - Feedback (projectM idle HDR mix).milk", false, false);
     assert(m_activePreset);
 }
 
@@ -279,8 +279,7 @@ void ProjectM::LoadIdlePreset()
 void ProjectM::ResetEngine()
 {
 
-    if (m_beatDetect != NULL)
-    {
+    if (m_beatDetect != NULL) {
         m_beatDetect->Reset();
         m_beatDetect->beatSensitivity = m_beatSensitivity;
     }
@@ -293,12 +292,10 @@ void ProjectM::ResetOpenGL(size_t width, size_t height)
     m_windowWidth = width;
     m_windowHeight = height;
 
-    try
-    {
+    try {
         m_renderer->reset(width, height);
     }
-    catch (const RenderException& ex)
-    {
+    catch (const RenderException& ex) {
         // ToDo: Add generic error callback
     }
 }
@@ -307,31 +304,30 @@ void ProjectM::StartPresetTransition(Preset* preset, bool hardCut)
 {
     m_presetChangeNotified = m_presetLocked;
 
-    if (preset == nullptr)
-    {
+    if (preset == nullptr) {
         return;
     }
 
-    try
-    {
+    try {
         preset->Initialize(GetRenderContext());
     }
-    catch (std::exception& ex)
-    {
+    catch (std::exception& ex) {
         // m_activePreset->reset();
         // PresetSwitchFailedEvent(preset->Filename(), ex.what());
     }
 
-    // ToDo: Continue only if preset is fully loaded.
-
-    if (hardCut)
-    {
+    if (hardCut) {
+        if (m_activePreset != nullptr) {
+            delete m_activePreset;
+        }
         m_activePreset = preset;
         m_timeKeeper->StartPreset();
     }
-    else
-    {
-        m_transitioningPreset = std::move(preset);
+    else {
+        if (m_transitioningPreset != nullptr) {
+            delete m_transitioningPreset;
+        }
+        m_transitioningPreset = preset;
         m_timeKeeper->StartSmoothing();
     }
 }
@@ -464,13 +460,11 @@ void ProjectM::SetMeshSize(size_t meshResolutionX, size_t meshResolutionY)
     m_meshY = meshResolutionY;
 
     // Need multiples of two, otherwise will not render a horizontal and/or vertical bar in the center of the warp mesh.
-    if (m_meshX % 2 == 1)
-    {
+    if (m_meshX % 2 == 1) {
         m_meshX++;
     }
 
-    if (m_meshY % 2 == 1)
-    {
+    if (m_meshY % 2 == 1) {
         m_meshY++;
     }
 
@@ -486,32 +480,28 @@ auto ProjectM::PCM() -> libprojectM::Audio::PCM&
 
 void ProjectM::Touch(float touchX, float touchY, int pressure, int touchType)
 {
-    if (m_renderer)
-    {
+    if (m_renderer) {
         m_renderer->touch(touchX, touchY, pressure, touchType);
     }
 }
 
 void ProjectM::TouchDrag(float touchX, float touchY, int pressure)
 {
-    if (m_renderer)
-    {
+    if (m_renderer) {
         m_renderer->touchDrag(touchX, touchY, pressure);
     }
 }
 
 void ProjectM::TouchDestroy(float touchX, float touchY)
 {
-    if (m_renderer)
-    {
+    if (m_renderer) {
         m_renderer->touchDestroy(touchX, touchY);
     }
 }
 
 void ProjectM::TouchDestroyAll()
 {
-    if (m_renderer)
-    {
+    if (m_renderer) {
         m_renderer->touchDestroyAll();
     }
 }

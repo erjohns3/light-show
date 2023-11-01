@@ -67,8 +67,7 @@ void PresetFactoryManager::registerFactory(const std::string& extensions, Preset
 }
 
 
-Preset* PresetFactoryManager::CreatePresetFromFile(const std::string& filename)
-{
+Preset* PresetFactoryManager::CreatePresetFromFile(const std::string& filename) {
     // std::cout << "PresetFactoryManager::CreatePresetFromFile " << filename << std::endl;
     try
     {

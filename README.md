@@ -24,6 +24,7 @@ Just copy either into your browser, and you'll be able to control the show from 
 
 # TODO
 * winamp:
+  * i think its slow because preset is deleted from stack from this line: `m_activePreset = std::move(preset);``
   * support windows
   * look into instead of `auto PresetFileParser::Read(const std::string& presetFile) -> bool` use:
     * auto PresetFileParser::Read(std::istream& presetStream) -> bool

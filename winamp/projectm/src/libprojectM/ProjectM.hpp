@@ -26,6 +26,8 @@
 
 #include "libprojectM/Audio/PCM.hpp"
 
+#include <unordered_map>
+
 #include <sys/types.h>
 
 #include <memory>
@@ -209,7 +211,7 @@ private:
 
     void ResetEngine();
 
-    void StartPresetTransition(std::unique_ptr<Preset>&& preset, bool hardCut);
+    void StartPresetTransition(Preset* preset, bool hardCut);
 
     void LoadIdlePreset();
 
@@ -237,6 +239,8 @@ private:
     bool m_aspectCorrection{true};   //!< If true, corrects aspect ratio for non-rectangular windows.
     float m_easterEgg{0.0};          //!< Random preset duration modifier. See TimeKeeper class.
 
+    std::unordered_map<std::string, Preset*> m_loaded_presets;    
+
     std::vector<std::string> m_textureSearchPaths; ///!< List of paths to search for texture files
 
     /** Timing information */
@@ -250,8 +254,8 @@ private:
     std::unique_ptr<Renderer> m_renderer;                         //!< The Preset renderer.
     std::unique_ptr<TextureManager> m_textureManager;             //!< The texture manager.
     std::unique_ptr<libprojectM::Audio::BeatDetect> m_beatDetect; //!< The beat detection class.
-    std::unique_ptr<Preset> m_activePreset;                       //!< Currently loaded preset.
-    std::unique_ptr<Preset> m_transitioningPreset;                //!< Destination preset when smooth preset switching.
+    Preset* m_activePreset;                       //!< Currently loaded preset.
+    Preset* m_transitioningPreset;                //!< Destination preset when smooth preset switching.
     std::unique_ptr<TimeKeeper> m_timeKeeper;                     //!< Keeps the different timers used to render and switch presets.
 
 #if PROJECTM_USE_THREADS

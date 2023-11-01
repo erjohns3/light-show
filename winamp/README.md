@@ -42,7 +42,7 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 
 
 #### real test on rasp pi
-* python light_server.py --skip_autogen --show seattle --termina
+* python light_server.py --volume 1 --skip_autogen --show seattle --terminal
 
 
 

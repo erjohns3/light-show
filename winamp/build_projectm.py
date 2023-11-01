@@ -146,6 +146,7 @@ else:
     libraries.append('pulse')
     libraries.append('EGL')
     
+extra_compile_args.append('-O3')
 
 
 # extra_link_args = ['-rpath']

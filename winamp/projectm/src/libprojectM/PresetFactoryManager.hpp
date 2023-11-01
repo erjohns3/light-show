@@ -62,7 +62,7 @@ public:
      *                                contains additional details.
      * @return A valid pointer to the loaded preset.
      */
-    std::unique_ptr<Preset> CreatePresetFromFile(const std::string& filename);
+    Preset* CreatePresetFromFile(const std::string& filename);
 
     /**
      * @brief Loads a preset from a stream.

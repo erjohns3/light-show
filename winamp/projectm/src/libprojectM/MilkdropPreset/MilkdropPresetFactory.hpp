@@ -20,7 +20,7 @@ class MilkdropPresetFactory : public PresetFactory
 {
 
 public:
-    std::unique_ptr<Preset> LoadPresetFromFile(const std::string& filename) override;
+    Preset* LoadPresetFromFile(const std::string& filename) override;
 
     std::unique_ptr<Preset> LoadPresetFromStream(std::istream& data) override;
 

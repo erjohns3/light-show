@@ -32,7 +32,7 @@ public:
      * @param filename The preset filename
      * @returns A valid preset object
      */
-    virtual std::unique_ptr<Preset> LoadPresetFromFile(const std::string& filename) = 0;
+    virtual Preset* LoadPresetFromFile(const std::string& filename) = 0;
 
     /**
      * @brief Constructs a new preset from a stream

@@ -29,9 +29,9 @@ if retcode != 0:
 retcode, _stdout, stderr = run_command_blocking([
     'perf', 'report',
     '-i', perf_file,
-    '--stdio',
-    '--no-children',
-    '--no-demangle',
-    '--show-nr-samples',
-    '--show-total-period',
+    # '--stdio',
+    # '--no-children',
+    # '--no-demangle',
+    # '--show-nr-samples',
+    # '--show-total-period',
 ], stdout_pipe=None)

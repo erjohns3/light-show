@@ -66,18 +66,23 @@ void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTran
 {
     // std::cout << "ProjectM::LoadPresetFile: " << presetFilename << std::endl;
     // If already in a transition, force immediate completion.
-    if (m_transitioningPreset != nullptr)
-    {
-        m_activePreset = std::move(m_transitioningPreset);
-    }
-
-    try
-    {
+    if (m_transitioningPreset != nullptr) {
+        m_activePreset = m_transitioningPreset;
+    }    
+    try {
         m_textureManager->PurgeTextures();
-        StartPresetTransition(m_presetFactoryManager->CreatePresetFromFile(presetFilename), !smoothTransition);
+
+        Preset* preset_to_transition;
+        // checks m_loaded_presets if its already loaded. if not, loads it.
+        if (m_loaded_presets.count(presetFilename) > 0) {
+            preset_to_transition = m_loaded_presets[presetFilename];
+        } else {
+            preset_to_transition = m_presetFactoryManager->CreatePresetFromFile(presetFilename);
+            m_loaded_presets[presetFilename] = m_activePreset;
+        }
+        StartPresetTransition(preset_to_transition, !smoothTransition);
     }
-    catch (const PresetFactoryException& ex)
-    {
+    catch (const PresetFactoryException& ex) {
         std::cout << "LoadPresetFile Error: " << presetFilename << std::endl;
         PresetSwitchFailedEvent(presetFilename, ex.message());
     }
@@ -85,20 +90,22 @@ void ProjectM::LoadPresetFile(const std::string& presetFilename, bool smoothTran
 
 void ProjectM::LoadPresetData(std::istream& presetData, bool smoothTransition)
 {
+    std::cout << "Andrew: I broke LoadPresetData, dont call it" << std::endl;
+    return;
     // If already in a transition, force immediate completion.
     if (m_transitioningPreset != nullptr)
     {
-        m_activePreset = std::move(m_transitioningPreset);
+        // m_activePreset = std::move(m_transitioningPreset);
     }
 
     try
     {
         m_textureManager->PurgeTextures();
-        StartPresetTransition(m_presetFactoryManager->CreatePresetFromStream(".milk", presetData), !smoothTransition);
+        // StartPresetTransition(m_presetFactoryManager->CreatePresetFromStream(".milk", presetData), !smoothTransition);
     }
     catch (const PresetFactoryException& ex)
     {
-        m_activePreset.reset();
+        // m_activePreset.reset();
         PresetSwitchFailedEvent("", ex.message());
     }
 }
@@ -296,7 +303,7 @@ void ProjectM::ResetOpenGL(size_t width, size_t height)
     }
 }
 
-void ProjectM::StartPresetTransition(std::unique_ptr<Preset>&& preset, bool hardCut)
+void ProjectM::StartPresetTransition(Preset* preset, bool hardCut)
 {
     m_presetChangeNotified = m_presetLocked;
 
@@ -311,15 +318,15 @@ void ProjectM::StartPresetTransition(std::unique_ptr<Preset>&& preset, bool hard
     }
     catch (std::exception& ex)
     {
-        m_activePreset.reset();
-        PresetSwitchFailedEvent(preset->Filename(), ex.what());
+        // m_activePreset->reset();
+        // PresetSwitchFailedEvent(preset->Filename(), ex.what());
     }
 
     // ToDo: Continue only if preset is fully loaded.
 
     if (hardCut)
     {
-        m_activePreset = std::move(preset);
+        m_activePreset = preset;
         m_timeKeeper->StartPreset();
     }
     else

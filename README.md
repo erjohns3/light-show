@@ -24,10 +24,8 @@ Just copy either into your browser, and you'll be able to control the show from 
 
 # TODO
 * winamp:
-  * i think its slow because preset is deleted from stack from this line: `m_activePreset = std::move(preset);``
+  * check if passing `load_from_cache` to load_preset affects things. its only if the caching results in textures or something being deleted?
   * support windows
-  * look into instead of `auto PresetFileParser::Read(const std::string& presetFile) -> bool` use:
-    * auto PresetFileParser::Read(std::istream& presetStream) -> bool
   * ask on the discord about low res rendering
   * milkdrop v2? not supported in projectM yet i think
 * look for inspiration:

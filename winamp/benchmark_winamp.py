@@ -9,7 +9,7 @@ import winamp_wrapper
 
 
 # python_file = this_file_directory.joinpath('load_all_presets.py')
-python_file = this_file_directory.joinpath('load_slow_presets.py')
+python_file = this_file_directory.joinpath('load_all_presets.py')
 
 
 perf_file = get_temp_dir().joinpath('perf.data')

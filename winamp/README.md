@@ -18,25 +18,26 @@ Windows will be harder. Need to reconstruct a bunch of makefile stuff and code I
 #### ON x86_64:
 * building the c++ and python interop module (run in this directory)
 ```
-rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=.
+cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && python build_projectm.py build --build-lib=.
 ```
 * run `python test_winamp.py`
 
-#### ON OUR RASP PI (aarch64):
+#### ON RASP PI (aarch64):
 * building the c++ and python interop module (run in this directory)
 ```
-rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projectm -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=.
+cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projectm -- -j4 && python build_projectm.py build --build-lib=.
 ```
-
 * run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/ python test_winamp.py`
+    * note the prelude here is handled by the `light_server.py` for our rasp pi (and .zshrc for LD_LIBRARY_PATH)
 
 
-#### ON MACOS
+#### ON MACOS ARM (M1, M2):
+* need sdl: `brew install sdl2`
 * need blackhole (loopback audio driver install via brew)
-* create new audio device via "audio midi input" app that outputs to blackhole and is the default output device
+    * create new audio device via "audio midi input" app that outputs to blackhole and is the default output device
 * building the c++ and python interop module (run in this directory)
 ```
-rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-39-darwin.so; python build_projectm.py build --build-lib=.
+cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && python build_projectm.py build --build-lib=.
 ```
 * run `python test_winamp.py`
 
@@ -53,9 +54,16 @@ rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -D
 
 
 
-#### old cmds that might be needed
-* run `MESA_GL_VERSION_OVERRIDE=3.3 MESA_GLSL_VERSION_OVERRIDE=330 LD_LIBRARY_PATH=/home/pi/random/sdl_install/SDL-release-2.28.4/build/.libs/:/usr/lib/aarch64-linux-gnu python test_winamp.py`
+#### andrew cmds
+* my comp
+```
+rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && rm winamp_visual.cpython-311-x86_64-linux-gnu.so; python build_projectm.py build --build-lib=.
+```
 
+* rasp pi
+```
+rm projectm/CMakeCache.txt; rm projectm/src/libprojectM/CMakeCache.txt; cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projectm -- -j4 && rm winamp_visual.cpython-39-aarch64-linux-gnu.so; python build_projectm.py build --build-lib=.
+```
 
 #### old notes
 

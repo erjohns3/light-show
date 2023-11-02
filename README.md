@@ -91,16 +91,23 @@ It should be pretty good about auto downloading specific songs with the --show p
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
 
 
-## light calibration
+## light calibration (gamma curve)
+
+* For testing: `python light_server.py --terminal --no_gamma --full_grid --skip_autogen`
+
+maybe bezier curve? https://www.desmos.com/calculator/5zqjzqjz0o
 
 #### grid
-* red
+* red (tested with 100% blue)
   * 25 light -> 50 term
-    * maybe 30 light -> 50 term
-* green
+  * 9 light  -> 25 term
+* green (tested with 100% red)
   * 20 light -> 50 term
-* blue
+  * 6 light  -> 25 term
+* blue (tested with 100% red)
   * 25 light -> 50 term
+  * 2 light  -> 25 term
+
 
 
 ## settiing up on new rasp pi

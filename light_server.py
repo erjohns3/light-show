@@ -57,6 +57,8 @@ parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, a
 parser.add_argument('--no_winamp', dest='winamp', default=None, action='store_false')
 parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
 parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
+parser.add_argument('--no_gamma', dest='gamma_curve', default=True, action='store_false')
+parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -965,7 +967,7 @@ async def light():
             level_between_0_and_1 = level_bounded / 100
             grid_levels[i] = level_bounded
             
-            # gamma curve
+            # old gamma curve
             # level_scaled = round(pow(level_between_0_and_1, 2.2))
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
@@ -980,48 +982,46 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
-            # fill by scaling the number of rows based on brightness.
-            #  
 
+            if args.full_grid:
+                # full fill (overbearing because entire grid)
+                grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
+                grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back        
+            else:
+                def grid_fill_fancy(rgbs, centerpoint):
+                    # bright_to_go is initally brightness percentage out of 100.
+                    bright_to_go = max(rgbs)
+                    rgbs = [rgbs[0], rgbs[1], rgbs[2]]
+                    # max_per_bucket determines what percent each bucket can contribute.
+                    # ideally would add to 100%
+                    max_per_bucket = [14.25, 13.75, 13.25, 12.75, 12.25, 11.75, 11.25, 10.75] # there are 8 rows available, including center
+                    rgb_outs = []
+                    # center is special case:
+                    row_bright = min(bright_to_go, max_per_bucket[0])
+                    bright_to_go -= row_bright
+                    rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
+                    counter = 1
+                    while bright_to_go > 0:
+                        row_bright = min(bright_to_go, max_per_bucket[counter])
+                        bright_to_go -= row_bright*2
+                        rgb_outs.append([x*row_bright/9 for x in rgbs])
+                        counter+=1
 
-            def grid_fill_fancy(rgbs, centerpoint):
-                # bright_to_go is initally brightness percentage out of 100.
-                bright_to_go = max(rgbs)
-                rgbs = [rgbs[0], rgbs[1], rgbs[2]]
-                # max_per_bucket determines what percent each bucket can contribute.
-                # ideally would add to 100%
-                max_per_bucket = [14.25, 13.75, 13.25, 12.75, 12.25, 11.75, 11.25, 10.75] # there are 8 rows available, including center
-                rgb_outs = []
-                # center is special case:
-                row_bright = min(bright_to_go, max_per_bucket[0])
-                bright_to_go -= row_bright
-                rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
-                counter = 1
-                while bright_to_go > 0:
-                    row_bright = min(bright_to_go, max_per_bucket[counter])
-                    bright_to_go -= row_bright*2
-                    rgb_outs.append([x*row_bright/9 for x in rgbs])
-                    counter+=1
-
-                for i, rgb in enumerate(rgb_outs):
-                    if i == 0:
-                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
-                    else:
-                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
-                        grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
-            grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
-            grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
-            
+                    for i, rgb in enumerate(rgb_outs):
+                        if i == 0:
+                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
+                        else:
+                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
+                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
+                grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
+                grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
+                
             #todo also top
 
             # semi fill (looks like pre-grid)
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
-        
-            # full fill (overbearing because entire grid)
-            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-            # grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
-        
+            
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
                 try:
@@ -1035,11 +1035,12 @@ async def light():
             await send_to_terminal_output(None, None)
         if not args.local:
             temp = grid_helpers.grid / 100
-            # red and blue channels raise to 2
-            # green raise to 2.3
-            temp[:, :, 0] = np.power(temp[:, :, 0], 2)
-            temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
-            grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
+
+            # grid gamma curve
+            if args.gamma_curve:
+                temp[:, :, 0] = np.power(temp[:, :, 0], 2)
+                temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
+                grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
             grid_helpers.render()
 
         # check on youtube downloads

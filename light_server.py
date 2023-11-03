@@ -1041,6 +1041,34 @@ async def light():
                 temp[:, :, 0] = np.power(temp[:, :, 0], 2)
                 temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
                 grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
+            if args.gamme_curve:
+                rx0, ry0 = 0, 0
+                rx1, ry1 = 0.4425, 0
+                rx2, ry2 = 1, 1
+
+                gx0, gy0 = 0, 0
+                gx1, gy1 = 0.5, 0.5
+                gx2, gy2 = 1, 1
+
+                bx0, by0 = 0, 0
+                bx1, by1 = 0.25, 0.5
+                bx2, by2 = 1, 1
+
+                def bezier(grid, x0, y0, x1, y1, x2, y2):
+                    t = grid / 100  # Normalize to [0, 1]
+                    B = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * y1 + t ** 2 * y2
+                    return B * 100
+
+                GRID_WIDTH = 100
+                GRID_HEIGHT = 100
+                grid = np.zeros((GRID_WIDTH, GRID_HEIGHT, 3))
+
+                grid[..., 0] = bezier(grid[..., 0], rx0, ry0, rx1, ry1, rx2, ry2)
+                grid[..., 1] = bezier(grid[..., 1], gx0, gy0, gx1, gy1, gx2, gy2)
+                grid[..., 2] = bezier(grid[..., 2], bx0, by0, bx1, by1, bx2, by2)
+
+                print(grid)
+            
             grid_helpers.render()
 
         # check on youtube downloads

@@ -45,7 +45,7 @@ parser.add_argument('--skip', dest='skip_show_beats', type=float, default=1)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
-parser.add_argument('--speed', dest='speed', type=float, default=None)
+parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='absolute_delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
@@ -751,15 +751,20 @@ Beat {curr_beat:.1f}, \
     return 2
 
 
+laser_representation = '.,-~:;=!*#$@'
+laser_stage = random.randint(0, 1000)
 
-stage_chars = '.,-~:;=!*#$@'
+laser_max_acceleration = 10
+laser_min_deceleration = 10
+laser_velocity = 0
+
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
-laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
+# !TODO remove the 0-5 indexes
 async def render_terminal(light_levels):
-    global laser_stage, disco_pos
+    global laser_stage, disco_pos, laser_velocity
 
     character = '▆'
     try:
@@ -770,23 +775,21 @@ async def render_terminal(light_levels):
     line_length = terminal_size - 1
 
     levels_255 = list(map(lambda x: int(x * 255), light_levels))
-    top_front_rgb = levels_255[0:3]
-    top_back_rgb = levels_255[3:6]
     bottom_rgb = levels_255[6:9]
     uv_value = levels_255[9]
     laser_color_rgb = levels_255[10:12]
-    laser_motor_value = levels_255[12] / 2.55
+    target_laser_motor_value = min(100, max(0, levels_255[12] / 2.55))
     disco_color_rgb = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
     if any(laser_color_rgb):
-        laser_arr = list(f'{" " * line_length}\n' * 3)
+        laser_chars = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(15):
-                if j > 1 and (j + i + (laser_stage // 9)) % 4 == 0:
-                    laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
-        laser_string = ''.join(laser_arr)
+                if j > 1 and (j + i + (laser_stage // 100)) % 4 == 0: # this was // 90 for some reason idk why
+                    laser_chars[j + (line_length * i)] = laser_representation[laser_stage // 100]
+        laser_string = ''.join(laser_chars)
         laser_style = [laser_color_rgb[1], laser_color_rgb[0], 0]
     else:
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
@@ -804,9 +807,14 @@ async def render_terminal(light_levels):
     else:
         disco_chars = ' ' * 14
 
-    if light_levels[12] != 0:
-        laser_stage += int(max(1, laser_motor_value // 10))
-        laser_stage %= 110
+    if laser_velocity < target_laser_motor_value:
+        laser_velocity += min(laser_max_acceleration, target_laser_motor_value - laser_velocity)
+    elif laser_velocity > target_laser_motor_value:
+        laser_velocity -= min(laser_min_deceleration, laser_velocity - target_laser_motor_value)
+
+    laser_stage += laser_velocity
+    laser_stage %= 1000
+
 
     disco_pos += disco_speed
     if disco_pos > 14:
@@ -1984,16 +1992,15 @@ if __name__ == '__main__':
             else:
                 print_red(f'I dont think a value of {args.skip_show_beats} makes sense for skip_show_beats, skipping...')
 
-            if args.speed is not None:
+            if args.speed != 1:
                 ratio = 1 / args.speed
                 print_yellow(f'Speed was set to {args.speed}, ratio: {ratio:.3f} changing...')
                 print_cyan(f'    Old - {args.skip_show_seconds=:.2f}, skip_song: {show["skip_song"]:.2f}, delay_lights: {show["delay_lights"]:.2f}, {show["bpm"]=}')
-                slowed_song_path = str(sound_video_helpers.change_speed_audio_asetrate(show['song_path'], args.speed, quiet=True))
-                show['song_path'] = add_song_to_config(slowed_song_path)
+                show['song_path'] = add_song_to_config(str(sound_video_helpers.change_speed_audio_asetrate(show['song_path'], args.speed, quiet=True)))
                 show['bpm'] *= args.speed
-                args.skip_show_seconds *= ratio
                 show['skip_song'] *= ratio
                 show['delay_lights'] *= ratio
+                args.skip_show_seconds *= ratio
                 print_cyan(f'    New - {args.skip_show_seconds=:.2f}, skip_song: {show["skip_song"]:.2f}, delay_lights: {show["delay_lights"]:.2f}, path: {show["song_path"]}, {show["bpm"]=}')
                 
             if args.skip_show_seconds:

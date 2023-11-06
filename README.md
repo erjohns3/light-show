@@ -95,26 +95,25 @@ It should be pretty good about auto downloading specific songs with the --show p
 
 * For testing: `python light_server.py --terminal --no_gamma --full_grid --skip_autogen`
 
-maybe bezier curve? https://www.desmos.com/calculator/j3shfjmzt3
+quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
 
 #### grid
 * red (tested with 100% blue)
   * 25 light -> 50 term
   * 9 light  -> 25 term
-    * my attempt at quadratic bezier with these two above: https://www.desmos.com/calculator/sef06jhcok
-      * x0 = 0
-      * y0 = 0
-      * x1 = .4425
-      * y1 = 0
-      * x2 = 1
-      * y2 = 1
-
+    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
+      * p1 = (.4425, 0)
 * green (tested with 100% red)
   * 20 light -> 50 term
   * 6 light  -> 25 term
+    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
+      * p1 = (.6, 0) 
 * blue (tested with 100% red)
   * 25 light -> 50 term
   * 2 light  -> 25 term
+    * quadratic bezier with these two: 
+      * NEED BETTER
+      * p1 = (.5, 0)
 
 
 

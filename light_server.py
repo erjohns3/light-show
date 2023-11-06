@@ -818,9 +818,7 @@ async def render_terminal(light_levels):
 
     disco_pos += disco_speed
     if disco_pos > 14:
-        disco_pos -= 14
-
-    
+        disco_pos -= 14    
     top_uv_row = [
         rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
         # terminal_buffer,
@@ -904,7 +902,7 @@ red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 blue_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 green_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 
-# !TODO vectorize with .index()??? probably
+# !TODO vectorize with fancy indexing and reshaping
 def apply_bezier_to_grid():
     grid_as_int = grid_helpers.grid.astype(int)
     for x in range(grid_helpers.GRID_WIDTH):
@@ -1015,7 +1013,6 @@ async def light():
             grid_helpers.reset()
         
         if grid_fill_from_old:
-
             if args.full_grid:
                 # full fill (overbearing because entire grid)
                 grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
@@ -1032,13 +1029,13 @@ async def light():
                     # center is special case:
                     row_bright = min(bright_to_go, max_per_bucket[0])
                     bright_to_go -= row_bright
-                    rgb_outs.append([x*row_bright/9 for x in rgbs]) # x*row_bright/9
+                    rgb_outs.append([x*row_bright/14.25 for x in rgbs])
                     counter = 1
                     while bright_to_go > 0:
                         row_bright = min(bright_to_go, max_per_bucket[counter])
                         bright_to_go -= row_bright*2
-                        rgb_outs.append([x*row_bright/9 for x in rgbs])
-                        counter+=1
+                        rgb_outs.append([x*row_bright/14.25 for x in rgbs])
+                        counter += 1
                     extra = 0
                     if centerpoint == 3:
                         extra = -1
@@ -1065,7 +1062,7 @@ async def light():
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                     return False
 
-        # maybe not idk
+        # commenting this effects stuff a lot idk why exactly
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
         if args.local or args.force_terminal:

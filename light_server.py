@@ -886,7 +886,6 @@ def compute_x_to_y_bezier(color_p):
         return 2 * (1 - t) * t * p1 + t**2
 
     p1x, p1y = color_p
-
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
 
     resolution = 100000
@@ -899,19 +898,20 @@ def compute_x_to_y_bezier(color_p):
         if value is None:
             print_red(f'x_to_y_bezier: {index} is None')
             exit()
+    return x_to_y_bezier
 
 red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 blue_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 green_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
 
-# grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), np.double)
 # !TODO vectorize with .index()??? probably
-def apply_bezier_to_grid():    
-    for x in grid_helpers.GRID_WIDTH:
-        for y in grid_helpers.GRID_HEIGHT:
-            grid_helpers.grid[x][y][0] = red_x_to_y_bezier[grid_helpers.grid[x][y][0]]
-            grid_helpers.grid[x][y][1] = green_x_to_y_bezier[grid_helpers.grid[x][y][1]]
-            grid_helpers.grid[x][y][2] = blue_x_to_y_bezier[grid_helpers.grid[x][y][2]]
+def apply_bezier_to_grid():
+    grid_as_int = grid_helpers.grid.astype(int)
+    for x in range(grid_helpers.GRID_WIDTH):
+        for y in range(grid_helpers.GRID_HEIGHT):
+            grid_helpers.grid[x][y][0] = red_x_to_y_bezier[grid_as_int[x][y][0]]
+            grid_helpers.grid[x][y][1] = green_x_to_y_bezier[grid_as_int[x][y][1]]
+            grid_helpers.grid[x][y][2] = blue_x_to_y_bezier[grid_as_int[x][y][2]]
 
 
 @profile
@@ -1065,16 +1065,21 @@ async def light():
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                     return False
 
+        # maybe not idk
+        grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
+
         if args.local or args.force_terminal:
             await send_to_terminal_output(None, None)
         if not args.local:
-            # if args.gamma_curve:
-            #     scaled_grid_0_1 = grid_helpers.grid / 100
-            #     scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
-            #     scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
-            #     grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
-            # if args.gamma_curve:
-            apply_bezier_to_grid()
+            if args.gamma_curve:
+                # Old way
+                # scaled_grid_0_1 = grid_helpers.grid / 100
+                # scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+                # scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+                # grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+                
+                # New way
+                apply_bezier_to_grid()
 
 
         # check on youtube downloads

@@ -1,12 +1,6 @@
 from effects.compiler import *
 
 effects = {
-    "Red top": {
-        "length": 1,
-        "beats": [
-            [1, 'Rosy brown bottom', .2, 1, 0],
-        ],
-    },
     "Thing": {
         "length": 1,
         "beats": [

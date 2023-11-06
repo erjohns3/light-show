@@ -23,7 +23,7 @@ effects = {
             # [257, "RBBB 1 bar", 64],
             # [394, "Blue top", 64],
         ],
-        "delay_lights": 0,
+        "delay_lights": .175,
         "skip_song": 0,
         "bpm": 128,
         "song_path": "songs/deadmau5 & Kaskade - I Remember (HQ).ogg",

@@ -880,6 +880,40 @@ def output_current_beat():
         curr_beat = (beat_index / SUB_BEATS) + 1
         f.writelines([str(round(curr_beat, 2)), '\n'])
 
+# assumes p0 = (0, 0) and p2 = (1, 1)
+def compute_x_to_y_bezier(color_p):
+    def bezier(t, p1):
+        return 2 * (1 - t) * t * p1 + t**2
+
+    p1x, p1y = color_p
+
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+
+    resolution = 100000
+    for i in range(resolution + 1):
+        t_point = i / resolution
+        x_point = round(bezier(t_point, p1x) * 100)
+        x_to_y_bezier[x_point] = bezier(t_point, p1y)
+
+    for index, value in enumerate(x_to_y_bezier):
+        if value is None:
+            print_red(f'x_to_y_bezier: {index} is None')
+            exit()
+
+red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
+blue_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
+green_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
+
+# grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), np.double)
+# !TODO vectorize with .index()??? probably
+def apply_bezier_to_grid():    
+    for x in grid_helpers.GRID_WIDTH:
+        for y in grid_helpers.GRID_HEIGHT:
+            grid_helpers.grid[x][y][0] = red_x_to_y_bezier[grid_helpers.grid[x][y][0]]
+            grid_helpers.grid[x][y][1] = green_x_to_y_bezier[grid_helpers.grid[x][y][1]]
+            grid_helpers.grid[x][y][2] = blue_x_to_y_bezier[grid_helpers.grid[x][y][2]]
+
+
 @profile
 async def light():
     global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects
@@ -1005,17 +1039,18 @@ async def light():
                         bright_to_go -= row_bright*2
                         rgb_outs.append([x*row_bright/9 for x in rgbs])
                         counter+=1
-
+                    extra = 0
+                    if centerpoint == 3:
+                        extra = -1
                     for i, rgb in enumerate(rgb_outs):
                         if i == 0:
-                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))] = [rgb[0], rgb[1], rgb[2]] # front
+                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4)) + extra] = [rgb[0], rgb[1], rgb[2]] # front
                         else:
-                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i] = [rgb[0], rgb[1], rgb[2]] # front
-                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i] = [rgb[0], rgb[1], rgb[2]] # front
+                            grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
+                            grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
                 grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
                 grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
                 
-            # !TODO also top
 
             # semi fill (looks like pre-grid)
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
@@ -1033,39 +1068,14 @@ async def light():
         if args.local or args.force_terminal:
             await send_to_terminal_output(None, None)
         if not args.local:
-            scaled_grid_0_1 = grid_helpers.grid / 100
-
-            # grid gamma curve
-            if args.gamma_curve:
-                scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
-                scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
-                grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
             # if args.gamma_curve:
-                # rx0, ry0 = 0, 0
-                # rx1, ry1 = 0.4425, 0
-                # rx2, ry2 = 1, 1
+            #     scaled_grid_0_1 = grid_helpers.grid / 100
+            #     scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+            #     scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+            #     grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+            # if args.gamma_curve:
+            apply_bezier_to_grid()
 
-                # gx0, gy0 = 0, 0
-                # gx1, gy1 = 0.25, 0.5
-                # gx2, gy2 = 1, 1
-
-                # bx0, by0 = 0, 0
-                # bx1, by1 = 0.25, 0.5
-                # bx2, by2 = 1, 1
-
-                # grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), dtype=np.double)
-
-                # r_control = (0, 0.4425, 1)
-                # r_control_ys = (0, 0, 1)
-
-                # g_control = (0, 0.5, 1)
-                # g_control_ys = (0, 0.5, 1)
-
-                # b_control = (0, 0.25, 1)
-                # b_control_ys = (0, 0.5, 1)
-
-                # def bezier(t, p0, p1, p2):
-                #     return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
 
         # check on youtube downloads
         if download_thread is not None:
@@ -1733,8 +1743,10 @@ def signal_handler(sig, frame):
             for child in active_children:
                 print_yellow(f'killing {child.pid}')
                 child.kill()
-    if not args.local:
+    if not args.local or is_windows():
         threading.Thread(target=kill_self, args=(0.5,)).start()
+    
+    if not args.local:
         grid_helpers.reset()
         grid_helpers.render()
         for pin in LED_PINS:
@@ -1742,7 +1754,6 @@ def signal_handler(sig, frame):
     sys.exit()
 
 #################################################
-
 
 def fuzzy_find(search, collection):
     import thefuzz.process
@@ -1985,7 +1996,7 @@ if __name__ == '__main__':
                 exit()
             show = effects_config[args.show_name]
 
-            if args.skip_show_beats > 1:
+            if args.skip_show_beats > 1.0:
                 if args.skip_show_seconds:
                     raise Exception('You cant set both skip_show_beats and skip_show_seconds')
                 args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / show['bpm'])

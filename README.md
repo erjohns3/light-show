@@ -108,6 +108,7 @@ maybe bezier curve? https://www.desmos.com/calculator/j3shfjmzt3
       * y1 = 0
       * x2 = 1
       * y2 = 1
+
 * green (tested with 100% red)
   * 20 light -> 50 term
   * 6 light  -> 25 term

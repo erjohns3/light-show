@@ -1064,11 +1064,12 @@ async def light():
 
         # commenting this effects stuff a lot idk why exactly
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
-
+        
         if args.local or args.force_terminal:
             await send_to_terminal_output(None, None)
         if not args.local:
             if args.gamma_curve:
+                pass
                 # Old way
                 # scaled_grid_0_1 = grid_helpers.grid / 100
                 # scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
@@ -1077,6 +1078,7 @@ async def light():
                 
                 # New way
                 apply_bezier_to_grid()
+            grid_helpers.render()
 
 
         # check on youtube downloads

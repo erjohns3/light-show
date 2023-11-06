@@ -42,12 +42,12 @@ print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
-parser.add_argument('--show', dest='show', type=str, default='')
-parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
-parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
+parser.add_argument('--show', dest='show_name', type=str, default='')
+parser.add_argument('--skip', dest='skip_show_beats', type=float, default=None)
+parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=None)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
-parser.add_argument('--speed', dest='speed', type=float, default=1)
+parser.add_argument('--speed', dest='speed', type=float, default=None)
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
 parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
@@ -595,13 +595,6 @@ async def send_client_queue_config():
         'songs': songs_config,
     }
     await broadcast(song_sockets, json.dumps(queue_message))
-
-# async def send_client_dj_config():
-#     dj_message = {
-#         'effects': effects_config_dj_client,
-#         'songs': songs_config,
-#     }
-#     await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
     global broadcast_light_status, beat_sens_string
@@ -1339,12 +1332,6 @@ def prep_loaded_effects(effect_names):
         if 'song_path' in effect:
             effect['song_path'] = effect['song_path'].replace('\\', '/')
 
-    before_song_config_import = time.time()
-    if not songs_config:
-        for name, filepath in get_all_paths('songs', only_files=True):
-            add_song_to_config(filepath)
-    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
-
     updated_effect_names = []
     temp_stuff = []
     for effect_name in effect_names:
@@ -1368,7 +1355,7 @@ def prep_loaded_effects(effect_names):
             elif effect.get('song_not_avaliable', True):
                 if not effect_name.startswith('g_'):
                     print(yellow('handmade song not avaliable') + f' "{effect["song_path"]=}"')
-                if args.show:
+                if args.show_name:
                     effect['song_not_avaliable'] = True
                 # else:
                 #     del effect['song_path']
@@ -1468,8 +1455,8 @@ def precompile_some_luts_effects_config():
     channel_lut = {}
 
     effects_config_to_compile = {}
-    if args.show:
-        effects_config_to_compile[args.show] = effects_config[args.show]
+    if args.show_name:
+        effects_config_to_compile[args.show_name] = effects_config[args.show_name]
 
     for effect_name, effect in effects_config.items():
         set_effect_defaults(effect_name, effect)
@@ -1788,10 +1775,12 @@ def try_download_video(show_name):
         exit()
 
     url = youtube_search_result['webpage_url']
-    if youtube_download_helpers.download_youtube_url(url, dest_path='songs'):
-        print('downloaded video, continuing to try to recover')
-        return
-    raise Exception('Couldnt download video')
+    downloaded_path = youtube_download_helpers.download_youtube_url(url, dest_path='songs')
+    if not downloaded_path:
+        raise Exception('Couldnt download youtube video')
+    
+    add_song_to_config(downloaded_path)
+    return downloaded_path
 
 
 def debug_effect_or_grid(effect_name):
@@ -1832,6 +1821,12 @@ if __name__ == '__main__':
     if not args.local:
         setup_gpio()
     
+    # import songs
+    before_song_config_import = time.time()
+    for _, filepath in get_all_paths('songs', only_files=True):
+        add_song_to_config(filepath)
+    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
+
     if args.autogen is not None:
         import autogen
 
@@ -1844,7 +1839,7 @@ if __name__ == '__main__':
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
-            args.show, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            args.show_name, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 
@@ -1962,64 +1957,53 @@ if __name__ == '__main__':
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
-        print_green(f'started websocket servers')
 
-        if args.show:
-            print('Starting show from CLI:', args.show)
 
+        if args.show_name:
+            print('Starting show from CLI:', args.show_name)
             only_shows = list(filter(lambda x: has_song(x), effects_config.keys()))
-            args.show = fuzzy_find(args.show, only_shows)
+            args.show_name = fuzzy_find(args.show_name, only_shows)
 
-            if effects_config[args.show].get('song_not_avaliable'):
-                print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
+            if effects_config[args.show_name].get('song_not_avaliable'):
+                print_yellow(f'Song isnt availiable for effect "{args.show_name}", press enter to try downloading?')
                 input()
-                try_download_video(args.show)
-                time.sleep(.02)
+                try_download_video(args.show_name)
+                time.sleep(.01)
 
-            if args.show in effects_config:
-                if args.speed != 1 and 'song_path' in effects_config[args.show]:
-                    # print_yellow(f'BEFORE bpm {effects_config[args.show]["bpm"]}, song_path {effects_config[args.show]["song_path"]}')
-                    # print_yellow(f'BEFORE skip_song {effects_config[args.show]["skip_song"]}, delay_lights {effects_config[args.show]["delay_lights"]}')
-                    # print_yellow(f'BEFORE args.skip_show_seconds {args.skip_show_seconds}, args.delay_seconds {args.delay_seconds}')
-                    print_yellow(f'Speed was set to {args.speed} changing...')
-                    print_cyan(f'    Old - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}')
-                    # print_yellow(f'Before path {effects_config[args.show]["song_path"]}')
-                    # Starting music "/home/andrew/programming/python/light-show/temp/RIOT - Overkill [Monstercat Release]_asetrate_0.999.ogg" at 4.487245866556211 seconds at 30% volum
-                    # Starting music "songs/RIOT - Overkill [Monstercat Release].ogg" at 4.482758620689656 seconds at 30% volume
-                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, quiet=True))
-                    effects_config[args.show]['bpm'] *= args.speed
-                    effects_config[args.show]['song_path'] = add_song_to_config(effects_config[args.show]['song_path'], quiet=True)
-                    args.skip_show_seconds *= 1 / args.speed
-                    args.delay_seconds *= 1 / args.speed
-                    effects_config[args.show]['skip_song'] *= 1 / args.speed
-                    effects_config[args.show]['delay_lights'] *= 1 / args.speed
-                    print_cyan(f'    New - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}, path: {effects_config[args.show]["song_path"]}')
+            if args.show_name not in effects_config:
+                print_red(f'Couldnt find effect named "{args.show_name}"')
+                exit()
+            show = effects_config[args.show_name]
 
-                    # print_red(f'Adjusted bpm to {effects_config[args.show]["bpm"]}, song_path to {effects_config[args.show]["song_path"]}')
-                    # print_red(f'Adjusted skip_song to {effects_config[args.show]["skip_song"]}, delay_lights to {effects_config[args.show]["delay_lights"]}')
-                    # print_red(f'Adjusted args.skip_show_seconds to {args.skip_show_seconds}, args.delay_seconds to {args.delay_seconds}')
-                if args.skip_show_beats:
-                    args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / effects_config[args.show]['bpm'])
-                if args.skip_show_seconds:
-                    global song_time
-                    song_time = args.skip_show_seconds
-                    # effects_config[args.show]['skip_song'] += args.skip_show_seconds
-                    # effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
-            else:
-                print_red(f'Couldnt find effect named "{args.show}" in any profile')
+            if args.skip_show_beats is not None:
+                if args.skip_show_seconds is not None:
+                    raise Exception('You cant set both skip_show_beats and skip_show_seconds')
+                args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / show['bpm'])
+
+            if args.speed is not None:
+                print_yellow(f'Speed was set to {args.speed} changing...')
+                print_cyan(f'    Old - {args.skip_show_seconds=}, skip_song: {show["skip_song"]}, delay_lights: {show["delay_lights"]}')
+                show['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(show['song_path'], args.speed, quiet=True))
+                show['bpm'] *= args.speed
+                show['song_path'] = add_song_to_config(show['song_path'], quiet=True)
+                args.skip_show_seconds *= 1 / args.speed
+                args.delay_seconds *= 1 / args.speed
+                show['skip_song'] *= 1 / args.speed
+                show['delay_lights'] *= 1 / args.speed
+                print_cyan(f'    New - {args.skip_show_seconds=}, skip_song: {show["skip_song"]}, delay_lights: {show["delay_lights"]}, path: {show["song_path"]}')
+                
+            if args.skip_show_seconds:
+                global song_time
+                song_time = args.skip_show_seconds
 
         precompile_some_luts_effects_config()
-        # debug_effect_or_grid('twinkle white')
-        # debug_effect_or_grid('Lemaitre - Blue Shift')
-        # debug_effect_or_grid('tech effect testing sub')
-        # debug_effect_or_grid('5 hours intro')
-        # exit()
+        # debug_effect_or_grid('5 hours intro') and exit()
 
-        if args.show:
-            print_blue('Found in CLI:', args.show)
-            song_queue.append([args.show, get_queue_salt(), 'CLI'])
-            add_effect(args.show)
-            play_song(args.show)
+        if args.show_name:
+            print_blue('Found in CLI:', args.show_name)
+            song_queue.append([args.show_name, get_queue_salt(), 'CLI'])
+            add_effect(args.show_name)
+            play_song(args.show_name)
 
         print_cyan(f'Whole startup took total: {time.time() - first_start_time:.3f}')
 

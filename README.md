@@ -102,6 +102,12 @@ maybe bezier curve? https://www.desmos.com/calculator/j3shfjmzt3
   * 25 light -> 50 term
   * 9 light  -> 25 term
     * my attempt at quadratic bezier with these two above: https://www.desmos.com/calculator/sef06jhcok
+      * x0 = 0
+      * y0 = 0
+      * x1 = .4425
+      * y1 = 0
+      * x2 = 1
+      * y2 = 1
 * green (tested with 100% red)
   * 20 light -> 50 term
   * 6 light  -> 25 term

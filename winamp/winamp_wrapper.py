@@ -102,7 +102,7 @@ def try_load_audio_device():
             print_green(f'Loaded audio device id: {loaded_id}')
     
     if loaded_id == -1:
-        return print_red('Init successful, but couldnt load audio device id')
+        print_red('Init successful, but couldnt load audio device id')
     return True
 
 

@@ -1,6 +1,12 @@
 from effects.compiler import *
 
 effects = {
+    "Red top": {
+        "length": 1,
+        "beats": [
+            [1, 'Rosy brown bottom', .2, 1, 0],
+        ],
+    },
     "Thing": {
         "length": 1,
         "beats": [
@@ -12,10 +18,10 @@ effects = {
     "deadmau5 & Kaskade - I Remember (HQ)": {
         "not_done": False,
         "beats": [
-            [1, "Red disco", 2000],
-            [1, "Blue disco", 2000],
-            [1, "Green disco", 2000],
-            # [1, "RBBB 1 bar", 64],
+            # [1, "Red disco", 2000],
+            # [1, "Blue disco", 2000],
+            # [1, "Green disco", 2000],
+            [1, "RBBB 1 bar", 1640],
             # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],
@@ -23,7 +29,7 @@ effects = {
             # [257, "RBBB 1 bar", 64],
             # [394, "Blue top", 64],
         ],
-        "delay_lights": 0.1,
+        "delay_lights": 0,
         "skip_song": 0,
         "bpm": 128,
         "song_path": "songs/deadmau5 & Kaskade - I Remember (HQ).ogg",

@@ -957,25 +957,21 @@ async def light():
             for effect_name, start_index in curr_effects:
                 index = beat_index + start_index
 
-                # print(f'{index=}, {beat_index=}, {start_index=}\n'*8)
-
                 if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
                     index = index % channel_lut[effect_name]['length']
                     level += channel_lut[effect_name]['beats'][index][i]
 
+            # !TODO this probably slow? idk
             level_bounded = max(0, min(100, level))
             level_between_0_and_1 = level_bounded / 100
             grid_levels[i] = level_bounded
             
-            # old gamma curve
-            # level_scaled = round(pow(level_between_0_and_1, 2.2))
             level_scaled = round(level_between_0_and_1 * LED_RANGE)
 
             if args.local or args.force_terminal:
                 await send_to_terminal_output(level_between_0_and_1, i)
             if not args.local:
                 pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
-                # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
 
         # Rendering grid
         if clear_grid_at_start:
@@ -1016,7 +1012,7 @@ async def light():
                 grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
                 grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
                 
-            #todo also top
+            # !TODO also top
 
             # semi fill (looks like pre-grid)
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
@@ -1034,42 +1030,39 @@ async def light():
         if args.local or args.force_terminal:
             await send_to_terminal_output(None, None)
         if not args.local:
-            temp = grid_helpers.grid / 100
+            scaled_grid_0_1 = grid_helpers.grid / 100
 
             # grid gamma curve
             if args.gamma_curve:
-                temp[:, :, 0] = np.power(temp[:, :, 0], 2)
-                temp[:, :, 1] = np.power(temp[:, :, 1], 2.3)
-                grid_helpers.grid[:, :, 2] = np.power(temp[:, :, 2], 2)
-            if args.gamme_curve:
-                rx0, ry0 = 0, 0
-                rx1, ry1 = 0.4425, 0
-                rx2, ry2 = 1, 1
+                scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+                scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+                grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+            # if args.gamma_curve:
+                # rx0, ry0 = 0, 0
+                # rx1, ry1 = 0.4425, 0
+                # rx2, ry2 = 1, 1
 
-                gx0, gy0 = 0, 0
-                gx1, gy1 = 0.5, 0.5
-                gx2, gy2 = 1, 1
+                # gx0, gy0 = 0, 0
+                # gx1, gy1 = 0.25, 0.5
+                # gx2, gy2 = 1, 1
 
-                bx0, by0 = 0, 0
-                bx1, by1 = 0.25, 0.5
-                bx2, by2 = 1, 1
+                # bx0, by0 = 0, 0
+                # bx1, by1 = 0.25, 0.5
+                # bx2, by2 = 1, 1
 
-                def bezier(grid, x0, y0, x1, y1, x2, y2):
-                    t = grid / 100  # Normalize to [0, 1]
-                    B = (1 - t) ** 2 * y0 + 2 * (1 - t) * t * y1 + t ** 2 * y2
-                    return B * 100
+                # grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), dtype=np.double)
 
-                GRID_WIDTH = 100
-                GRID_HEIGHT = 100
-                grid = np.zeros((GRID_WIDTH, GRID_HEIGHT, 3))
+                # r_control = (0, 0.4425, 1)
+                # r_control_ys = (0, 0, 1)
 
-                grid[..., 0] = bezier(grid[..., 0], rx0, ry0, rx1, ry1, rx2, ry2)
-                grid[..., 1] = bezier(grid[..., 1], gx0, gy0, gx1, gy1, gx2, gy2)
-                grid[..., 2] = bezier(grid[..., 2], bx0, by0, bx1, by1, bx2, by2)
+                # g_control = (0, 0.5, 1)
+                # g_control_ys = (0, 0.5, 1)
 
-                print(grid)
-            
-            grid_helpers.render()
+                # b_control = (0, 0.25, 1)
+                # b_control_ys = (0, 0.5, 1)
+
+                # def bezier(t, p0, p1, p2):
+                #     return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
 
         # check on youtube downloads
         if download_thread is not None:
@@ -1182,8 +1175,13 @@ def add_effect(new_effect_name):
         else:
             clear_effects()
         
-        time_start = time.time() + effect['delay_lights'] - song_time
-        # print('effect will have time_start of:', effect['delay_lights'] - song_time)
+        extra_delay = 0
+        if args.delay_seconds:
+            extra_delay += args.delay_seconds
+        if not args.local:
+            extra_delay += 0.08
+        
+        time_start = time.time() + (effect['delay_lights'] + extra_delay) - song_time
         curr_bpm = effect['bpm']
         beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
@@ -1197,27 +1195,19 @@ def add_effect(new_effect_name):
     curr_effects.append([new_effect_name, offset])
 
 
-def play_song(effect_name, quiet=False):
+def play_song(effect_name, quiet=False): # disabled rekordbox input
     global take_rekordbox_input, song_playing
-    # print('Disabling rekordbox input')
     take_rekordbox_input = False
-    # print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
+    
+    print(f'start_time: {start_time:,.2f}, skip_song: {effects_config[effect_name]["skip_song"]:.2f}, song_time: {song_time:.2f}')
     if not quiet: print_blue(f'Starting music from {effect_name}: "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume')
-    # if not quiet: print(json.dumps(effects_config[effect_name], indent=4))
-    # if not quiet: print_yellow(json.dumps(songs_config[song_path], indent=4))
 
-    dev_timing = time.time()
     pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path(song_path))
-
-    # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
-    # python server.py --local --show "shelter" --skip 215
-    # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
     pygame.mixer.music.play(start=start_time)
     song_playing = True
-    print_cyan(f'play_song: {time.time() - dev_timing:.3f} seconds')
 
 def stop_song():
     global song_playing
@@ -1407,7 +1397,7 @@ def load_effects_config_from_disk():
     if args.load_autogen_shows:
         found_paths += list(get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True, only_files=True)) + list(get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True, only_files=True))
 
-    for _index, (name, filepath) in enumerate(found_paths):
+    for name, filepath in found_paths:
         if name == 'compiler.py':
             continue
     
@@ -1415,23 +1405,24 @@ def load_effects_config_from_disk():
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
         t1 = time.time()
-        globals()[module_name] = importlib.import_module(module_name)
+        globals()[module_name] = importlib.import_module(module_name) # to reload: importlib.reload(globals()[module_name])
         effects.compiler.next_beat = None
-        # importlib.reload(globals()[module_name])
         import_time += time.time() - t1
-        # print(f'{module_name}: {time.time() - t1}')
-        if not filepath.stem.startswith('g_'):
+        if globals()[module_name].effects.get('was_autogenerated'):
             for effect_name in globals()[module_name].effects:
                 if effect_name in effects_config:
-                    print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
+                    print_yellow(f'WARNING: effect name collision "{effect_name}" in python file "{relative_path}", other effect loaded from {effects_config[effect_name]["from_python_file"]}')
+                    exit()
+        
         effects_config.update(globals()[module_name].effects)
+        for effect_name in globals()[module_name].effects:
+            effects_config[effect_name]['from_python_file'] = str(relative_path)
 
     prep_loaded_effects(list(effects_config.keys()))
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}, imported {len(found_paths)} modules')
 
 
-song_specific_adjusted = set()
-def set_effect_defaults(name, effect):
+def set_effect_defaults(effect_name, effect): # this must be safe to run multiple times
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
     if 'sat_shift' not in effect:
@@ -1450,38 +1441,26 @@ def set_effect_defaults(name, effect):
         effect['profiles'] = []
     if effect.get('autogen') and 'Autogen effects' not in effect['profiles']:
         effect['profiles'].append('Autogen effects')
+
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
-    
-    # !warning this screws with --speed parameter, uh this can only be run once...
-    if 'song_path' in effect and effect['song_path'] in songs_config:
-        if 'bpm' not in effect:
-            print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
-            exit()
-        
-        # !TODO this is nonsense
-        if name in song_specific_adjusted:
-            print_yellow(f'set_effect_defaults ALREADY RAN ON {name}, THIS IS RIDICULOUS')
-        else:
-            effect['delay_lights'] = effect.get('delay_lights', 0)
-            if not args.local:
-                effect['delay_lights'] += 0.08
-            if args.delay_seconds:
-                effect['delay_lights'] += args.delay_seconds
-                # print_red(f'{name}: WHEN AM I ADDED')
+        effect['loop'] = False # !todo verify this is a correct assumption
+
+        if 'delay_lights' not in effect:
+            effect['delay_lights'] = 0
+
+        if effect['song_path'] in songs_config: # song file has been successfully loaded
+            if 'bpm' not in effect:
+                print_red(f'Show "{effect_name}" must have bpm. Song path found: {effect["song_path"]}\n' * 10)
+                exit()
+
             if 'length' not in effect:
                 effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
-            if 'loop' not in effect:
-                effect['loop'] = False
-            song_specific_adjusted.add(name)
-    else:
-        if 'loop' not in effect:
-            effect['loop'] = True
-    # if 'song_path' not in effect:
-    #     effect['profiles'].append('All Effects')
+    if 'loop' not in effect:
+        effect['loop'] = True
 
 
-def compile_all_luts_from_effects_config():
+def precompile_some_luts_effects_config():
     global channel_lut
     compile_all_luts_start_time = time.time()
 
@@ -1494,8 +1473,6 @@ def compile_all_luts_from_effects_config():
     for effect_name, effect in effects_config.items():
         set_effect_defaults(effect_name, effect)
 
-        # if not effect_name.startswith('g_lasers_'):
-        # print(effect_name)
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
             effects_config_clients = [effects_config_dj_client, effects_config_queue_client]
             # commenting this is a perf test, comment to slow down the dj client
@@ -1503,18 +1480,6 @@ def compile_all_luts_from_effects_config():
                 effects_config_clients = [effects_config_queue_client]
             
             needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated']
-            # # dj.html
-            # profiles
-            # loop
-            # trigger
-            # bpm
-            # length
-
-            # # queue.html
-            # was_autogenerated
-            # song_path
-            # bpm
-            # length
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {}
                 for key, value in effect.items():
@@ -1534,7 +1499,7 @@ def compile_all_luts_from_effects_config():
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - compile_all_luts_start_time:.3f}')
+    print_blue(f'precompile_some_luts_effects_config took: {time.time() - compile_all_luts_start_time:.3f}')
 
 
 def set_complex_effect_defaults(effect):
@@ -1571,6 +1536,7 @@ def calculate_complex_effect_length(effect):
         start_beat = component[0] - 1
         calced_effect_length = max(calced_effect_length, start_beat + component[2])
     return calced_effect_length
+
 
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
@@ -1758,18 +1724,6 @@ def compile_lut(local_effects_config):
 
 ##################################################
 
-def kill_in_n_seconds(seconds):
-    time.sleep(seconds)
-    atexit._run_exitfuncs()
-
-    if is_windows():
-        kill_string = f'taskkill /PID {os.getpid()} /F'
-    else:
-        kill_string = f'kill -9 {os.getpid()}'
-    print(f'running to kill: "{kill_string}"')
-    os.system(kill_string)
-
-
 def signal_handler(sig, frame):
     print('SIG Handler inside light_server.py: ' + str(sig), flush=True)
     close_connections_to_doorbell()
@@ -1782,7 +1736,7 @@ def signal_handler(sig, frame):
                 print_yellow(f'killing {child.pid}')
                 child.kill()
     if not args.local:
-        threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
+        threading.Thread(target=kill_self, args=(0.5,)).start()
         grid_helpers.reset()
         grid_helpers.render()
         for pin in LED_PINS:
@@ -1794,10 +1748,8 @@ def signal_handler(sig, frame):
 
 def fuzzy_find(search, collection):
     import thefuzz.process
-    # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
-    before_fuzz = time.time()
     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
-    print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
+    print_cyan(f'top 3 choices: {choices}, returning top no matter what')
     return choices[0][0]
 
 
@@ -1825,12 +1777,6 @@ def restart_show(skip=0, abs_time=None, quiet=False):
 
 
 #################################################
-
-def get_channel_lut():
-    return channel_lut
-
-def get_effects_config():
-    return effects_config
 
 def try_download_video(show_name):
     just_filename = pathlib.Path(effects_config[show_name]['song_path']).stem
@@ -1941,10 +1887,9 @@ if __name__ == '__main__':
                 prep_loaded_effects(list(globals()[module_name].effects.keys()))
 
         observer = Observer()
-        dir_to_watch = effects_dir.joinpath('rekordbox_effects')
-        make_if_not_exist(dir_to_watch)
-        print_cyan(f'WATCHING {dir_to_watch} for rekordbox additions')
-        observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
+        dir_to_watch = make_if_not_exist(effects_dir.joinpath('rekordbox_effects'))
+        print_cyan(f'Watchdog for rekordbox song additions: {dir_to_watch}')
+        observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive=True)
         observer.start()
 
     if args.keyboard:
@@ -1959,21 +1904,13 @@ if __name__ == '__main__':
 
         skip_time = 5
         keyboard_dict = {
-            # 'd': 'Red top',
-            # 'f': 'Cyan top',
             '`': output_current_beat,
-            # 'b': print_current_beat,
-            # 'k': lambda: restart_show(skip=-2),
-            # 'l': lambda: restart_show(skip=2),
-            # 'j': lambda: restart_show(skip=-skip_time),
-            # ';': lambda: restart_show(skip=skip_time),
             'up': lambda: restart_show(skip=2),
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             'cmd_r': lambda: restart_show(skip=-skip_time),
             'alt_r': lambda: restart_show(skip=skip_time),
-            # 'space': 'UV',
         }
         # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
@@ -1990,9 +1927,7 @@ if __name__ == '__main__':
             return True
 
         def on_press(key):
-            if not window_focus():
-                return
-
+            if not window_focus(): return
             if type(key) == KeyCode:
                 key_name = key.char
             else:
@@ -2005,9 +1940,7 @@ if __name__ == '__main__':
                     keyboard_dict[key_name]()
 
         def on_release(key):
-            if not window_focus():
-                return
-
+            if not window_focus(): return
             if type(key) == KeyCode:
                 key_name = key.char
             else:
@@ -2015,24 +1948,16 @@ if __name__ == '__main__':
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:
                     remove_effect_name(keyboard_dict[key_name])
-
-
-        def listen_for_keystrokes():
-            with Listener(on_press=on_press, on_release=on_release) as listener:
+        
+        def keyboard_listener():
+            with Listener(on_press=on_press, on_release=on_release) as listener: 
                 listener.join()
-
-        keyboard_thread = threading.Thread(target=listen_for_keystrokes, args=[], daemon=True)
-        keyboard_thread.start()
-        if is_macos():
-            time.sleep(.05)
+        threading.Thread(target=keyboard_listener, args=[], daemon=True).start()
 
     http_server_async(9555, this_file_directory, ['', 'queue.html'])
 
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    async def start_async():
-        print_cyan(f'Up to start_async: {time.time() - first_start_time:.3f}')
+    async def light_show_event_loop_start():
+        print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
@@ -2045,7 +1970,6 @@ if __name__ == '__main__':
             args.show = fuzzy_find(args.show, only_shows)
 
             if effects_config[args.show].get('song_not_avaliable'):
-                # print(list(effects_config.keys()))
                 print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
                 input()
                 try_download_video(args.show)
@@ -2083,7 +2007,7 @@ if __name__ == '__main__':
             else:
                 print_red(f'Couldnt find effect named "{args.show}" in any profile')
 
-        compile_all_luts_from_effects_config()
+        precompile_some_luts_effects_config()
         # debug_effect_or_grid('twinkle white')
         # debug_effect_or_grid('Lemaitre - Blue Shift')
         # debug_effect_or_grid('tech effect testing sub')
@@ -2095,10 +2019,10 @@ if __name__ == '__main__':
             song_queue.append([args.show, get_queue_salt(), 'CLI'])
             add_effect(args.show)
             play_song(args.show)
+
+        print_cyan(f'Whole startup took total: {time.time() - first_start_time:.3f}')
+
         asyncio.create_task(light())
-
-        print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')
-
         await dj_socket_server.wait_closed() and queue_socket_server.wait_closed() and rekordbox_bridge_server.wait_closed()
 
-    asyncio.run(start_async())
+    asyncio.run(light_show_event_loop_start())

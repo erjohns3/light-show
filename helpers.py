@@ -485,9 +485,11 @@ def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False, qui
 
 def kill_self(seconds=0):
     import time
+    import atexit
     if seconds:
         print(f'Sleeping for {seconds} before killing self')
         time.sleep(seconds)
+    atexit._run_exitfuncs()
     if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /f'
     else:

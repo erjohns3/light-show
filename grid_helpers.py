@@ -24,6 +24,19 @@ if is_doorbell():
         write_timeout=0
     )
 
+# Give me the python code to compute to map all the values of the numpy array representing rgb values with the following Bézier curve values:
+#     rx1, ry1 = 0.4425, 0
+#     gx1, gy1 = 0.5, 0
+#     bx1, by1 = 0.25, 0
+
+# p0 is at (0, 0), p2 is at (1, 1) always. I just want P1 to equal the values above. 
+
+
+# this is how the numpy array looks:
+# ```grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), np.double)````
+
+# The values in grid will be numbers from 0-1 representing their rgb values. change the memory of grid in place.
+
 try:
     profile
 except NameError:

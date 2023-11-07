@@ -703,6 +703,6 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     return final
 
 def winamp_grid(grid_info):
-    grid_helpers.winamp_wrapper.load_preset(grid_info.preset)
-    grid_helpers.winamp_wrapper.compute_frame()
-    grid_helpers.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)
+    winamp.winamp_wrapper.load_preset(grid_info.preset)
+    winamp.winamp_wrapper.compute_frame()
+    winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

@@ -455,50 +455,53 @@ def bezier_full_cubic(t, p0, p1, p2, p3):
     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
 def compute_x_to_y_bezier(p1):
-    p1x, p1y = p1
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
-
     resolution = 100000
     for i in range(resolution + 1):
-        t_point = i / resolution
-        x_point = round(bezier_quad_only_p1(t_point, p1x) * 100)
-        x_to_y_bezier[x_point] = bezier_quad_only_p1(t_point, p1y) * 100
+        t = i / resolution
+        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
 
-    for index, value in enumerate(x_to_y_bezier):
-        if value is None:
-            print_red(f'x_to_y_bezier: {index} is None')
-            exit()
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
     return x_to_y_bezier
 
-red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
-green_x_to_y_bezier = compute_x_to_y_bezier((0.6, 0))
-blue_x_to_y_bezier = compute_x_to_y_bezier((0.5, 0))
 
-# make the lines conform to the respective rgb color
-def plot_bezier_curves_blocking(to_graph):
-    import matplotlib.pyplot as plt
-    if is_andrews_main_computer():
-        plt.style.use('dark_background')
-    _fig, ax = plt.subplots()
-    for graph, color in to_graph:
-        ax.plot(graph, color=color)
-    plt.show()
-plot_bezier_curves_blocking([
-    (red_x_to_y_bezier, 'red'),
-    (green_x_to_y_bezier, 'green'),
-    (blue_x_to_y_bezier, 'blue'),
-])
-
-
-# !TODO vectorize with fancy indexing and reshaping
-def apply_bezier_to_grid():
+grid_red_bezier = compute_x_to_y_bezier((0.4425, 0))
+grid_green_bezier = compute_x_to_y_bezier((0.6, 0))
+grid_blue_bezier = compute_x_to_y_bezier((0.5, 0))
+def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
     grid_as_int = grid.astype(int)
     for x in range(GRID_WIDTH):
         for y in range(GRID_HEIGHT):
-            grid[x][y][0] = red_x_to_y_bezier[grid_as_int[x][y][0]]
-            grid[x][y][1] = green_x_to_y_bezier[grid_as_int[x][y][1]]
-            grid[x][y][2] = blue_x_to_y_bezier[grid_as_int[x][y][2]]
+            grid[x][y][0] = grid_red_bezier[grid_as_int[x][y][0]]
+            grid[x][y][1] = grid_green_bezier[grid_as_int[x][y][1]]
+            grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
 
+bottom_red_bezier = compute_x_to_y_bezier((0.4425, 0))
+bottom_green_bezier = compute_x_to_y_bezier((0.4425, 0))
+bottom_blue_bezier = compute_x_to_y_bezier((0.4425, 0))
+def apply_bezier_bottom_lights(red, green, blue): 
+    # red, green, blue = max(0, min(100, red)), max(0, min(100, green)), max(0, min(100, blue)) # already bounded to 0-100
+    return bottom_red_bezier[red], bottom_green_bezier[green], bottom_blue_bezier[blue]
+
+
+
+# def debug_plot_bezier_curves(to_graph):
+#     import matplotlib.pyplot as plt
+#     if is_andrews_main_computer():
+#         plt.style.use('dark_background')
+#     _fig, ax = plt.subplots()
+#     for graph, color in to_graph:
+#         ax.plot(graph, color=color)
+#     plt.show()
+
+# grid debugging
+# debug_plot_bezier_curves([
+#     (grid_red_bezier, 'red'),
+#     (grid_green_bezier, 'green'),
+#     (grid_blue_bezier, 'blue'),
+# ])
 
 
 if __name__ == '__main__':

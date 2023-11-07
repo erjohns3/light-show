@@ -115,7 +115,19 @@ quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
       * NEED BETTER
       * p1 = (.5, 0)
 
+#### floor
+* red (tested with 100% blue)
+* green (tested with 100% red)
+* blue (tested with 100% red)
 
+
+### old gamma stuff
+```
+scaled_grid_0_1 = grid_helpers.grid / 100
+scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+```
 
 ## settiing up on new rasp pi
 * you HAVE to install pulse (or else audio will suck i think)

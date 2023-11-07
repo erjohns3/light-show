@@ -60,7 +60,7 @@ parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, a
 parser.add_argument('--no_winamp', dest='winamp', default=None, action='store_false')
 parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
 parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
-parser.add_argument('--no_gamma', dest='gamma_curve', default=True, action='store_false')
+parser.add_argument('--no_curve', dest='no_curve', default=True, action='store_false')
 parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
 
 args = parser.parse_args()
@@ -739,7 +739,7 @@ purple = [153, 50, 204]
 disco_speed = .15
 disco_pos = 0
 # !TODO remove the 0-5 indexes
-async def render_terminal(light_levels):
+def render_terminal(light_levels):
     global laser_motor_stage, disco_pos, laser_motor_velocity, laser_intensity
 
     character = '▆'
@@ -749,7 +749,7 @@ async def render_terminal(light_levels):
         terminal_size = 45
     line_length = terminal_size - 1
 
-    levels_255 = list(map(lambda x: int(x * 255), light_levels))
+    levels_255 = list(map(lambda x: int(x * 2.55), light_levels))
     bottom_rgb = levels_255[6:9]
     uv_value = levels_255[9]
     target_laser_color_rgb = levels_255[10:12]
@@ -786,7 +786,7 @@ async def render_terminal(light_levels):
         laser_motor_velocity += min(laser_motor_max_acceleration, target_laser_motor_value - laser_motor_velocity)
     elif laser_motor_velocity > target_laser_motor_value:
         laser_motor_velocity -= min(laser_motor_min_deceleration, laser_motor_velocity - target_laser_motor_value)
-    laser_motor_stage += laser_motor_velocity
+    laser_motor_stage += int(laser_motor_velocity)
     laser_motor_stage %= 1000
 
     disco_pos += disco_speed
@@ -796,8 +796,7 @@ async def render_terminal(light_levels):
     # laser_intensity will be 0-1
     # if laser_intensity < 1:
 
-
-    top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
+    top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled)
     bottom_light_row = ' ' + rgb_ansi(character * 14, bottom_rgb)
     laser_row = ' ' + rgb_ansi(laser_string, laser_style)
     disco_row = ' ' + ''.join([char for char in disco_chars])
@@ -812,17 +811,9 @@ async def render_terminal(light_levels):
     print(disco_row, end='')
     sys.stdout.write('\033[F' * (6 + grid_rows_to_reset + top_lines_to_reset))
 
-
-light_levels = [0] * LIGHT_COUNT
-async def send_to_terminal_output(light_level_or_signal, i):
-    if light_level_or_signal == None:
-        await render_terminal(light_levels)
-    else:
-        light_levels[i] = light_level_or_signal
-
-
 ####################################
 
+pin_light_levels = [0] * LIGHT_COUNT
 
 @profile
 async def light():
@@ -897,38 +888,26 @@ async def light():
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
-        # Finding 0-100 levels based on simple and complex effects
-        grid_levels = [0] * LIGHT_COUNT
-        for i in range(LIGHT_COUNT):
+        # Preparing the pin light values (laser, laser motor, disco, floor lights, old grid)
+        for light_index in range(LIGHT_COUNT):
             level = 0
             for effect_name, start_index in curr_effects:
-                index = beat_index + start_index
+                modified_beat_index = beat_index + start_index # what is this variable??
+                if 'beats' in channel_lut[effect_name] and modified_beat_index >= 0 and (channel_lut[effect_name]['loop'] or modified_beat_index < channel_lut[effect_name]['length']):
+                    modified_beat_index = modified_beat_index % channel_lut[effect_name]['length']
+                    level += channel_lut[effect_name]['beats'][modified_beat_index][light_index]
+            pin_light_levels[light_index] = max(0, min(100, level))
 
-                if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
-                    index = index % channel_lut[effect_name]['length']
-                    level += channel_lut[effect_name]['beats'][index][i]
-
-            # !TODO this probably slow? idk
-            level_bounded = max(0, min(100, level))
-            level_between_0_and_1 = level_bounded / 100
-            grid_levels[i] = level_bounded
-            
-            level_scaled = round(level_between_0_and_1 * LED_RANGE)
-
-            if args.local or args.force_terminal:
-                await send_to_terminal_output(level_between_0_and_1, i)
-            if not args.local:
-                pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
-
-        # Rendering grid
+        # Preparing new grid_helpers.grid for display
         if clear_grid_at_start:
             grid_helpers.reset()
         
         if grid_fill_from_old:
+            grid_levels_from_front_back = pin_light_levels[:6]
             if args.full_grid:
                 # full fill (overbearing because entire grid)
-                grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-                grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back        
+                grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels_from_front_back[0], grid_levels_from_front_back[1], grid_levels_from_front_back[2]] # front
+                grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back        
             else:
                 def grid_fill_fancy(rgbs, centerpoint):
                     # bright_to_go is initally brightness percentage out of 100.
@@ -957,13 +936,12 @@ async def light():
                         else:
                             grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
                             grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
-                grid_fill_fancy([grid_levels[0], grid_levels[1], grid_levels[2]], 3)
-                grid_fill_fancy([grid_levels[3], grid_levels[4], grid_levels[5]], 1)
+                grid_fill_fancy([grid_levels_from_front_back[0], grid_levels_from_front_back[1], grid_levels_from_front_back[2]], 3)
+                grid_fill_fancy([grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]], 1)
                 
-
             # semi fill (looks like pre-grid)
-            # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0]-50, grid_levels[1]-50, grid_levels[2]-50] # front
-            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
+            # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
+            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
             
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
@@ -973,21 +951,22 @@ async def light():
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
                     return False
-
-        # commenting this effects stuff a lot idk why exactly
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
-        
+
+        # Render the grid to the terminal
         if args.local or args.force_terminal:
             # grid_helpers.apply_bezier_to_grid() # for testing
-            await send_to_terminal_output(None, None) # signal to perform terminal render
+            render_terminal(pin_light_levels) # this also renders the grid to the terminal
+
+        # Send relevant pin light levels to the pi
         if not args.local:
-            if args.gamma_curve:
-                # Old gamma curve
-                # scaled_grid_0_1 = grid_helpers.grid / 100
-                # scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
-                # scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
-                # grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
-                
+            for index in range(6, len(pin_light_levels)):
+                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
+                pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+
+        # Sends the grid to the pi 
+        if not args.local:
+            if args.no_curve:
                 grid_helpers.apply_bezier_to_grid() # New way
             grid_helpers.render()
 

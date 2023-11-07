@@ -11,7 +11,6 @@ import copy
 import os
 import colorsys
 import random
-import traceback
 import sys
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
@@ -960,6 +959,11 @@ async def light():
 
         # Send relevant pin light levels to the pi
         if not args.local:
+            # 6-8 are the floor pins i think?
+            # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
+            # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
+            # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
+
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)

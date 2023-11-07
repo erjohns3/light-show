@@ -478,12 +478,12 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
             grid[x][y][1] = grid_green_bezier[grid_as_int[x][y][1]]
             grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
 
-bottom_red_bezier = compute_x_to_y_bezier((0.4425, 0))
-bottom_green_bezier = compute_x_to_y_bezier((0.4425, 0))
-bottom_blue_bezier = compute_x_to_y_bezier((0.4425, 0))
-def apply_bezier_bottom_lights(red, green, blue): 
-    # red, green, blue = max(0, min(100, red)), max(0, min(100, green)), max(0, min(100, blue)) # already bounded to 0-100
-    return bottom_red_bezier[red], bottom_green_bezier[green], bottom_blue_bezier[blue]
+# !TODO 
+bottom_red_bezier = compute_x_to_y_bezier((.5, .5))
+bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
+bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
+
+
 
 
 

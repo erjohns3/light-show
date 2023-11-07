@@ -72,7 +72,7 @@ known_good_set_2_standalone = set([
 # exit()
 
 
-for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_filepath.items():
+for preset_name, preset_filepath in winamp.winamp_wrapper.preset_name_to_filepath.items():
     profiles = ['winamp_all']
     if 'cream-of-the-crop' not in str(preset_filepath):
         profiles.append('winamp_tests')
@@ -98,6 +98,6 @@ for preset_name, preset_filepath in grid_helpers.winamp_wrapper.preset_name_to_f
         'intensity': 'low',
         'autogen': autogen_category if autogen_category else None,
         'beats': [
-            grid_f(1, function=winamp, preset=preset_name, priority=-50, length=1),
+            grid_f(1, function=winamp_grid, preset=preset_name, priority=-50, length=1),
         ],
     }

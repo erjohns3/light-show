@@ -20,6 +20,7 @@ import numpy as np
 from PIL import Image
 
 import grid_helpers
+import winamp.winamp_wrapper
 from helpers import *
 
 
@@ -701,7 +702,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     ]
     return final
 
-def winamp(grid_info):
+def winamp_grid(grid_info):
     grid_helpers.winamp_wrapper.load_preset(grid_info.preset)
     grid_helpers.winamp_wrapper.compute_frame()
     grid_helpers.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

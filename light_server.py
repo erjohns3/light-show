@@ -18,7 +18,6 @@ this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
 import winamp.winamp_wrapper # must be loaded first because of MESA forcing
 
-
 # https://wiki.libsdl.org/SDL2/FAQUsingSDL os.environ['SDL_AUDIODRIVER'] = 'jack'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import numpy as np
@@ -31,11 +30,13 @@ from helpers import *
 import sound_video_helpers
 import youtube_download_helpers
 from users import users
-import grid_helpers
+import grid_helpers # this double prints winamp_wrapper stuff for some reason
+
 from effects.compiler import GridInfo
 import effects.compiler
 import joystick_and_keyboard_helpers
 print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
+
 
 
 parser = argparse.ArgumentParser(description = '')
@@ -74,7 +75,7 @@ else:
 if is_windows():
     args.fake_winamp = True
     args.winamp = False
-    print_red(f'Since this is windows we are forcing --fake_winamp and --no_winamp')
+    print_yellow(f'Since this is windows defaulted to --fake_winamp and --no_winamp')
 
 if args.winamp == None:
     args.winamp = True
@@ -83,13 +84,10 @@ if args.winamp == None:
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
-
-
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
     effects.compiler.winamp = effects.compiler.twinkle
     winamp.winamp_wrapper.winamp_visual_loaded = True
-
 elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
@@ -123,11 +121,18 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light_status = False 
-broadcast_song_status = False
-broadcast_dev_status = False
-
+broadcast_light_status, broadcast_song_status, broadcast_dev_status = False, False, False 
 download_queue, search_queue = [], []
+
+def setup_gpio():
+    global pi
+    pi = pigpio.pi()
+    if not pi.connected:
+        exit()
+    for pin in LED_PINS:
+        pi.set_PWM_frequency(pin, LED_FREQ)
+        pi.set_PWM_range(pin, LED_RANGE)
+        pi.set_PWM_dutycycle(pin, 0)
 
 ########################################
 
@@ -159,12 +164,10 @@ async def init_rekordbox_bridge_client(websocket, path):
     rekordbox_title = None
     while True:
         try:
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
-
-        msg = json.loads(msg_string)
 
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
@@ -177,7 +180,6 @@ async def init_rekordbox_bridge_client(websocket, path):
 
             handmade_song_found = False
             possible_generated_shows_for_title = []
-            # print(f'{list(song_name_to_show_names.keys())=}')
             print(f'{len(song_name_to_show_names)=}')
             if rekordbox_title in song_name_to_show_names:
                 for effect_name in song_name_to_show_names[rekordbox_title]:
@@ -249,18 +251,15 @@ async def init_dj_client(websocket, path):
         print('DJ Client: socket send failed', flush=True)
 
     light_sockets.append(websocket)
-
     while True:
         try:
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             light_sockets.remove(websocket)
             if websocket in dev_sockets:
                 dev_sockets.remove(websocket)
             print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
-
-        msg = json.loads(msg_string)
 
         beat_sens_number = 'N/A'
         if 'type' in msg:
@@ -319,8 +318,6 @@ async def init_dj_client(websocket, path):
 
 
 def download_song(url, uuid):
-    from copy import deepcopy
-
     download_start_time = time.time()
     import autogen
 
@@ -345,7 +342,7 @@ def download_song(url, uuid):
     added = False
     src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
-        show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
+        show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=copy.deepcopy(src_bpm_offset_cache))
         if show is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return
@@ -375,7 +372,6 @@ async def init_queue_client(websocket, path):
     global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
-    # this is a lot going over the wire, should we minimize?
     # !TODO here and the other place we need to gzip effects_config_queue_client i think
     message = {
         'effects': effects_config_queue_client,
@@ -388,6 +384,7 @@ async def init_queue_client(websocket, path):
         }
     }
     dump = json.dumps(message)
+    # !TODO shouldn't this just error and fail if it fails?????? maybe preventing same client from reconnecting
     try:
         print('Song Queue: sent config to new client')
         await websocket.send(dump)
@@ -395,17 +392,14 @@ async def init_queue_client(websocket, path):
         print('Song Queue: socket send failed', flush=True)
 
     song_sockets.append(websocket)
-
     while True:
         try:
             print('Song Queue: waiting for message')
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
-
-        msg = json.loads(msg_string)
 
         print('Song Queue: message recieved:', msg)
         if 'type' in msg:
@@ -487,7 +481,6 @@ async def init_queue_client(websocket, path):
 
 
 def search_youtube():
-    import subprocess
     from urllib.parse import quote
 
     search = quote(search_queue[0][0])
@@ -542,15 +535,6 @@ def search_youtube():
 
 def add_queue_balanced(effect_name, uuid):
     global song_playing, song_time, broadcast_light_status, broadcast_song_status
-
-    # TODO Eric, is this code useless now? i just commented it out
-    # if False: # is_admin(uuid):
-    #     index = 1
-    #     while index < len(song_queue):
-    #         if song_queue[index][2] != uuid:
-    #             break
-    #         index += 1
-    # else:
     index = 0
     count = 0
     user_counts = {}
@@ -574,8 +558,7 @@ def add_queue_balanced(effect_name, uuid):
 
 
 def is_admin(uuid):
-    return True
-    return uuid in users and users[uuid]['admin']
+    return True or (uuid in users and users[uuid]['admin'])
 
 
 def get_queue_salt():
@@ -591,12 +574,14 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
+
 async def send_client_queue_config():
     queue_message = {
         'effects': effects_config_queue_client,
         'songs': songs_config,
     }
     await broadcast(song_sockets, json.dumps(queue_message))
+
 
 async def send_light_status():
     global broadcast_light_status, beat_sens_string
@@ -655,34 +640,22 @@ async def send_dev_status():
         await broadcast(tmp_sockets, json.dumps(message))
         broadcast_dev_status = False
 
+def uuid_to_user(uuid):
+    if uuid in users:
+        return users[uuid]['name'] + f' ({uuid})'
+    return uuid
 
 ####################################
 
-
 def get_sub_effect_names(effect_name, beat):
     sub_effect_names = []
-    effect_beats = effects_config[effect_name]['beats']
-    for effect in effect_beats:
-        if type(effect[1]) == str:
+    for effect in effects_config[effect_name]['beats']:
+        if type(effect[1]) == str: # probably isn't needed?
             if effect[0] <= beat <= effect[0] + effect[2]:
                 sub_effect_names.append(effect[1])
             elif sub_effect_names:
                 break
     return sub_effect_names
-
-# outside
-# last_called_grid_render = False
-
-# wherever clear
-# global last_called_grid_render 
-# if last_called_grid_render:
-#     full_clear = ' ' * terminal_size + '\n'
-#     print(full_clear * 26, end='')
-#     last_called_grid_render = False
-
-# in light
-# if args.local and bool():
-#     last_called_grid_render = True
 
 
 previous_sub_effect_names = None
@@ -752,11 +725,14 @@ Beat {curr_beat:.1f}, \
 
 
 laser_representation = '.,-~:;=!*#$@'
-laser_stage = random.randint(0, 1000)
+laser_motor_stage = random.randint(0, 1000)
+laser_motor_max_acceleration = 10
+laser_motor_min_deceleration = 10
+laser_motor_velocity = 0
 
-laser_max_acceleration = 10
-laser_min_deceleration = 10
-laser_velocity = 0
+laser_intensity_max_acceleration = 70
+laser_intensity_min_deceleration = 70
+laser_intensity = 0
 
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
@@ -764,33 +740,32 @@ disco_speed = .15
 disco_pos = 0
 # !TODO remove the 0-5 indexes
 async def render_terminal(light_levels):
-    global laser_stage, disco_pos, laser_velocity
+    global laser_motor_stage, disco_pos, laser_motor_velocity, laser_intensity
 
     character = '▆'
     try:
         terminal_size = os.get_terminal_size().columns
     except:
         terminal_size = 45
-
     line_length = terminal_size - 1
 
     levels_255 = list(map(lambda x: int(x * 255), light_levels))
     bottom_rgb = levels_255[6:9]
     uv_value = levels_255[9]
-    laser_color_rgb = levels_255[10:12]
+    target_laser_color_rgb = levels_255[10:12]
     target_laser_motor_value = min(100, max(0, levels_255[12] / 2.55))
     disco_color_rgb = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
-    if any(laser_color_rgb):
+    if any(target_laser_color_rgb):
         laser_chars = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(15):
-                if j > 1 and (j + i + (laser_stage // 100)) % 4 == 0: # this was // 90 for some reason idk why
-                    laser_chars[j + (line_length * i)] = laser_representation[laser_stage // 100]
+                if j > 1 and (j + i + (laser_motor_stage // 100)) % 4 == 0: # this was // 90 for some reason idk why
+                    laser_chars[j + (line_length * i)] = laser_representation[laser_motor_stage // 100]
         laser_string = ''.join(laser_chars)
-        laser_style = [laser_color_rgb[1], laser_color_rgb[0], 0]
+        laser_style = [target_laser_color_rgb[1], target_laser_color_rgb[0], 0]
     else:
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = [0, 0, 0]
@@ -807,46 +782,34 @@ async def render_terminal(light_levels):
     else:
         disco_chars = ' ' * 14
 
-    if laser_velocity < target_laser_motor_value:
-        laser_velocity += min(laser_max_acceleration, target_laser_motor_value - laser_velocity)
-    elif laser_velocity > target_laser_motor_value:
-        laser_velocity -= min(laser_min_deceleration, laser_velocity - target_laser_motor_value)
-
-    laser_stage += laser_velocity
-    laser_stage %= 1000
-
+    if laser_motor_velocity < target_laser_motor_value:
+        laser_motor_velocity += min(laser_motor_max_acceleration, target_laser_motor_value - laser_motor_velocity)
+    elif laser_motor_velocity > target_laser_motor_value:
+        laser_motor_velocity -= min(laser_motor_min_deceleration, laser_motor_velocity - target_laser_motor_value)
+    laser_motor_stage += laser_motor_velocity
+    laser_motor_stage %= 1000
 
     disco_pos += disco_speed
     if disco_pos > 14:
         disco_pos -= 14    
-    top_uv_row = [
-        rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
-        # terminal_buffer,
-    ]
-    bottom_light_row = [
-        ' ' + rgb_ansi(character * 14, bottom_rgb),
-        # terminal_buffer,
-    ]
-    laser_row = [
-        ' ' + rgb_ansi(laser_string, laser_style),
-        # terminal_buffer,
-    ]
-    disco_row = [
-        ' ' + ''.join([char for char in disco_chars]),
-        # terminal_buffer,
-    ]
 
-    # printing
+    # laser_intensity will be 0-1
+    # if laser_intensity < 1:
+
+
+    top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
+    bottom_light_row = ' ' + rgb_ansi(character * 14, bottom_rgb)
+    laser_row = ' ' + rgb_ansi(laser_string, laser_style)
+    disco_row = ' ' + ''.join([char for char in disco_chars])
+
     top_lines_to_reset = print_info_terminal_lines()
 
     # actually i bet this really doesn't work because of invisible ansi characters... and cutting off doesnt work because they have length, we need to just keep track
-    print(''.join(top_uv_row))
+    print(top_uv_row)
     grid_rows_to_reset = grid_helpers.render(terminal=True, reset_terminal=False)
-    print(''.join(laser_row))
-    print(''.join(bottom_light_row))
-    print(''.join(disco_row), end='')
-
-    # print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
+    print(laser_row)
+    print(bottom_light_row)
+    print(disco_row, end='')
     sys.stdout.write('\033[F' * (6 + grid_rows_to_reset + top_lines_to_reset))
 
 
@@ -859,57 +822,6 @@ async def send_to_terminal_output(light_level_or_signal, i):
 
 
 ####################################
-
-def uuid_to_user(uuid):
-    if uuid in users:
-        return users[uuid]['name'] + f' ({uuid})'
-    return uuid
-
-
-def print_current_beat():
-    curr_beat = (beat_index / SUB_BEATS) + 1
-    print(f'Beat: {curr_beat:.1f}\n' * 25)
-
-
-tap_beat_file_path = get_temp_dir().joinpath(f'beat_output_file_{random_letters(8)}.dat')
-def output_current_beat():
-    print_red(f'OUTPUTTING BEATS TO: {tap_beat_file_path}\n' * 10)
-    with open(tap_beat_file_path, 'a') as f:
-        curr_beat = (beat_index / SUB_BEATS) + 1
-        f.writelines([str(round(curr_beat, 2)), '\n'])
-
-# assumes p0 = (0, 0) and p2 = (1, 1)
-def compute_x_to_y_bezier(color_p):
-    def bezier(t, p1):
-        return 2 * (1 - t) * t * p1 + t**2
-
-    p1x, p1y = color_p
-    x_to_y_bezier = np.array(np.zeros((101)), np.double)
-
-    resolution = 100000
-    for i in range(resolution + 1):
-        t_point = i / resolution
-        x_point = round(bezier(t_point, p1x) * 100)
-        x_to_y_bezier[x_point] = bezier(t_point, p1y)
-
-    for index, value in enumerate(x_to_y_bezier):
-        if value is None:
-            print_red(f'x_to_y_bezier: {index} is None')
-            exit()
-    return x_to_y_bezier
-
-red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
-blue_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
-green_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
-
-# !TODO vectorize with fancy indexing and reshaping
-def apply_bezier_to_grid():
-    grid_as_int = grid_helpers.grid.astype(int)
-    for x in range(grid_helpers.GRID_WIDTH):
-        for y in range(grid_helpers.GRID_HEIGHT):
-            grid_helpers.grid[x][y][0] = red_x_to_y_bezier[grid_as_int[x][y][0]]
-            grid_helpers.grid[x][y][1] = green_x_to_y_bezier[grid_as_int[x][y][1]]
-            grid_helpers.grid[x][y][2] = blue_x_to_y_bezier[grid_as_int[x][y][2]]
 
 
 @profile
@@ -1066,18 +978,17 @@ async def light():
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
         
         if args.local or args.force_terminal:
-            await send_to_terminal_output(None, None)
+            # grid_helpers.apply_bezier_to_grid() # for testing
+            await send_to_terminal_output(None, None) # signal to perform terminal render
         if not args.local:
             if args.gamma_curve:
-                pass
-                # Old way
+                # Old gamma curve
                 # scaled_grid_0_1 = grid_helpers.grid / 100
                 # scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
                 # scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
                 # grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
                 
-                # New way
-                apply_bezier_to_grid()
+                grid_helpers.apply_bezier_to_grid() # New way
             grid_helpers.render()
 
 
@@ -1234,26 +1145,6 @@ def stop_song():
 
 ######################################
 
-def setup_gpio():
-    global pi
-    try:
-        pi = pigpio.pi()
-    except Exception as e:
-        print_red(f'{traceback.format_exc()}')
-        print_yellow(f'you need to add --local probably')        
-        sys.exit()
-
-    if not pi.connected:
-        exit()
-
-    for pin in LED_PINS:
-        pi.set_PWM_frequency(pin, LED_FREQ)
-        pi.set_PWM_range(pin, LED_RANGE)
-        pi.set_PWM_dutycycle(pin, 0)
-
-
-################################################
-
 effects_config = {}
 effects_config_dj_client = {}
 effects_config_queue_client = {}
@@ -1269,10 +1160,6 @@ complex_effects = []
 
 
 all_infos = []
-def reset_all_infos():
-    for info in all_infos:
-        info.reset()
-
 def effects_config_sort(all_nodes):
     curr_node = all_nodes[-1]
     
@@ -1297,7 +1184,6 @@ def effects_config_sort(all_nodes):
             complex_effects.append(curr_node)
         
 
-
 def dfs(effect_name):
     if effect_name not in found:
         if effect_name not in effects_config:
@@ -1309,13 +1195,12 @@ def dfs(effect_name):
                     return missing_effect
         effects_config_sort([effect_name])
 
+
 def add_dependancies(effect_names):
     for effect_name in effect_names:
         effect = effects_config[effect_name]
-
-        # this is optimized from below
+        # optimized from below
         graph[effect_name] = list({component[1] for component in effect['beats'] if not isinstance(component[1], list)})
-        
         # for component in effect['beats']:
         #     if not isinstance(component[1], list):
         #         graph[effect_name].add(component[1])
@@ -1503,10 +1388,8 @@ def precompile_some_luts_effects_config():
     # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
     # exit()
 
-    # TODO andrew: replace with is_doorbell()
-    if False and is_doorbell():
-        # eager compile all normal effects
-        for effect_name, effect in effects_config.items():
+    if is_doorbell():
+        for effect_name, effect in effects_config.items(): # eager compile all normal effects
             if 'bpm' not in effect:
                 effects_config_to_compile[effect_name] = effect
 
@@ -1824,6 +1707,19 @@ def debug_effect_or_grid(effect_name):
         print_cyan(f'  info: {info}')
 
 
+def print_current_beat():
+    curr_beat = (beat_index / SUB_BEATS) + 1
+    print(f'Beat: {curr_beat:.1f}\n' * 25)
+
+
+tap_beat_file_path = get_temp_dir().joinpath(f'beat_output_file_{random_letters(8)}.dat')
+def output_current_beat():
+    print_red(f'OUTPUTTING BEATS TO: {tap_beat_file_path}\n' * 10)
+    with open(tap_beat_file_path, 'a') as f:
+        curr_beat = (beat_index / SUB_BEATS) + 1
+        f.writelines([str(round(curr_beat, 2)), '\n'])
+
+
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
 if __name__ == '__main__':
     if args.local:
@@ -2000,11 +1896,11 @@ if __name__ == '__main__':
                 exit()
             show = effects_config[args.show_name]
 
-            if args.skip_show_beats > 1.0:
+            if args.skip_show_beats > 1:
                 if args.skip_show_seconds:
                     raise Exception('You cant set both skip_show_beats and skip_show_seconds')
                 args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / show['bpm'])
-            else:
+            elif args.skip_show_beats != 1.0:
                 print_red(f'I dont think a value of {args.skip_show_beats} makes sense for skip_show_beats, skipping...')
 
             if args.speed != 1:

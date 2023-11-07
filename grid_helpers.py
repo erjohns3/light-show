@@ -7,9 +7,9 @@ from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
 
+
 this_file_directory = pathlib.Path(__file__).parent.resolve()
-sys.path.insert(0, str(this_file_directory.joinpath('winamp')))
-import winamp_wrapper
+import winamp.winamp_wrapper
 
 
 if is_doorbell():
@@ -439,9 +439,66 @@ def get_2d_arr_from_text(*args, **kwargs):
 
 
 def try_load_winamp():
-    if not winamp_wrapper.try_load_winamp_cxx_module():
+    if not winamp.winamp_wrapper.try_load_winamp_cxx_module():
         return False
-    return winamp_wrapper.try_load_audio_device()
+    return winamp.winamp_wrapper.try_load_audio_device()
+
+
+# assumes p0 = (0, 0) and p2 = (1, 1)
+def bezier_quad_only_p1(t, p1):
+    return 2 * (1 - t) * t * p1 + t**2
+
+def bezier_full_quad(t, p0, p1, p2):
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+def bezier_full_cubic(t, p0, p1, p2, p3):
+    return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
+
+def compute_x_to_y_bezier(p1):
+    p1x, p1y = p1
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+
+    resolution = 100000
+    for i in range(resolution + 1):
+        t_point = i / resolution
+        x_point = round(bezier_quad_only_p1(t_point, p1x) * 100)
+        x_to_y_bezier[x_point] = bezier_quad_only_p1(t_point, p1y) * 100
+
+    for index, value in enumerate(x_to_y_bezier):
+        if value is None:
+            print_red(f'x_to_y_bezier: {index} is None')
+            exit()
+    return x_to_y_bezier
+
+red_x_to_y_bezier = compute_x_to_y_bezier((0.4425, 0))
+green_x_to_y_bezier = compute_x_to_y_bezier((0.6, 0))
+blue_x_to_y_bezier = compute_x_to_y_bezier((0.5, 0))
+
+# make the lines conform to the respective rgb color
+def plot_bezier_curves_blocking(to_graph):
+    import matplotlib.pyplot as plt
+    if is_andrews_main_computer():
+        plt.style.use('dark_background')
+    _fig, ax = plt.subplots()
+    for graph, color in to_graph:
+        ax.plot(graph, color=color)
+    plt.show()
+plot_bezier_curves_blocking([
+    (red_x_to_y_bezier, 'red'),
+    (green_x_to_y_bezier, 'green'),
+    (blue_x_to_y_bezier, 'blue'),
+])
+
+
+# !TODO vectorize with fancy indexing and reshaping
+def apply_bezier_to_grid():
+    grid_as_int = grid.astype(int)
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            grid[x][y][0] = red_x_to_y_bezier[grid_as_int[x][y][0]]
+            grid[x][y][1] = green_x_to_y_bezier[grid_as_int[x][y][1]]
+            grid[x][y][2] = blue_x_to_y_bezier[grid_as_int[x][y][2]]
+
 
 
 if __name__ == '__main__':

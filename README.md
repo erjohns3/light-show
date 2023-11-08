@@ -121,6 +121,11 @@ quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
 * blue (tested with 100% red)
 
 
+#### laser
+Needs above x to trigger
+Needs at least 29 to maintain slowest speed
+needs 70 to activate, but then can go down to like 40?
+
 ### old gamma stuff
 ```
 scaled_grid_0_1 = grid_helpers.grid / 100

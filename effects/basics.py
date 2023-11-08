@@ -668,3 +668,27 @@ for color in ['Red', 'Blue', 'Green']:
                 ],
             }
 
+effects[f'Green laser full'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], 1],
+    ],
+}
+effects[f'Red laser full'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], 1],
+    ],
+}
+
+for amt in range(1, 101):
+    if amt < 7 or amt % 5 == 0:
+        effects[f'Laser motor {amt}'] = {
+            'length': 1,
+            'profiles': [f'All lasers'],
+            'beats': [
+                [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, amt], 1],
+            ],
+        }

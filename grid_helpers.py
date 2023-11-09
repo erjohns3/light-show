@@ -454,7 +454,7 @@ def bezier_full_quad(t, p0, p1, p2):
 def bezier_full_cubic(t, p0, p1, p2, p3):
     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
-def compute_x_to_y_bezier(p1):
+def compute_x_to_y_bezier_quad(p1):
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
     resolution = 100000
     for i in range(resolution + 1):
@@ -467,10 +467,44 @@ def compute_x_to_y_bezier(p1):
     return x_to_y_bezier
 
 
-grid_red_bezier = compute_x_to_y_bezier((0.4425, 0))
-grid_green_bezier = compute_x_to_y_bezier((0.6, 0))
-grid_blue_bezier = compute_x_to_y_bezier((0.5, 0))
+def compute_x_to_y_bezier_cubic(p1, p2):
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    resolution = 100000
+    for i in range(resolution + 1):
+        t = i / resolution
+        x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
+
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
+    return x_to_y_bezier
+
+# red
+#     p1 = (.588, 0.06)
+#     p2 = (.716, 0.705)
+
+# green
+#     p1 = (.465, 0.09)
+#     p2 = (.87, 0.573)
+# blue
+#     p1 = (.932, 0.033)
+#     p2 = (.653, 0.935)
+
+
+
+start_bezier_time = time.time()
+# old quad
+# grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
+# grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
+# grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+
+# new cubics
+grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
+grid_green_bezier = compute_x_to_y_bezier_cubic((0.465, 0.09), (0.87, 0.573))
+grid_blue_bezier = compute_x_to_y_bezier_cubic((0.932, 0.033), (0.653, 0.935))
+
 def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
+    global grid
     grid_as_int = grid.astype(int)
     for x in range(GRID_WIDTH):
         for y in range(GRID_HEIGHT):
@@ -479,11 +513,9 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
             grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
 
 # !TODO 
-bottom_red_bezier = compute_x_to_y_bezier((.5, .5))
-bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
-bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
-
-
+# bottom_red_bezier = compute_x_to_y_bezier((.5,, p2 .5))
+# bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
+# bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
 
 
 
@@ -502,6 +534,8 @@ bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
 #     (grid_green_bezier, 'green'),
 #     (grid_blue_bezier, 'blue'),
 # ])
+
+print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 
 if __name__ == '__main__':

@@ -668,6 +668,53 @@ for color in ['Red', 'Blue', 'Green']:
                 ],
             }
 
+
+effects[f'Red bottom green laser flash'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.5),    
+        b(1.5, name='green laser', length=.5),    
+    ],
+}
+
+effects[f'Red bottom flash .96'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.96),    
+    ],
+}
+
+
+effects[f'Red bottom flash .04'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.04),    
+    ],
+}
+
+
+effects[f'Laser flash .96'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='green laser', length=.96),    
+    ],
+}
+
+
+effects[f'Laser flash .04'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='green laser', length=.04),    
+    ],
+}
+
+
+
 effects[f'Green laser full'] = {
     'length': 1,
     'profiles': [f'All lasers'],
@@ -692,3 +739,4 @@ for amt in range(1, 101):
                 [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, amt], 1],
             ],
         }
+

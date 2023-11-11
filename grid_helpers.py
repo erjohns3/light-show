@@ -479,18 +479,6 @@ def compute_x_to_y_bezier_cubic(p1, p2):
         exit()
     return x_to_y_bezier
 
-# red
-#     p1 = (.588, 0.06)
-#     p2 = (.716, 0.705)
-
-# green
-#     p1 = (.465, 0.09)
-#     p2 = (.87, 0.573)
-# blue
-#     p1 = (.932, 0.033)
-#     p2 = (.653, 0.935)
-
-
 
 start_bezier_time = time.time()
 # old quad

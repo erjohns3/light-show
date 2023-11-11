@@ -519,21 +519,35 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
 
 
 
-def debug_plot_bezier_curves(to_graph):
+def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     import matplotlib.pyplot as plt
     if is_andrews_main_computer():
         plt.style.use('dark_background')
     _fig, ax = plt.subplots()
-    for graph, color in to_graph:
+    for graph, color in arrs_to_graph:
         ax.plot(graph, color=color)
+
+    
+    for color, points in points_to_graph.items():
+        xpoints = list(map(lambda x: x[0] * 100, points))
+        ypoints = list(map(lambda x: x[1] * 100, points))
+        ax.plot(xpoints, ypoints, 'o', color=color)
     plt.show()
+    exit()
 
 # grid debugging
-debug_plot_bezier_curves([
-    (grid_red_bezier, 'red'),
-    (grid_green_bezier, 'green'),
-    (grid_blue_bezier, 'blue'),
-])
+debug_plot_bezier_curves(
+    {
+        'red': [(0.588, 0.06), (0.716, 0.705)],
+        'green': [(0.465, 0.09), (0.87, 0.573)],
+        'blue': [(0.932, 0.033), (0.653, 0.935)],
+    },
+    [
+        (grid_red_bezier, 'red'),
+        (grid_green_bezier, 'green'),
+        (grid_blue_bezier, 'blue'),
+    ]
+)
 
 print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 

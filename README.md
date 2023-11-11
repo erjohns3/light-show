@@ -107,9 +107,6 @@ cubic: https://www.desmos.com/calculator/pbaugufzbr
     https://www.desmos.com/calculator/7h0prkfihz
     p1 = (.588, 0.06)
     p2 = (.716, 0.705)
-  * OLD
-    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
-      * p1 = (.4425, 0)
 * green (tested with 100% red)
   * 52 light -> 75 term
   * 31 light -> 50 term
@@ -118,13 +115,9 @@ cubic: https://www.desmos.com/calculator/pbaugufzbr
     https://www.desmos.com/calculator/xwm9vz7xds
     p1 = (.465, 0.09)
     p2 = (.87, 0.573)
-  * OLD
-    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
-      * p1 = (.6, 0) 
 * blue (tested with 100% red)
   * 60 light -> 75 term
-  * 17 light -> 50 term
-  * 4 light  -> 25 term
+  * 1
   * NEW:
     https://www.desmos.com/calculator/o3mmcdahfd
     p1 = (.932, 0.033)
@@ -140,6 +133,46 @@ cubic: https://www.desmos.com/calculator/pbaugufzbr
 Needs above x to trigger
 Needs at least 29 to maintain slowest speed
 needs 70 to activate, but then can go down to like 40?
+
+#### older stuff
+```
+def bezier_quad_only_p1(t, p1):
+    return 2 * (1 - t) * t * p1 + t**2
+
+def bezier_full_quad(t, p0, p1, p2):
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+def compute_x_to_y_bezier_quad(p1):
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    resolution = 100000
+    for i in range(resolution + 1):
+        t = i / resolution
+        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
+
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
+    return x_to_y_bezier
+
+grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
+grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
+grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+```
+
+* red (tested with 100% blue)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
+      * p1 = (.4425, 0)
+* green (tested with 100% red)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
+      * p1 = (.6, 0) 
+* blue (tested with 100% red)
+  * NEW:
+    https://www.desmos.com/calculator/o3mmcdahfd
+    p1 = (.932, 0.033)
+    p2 = (.653, 0.935)
+
 
 ### old gamma stuff
 ```

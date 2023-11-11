@@ -444,47 +444,48 @@ def try_load_winamp():
     return winamp.winamp_wrapper.try_load_audio_device()
 
 
-# assumes p0 = (0, 0) and p2 = (1, 1)
-def bezier_quad_only_p1(t, p1):
-    return 2 * (1 - t) * t * p1 + t**2
+# def bezier_full_cubic(t, p0, p1, p2, p3):
+#     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
-def bezier_full_quad(t, p0, p1, p2):
-    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+@profile
+def bezier_full_cubic_faster(t, p1, p2):
+    return 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3
 
-def bezier_full_cubic(t, p0, p1, p2, p3):
-    return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
-def compute_x_to_y_bezier_quad(p1):
+@profile
+def compute_x_to_y_bezier_cubic(p1, p2, resolution=100000):
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    resolution = 100000
     for i in range(resolution + 1):
         t = i / resolution
-        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
+        x_to_y_bezier[round(bezier_full_cubic_faster(t, p1[0], p2[0]) * 100)] = bezier_full_cubic_faster(t, p1[1], p2[1]) * 100
+        # x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
 
-    if any([value for value in x_to_y_bezier == None]):
+    if any([value for value in x_to_y_bezier == 0.0]):
         print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
         exit()
     return x_to_y_bezier
 
 
-def compute_x_to_y_bezier_cubic(p1, p2):
-    x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    resolution = 100000
-    for i in range(resolution + 1):
-        t = i / resolution
-        x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
-
-    if any([value for value in x_to_y_bezier == None]):
-        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
-        exit()
-    return x_to_y_bezier
+# cache = {}
+# @profile
+# def compute_x_to_y_bezier_cubic_fast(p1, p2, resolution=100000):
+#     if resolution not in cache:
+#         cache[resolution] = [i / resolution for i in range(resolution + 1)]
+#     x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    
+#     x_calcs = [round(bezier_full_cubic_faster(t, p1[0], p2[0]) * 100) for t in cache[resolution]]
+#     y_calcs = [round(bezier_full_cubic_faster(t, p1[1], p2[1]) * 100) for t in cache[resolution]]
+    
+#     for x, y in zip(x_calcs, y_calcs):
+#         x_to_y_bezier[x] = y_calcs[y]
+#     return x_to_y_bezier
 
 
 start_bezier_time = time.time()
-# old quad
-# grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
-# grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
-# grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
+green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]
+blue_test_points = [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)]
+
 
 # new cubics
 grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
@@ -504,8 +505,7 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
 # bottom_red_bezier = compute_x_to_y_bezier((.5,, p2 .5))
 # bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
 # bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
-
-
+# print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     import matplotlib.pyplot as plt
@@ -524,29 +524,6 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
         ax.scatter(xpoints, ypoints, color=color, alpha=opacity)
     plt.show()
     exit()
-
-
-# grid debugging
-debug_plot_bezier_curves(
-    {
-        # real points
-        ('red', 1): [(0.75, .60), (0.50, 0.31), (0.25, 0.08)],
-        ('green', 1): [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)],
-        ('blue', 1): [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)],
-
-        # bezier points
-        ('red', 0.15): [(0.588, 0.06), (0.716, 0.705)],
-        ('green', 0.15): [(0.465, 0.09), (0.87, 0.573)],
-        ('blue', 0.15): [(0.932, 0.033), (0.653, 0.935)],
-    },
-    [
-        (grid_red_bezier, 'red'),
-        (grid_green_bezier, 'green'),
-        (grid_blue_bezier, 'blue'),
-    ]
-)
-
-print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 
 if __name__ == '__main__':

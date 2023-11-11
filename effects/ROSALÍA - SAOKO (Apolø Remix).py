@@ -105,7 +105,7 @@ effects = {
             b(109, name='Strobe bottom', length=4),
             # 113 quiet moment
             b(113, name='saoko bass', length=48),
-            grid_f(113, filename='fire.gif', color=.04, rotate_90=True, length=48),
+            grid_f(113, filename='fire.gif', rotate_90=True, length=48), # color=.04 is multiplier
             # quiet moment
             # que algo
             b(160, name='S circle pulse', length=4),

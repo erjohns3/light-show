@@ -1,5 +1,6 @@
 # Club time
 ## TLDR:
+
 ### Requirements
 * Install ffmpeg, and have avaliable on your path
 * `pip install -r requirements.txt`
@@ -22,6 +23,13 @@ Queue: http://YOUR_IP:9555
 Just copy either into your browser, and you'll be able to control the show from there.
 
 # TODO
+* winamp:
+  * check if passing `load_from_cache` to load_preset affects things. its only if the caching results in textures or something being deleted?
+  * support windows
+  * ask on the discord about low res rendering
+  * milkdrop v2? not supported in projectM yet i think
+* look for inspiration:
+  * https://www.youtube.com/watch?app=desktop&v=Jrb5PqiDMSY
 * check that --speed .5 follows --delay .189
 * cubic bezier for custom curves
 * label intensity of some lights and cleanup
@@ -81,6 +89,69 @@ It should be pretty good about auto downloading specific songs with the --show p
 
 ### youtube download on command line (don't use this)
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
+
+
+## light calibration (gamma curve)
+
+* For testing: `python light_server.py --terminal --no_gamma --full_grid --skip_autogen`
+
+quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
+cubic: https://www.desmos.com/calculator/pbaugufzbr
+
+#### grid
+* red (tested with 100% blue)
+  * 60 light -> 75 term
+  * 31 light -> 50 term
+  * 8 light  -> 25 term
+  * NEW: (worst of the three i think)
+    https://www.desmos.com/calculator/7h0prkfihz
+    p1 = (.588, 0.06)
+    p2 = (.716, 0.705)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
+      * p1 = (.4425, 0)
+* green (tested with 100% red)
+  * 52 light -> 75 term
+  * 31 light -> 50 term
+  * 10 light  -> 25 term
+  * NEW:
+    https://www.desmos.com/calculator/xwm9vz7xds
+    p1 = (.465, 0.09)
+    p2 = (.87, 0.573)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
+      * p1 = (.6, 0) 
+* blue (tested with 100% red)
+  * 60 light -> 75 term
+  * 17 light -> 50 term
+  * 4 light  -> 25 term
+  * NEW:
+    https://www.desmos.com/calculator/o3mmcdahfd
+    p1 = (.932, 0.033)
+    p2 = (.653, 0.935)
+
+#### floor
+* red (tested with 100% blue)
+* green (tested with 100% red)
+* blue (tested with 100% red)
+
+
+#### laser
+Needs above x to trigger
+Needs at least 29 to maintain slowest speed
+needs 70 to activate, but then can go down to like 40?
+
+### old gamma stuff
+```
+scaled_grid_0_1 = grid_helpers.grid / 100
+scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+```
+
+## settiing up on new rasp pi
+* you HAVE to install pulse (or else audio will suck i think)
+* you have to compile SDL from source (unless updated) you need 2.0.16 i think (2.0.14 as of writing)
 
 
 ## andrew specific commands

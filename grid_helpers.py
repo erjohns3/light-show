@@ -8,6 +8,10 @@ from PIL import Image, ImageSequence, ImageFont, ImageOps
 from helpers import *
 
 
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+import winamp.winamp_wrapper
+
+
 if is_doorbell():
     import serial
     grid_serial = serial.Serial(
@@ -19,6 +23,19 @@ if is_doorbell():
         timeout=0,
         write_timeout=0
     )
+
+# Give me the python code to compute to map all the values of the numpy array representing rgb values with the following Bézier curve values:
+#     rx1, ry1 = 0.4425, 0
+#     gx1, gy1 = 0.5, 0
+#     bx1, by1 = 0.25, 0
+
+# p0 is at (0, 0), p2 is at (1, 1) always. I just want P1 to equal the values above. 
+
+
+# this is how the numpy array looks:
+# ```grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), np.double)````
+
+# The values in grid will be numbers from 0-1 representing their rgb values. change the memory of grid in place.
 
 try:
     profile
@@ -67,24 +84,24 @@ def copy_of_grid():
     return np.array(grid)
 
 
+
 def move(vector):
     global grid
+
     if vector[0]:
         if vector[0] > 0:
-            for x in range(1, vector[0] + 1):
-                grid[-x:, :] = 0
+            grid[-vector[0]:, :] = 0
         else:
-            for x in range(-vector[0]):
-                grid[x:, :] = 0
+            grid[:abs(vector[0]), :] = 0
         grid = np.roll(grid, shift=vector[0], axis=0)
+
     if vector[1]:
         if vector[1] > 0:
-            for y in range(1, vector[1] + 1):
-                grid[:, -y] = 0
+            grid[:, -vector[1]:] = 0
         else:
-            for y in range(-vector[1]):
-                grid[:, y] = 0
+            grid[:, :abs(vector[1])] = 0
         grid = np.roll(grid, shift=vector[1], axis=1)
+
 
 
 def move_wrap(vector):
@@ -419,6 +436,106 @@ def get_2d_arr_from_text(*args, **kwargs):
     with Image.open(filepath) as image:
         return PIL_image_to_numpy_arr(image)
         # return image
+
+
+def try_load_winamp():
+    if not winamp.winamp_wrapper.try_load_winamp_cxx_module():
+        return False
+    return winamp.winamp_wrapper.try_load_audio_device()
+
+
+# assumes p0 = (0, 0) and p2 = (1, 1)
+def bezier_quad_only_p1(t, p1):
+    return 2 * (1 - t) * t * p1 + t**2
+
+def bezier_full_quad(t, p0, p1, p2):
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+def bezier_full_cubic(t, p0, p1, p2, p3):
+    return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
+
+def compute_x_to_y_bezier_quad(p1):
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    resolution = 100000
+    for i in range(resolution + 1):
+        t = i / resolution
+        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
+
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
+    return x_to_y_bezier
+
+
+def compute_x_to_y_bezier_cubic(p1, p2):
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    resolution = 100000
+    for i in range(resolution + 1):
+        t = i / resolution
+        x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
+
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
+    return x_to_y_bezier
+
+# red
+#     p1 = (.588, 0.06)
+#     p2 = (.716, 0.705)
+
+# green
+#     p1 = (.465, 0.09)
+#     p2 = (.87, 0.573)
+# blue
+#     p1 = (.932, 0.033)
+#     p2 = (.653, 0.935)
+
+
+
+start_bezier_time = time.time()
+# old quad
+# grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
+# grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
+# grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+
+# new cubics
+grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
+grid_green_bezier = compute_x_to_y_bezier_cubic((0.465, 0.09), (0.87, 0.573))
+grid_blue_bezier = compute_x_to_y_bezier_cubic((0.932, 0.033), (0.653, 0.935))
+
+def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
+    global grid
+    grid_as_int = grid.astype(int)
+    for x in range(GRID_WIDTH):
+        for y in range(GRID_HEIGHT):
+            grid[x][y][0] = grid_red_bezier[grid_as_int[x][y][0]]
+            grid[x][y][1] = grid_green_bezier[grid_as_int[x][y][1]]
+            grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
+
+# !TODO 
+# bottom_red_bezier = compute_x_to_y_bezier((.5,, p2 .5))
+# bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
+# bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
+
+
+
+# def debug_plot_bezier_curves(to_graph):
+#     import matplotlib.pyplot as plt
+#     if is_andrews_main_computer():
+#         plt.style.use('dark_background')
+#     _fig, ax = plt.subplots()
+#     for graph, color in to_graph:
+#         ax.plot(graph, color=color)
+#     plt.show()
+
+# grid debugging
+# debug_plot_bezier_curves([
+#     (grid_red_bezier, 'red'),
+#     (grid_green_bezier, 'green'),
+#     (grid_blue_bezier, 'blue'),
+# ])
+
+print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 
 if __name__ == '__main__':

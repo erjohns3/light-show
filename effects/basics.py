@@ -655,3 +655,88 @@ effects = {
         ],
     },
 }
+
+
+for color in ['Red', 'Blue', 'Green']:
+    for amt in range(1, 101):
+        if amt < 7 or amt % 5 == 0:
+            effects[color + f' {amt}'] = {
+                'length': 1,
+                'profiles': [f'All {color}'],
+                'beats': [
+                    b(1, f'{color} top', length=1, intensity=.01 * amt),
+                ],
+            }
+
+
+effects[f'Red bottom green laser flash'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.5),    
+        b(1.5, name='green laser', length=.5),    
+    ],
+}
+
+effects[f'Red bottom flash .96'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.96),    
+    ],
+}
+
+
+effects[f'Red bottom flash .04'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='Red bottom', length=.04),    
+    ],
+}
+
+
+effects[f'Laser flash .96'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='green laser', length=.96),    
+    ],
+}
+
+
+effects[f'Laser flash .04'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        b(1, name='green laser', length=.04),    
+    ],
+}
+
+
+
+effects[f'Green laser full'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], 1],
+    ],
+}
+effects[f'Red laser full'] = {
+    'length': 1,
+    'profiles': [f'All lasers'],
+    'beats': [
+        [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], 1],
+    ],
+}
+
+for amt in range(1, 101):
+    if amt < 7 or amt % 5 == 0:
+        effects[f'Laser motor {amt}'] = {
+            'length': 1,
+            'profiles': [f'All lasers'],
+            'beats': [
+                [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, amt], 1],
+            ],
+        }
+

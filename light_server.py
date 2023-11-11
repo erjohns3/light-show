@@ -1,7 +1,5 @@
 import time
 first_start_time = time.time()
-import socket
-import atexit
 import threading
 import json
 import signal
@@ -13,56 +11,90 @@ import copy
 import os
 import colorsys
 import random
-import traceback
 import sys
 
-print(f'Up to stdlib import: {time.time() - first_start_time:.3f}')
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory))
+import winamp.winamp_wrapper # must be loaded first because of MESA forcing
 
-# https://wiki.libsdl.org/SDL2/FAQUsingSDL
-# os.environ['SDL_AUDIODRIVER'] = 'jack'
+# https://wiki.libsdl.org/SDL2/FAQUsingSDL os.environ['SDL_AUDIODRIVER'] = 'jack'
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
+import numpy as np
 import pygame
 import pigpio
 import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
+from helpers import *
 import sound_video_helpers
 import youtube_download_helpers
 from users import users
-import grid_helpers
-from helpers import *
+import grid_helpers # this double prints winamp_wrapper stuff for some reason
+
 from effects.compiler import GridInfo
 import effects.compiler
 import joystick_and_keyboard_helpers
 print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 
+
 parser = argparse.ArgumentParser(description = '')
 parser.add_argument('--local', dest='local', default=False, action='store_true')
-parser.add_argument('--show', dest='show', type=str, default='')
-parser.add_argument('--skip', dest='skip_show_beats', type=float, default=0)
+parser.add_argument('--show', dest='show_name', type=str, default='')
+parser.add_argument('--skip', dest='skip_show_beats', type=float, default=1)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
 parser.add_argument('--volume', dest='volume', type=int, default=100)
 parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
-parser.add_argument('--keyboard', dest='keyboard', default=False, action='store_true')
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
-parser.add_argument('--delay', dest='delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
+parser.add_argument('--delay', dest='absolute_delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
+    # https://nullvoxpopuli.github.io/latency-tester/
+        # qc35 on arch linux:  395ms
+        # wired on arch linux: 110ms
+        # 0.285 second difference
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
+parser.add_argument('--no_winamp', dest='winamp', default=None, action='store_false')
+parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='store_true')
+parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
+parser.add_argument('--no_curve', dest='no_curve', default=True, action='store_false')
+parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
+
 args = parser.parse_args()
 
 if is_doorbell():
     args.local = False
-    if args.keyboard:
-        raise Exception('Keyboard mode is not supported on the doorbell')
+    args.keyboard = False
 else:
     args.local = True
+    args.keyboard = True
+
+if is_windows():
+    args.fake_winamp = True
+    args.winamp = False
+    print_yellow(f'Since this is windows defaulted to --fake_winamp and --no_winamp')
+
+if args.winamp == None:
+    args.winamp = True
+
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+beat_sens_string = 'Beat Sens: N/A'
+if args.fake_winamp:
+    effects.compiler.winamp = effects.compiler.twinkle
+    winamp.winamp_wrapper.winamp_visual_loaded = True
+elif args.winamp:
+    if not grid_helpers.try_load_winamp():
+        print_red(f'Failed to load winamp, exiting')
+        exit()
+    result = winamp.winamp_wrapper.get_beat_sensitivity()
+    if result is not None:
+        beat_sens_string = f'Beat Sens: {result}'
+
 
 pi = None
 
@@ -88,29 +120,18 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light_status = False 
-broadcast_song_status = False
-broadcast_dev_status = False
-
+broadcast_light_status, broadcast_song_status, broadcast_dev_status = False, False, False 
 download_queue, search_queue = [], []
 
-########################################
-        
-PORT = 9555
-try:
-    info = socket.gethostbyname_ex(socket.gethostname())
-    # print(info)
-    local_ip = info[2][0]
-    # local_ip = socket.gethostbyname(socket.gethostname())
-except:
-    local_ip = 'cant_resolve_hostbyname'
-
-def run_http_server_forever():
-    import http.server
-    httpd = http.server.ThreadingHTTPServer(('', PORT), http.server.SimpleHTTPRequestHandler)
-    print_green(f'Dj interface: http://{local_ip}:{PORT}/dj.html\nQueue: http://{local_ip}:{PORT}', flush=True)
-    httpd.serve_forever()
-
+def setup_gpio():
+    global pi
+    pi = pigpio.pi()
+    if not pi.connected:
+        exit()
+    for pin in LED_PINS:
+        pi.set_PWM_frequency(pin, LED_FREQ)
+        pi.set_PWM_range(pin, LED_RANGE)
+        pi.set_PWM_dutycycle(pin, 0)
 
 ########################################
 
@@ -142,12 +163,10 @@ async def init_rekordbox_bridge_client(websocket, path):
     rekordbox_title = None
     while True:
         try:
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
-
-        msg = json.loads(msg_string)
 
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
@@ -160,7 +179,6 @@ async def init_rekordbox_bridge_client(websocket, path):
 
             handmade_song_found = False
             possible_generated_shows_for_title = []
-            # print(f'{list(song_name_to_show_names.keys())=}')
             print(f'{len(song_name_to_show_names)=}')
             if rekordbox_title in song_name_to_show_names:
                 for effect_name in song_name_to_show_names[rekordbox_title]:
@@ -201,11 +219,17 @@ async def init_rekordbox_bridge_client(websocket, path):
                 else:
                     rekordbox_bpm = min(-.1, rekordbox_bpm)
                 curr_bpm = rekordbox_bpm
-                time_start = time.time() - ((rekordbox_time - effects_config[rekordbox_effect_name]['delay_lights']) * (rekordbox_original_bpm / rekordbox_bpm))
-                            
+
+                to_delay = effects_config[rekordbox_effect_name]['delay_lights']
+                if args.absolute_delay_seconds:
+                    to_delay += args.absolute_delay_seconds
+                if not args.local:
+                    to_delay += 0.08
+                time_start = time.time() - ((rekordbox_time - to_delay) * (rekordbox_original_bpm / rekordbox_bpm))
+
 
 async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -215,6 +239,7 @@ async def init_dj_client(websocket, path):
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     dump = json.dumps(message)
@@ -225,10 +250,9 @@ async def init_dj_client(websocket, path):
         print('DJ Client: socket send failed', flush=True)
 
     light_sockets.append(websocket)
-
     while True:
         try:
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             light_sockets.remove(websocket)
             if websocket in dev_sockets:
@@ -236,8 +260,7 @@ async def init_dj_client(websocket, path):
             print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
 
-        msg = json.loads(msg_string)
-
+        beat_sens_number = 'N/A'
         if 'type' in msg:
             if msg['type'] == 'add_effect':
                 add_effect_from_dj(msg['effect'])
@@ -250,6 +273,22 @@ async def init_dj_client(websocket, path):
                 #     stop_song()
                 #     broadcast_song_status = True
                 remove_effect_name(effect_name)
+
+            elif msg['type'] == 'beat_sens_up':
+                result = winamp.winamp_wrapper.increase_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_up, {beat_sens_string=}')
+                broadcast_light_status = True
+
+            elif msg['type'] == 'beat_sens_down':
+                result = winamp.winamp_wrapper.decrease_beat_sensitivity()
+                if result is not None:
+                    beat_sens_number = f'{result:.2f}'
+                beat_sens_string = f'Beat Sens: {beat_sens_number}'
+                # print(f'recieved beat_sens_down, {beat_sens_string=}')
+                broadcast_light_status = True
 
             elif msg['type'] == 'clear_effects':
                 clear_effects()
@@ -274,18 +313,10 @@ async def init_dj_client(websocket, path):
                         compile_lut({maybe_new_effect_name: effects_config[maybe_new_effect_name]})
                     curr_effects[0][0] = maybe_new_effect_name
 
-            # elif msg['type'] == 'set_bpm':
-            #     time_start = time.time()
-            #     curr_bpm = float(msg['bpm'])
-            #     for effect in curr_effects:
-            #         effect[1] = 0
-
             broadcast_light_status = True
 
 
 def download_song(url, uuid):
-    from copy import deepcopy
-
     download_start_time = time.time()
     import autogen
 
@@ -310,7 +341,7 @@ def download_song(url, uuid):
     added = False
     src_bpm_offset_cache = autogen.get_src_bpm_offset_multiprocess(filepath, use_boundaries=True) 
     for mode in [None, 'lasers']:
-        show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=deepcopy(src_bpm_offset_cache))
+        show_name, show, _ = autogen.generate_show(filepath, overwrite=True, mode=mode, src_bpm_offset_cache=copy.deepcopy(src_bpm_offset_cache))
         if show is None:
             print_red(f'Autogenerator failed to create effect for {url}')
             return
@@ -318,7 +349,9 @@ def download_song(url, uuid):
         effects_config[show_name] = show
         add_dependancies({show_name: show})
 
+        set_effect_defaults(show_name, show) # !TODO idk if this is needed
         compile_lut({show_name: show})
+
         print(f'created show for: {show_name}')
 
         effects_config_queue_client[show_name] = {}
@@ -338,7 +371,7 @@ async def init_queue_client(websocket, path):
     global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
-    # this is a lot going over the wire, should we minimize?
+    # !TODO here and the other place we need to gzip effects_config_queue_client i think
     message = {
         'effects': effects_config_queue_client,
         'songs': songs_config,
@@ -350,6 +383,7 @@ async def init_queue_client(websocket, path):
         }
     }
     dump = json.dumps(message)
+    # !TODO shouldn't this just error and fail if it fails?????? maybe preventing same client from reconnecting
     try:
         print('Song Queue: sent config to new client')
         await websocket.send(dump)
@@ -357,17 +391,14 @@ async def init_queue_client(websocket, path):
         print('Song Queue: socket send failed', flush=True)
 
     song_sockets.append(websocket)
-
     while True:
         try:
             print('Song Queue: waiting for message')
-            msg_string = await websocket.recv()
+            msg = json.loads(await websocket.recv())
         except:
             song_sockets.remove(websocket)
             print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
             break
-
-        msg = json.loads(msg_string)
 
         print('Song Queue: message recieved:', msg)
         if 'type' in msg:
@@ -449,7 +480,6 @@ async def init_queue_client(websocket, path):
 
 
 def search_youtube():
-    import subprocess
     from urllib.parse import quote
 
     search = quote(search_queue[0][0])
@@ -504,15 +534,6 @@ def search_youtube():
 
 def add_queue_balanced(effect_name, uuid):
     global song_playing, song_time, broadcast_light_status, broadcast_song_status
-
-    # TODO Eric, is this code useless now? i just commented it out
-    # if False: # is_admin(uuid):
-    #     index = 1
-    #     while index < len(song_queue):
-    #         if song_queue[index][2] != uuid:
-    #             break
-    #         index += 1
-    # else:
     index = 0
     count = 0
     user_counts = {}
@@ -536,8 +557,7 @@ def add_queue_balanced(effect_name, uuid):
 
 
 def is_admin(uuid):
-    return True
-    return uuid in users and users[uuid]['admin']
+    return True or (uuid in users and users[uuid]['admin'])
 
 
 def get_queue_salt():
@@ -553,6 +573,7 @@ async def broadcast(sockets, msg):
         except:
             print(f'socket send failed. socket: {socket}', flush=True)
 
+
 async def send_client_queue_config():
     queue_message = {
         'effects': effects_config_queue_client,
@@ -560,20 +581,15 @@ async def send_client_queue_config():
     }
     await broadcast(song_sockets, json.dumps(queue_message))
 
-async def send_client_dj_config():
-    dj_message = {
-        'effects': effects_config_dj_client,
-        'songs': songs_config,
-    }
-    await broadcast(light_sockets, json.dumps(dj_message))
 
 async def send_light_status():
-    global broadcast_light_status
+    global broadcast_light_status, beat_sens_string
     message = {
         'status': {
             'effects': curr_effects,
             'rate': curr_bpm,
             'laser_mode': laser_mode,
+            'beat_sens_string': beat_sens_string,
         }
     }
     await broadcast(light_sockets, json.dumps(message))
@@ -623,34 +639,22 @@ async def send_dev_status():
         await broadcast(tmp_sockets, json.dumps(message))
         broadcast_dev_status = False
 
+def uuid_to_user(uuid):
+    if uuid in users:
+        return users[uuid]['name'] + f' ({uuid})'
+    return uuid
 
 ####################################
 
-
 def get_sub_effect_names(effect_name, beat):
     sub_effect_names = []
-    effect_beats = effects_config[effect_name]['beats']
-    for effect in effect_beats:
-        if type(effect[1]) == str:
+    for effect in effects_config[effect_name]['beats']:
+        if type(effect[1]) == str: # probably isn't needed?
             if effect[0] <= beat <= effect[0] + effect[2]:
                 sub_effect_names.append(effect[1])
             elif sub_effect_names:
                 break
     return sub_effect_names
-
-# outside
-# last_called_grid_render = False
-
-# wherever clear
-# global last_called_grid_render 
-# if last_called_grid_render:
-#     full_clear = ' ' * terminal_size + '\n'
-#     print(full_clear * 26, end='')
-#     last_called_grid_render = False
-
-# in light
-# if args.local and bool(infos_for_this_sub_beat):
-#     last_called_grid_render = True
 
 
 previous_sub_effect_names = None
@@ -719,43 +723,48 @@ Beat {curr_beat:.1f}, \
     return 2
 
 
+laser_representation = '.,-~:;=!*#$@'
+laser_motor_stage = random.randint(0, 1000)
+laser_motor_max_acceleration = 10
+laser_motor_min_deceleration = 10
+laser_motor_velocity = 0
 
-stage_chars = '.,-~:;=!*#$@'
+laser_intensity_max_acceleration = 70
+laser_intensity_min_deceleration = 70
+laser_intensity = 0
+
 max_num = pow(2, 16) - 1
 purple = [153, 50, 204]
-laser_stage = random.randint(0, 110)
 disco_speed = .15
 disco_pos = 0
-async def render_terminal(light_levels):
-    global laser_stage, disco_pos
+# !TODO remove the 0-5 indexes
+def render_terminal(light_levels):
+    global laser_motor_stage, disco_pos, laser_motor_velocity, laser_intensity
 
     character = '▆'
     try:
         terminal_size = os.get_terminal_size().columns
     except:
         terminal_size = 45
-
     line_length = terminal_size - 1
 
-    levels_255 = list(map(lambda x: int(x * 255), light_levels))
-    top_front_rgb = levels_255[0:3]
-    top_back_rgb = levels_255[3:6]
+    levels_255 = list(map(lambda x: int(x * 2.55), light_levels))
     bottom_rgb = levels_255[6:9]
     uv_value = levels_255[9]
-    laser_color_rgb = levels_255[10:12]
-    laser_motor_value = levels_255[12] / 2.55
+    target_laser_color_rgb = levels_255[10:12]
+    target_laser_motor_value = min(100, max(0, levels_255[12] / 2.55))
     disco_color_rgb = levels_255[13:16]
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
-    if any(laser_color_rgb):
-        laser_arr = list(f'{" " * line_length}\n' * 3)
+    if any(target_laser_color_rgb):
+        laser_chars = list(f'{" " * line_length}\n' * 3)
         for i in range(3):
             for j in range(15):
-                if j > 1 and (j + i + (laser_stage // 9)) % 4 == 0:
-                    laser_arr[j + (line_length * i)] = stage_chars[laser_stage // 10]
-        laser_string = ''.join(laser_arr)
-        laser_style = [laser_color_rgb[1], laser_color_rgb[0], 0]
+                if j > 1 and (j + i + (laser_motor_stage // 100)) % 4 == 0: # this was // 90 for some reason idk why
+                    laser_chars[j + (line_length * i)] = laser_representation[laser_motor_stage // 100]
+        laser_string = ''.join(laser_chars)
+        laser_style = [target_laser_color_rgb[1], target_laser_color_rgb[0], 0]
     else:
         laser_string = f'{" " * (terminal_size - 1)}\n' * 3
         laser_style = [0, 0, 0]
@@ -772,73 +781,38 @@ async def render_terminal(light_levels):
     else:
         disco_chars = ' ' * 14
 
-    if light_levels[12] != 0:
-        laser_stage += int(max(1, laser_motor_value // 10))
-        laser_stage %= 110
+    if laser_motor_velocity < target_laser_motor_value:
+        laser_motor_velocity += min(laser_motor_max_acceleration, target_laser_motor_value - laser_motor_velocity)
+    elif laser_motor_velocity > target_laser_motor_value:
+        laser_motor_velocity -= min(laser_motor_min_deceleration, laser_motor_velocity - target_laser_motor_value)
+    laser_motor_stage += int(laser_motor_velocity)
+    laser_motor_stage %= 1000
 
     disco_pos += disco_speed
     if disco_pos > 14:
-        disco_pos -= 14
+        disco_pos -= 14    
 
-    
-    top_uv_row = [
-        rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled),
-        # terminal_buffer,
-    ]
-    bottom_light_row = [
-        ' ' + rgb_ansi(character * 14, bottom_rgb),
-        # terminal_buffer,
-    ]
-    laser_row = [
-        ' ' + rgb_ansi(laser_string, laser_style),
-        # terminal_buffer,
-    ]
-    disco_row = [
-        ' ' + ''.join([char for char in disco_chars]),
-        # terminal_buffer,
-    ]
+    # laser_intensity will be 0-1
+    # if laser_intensity < 1:
 
-    # printing
+    top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled)
+    bottom_light_row = ' ' + rgb_ansi(character * 14, bottom_rgb)
+    laser_row = ' ' + rgb_ansi(laser_string, laser_style)
+    disco_row = ' ' + ''.join([char for char in disco_chars])
+
     top_lines_to_reset = print_info_terminal_lines()
 
     # actually i bet this really doesn't work because of invisible ansi characters... and cutting off doesnt work because they have length, we need to just keep track
-    print(''.join(top_uv_row))
+    print(top_uv_row)
     grid_rows_to_reset = grid_helpers.render(terminal=True, reset_terminal=False)
-    print(''.join(laser_row))
-    print(''.join(bottom_light_row))
-    print(''.join(disco_row), end='')
-
-    # print('\033[F' * 2, end='') # clearing the print_info_terminal_lines()
+    print(laser_row)
+    print(bottom_light_row)
+    print(disco_row, end='')
     sys.stdout.write('\033[F' * (6 + grid_rows_to_reset + top_lines_to_reset))
-
-
-light_levels = [0] * LIGHT_COUNT
-async def send_to_terminal_output(light_level_or_signal, i):
-    if light_level_or_signal == None:
-        await render_terminal(light_levels)
-    else:
-        light_levels[i] = light_level_or_signal
-
 
 ####################################
 
-def uuid_to_user(uuid):
-    if uuid in users:
-        return users[uuid]['name'] + f' ({uuid})'
-    return uuid
-
-
-def print_current_beat():
-    curr_beat = (beat_index / SUB_BEATS) + 1
-    print(f'Beat: {curr_beat:.1f}\n' * 25)
-
-
-tap_beat_file_path = get_temp_dir().joinpath(f'beat_output_file_{random_letters(8)}.dat')
-def output_current_beat():
-    print_red(f'OUTPUTTING BEATS TO: {tap_beat_file_path}\n' * 10)
-    with open(tap_beat_file_path, 'a') as f:
-        curr_beat = (beat_index / SUB_BEATS) + 1
-        f.writelines([str(round(curr_beat, 2)), '\n'])
+pin_light_levels = [0] * LIGHT_COUNT
 
 @profile
 async def light():
@@ -847,7 +821,7 @@ async def light():
     download_thread = None
     search_thread = None 
     while True:
-        infos_for_this_sub_beat = []
+        infos_for_this_sub_beat = {}
         grid_fill_from_old = True
         clear_grid_at_start = True
 
@@ -904,62 +878,102 @@ async def light():
                         info.bpm = curr_bpm
                         info.time_diff = time_diff
                         info.looped = looped
-                        infos_for_this_sub_beat.append(info)
+                        
+                        priority = getattr(info, 'priority', 0)
+                        if priority not in infos_for_this_sub_beat:
+                            infos_for_this_sub_beat[priority] = []
+                        infos_for_this_sub_beat[priority].append(info)
+
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
                         grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
 
-        # Finding 0-100 levels based on simple and complex effects
-        grid_levels = [0] * LIGHT_COUNT
-        for i in range(LIGHT_COUNT):
+        # Preparing the pin light values (laser, laser motor, disco, floor lights, old grid)
+        for light_index in range(LIGHT_COUNT):
             level = 0
             for effect_name, start_index in curr_effects:
-                index = beat_index + start_index
+                modified_beat_index = beat_index + start_index # what is this variable??
+                if 'beats' in channel_lut[effect_name] and modified_beat_index >= 0 and (channel_lut[effect_name]['loop'] or modified_beat_index < channel_lut[effect_name]['length']):
+                    modified_beat_index = modified_beat_index % channel_lut[effect_name]['length']
+                    level += channel_lut[effect_name]['beats'][modified_beat_index][light_index]
+            pin_light_levels[light_index] = max(0, min(100, level))
 
-                # print(f'{index=}, {beat_index=}, {start_index=}\n'*8)
-
-                if 'beats' in channel_lut[effect_name] and index >= 0 and (channel_lut[effect_name]['loop'] or index < channel_lut[effect_name]['length']):
-                    index = index % channel_lut[effect_name]['length']
-                    level += channel_lut[effect_name]['beats'][index][i]
-
-            level_bounded = max(0, min(100, level))
-            level_between_0_and_1 = level_bounded / 100
-            grid_levels[i] = level_bounded
-            
-            # gamma curve
-            # level_scaled = round(pow(level_between_0_and_1, 2.2))
-            level_scaled = round(level_between_0_and_1 * LED_RANGE)
-
-            if args.local:
-                await send_to_terminal_output(level_between_0_and_1, i)
-            else:
-                pi.set_PWM_dutycycle(LED_PINS[i], level_scaled)
-                # print(f'i: {i}, pin: {LED_PINS[i]}, level: {level_scaled}')
-
-        # Rendering grid
+        # Preparing new grid_helpers.grid for display
         if clear_grid_at_start:
             grid_helpers.reset()
         
         if grid_fill_from_old:
+            grid_levels_from_front_back = pin_light_levels[:6]
+            if args.full_grid:
+                # full fill (overbearing because entire grid)
+                grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels_from_front_back[0], grid_levels_from_front_back[1], grid_levels_from_front_back[2]] # front
+                grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back        
+            else:
+                def grid_fill_fancy(rgbs, centerpoint):
+                    # bright_to_go is initally brightness percentage out of 100.
+                    bright_to_go = max(rgbs)
+                    rgbs = [rgbs[0], rgbs[1], rgbs[2]]
+                    # max_per_bucket determines what percent each bucket can contribute.
+                    # ideally would add to 100%
+                    max_per_bucket = [14.25, 13.75, 13.25, 12.75, 12.25, 11.75, 11.25, 10.75] # there are 8 rows available, including center
+                    rgb_outs = []
+                    # center is special case:
+                    row_bright = min(bright_to_go, max_per_bucket[0])
+                    bright_to_go -= row_bright
+                    rgb_outs.append([x*row_bright/14.25 for x in rgbs])
+                    counter = 1
+                    while bright_to_go > 0:
+                        row_bright = min(bright_to_go, max_per_bucket[counter])
+                        bright_to_go -= row_bright*2
+                        rgb_outs.append([x*row_bright/14.25 for x in rgbs])
+                        counter += 1
+                    extra = 0
+                    if centerpoint == 3:
+                        extra = -1
+                    for i, rgb in enumerate(rgb_outs):
+                        if i == 0:
+                            grid_helpers.grid[:, int(centerpoint * (grid_helpers.GRID_HEIGHT / 4)) + extra] = [rgb[0], rgb[1], rgb[2]] # front
+                        else:
+                            grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))+i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
+                            grid_helpers.grid[:, (int(centerpoint * (grid_helpers.GRID_HEIGHT / 4))-i) + extra] = [rgb[0], rgb[1], rgb[2]] # front
+                grid_fill_fancy([grid_levels_from_front_back[0], grid_levels_from_front_back[1], grid_levels_from_front_back[2]], 3)
+                grid_fill_fancy([grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]], 1)
+                
             # semi fill (looks like pre-grid)
-            grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-            grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
-        
-            # full fill (overbearing because entire grid)
-            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 2:] = [grid_levels[0], grid_levels[1], grid_levels[2]] # front
-            # grid_helpers.grid[:, :grid_helpers.GRID_HEIGHT // 2] = [grid_levels[3], grid_levels[4], grid_levels[5]] # back
-        
-        for info in infos_for_this_sub_beat:
-            try:
-                info.grid_function(info)
-            except Exception as e:
-                print_stacktrace()
-                print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
-                return False
+            # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
+            # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
+            
+        for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
+            for info in info_arr:
+                try:
+                    info.grid_function(info)
+                except Exception:
+                    print_stacktrace()
+                    print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                    return False
+        grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
-        if args.local:
-            await send_to_terminal_output(None, None)
-        else:
+        # Render the grid to the terminal
+        if args.local or args.force_terminal:
+            # grid_helpers.apply_bezier_to_grid() # for testing
+            render_terminal(pin_light_levels) # this also renders the grid to the terminal
+
+        # Send relevant pin light levels to the pi
+        if not args.local:
+            # 6-8 are the floor pins i think?
+            # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
+            # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
+            # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
+
+            for index in range(6, len(pin_light_levels)):
+                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
+                pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+
+        # Sends the grid to the pi 
+        if not args.local:
+            if args.no_curve:
+                grid_helpers.apply_bezier_to_grid() # New way
             grid_helpers.render()
+
 
         # check on youtube downloads
         if download_thread is not None:
@@ -1054,15 +1068,36 @@ def add_effect(new_effect_name):
     if (effect['trigger'] == 'toggle' or effect['trigger'] == 'hold') and get_effect_index(new_effect_name) is not False:
         return
 
+    if new_effect_name in winamp.winamp_wrapper.preset_name_to_filepath:
+        index = 0
+        while index < len(curr_effects):
+            existing_name = curr_effects[index][0]
+            if existing_name in winamp.winamp_wrapper.preset_name_to_filepath:
+                curr_effects.pop(index)
+            else:
+                index += 1
+
     if 'bpm' in effect:
-        clear_effects()
-        time_start = time.time() + effect['delay_lights'] - song_time
-        # print('effect will have time_start of:', effect['delay_lights'] - song_time)
+        if 'downloaded_songs' in str(effect.get('song_path', 'downloaded_songs')):
+            print_yellow('Only clearing other effects with songs because i think this is a rekordbox switch')
+            for effect_name, start_index in curr_effects:
+                if effects_config[effect_name].get('was_autogenerated', False):
+                    remove_effect_name(effect_name)
+        else:
+            clear_effects()
+
         curr_bpm = effect['bpm']
-        beat_index = int((-effect['delay_lights']) * (curr_bpm / 60 * SUB_BEATS))
+
+        to_delay = effect['delay_lights']
+        if args.absolute_delay_seconds:
+            to_delay += args.absolute_delay_seconds
+        if not args.local:
+            to_delay += 0.08
+        
+        time_start = time.time() + to_delay - song_time
+        beat_index = int((-to_delay) * (curr_bpm / 60 * SUB_BEATS))
         offset = 0
     else:
-        # offset = (beat_index % round(effect['snap'] * SUB_BEATS)) - beat_index
         snap = round(effect['snap'] * SUB_BEATS)
         offset = beat_index % snap
         if offset > snap * 0.5:
@@ -1071,27 +1106,19 @@ def add_effect(new_effect_name):
     curr_effects.append([new_effect_name, offset])
 
 
-def play_song(effect_name, quiet=False):
+def play_song(effect_name, quiet=False): # disabled rekordbox input
     global take_rekordbox_input, song_playing
-    # print('Disabling rekordbox input')
     take_rekordbox_input = False
-    # print(f'Going to play music from effect: {effect_name}')
     song_path = effects_config[effect_name]['song_path']
     start_time = effects_config[effect_name]['skip_song'] + song_time
+    
+    print(f'start_time: {start_time:,.2f}, skip_song: {effects_config[effect_name]["skip_song"]:.2f}, song_time: {song_time:.2f}')
     if not quiet: print_blue(f'Starting music from {effect_name}: "{song_path}" at {start_time} seconds at {round(args.volume * 100)}% volume')
-    # if not quiet: print(json.dumps(effects_config[effect_name], indent=4))
-    # if not quiet: print_yellow(json.dumps(songs_config[song_path], indent=4))
 
-    dev_timing = time.time()
     pygame.mixer.music.set_volume(args.volume)
     pygame.mixer.music.load(pathlib.Path(song_path))
-
-    # ffmpeg -i songs/musician2.mp3 -c:a libvorbis -q:a 4 songs/musician2.ogg
-    # python server.py --local --show "shelter" --skip 215
-    # ffplay songs/shelter.mp3 -ss 215 -nodisp -autoexit
     pygame.mixer.music.play(start=start_time)
     song_playing = True
-    print_cyan(f'play_song: {time.time() - dev_timing:.3f} seconds')
 
 def stop_song():
     global song_playing
@@ -1100,26 +1127,6 @@ def stop_song():
 
 
 ######################################
-
-def setup_gpio():
-    global pi
-    try:
-        pi = pigpio.pi()
-    except Exception as e:
-        print_red(f'{traceback.format_exc()}')
-        print_yellow(f'you need to add --local probably')        
-        sys.exit()
-
-    if not pi.connected:
-        exit()
-
-    for pin in LED_PINS:
-        pi.set_PWM_frequency(pin, LED_FREQ)
-        pi.set_PWM_range(pin, LED_RANGE)
-        pi.set_PWM_dutycycle(pin, 0)
-
-
-################################################
 
 effects_config = {}
 effects_config_dj_client = {}
@@ -1136,10 +1143,6 @@ complex_effects = []
 
 
 all_infos = []
-def reset_all_infos():
-    for info in all_infos:
-        info.reset()
-
 def effects_config_sort(all_nodes):
     curr_node = all_nodes[-1]
     
@@ -1164,7 +1167,6 @@ def effects_config_sort(all_nodes):
             complex_effects.append(curr_node)
         
 
-
 def dfs(effect_name):
     if effect_name not in found:
         if effect_name not in effects_config:
@@ -1176,13 +1178,12 @@ def dfs(effect_name):
                     return missing_effect
         effects_config_sort([effect_name])
 
+
 def add_dependancies(effect_names):
     for effect_name in effect_names:
         effect = effects_config[effect_name]
-
-        # this is optimized from below
+        # optimized from below
         graph[effect_name] = list({component[1] for component in effect['beats'] if not isinstance(component[1], list)})
-        
         # for component in effect['beats']:
         #     if not isinstance(component[1], list):
         #         graph[effect_name].add(component[1])
@@ -1223,12 +1224,6 @@ def prep_loaded_effects(effect_names):
         if 'song_path' in effect:
             effect['song_path'] = effect['song_path'].replace('\\', '/')
 
-    before_song_config_import = time.time()
-    if not songs_config:
-        for name, filepath in get_all_paths('songs', only_files=True):
-            add_song_to_config(filepath)
-    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
-
     updated_effect_names = []
     temp_stuff = []
     for effect_name in effect_names:
@@ -1250,14 +1245,14 @@ def prep_loaded_effects(effect_names):
                     effect['profiles'].append('Shows')
                 # print(effect_name, song_name_to_show_names[song_name])
             elif effect.get('song_not_avaliable', True):
-                if not effect_name.startswith('g_'):
+                if not effect_name.startswith('g_'): # !TODO replace with "was_autogenerated"
                     print(yellow('handmade song not avaliable') + f' "{effect["song_path"]=}"')
-                if args.show:
+                if args.show_name:
                     effect['song_not_avaliable'] = True
                 # else:
                 #     del effect['song_path']
                     # print_red('deleted', _effect_name)
-    print(f'{len(song_name_to_show_names)=}, {len(effect_names)=}, {len(temp_stuff)=}')
+    print(f'{len(song_name_to_show_names)=}, {len(effect_names)=:,}, {len(temp_stuff)=}')
     add_dependancies(updated_effect_names)
 
 
@@ -1281,7 +1276,7 @@ def load_effects_config_from_disk():
     if args.load_autogen_shows:
         found_paths += list(get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True, only_files=True)) + list(get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True, only_files=True))
 
-    for _index, (name, filepath) in enumerate(found_paths):
+    for name, filepath in found_paths:
         if name == 'compiler.py':
             continue
     
@@ -1289,23 +1284,25 @@ def load_effects_config_from_disk():
         without_suffix = relative_path.parent.joinpath(relative_path.stem)
         module_name = str(without_suffix).replace(os.sep, '.')
         t1 = time.time()
-        globals()[module_name] = importlib.import_module(module_name)
+        globals()[module_name] = importlib.import_module(module_name) # to reload: importlib.reload(globals()[module_name])
         effects.compiler.next_beat = None
-        # importlib.reload(globals()[module_name])
         import_time += time.time() - t1
-        # print(f'{module_name}: {time.time() - t1}')
-        if not filepath.stem.startswith('g_'):
-            for effect_name in globals()[module_name].effects:
-                if effect_name in effects_config:
-                    print_yellow(f'WARNING: effect name collision "{effect_name}" in module "{module_name}"')
+        
+        # if globals()[module_name].effects.get('was_autogenerated'): # IDK WHY THIS WAS HERE BUT IT KINDA WAS?
+        for effect_name in globals()[module_name].effects:
+            if effect_name in effects_config:
+                print_red(f'ERROR: Effect name collision "{effect_name}"\n    File 1: {effects_config[effect_name]["from_python_file"]}\n    File 2: {relative_path}')
+                exit()
+        
         effects_config.update(globals()[module_name].effects)
+        for effect_name in globals()[module_name].effects:
+            effects_config[effect_name]['from_python_file'] = str(relative_path)
 
     prep_loaded_effects(list(effects_config.keys()))
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}, imported {len(found_paths)} modules')
 
 
-song_specific_adjusted = set()
-def set_effect_defaults(name, effect):
+def set_effect_defaults(effect_name, effect): # this must be safe to run multiple times
     if 'hue_shift' not in effect:
         effect['hue_shift'] = 0
     if 'sat_shift' not in effect:
@@ -1324,74 +1321,63 @@ def set_effect_defaults(name, effect):
         effect['profiles'] = []
     if effect.get('autogen') and 'Autogen effects' not in effect['profiles']:
         effect['profiles'].append('Autogen effects')
+
     if 'song_path' in effect:
         effect['song_path'] = str(pathlib.Path(effect['song_path'])).replace('\\', '/')
-    
-    # !warning this screws with --speed parameter, uh this can only be run once...
-    if 'song_path' in effect and effect['song_path'] in songs_config:
-        if 'bpm' not in effect:
-            print_red(f'song effects must have bpm {effect["song_path"]}\n' * 10)
-            exit()
-        
-        # !TODO this is nonsense
-        if name in song_specific_adjusted:
-            print_yellow(f'set_effect_defaults ALREADY RAN ON {name}, THIS IS RIDICULOUS')
-        else:
-            effect['delay_lights'] = effect.get('delay_lights', 0)
-            if not args.local:
-                effect['delay_lights'] += 0.08
-            if args.delay_seconds:
-                effect['delay_lights'] += args.delay_seconds
-                # print_red(f'{name}: WHEN AM I ADDED')
+        effect['loop'] = False # !todo verify this is a correct assumption
+
+        if 'delay_lights' not in effect:
+            effect['delay_lights'] = 0
+
+        if effect['song_path'] in songs_config: # song file has been successfully loaded
+            if 'bpm' not in effect:
+                print_red(f'Show "{effect_name}" must have bpm. Song path found: {effect["song_path"]}\n' * 10)
+                exit()
+
             if 'length' not in effect:
                 effect['length'] = songs_config[effect['song_path']]['duration'] * effect['bpm'] / 60
-            if 'loop' not in effect:
-                effect['loop'] = False
-            song_specific_adjusted.add(name)
-    else:
-        if 'loop' not in effect:
-            effect['loop'] = True
-    # if 'song_path' not in effect:
-    #     effect['profiles'].append('All Effects')
+    if 'loop' not in effect:
+        effect['loop'] = True
 
 
-
-def compile_all_luts_from_effects_config():
+def precompile_some_luts_effects_config():
     global channel_lut
     compile_all_luts_start_time = time.time()
 
     channel_lut = {}
 
     effects_config_to_compile = {}
-    if args.show:
-        effects_config_to_compile[args.show] = effects_config[args.show]
+    if args.show_name:
+        effects_config_to_compile[args.show_name] = effects_config[args.show_name]
 
     for effect_name, effect in effects_config.items():
         set_effect_defaults(effect_name, effect)
 
-        # if not effect_name.startswith('g_lasers_'):
-        # print(effect_name)
         if effect['profiles'] or 'song_path' in effect and effect['song_path'] in songs_config:
             effects_config_clients = [effects_config_dj_client, effects_config_queue_client]
             # commenting this is a perf test, comment to slow down the dj client
-            if 'Generated Shows' in effect['profiles']:
+            if effect.get('was_autogenerated', False):
                 effects_config_clients = [effects_config_queue_client]
-
+            
+            needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated']
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {}
                 for key, value in effect.items():
-                    if key != 'beats':
+                    # if key != 'beats':
+                    if key in needed_fields:
                         effects_config_client[effect_name][key] = value
+    # print(effects_config_dj_client)
+    # from pympler import asizeof
+    # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
+    # exit()
 
-    # TODO andrew: replace with is_doorbell()
     if False and is_doorbell():
-        # eager compile all normal effects
-        for effect_name, effect in effects_config.items():
+        for effect_name, effect in effects_config.items(): # eager compile all normal effects
             if 'bpm' not in effect:
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)
-    print_blue(f'compile_all_luts_from_effects_config took: {time.time() - compile_all_luts_start_time:.3f}')
+    print_blue(f'precompile_some_luts_effects_config took: {time.time() - compile_all_luts_start_time:.3f} to compile {len(effects_config_to_compile):,} effects')
 
 
 def set_complex_effect_defaults(effect):
@@ -1428,6 +1414,7 @@ def calculate_complex_effect_length(effect):
         start_beat = component[0] - 1
         calced_effect_length = max(calced_effect_length, start_beat + component[2])
     return calced_effect_length
+
 
 def compile_lut(local_effects_config):
     global channel_lut, simple_effects, complex_effects
@@ -1615,18 +1602,6 @@ def compile_lut(local_effects_config):
 
 ##################################################
 
-def kill_in_n_seconds(seconds):
-    time.sleep(seconds)
-    atexit._run_exitfuncs()
-
-    if is_windows():
-        kill_string = f'taskkill /PID {os.getpid()} /F'
-    else:
-        kill_string = f'kill -9 {os.getpid()}'
-    print(f'running to kill: "{kill_string}"')
-    os.system(kill_string)
-
-
 def signal_handler(sig, frame):
     print('SIG Handler inside light_server.py: ' + str(sig), flush=True)
     close_connections_to_doorbell()
@@ -1638,8 +1613,10 @@ def signal_handler(sig, frame):
             for child in active_children:
                 print_yellow(f'killing {child.pid}')
                 child.kill()
+    if not args.local or is_windows():
+        threading.Thread(target=kill_self, args=(0.5,)).start()
+    
     if not args.local:
-        threading.Thread(target=kill_in_n_seconds, args=(0.5,)).start()
         grid_helpers.reset()
         grid_helpers.render()
         for pin in LED_PINS:
@@ -1648,13 +1625,10 @@ def signal_handler(sig, frame):
 
 #################################################
 
-
 def fuzzy_find(search, collection):
     import thefuzz.process
-    # print_yellow('Warning: fuzzy_find doesnt prune any results based on probablity and will return a show no matter what')
-    before_fuzz = time.time()
     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
-    print_cyan(f'top 3 choices: {choices}, took {time.time() - before_fuzz:.3f} seconds')
+    print_cyan(f'top 3 choices: {choices}, returning top no matter what')
     return choices[0][0]
 
 
@@ -1683,12 +1657,6 @@ def restart_show(skip=0, abs_time=None, quiet=False):
 
 #################################################
 
-def get_channel_lut():
-    return channel_lut
-
-def get_effects_config():
-    return effects_config
-
 def try_download_video(show_name):
     just_filename = pathlib.Path(effects_config[show_name]['song_path']).stem
     print(f'Searching with phrase "{just_filename}"')
@@ -1698,10 +1666,12 @@ def try_download_video(show_name):
         exit()
 
     url = youtube_search_result['webpage_url']
-    if youtube_download_helpers.download_youtube_url(url, dest_path='songs'):
-        print('downloaded video, continuing to try to recover')
-        return
-    raise Exception('Couldnt download video')
+    downloaded_path = youtube_download_helpers.download_youtube_url(url, dest_path='songs')
+    if not downloaded_path:
+        raise Exception('Couldnt download youtube video')
+    
+    add_song_to_config(downloaded_path)
+    return downloaded_path
 
 
 def debug_effect_or_grid(effect_name):
@@ -1718,6 +1688,19 @@ def debug_effect_or_grid(effect_name):
     print_blue(f'{effect_name=}, number of infos: {len(all_infos)}, {channel["length"]=}')
     for info in all_infos:
         print_cyan(f'  info: {info}')
+
+
+def print_current_beat():
+    curr_beat = (beat_index / SUB_BEATS) + 1
+    print(f'Beat: {curr_beat:.1f}\n' * 25)
+
+
+tap_beat_file_path = get_temp_dir().joinpath(f'beat_output_file_{random_letters(8)}.dat')
+def output_current_beat():
+    print_red(f'OUTPUTTING BEATS TO: {tap_beat_file_path}\n' * 10)
+    with open(tap_beat_file_path, 'a') as f:
+        curr_beat = (beat_index / SUB_BEATS) + 1
+        f.writelines([str(round(curr_beat, 2)), '\n'])
 
 
 print_cyan(f'Up till main: {time.time() - first_start_time:.3f}')
@@ -1742,6 +1725,12 @@ if __name__ == '__main__':
     if not args.local:
         setup_gpio()
     
+    # import songs
+    before_song_config_import = time.time()
+    for _, filepath in get_all_paths('songs', only_files=True):
+        add_song_to_config(filepath)
+    print_blue(f'add_song_to_configs took {time.time() - before_song_config_import:.3f}')
+
     if args.autogen is not None:
         import autogen
 
@@ -1754,7 +1743,7 @@ if __name__ == '__main__':
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
-            args.show, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            args.show_name, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 
@@ -1798,10 +1787,9 @@ if __name__ == '__main__':
                 prep_loaded_effects(list(globals()[module_name].effects.keys()))
 
         observer = Observer()
-        dir_to_watch = effects_dir.joinpath('rekordbox_effects')
-        make_if_not_exist(dir_to_watch)
-        print_cyan(f'WATCHING {dir_to_watch} for rekordbox additions')
-        observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive = True)
+        dir_to_watch = make_if_not_exist(effects_dir.joinpath('rekordbox_effects'))
+        print_cyan(f'Watchdog for rekordbox song additions: {dir_to_watch}')
+        observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive=True)
         observer.start()
 
     if args.keyboard:
@@ -1816,21 +1804,13 @@ if __name__ == '__main__':
 
         skip_time = 5
         keyboard_dict = {
-            # 'd': 'Red top',
-            # 'f': 'Cyan top',
             '`': output_current_beat,
-            # 'b': print_current_beat,
-            # 'k': lambda: restart_show(skip=-2),
-            # 'l': lambda: restart_show(skip=2),
-            # 'j': lambda: restart_show(skip=-skip_time),
-            # ';': lambda: restart_show(skip=skip_time),
             'up': lambda: restart_show(skip=2),
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             'cmd_r': lambda: restart_show(skip=-skip_time),
             'alt_r': lambda: restart_show(skip=skip_time),
-            # 'space': 'UV',
         }
         # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 
@@ -1847,9 +1827,7 @@ if __name__ == '__main__':
             return True
 
         def on_press(key):
-            if not window_focus():
-                return
-
+            if not window_focus(): return
             if type(key) == KeyCode:
                 key_name = key.char
             else:
@@ -1862,9 +1840,7 @@ if __name__ == '__main__':
                     keyboard_dict[key_name]()
 
         def on_release(key):
-            if not window_focus():
-                return
-
+            if not window_focus(): return
             if type(key) == KeyCode:
                 key_name = key.char
             else:
@@ -1872,92 +1848,71 @@ if __name__ == '__main__':
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:
                     remove_effect_name(keyboard_dict[key_name])
-
-
-        def listen_for_keystrokes():
-            with Listener(on_press=on_press, on_release=on_release) as listener:
+        
+        def keyboard_listener():
+            with Listener(on_press=on_press, on_release=on_release) as listener: 
                 listener.join()
+        threading.Thread(target=keyboard_listener, args=[], daemon=True).start()
 
-        keyboard_thread = threading.Thread(target=listen_for_keystrokes, args=[], daemon=True)
-        keyboard_thread.start()
-        if is_macos():
-            time.sleep(.05)
+    http_server_async(9555, this_file_directory, ['', 'queue.html'])
 
-
-    http_thread = threading.Thread(target=run_http_server_forever, args=[], daemon=True)
-    http_thread.start()
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    async def start_async():
-        print_cyan(f'Up to start_async: {time.time() - first_start_time:.3f}')
+    async def light_show_event_loop_start():
+        print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
-        print_green(f'started websocket servers')
 
-        if args.show:
-            print('Starting show from CLI:', args.show)
 
+        if args.show_name:
+            print('Starting show from CLI:', args.show_name)
             only_shows = list(filter(lambda x: has_song(x), effects_config.keys()))
-            args.show = fuzzy_find(args.show, only_shows)
+            args.show_name = fuzzy_find(args.show_name, only_shows)
 
-            if effects_config[args.show].get('song_not_avaliable'):
-                # print(list(effects_config.keys()))
-                print_yellow(f'Song isnt availiable for effect "{args.show}", press enter to try downloading?')
+            if effects_config[args.show_name].get('song_not_avaliable'):
+                print_yellow(f'Song isnt availiable for effect "{args.show_name}", press enter to try downloading?')
                 input()
-                try_download_video(args.show)
-                time.sleep(.02)
+                try_download_video(args.show_name)
+                time.sleep(.01)
 
-            if args.show in effects_config:
-                if args.speed != 1 and 'song_path' in effects_config[args.show]:
-                    # print_yellow(f'BEFORE bpm {effects_config[args.show]["bpm"]}, song_path {effects_config[args.show]["song_path"]}')
-                    # print_yellow(f'BEFORE skip_song {effects_config[args.show]["skip_song"]}, delay_lights {effects_config[args.show]["delay_lights"]}')
-                    # print_yellow(f'BEFORE args.skip_show_seconds {args.skip_show_seconds}, args.delay_seconds {args.delay_seconds}')
-                    print_yellow(f'Speed was set to {args.speed} changing...')
-                    print_cyan(f'    Old - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}')
-                    # print_yellow(f'Before path {effects_config[args.show]["song_path"]}')
-                    # Starting music "/home/andrew/programming/python/light-show/temp/RIOT - Overkill [Monstercat Release]_asetrate_0.999.ogg" at 4.487245866556211 seconds at 30% volum
-                    # Starting music "songs/RIOT - Overkill [Monstercat Release].ogg" at 4.482758620689656 seconds at 30% volume
-                    effects_config[args.show]['song_path'] = str(sound_video_helpers.change_speed_audio_asetrate(effects_config[args.show]['song_path'], args.speed, quiet=True))
-                    effects_config[args.show]['bpm'] *= args.speed
-                    effects_config[args.show]['song_path'] = add_song_to_config(effects_config[args.show]['song_path'], quiet=True)
-                    args.skip_show_seconds *= 1 / args.speed
-                    args.delay_seconds *= 1 / args.speed
-                    effects_config[args.show]['skip_song'] *= 1 / args.speed
-                    effects_config[args.show]['delay_lights'] *= 1 / args.speed
-                    print_cyan(f'    New - skip_song: {effects_config[args.show]["skip_song"]}, delay_lights: {effects_config[args.show]["delay_lights"]}, path: {effects_config[args.show]["song_path"]}')
+            if args.show_name not in effects_config:
+                print_red(f'Couldnt find effect named "{args.show_name}"')
+                exit()
+            show = effects_config[args.show_name]
 
-                    # print_red(f'Adjusted bpm to {effects_config[args.show]["bpm"]}, song_path to {effects_config[args.show]["song_path"]}')
-                    # print_red(f'Adjusted skip_song to {effects_config[args.show]["skip_song"]}, delay_lights to {effects_config[args.show]["delay_lights"]}')
-                    # print_red(f'Adjusted args.skip_show_seconds to {args.skip_show_seconds}, args.delay_seconds to {args.delay_seconds}')
-                if args.skip_show_beats:
-                    args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / effects_config[args.show]['bpm'])
+            if args.skip_show_beats > 1:
                 if args.skip_show_seconds:
-                    global song_time
-                    song_time = args.skip_show_seconds
-                    # effects_config[args.show]['skip_song'] += args.skip_show_seconds
-                    # effects_config[args.show]['delay_lights'] -= args.skip_show_seconds
-            else:
-                print_red(f'Couldnt find effect named "{args.show}" in any profile')
+                    raise Exception('You cant set both skip_show_beats and skip_show_seconds')
+                args.skip_show_seconds = (args.skip_show_beats - 1) * (60 / show['bpm'])
+            elif args.skip_show_beats != 1.0:
+                print_red(f'I dont think a value of {args.skip_show_beats} makes sense for skip_show_beats, skipping...')
 
-        compile_all_luts_from_effects_config()
-        # debug_effect_or_grid('twinkle white')
-        # debug_effect_or_grid('Lemaitre - Blue Shift')
-        # debug_effect_or_grid('tech effect testing sub')
-        # debug_effect_or_grid('5 hours intro')
-        # exit()
+            if args.speed != 1:
+                ratio = 1 / args.speed
+                print_yellow(f'Speed was set to {args.speed}, ratio: {ratio:.3f} changing...')
+                print_cyan(f'    Old - {args.skip_show_seconds=:.2f}, skip_song: {show["skip_song"]:.2f}, delay_lights: {show["delay_lights"]:.2f}, {show["bpm"]=}')
+                show['song_path'] = add_song_to_config(str(sound_video_helpers.change_speed_audio_asetrate(show['song_path'], args.speed, quiet=True)))
+                show['bpm'] *= args.speed
+                show['skip_song'] *= ratio
+                show['delay_lights'] *= ratio
+                args.skip_show_seconds *= ratio
+                print_cyan(f'    New - {args.skip_show_seconds=:.2f}, skip_song: {show["skip_song"]:.2f}, delay_lights: {show["delay_lights"]:.2f}, path: {show["song_path"]}, {show["bpm"]=}')
+                
+            if args.skip_show_seconds:
+                global song_time
+                song_time = args.skip_show_seconds
 
-        if args.show:
-            print_blue('Found in CLI:', args.show)
-            song_queue.append([args.show, get_queue_salt(), 'CLI'])
-            add_effect(args.show)
-            play_song(args.show)
+        precompile_some_luts_effects_config()
+        # debug_effect_or_grid('5 hours intro') and exit()
+
+        if args.show_name:
+            print_blue('Found in CLI:', args.show_name)
+            song_queue.append([args.show_name, get_queue_salt(), 'CLI'])
+            add_effect(args.show_name)
+            play_song(args.show_name)
+
+        print_cyan(f'Whole startup took total: {time.time() - first_start_time:.3f}')
+
         asyncio.create_task(light())
-
-        print_cyan(f'Whole startup: {time.time() - first_start_time:.3f}')
-
         await dj_socket_server.wait_closed() and queue_socket_server.wait_closed() and rekordbox_bridge_server.wait_closed()
 
-    asyncio.run(start_async())
+    asyncio.run(light_show_event_loop_start())

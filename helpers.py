@@ -10,7 +10,7 @@ try:
 except NameError:
     profile = lambda x: x
 
-helper_file_folder = pathlib.Path(__file__).parent.resolve()
+helpers_directory = pathlib.Path(__file__).parent.resolve()
 
 
 def get_datetime_str():
@@ -32,6 +32,8 @@ is_windows = lambda: platform.system() == "Windows"
 is_linux = lambda: platform.system() == "Linux"
 is_macos = lambda: platform.system() == "Darwin"
 
+is_andrewpi = lambda: get_hostname() == 'andrewpi'
+is_meschpi = lambda: get_hostname() == 'meschpi'
 is_marias_computer = lambda: get_hostname() == 'DESKTOP-IKO6828'
 is_ray = lambda: get_hostname() == 'ray'
 is_erics_laptop = lambda: get_hostname() == 'Eric-Laptop'
@@ -62,40 +64,33 @@ def is_screensaver_running():
 def get_eric_directory():
     if is_andrews_main_computer():
         mount_path = pathlib.Path('/mnt/eric_network_share')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout: 
-            return mount_path
-        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //ERIC-DESKTOP/Network /mnt/eric_network_share"')
-        exit()
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
     elif is_windows(): 
         return pathlib.Path(r'\\ERIC-DESKTOP\Network')
-    print_red('doesnt know how contact eric_directory')
+    print_red('dont know how contact ray_directory')
 
 def get_ray_directory():
     if is_ray() or is_erics_laptop() or is_dj():
         return pathlib.Path('T:/')
     elif is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/ray_network_share')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout:
-            return mount_path
-        print_red(f'Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o vers=3.0,username=,password=,uid=$(id -u),gid=$(id -g) //192.168.86.210/T /mnt/ray_network_share/"')
-        exit()
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
     elif is_windows():
         return pathlib.Path(r'\\Ray\T')
-    print_red('doesnt know how contact ray_directory')
+    print_red('dont know how contact ray_directory')
 
 
 def get_nas_directory():
     if is_andrews_main_computer() or is_andrews_laptop():
         mount_path = pathlib.Path('/mnt/nas')
-        _, stdout, _ = run_command_blocking(['ls', str(mount_path)])
-        if stdout:
-            return mount_path
-        else:
-            print_red('Cannot find any files in {mount_path}, you probably need to run "sudo mount -t cifs -o username=crammem,password=#Cumbr1dge,uid=$(id -u),gid=$(id -g) //192.168.86.75/Raymond /mnt/nas/"')
-            exit()
-    print_red('doesnt know how contact nas_directory')
+        if not run_command_blocking(['ls', str(mount_path)])[1]:
+            return print_red(f'Cannot find any files in {mount_path}')
+        return mount_path
+    print_red('dont know how contact nas_directory')
 
 
 def get_stack_trace():
@@ -280,20 +275,37 @@ def get_all_paths(directory, only_files=False, exclude_names=None, recursive=Fal
             yield entry.name, entry
 
 
-def start_http_server_blocking(port, filepath_to_serve):
+def http_server_blocking(port, directory_to_serve, for_printing=['']):
+    import socket
     import http.server
-    import socketserver
 
-    Handler = http.server.SimpleHTTPRequestHandler
-    os.chdir(filepath_to_serve)
-    with socketserver.TCPServer(("", port), Handler) as httpd:
-        print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
-        httpd.serve_forever()
+    try:
+        info = socket.gethostbyname_ex(socket.gethostname())
+        local_ip = info[2][0]
+    except:
+        local_ip = 'cant_resolve_hostbyname'
+
+    class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+        def translate_path(self, path):
+            return os.path.join(str(directory_to_serve), path.lstrip("/"))
+    for service in for_printing:
+        print_green(f'http://{local_ip}:{port}/{service}', flush=True)
+    http.server.ThreadingHTTPServer(('', port), CustomHTTPRequestHandler).serve_forever()
 
 
-def start_http_server_async(port, filepath_to_serve):
+    # old impl
+    # import http.server
+    # import socketserver
+
+    # Handler = http.server.SimpleHTTPRequestHandler
+    # os.chdir(filepath_to_serve)
+    # with socketserver.TCPServer(("", port), Handler) as httpd:
+    #     print_blue(f'serving simple http server at {port} at path {filepath_to_serve}, can hit with http://localhost:{port}')
+    #     httpd.serve_forever()
+
+def http_server_async(port, filepath_to_serve, for_printing=['']):
     import threading
-    threading.Thread(target=start_http_server_blocking, args=(port, filepath_to_serve,)).start()
+    threading.Thread(target=http_server_blocking, args=(port, filepath_to_serve, for_printing)).start()
 
 
 def is_python_32_bit():
@@ -381,7 +393,7 @@ def run_command_blocking(full_command_arr, timeout=None, debug=False, stdin_pipe
     return process.returncode, stdout, stderr
 
 
-def run_command_async(full_command_arr, debug=False, stdin=None):
+def run_command_async(full_command_arr, debug=False, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
     for index in range(len(full_command_arr)):
         cmd = full_command_arr[index]
         if type(cmd) != str:
@@ -394,7 +406,7 @@ def run_command_async(full_command_arr, debug=False, stdin=None):
             full_command_arr[0] += '.exe'
 
     full_call = full_command_arr[0] + ' ' + ' '.join(map(lambda x: f'"{x}"', full_command_arr[1:]))
-    process = subprocess.Popen(full_command_arr, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=stdin)
+    process = subprocess.Popen(full_command_arr, stdout=stdout, stderr=stderr, stdin=stdin)
     
     if debug:
         print(f'started process with "{full_call}"')
@@ -472,10 +484,14 @@ def play_file_mpv(video_path, volume=None, subtitles=False, run_async=False, qui
 
 
 def kill_self(seconds=0):
+
     import time
     if seconds:
         print(f'Sleeping for {seconds} before killing self')
         time.sleep(seconds)
+    import atexit
+    atexit._run_exitfuncs()
+
     if is_windows():
         kill_string = f'taskkill /PID {os.getpid()} /f'
     else:
@@ -518,6 +534,13 @@ def dump_text_to_file(text, output_directory=get_temp_dir()):
     filepath = output_directory.joinpath(random_letters(15) + '.txt')
     filepath.write_text(text)
     return filepath
+
+def bytes_to_human_readable_string(size, decimal_places=2):
+    for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if size < 1024.0 or unit == 'TB':  # stop at TB for simplicity
+            break
+        size /= 1024.0
+    return f"{size:.{decimal_places}f} {unit}"
 
 
 

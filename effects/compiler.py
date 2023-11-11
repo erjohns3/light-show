@@ -14,17 +14,20 @@ import pathlib
 import time
 import math
 import random
+from collections import deque
 
 import numpy as np
 from PIL import Image
 
 import grid_helpers
+import winamp.winamp_wrapper
 from helpers import *
 
 
 class GColor:
     white = (100, 100, 100)
     blue = (0, 0, 100)
+    blue_some_green = (0, 30, 100)
     red = (100, 0, 0)
     green = (0, 100, 0)
     purple = (100, 0, 100)
@@ -79,10 +82,11 @@ def sidechain_grid(grid_info):
 
 
 def twinkle(grid_info):
-    num_twinkles = grid_info.num_twinkles
-    twinkle_length = grid_info.twinkle_length
-    twinkle_lower_wait = grid_info.twinkle_lower_wait
-    twinkle_upper_wait = grid_info.twinkle_upper_wait
+    num_twinkles = getattr(grid_info, 'num_twinkles', 40)
+    twinkle_length = getattr(grid_info, 'twinkle_length', 1)
+    twinkle_lower_wait = getattr(grid_info, 'twinkle_lower_wait', 1)
+    twinkle_upper_wait = getattr(grid_info, 'twinkle_upper_wait', 4)
+    overall_color = getattr(grid_info, 'color', GColor.green)
     if getattr(grid_info, 'twinkles', None) is None or (grid_info.curr_sub_beat == 0 and not grid_info.looped):
         grid_info.twinkles = [None] * num_twinkles
         for index in range(len(grid_info.twinkles)):
@@ -105,12 +109,13 @@ def twinkle(grid_info):
 
         percent_done * 2
         if percent_done <= .5:
-            color = interpolate_vectors_float((0, 0, 0), grid_info.color, percent_done * 2)
+            interpol_color = interpolate_vectors_float((0, 0, 0), overall_color, percent_done * 2)
         else:
-            color = interpolate_vectors_float(grid_info.color, (0, 0, 0), (percent_done * 2) - 1)
-        grid_helpers.grid[curr_x][curr_y] += color
+            interpol_color = interpolate_vectors_float(overall_color, (0, 0, 0), (percent_done * 2) - 1)
+        grid_helpers.grid[curr_x][curr_y] += interpol_color
 
-def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=40, twinkle_lower_wait=1, twinkle_upper_wait=4):
+
+def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=20, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,
         function=twinkle,
@@ -156,6 +161,58 @@ def get_centered_circle_numpy(radius, offset_x=0, offset_y=0, color=(100, 100, 1
                 circle[x][y] = color
 
     return circle
+
+
+def random_color():
+    b = random.randint(0, 100)
+    g = random.randint(0, 100)
+    r = random.randint(0, 100)
+    return (b, g, r)
+
+def minus_color(color, amt):
+    return (max(color[0] - amt, 0), max(color[1] - amt, 0), max(color[2] - amt, 0))
+
+def trail_ball_fade(grid_info):
+    if getattr(grid_info, 'pos', None) is None:
+        grid_info.pos = grid_helpers.random_coord()
+        grid_info.dir = (1 - (random.randint(0, 1) * 2), 1 - (random.randint(0, 1) * 2))
+        grid_info.color = random_color()
+        grid_info.trail = deque([])
+
+
+    grid_helpers.grid[grid_info.pos[0]][grid_info.pos[1]] = grid_info.color
+    for index, ((p_x, p_y), p_color) in enumerate(grid_info.trail):        
+        grid_helpers.grid[p_x][p_y] += p_color
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
+    if grid_info.curr_sub_beat % speed == 0:
+        index = 0
+        while index < len(grid_info.trail):
+            (p_x, p_y), p_color = grid_info.trail[index]
+            p_color = minus_color(p_color, 5)
+            grid_info.trail[index][1] = p_color
+            if p_color == (0, 0, 0) and index == 0:
+                grid_info.trail.popleft()
+            else:
+                index += 1
+
+        x, y = grid_info.pos
+        d_x, d_y = grid_info.dir
+
+        if x + d_x < 0 or x + d_x >= grid_helpers.GRID_WIDTH:
+            grid_info.dir = (grid_info.dir[0] * -1, grid_info.dir[1])
+            d_x *= -1
+            grid_info.color = random_color()
+
+        if y + d_y < 0 or y + d_y >= grid_helpers.GRID_HEIGHT:
+            grid_info.dir = (grid_info.dir[0], grid_info.dir[1] * -1)
+            d_y *= -1
+            grid_info.color = random_color()
+
+        grid_info.pos = (x + d_x, y + d_y)
+        grid_info.trail.append([grid_info.pos, grid_info.color])
+
+
 
 def get_centered_circle_numpy_nofill(radius, offset_x=0, offset_y=0, color=(100, 100, 100)):
     grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
@@ -352,87 +409,6 @@ def our_transform(info):
 
 # ==== info effects ====
 
-spectogram_cache = {}
-# this is part of the reason load slow is bad
-# https://librosa.org/blog/2019/07/17/resample-on-load/
-def get_whole_spectogram_librosa(filepath, size=(20, 32), times_a_second=1/48):
-    import librosa
-    the_hash = (filepath, size, times_a_second)
-    if the_hash not in spectogram_cache:
-        start_time_specto = time.time()
-        y, sr = librosa.load(filepath, sr=48000)
-        print_cyan(f'loaded {filepath} in {time.time() - start_time_specto} seconds')
-        S = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=size[1], hop_length=int(sr * times_a_second))
-        S_db = librosa.power_to_db(S, ref=np.max)
-        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0] - 1))
-        spectogram_cache[the_hash] = S_db_norm.T
-        spectogram_cache[the_hash] = spectogram_cache[the_hash].astype(int)
-        print_cyan(f'computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
-    return spectogram_cache[the_hash]
-
-
-# idk this code just doesn't work
-def get_whole_spectogram_aubio(filepath, size=(20, 32), times_a_second=1/48):
-    import aubio
-    the_hash = (filepath, size, times_a_second)
-    # frequency bins is 32
-    if the_hash not in spectogram_cache:
-        start_time_specto = time.time()
-    
-        sr = 48000
-        win_size = 512 # fft size
-        hop_size = win_size // 2 # hop size
-        
-        try:
-            src = aubio.source(str(filepath), 0, hop_size)
-        except:
-            print_red(f'failed to load {filepath} with aubio')
-            return
-        print(f'loaded {filepath} in {time.time() - start_time_specto} seconds')
-
-        n_filters = size[1]
-        n_coeffs = size[1]
-
-        pv = aubio.pvoc(win_size, hop_size)
-        f = aubio.filterbank(n_coeffs, win_size)
-        f.set_mel_coeffs_slaney(sr)
-
-        S = []
-        total_frames = 0
-        while True:
-            samples, read = src()
-            specgram = pv(samples)
-            mfcc_bands = f(specgram)
-            S.append(mfcc_bands)
-            total_frames += read
-            if read < hop_size:
-                break
-
-        S = np.array(S).T
-        S_db = 20 * np.log10(S / np.max(S))
-        S_db_norm = np.interp(S_db, (S_db.min(), S_db.max()), (0, size[0]))
-
-        spectogram_cache[the_hash] = S_db_norm.T.astype(int)
-        print(f'computed spectogram for {filepath} in {time.time() - start_time_specto} seconds')
-        print(spectogram_cache[the_hash].shape)
-    return spectogram_cache[the_hash]
-
-
-def grid_visualizer(info):
-    grid_helpers.reset()
-    # spectogram = get_whole_spectogram_aubio(info.song_path)
-    spectogram = get_whole_spectogram_librosa(info.song_path)
-    spectogram_at_time = spectogram[info.curr_sub_beat]
-    
-    if getattr(info, 'flip', None):
-        for y in range(grid_helpers.GRID_HEIGHT):
-            for x in range(spectogram_at_time[(grid_helpers.GRID_HEIGHT - 1) - y]):
-                grid_helpers.grid[x][y] = info.color
-    else:
-        for y in range(grid_helpers.GRID_HEIGHT):
-            for x in range(spectogram_at_time[y]):
-                grid_helpers.grid[x][y] = info.color
-
 
 def get_smallest_equivilent_vectors(vector):
     all_vectors = []
@@ -446,6 +422,47 @@ def get_smallest_equivilent_vectors(vector):
         needed_x -= should_x
         needed_y -= should_y
     return all_vectors
+
+
+def move_x_wrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        grid_helpers.move_wrap([info.running, 0])
+        info.running += info.by
+
+def move_x(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        grid_helpers.move([info.running, 0])
+        info.running += info.by
+
+
+def move_y_wrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        print(f'{info.running}')
+        grid_helpers.move_wrap([0, info.running])
+        info.running += info.by
+
+def move_y(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.running = info.by
+    if getattr(info, 'beat_divide', None) is None:
+        info.beat_divide = 1
+    if info.curr_sub_beat % info.beat_divide == 0:
+        print(f'{info.running}')
+        grid_helpers.move([0, info.running])
+        info.running += info.by
+
 
 
 def move_until_y_occupy(info):
@@ -585,7 +602,7 @@ def fill_grid_from_text(info):
     grid_helpers.fill_grid_from_image_filepath(filepath, color=color, rotate_90=info.rotate_90, subtract=subtract)
 
 
-def grid_f(start_beat=None, length=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, **kwargs):
+def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=None, font_size=12, length=None, **kwargs):
     info = GridInfo()
     if filename is not None:
         info.filename = filename
@@ -685,5 +702,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     ]
     return final
 
-
-# beat(1, 'porter flubs phrase', length=16, intensity=(1, 1), skip=2, hue_shift=, sat_shift=, bright_shift=),
+def winamp_grid(grid_info):
+    winamp.winamp_wrapper.load_preset(grid_info.preset)
+    winamp.winamp_wrapper.compute_frame()
+    winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

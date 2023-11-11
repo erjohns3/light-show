@@ -725,6 +725,16 @@ effects = {
             b(1, name='Blue disco pulse', length=8, offset=.5),
         ],
     },
+
+    "autogen winamp sidechain": {
+        "length": 2,
+        "autogen": "winamp sidechain",
+        "intensity": "low",
+        "beats": [
+            grid_f(1, function=sidechain_grid, length=1, intensity=(0, 0))
+        ],
+    },
+    
 }
 
 

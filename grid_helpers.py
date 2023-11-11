@@ -536,16 +536,15 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     exit()
 
 
-* green (tested with 100% red)
-  * 52 light -> 75 term
-  * 31 light -> 50 term
-  * 10 light  -> 25 term
+# * green (tested with 100% red)
+#   * 52 light -> 75 term
+#   * 31 light -> 50 term
+#   * 10 light  -> 25 term
 
-* blue (tested with 100% red)
-  * 60 light -> 75 term
-  * 17 light -> 50 term
-  * 4 light  -> 25 term
-
+# * blue (tested with 100% red)
+#   * 60 light -> 75 term
+#   * 17 light -> 50 term
+#   * 4 light  -> 25 term
 
 # grid debugging
 debug_plot_bezier_curves(

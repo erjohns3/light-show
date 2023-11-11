@@ -31,6 +31,7 @@ start_bezier_time = time.time()
 grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
 grid_green_bezier = compute_x_to_y_bezier_cubic((0.465, 0.09), (0.87, 0.573))
 grid_blue_bezier = compute_x_to_y_bezier_cubic((0.932, 0.033), (0.653, 0.935))
+print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 def apply_bezier_to_grid():
     global grid
@@ -48,19 +49,13 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     _fig, ax = plt.subplots()
     for graph, color in arrs_to_graph:
         ax.plot(graph, color=color)
-
     
     for (color, opacity), points in points_to_graph.items():
         xpoints = list(map(lambda x: x[0] * 100, points))
         ypoints = list(map(lambda x: x[1] * 100, points))
-        # ax.plot(xpoints, ypoints, 'o', color=color)
-        # above needs opacity (0-1)
         ax.scatter(xpoints, ypoints, color=color, alpha=opacity)
     plt.show()
-    exit()
 
-
-# grid debugging
 debug_plot_bezier_curves(
     {
         # real points
@@ -80,4 +75,3 @@ debug_plot_bezier_curves(
     ]
 )
 
-print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')

@@ -528,36 +528,28 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
         ax.plot(graph, color=color)
 
     
-    for color, points in points_to_graph.items():
+    for (color, opacity), points in points_to_graph.items():
         xpoints = list(map(lambda x: x[0] * 100, points))
         ypoints = list(map(lambda x: x[1] * 100, points))
-        ax.plot(xpoints, ypoints, 'o', color=color)
+        # ax.plot(xpoints, ypoints, 'o', color=color)
+        # above needs opacity (0-1)
+        ax.scatter(xpoints, ypoints, color=color, alpha=opacity)
     plt.show()
     exit()
 
-
-# * green (tested with 100% red)
-#   * 52 light -> 75 term
-#   * 31 light -> 50 term
-#   * 10 light  -> 25 term
-
-# * blue (tested with 100% red)
-#   * 60 light -> 75 term
-#   * 17 light -> 50 term
-#   * 4 light  -> 25 term
 
 # grid debugging
 debug_plot_bezier_curves(
     {
         # real points
-        ('red', 100): [(0.6, .75), (0.31, 0.50), (0.08, 0.25)],
-        ('green', 100): [],
-        ('blue', 100): [(0.932, 0.033), (0.653, 0.935)],
+        ('red', 1): [(0.75, .60), (0.50, 0.31), (0.25, 0.08)],
+        ('green', 1): [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)],
+        ('blue', 1): [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)],
 
         # bezier points
-        ('red', 30): [(0.588, 0.06), (0.716, 0.705)],
-        ('green', 30): [(0.465, 0.09), (0.87, 0.573)],
-        ('blue', 30): [(0.932, 0.033), (0.653, 0.935)],
+        ('red', 0.15): [(0.588, 0.06), (0.716, 0.705)],
+        ('green', 0.15): [(0.465, 0.09), (0.87, 0.573)],
+        ('blue', 0.15): [(0.932, 0.033), (0.653, 0.935)],
     },
     [
         (grid_red_bezier, 'red'),

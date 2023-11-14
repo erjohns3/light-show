@@ -444,11 +444,11 @@ def try_load_winamp():
     return winamp.winamp_wrapper.try_load_audio_device()
 
 
-# def bezier_full_cubic(t, p0, p1, p2, p3):
+# def bezier_cubic(t, p0, p1, p2, p3):
 #     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
 @profile
-def bezier_full_cubic_faster(t, p1, p2):
+def bezier_cubic_assumptions(t, p1, p2):
     return 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3
 
 
@@ -457,8 +457,8 @@ def compute_x_to_y_bezier_cubic(p1, p2, resolution=100000):
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
     for i in range(resolution + 1):
         t = i / resolution
-        x_to_y_bezier[round(bezier_full_cubic_faster(t, p1[0], p2[0]) * 100)] = bezier_full_cubic_faster(t, p1[1], p2[1]) * 100
-        # x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
+        x_to_y_bezier[round(bezier_cubic_assumptions(t, p1[0], p2[0]) * 100)] = bezier_cubic_assumptions(t, p1[1], p2[1]) * 100
+        # x_to_y_bezier[round(bezier_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_cubic(t, 0, p1[1], p2[1], 1) * 100
 
     if any([value for value in x_to_y_bezier == 0.0]):
         print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
@@ -466,32 +466,24 @@ def compute_x_to_y_bezier_cubic(p1, p2, resolution=100000):
     return x_to_y_bezier
 
 
-# cache = {}
-# @profile
-# def compute_x_to_y_bezier_cubic_fast(p1, p2, resolution=100000):
-#     if resolution not in cache:
-#         cache[resolution] = [i / resolution for i in range(resolution + 1)]
-#     x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    
-#     x_calcs = [round(bezier_full_cubic_faster(t, p1[0], p2[0]) * 100) for t in cache[resolution]]
-#     y_calcs = [round(bezier_full_cubic_faster(t, p1[1], p2[1]) * 100) for t in cache[resolution]]
-    
-#     for x, y in zip(x_calcs, y_calcs):
-#         x_to_y_bezier[x] = y_calcs[y]
-#     return x_to_y_bezier
-
-
 start_bezier_time = time.time()
-red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
-green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]
-blue_test_points = [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)]
+grid_red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
+grid_green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]
+grid_blue_test_points = [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)]
+
+# MANUAL: grid_red_bezier_points = [(0.588, 0.06), (0.716, .705)]
+grid_red_bezier_points = [(0.44, 0.01), (0.99, 0.94)] # FROM ALGORITHM
+
+# MANUAL: grid_green_bezier_points = [(0.465, 0.09), (0.87, 0.573)]
+grid_green_bezier_points = [(0.20, 0.01), (1.0, 0.6)] # FROM ALGORITHM
+
+grid_blue_bezier_points = [(0.9932, 0.033), (0.653, 0.935)]
 
 
-# new cubics
-grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
-grid_green_bezier = compute_x_to_y_bezier_cubic((0.465, 0.09), (0.87, 0.573))
-grid_blue_bezier = compute_x_to_y_bezier_cubic((0.932, 0.033), (0.653, 0.935))
 
+grid_red_bezier = compute_x_to_y_bezier_cubic(grid_red_bezier_points[0], grid_red_bezier_points[1])
+grid_green_bezier = compute_x_to_y_bezier_cubic(grid_green_bezier_points[0], grid_green_bezier_points[1])
+grid_blue_bezier = compute_x_to_y_bezier_cubic(grid_blue_bezier_points[0], grid_blue_bezier_points[1])
 def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
     global grid
     grid_as_int = grid.astype(int)
@@ -501,11 +493,14 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
             grid[x][y][1] = grid_green_bezier[grid_as_int[x][y][1]]
             grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
 
-# !TODO 
+
+
+# !TODO floor points
 # bottom_red_bezier = compute_x_to_y_bezier((.5,, p2 .5))
 # bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
 # bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
 # print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
+
 
 def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     import matplotlib.pyplot as plt
@@ -514,16 +509,29 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     _fig, ax = plt.subplots()
     for graph, color in arrs_to_graph:
         ax.plot(graph, color=color)
-
-    
     for (color, opacity), points in points_to_graph.items():
-        xpoints = list(map(lambda x: x[0] * 100, points))
-        ypoints = list(map(lambda x: x[1] * 100, points))
-        # ax.plot(xpoints, ypoints, 'o', color=color)
-        # above needs opacity (0-1)
-        ax.scatter(xpoints, ypoints, color=color, alpha=opacity)
+        ax.scatter(list(map(lambda x: x[0] * 100, points)), list(map(lambda x: x[1] * 100, points)), color=color, alpha=opacity)
     plt.show()
     exit()
+
+debug_plot_bezier_curves(
+    {
+        # test points
+        ('red', 1): grid_red_test_points,
+        ('green', 1): grid_green_test_points,
+        ('blue', 1): grid_blue_test_points,
+
+        # bezier points from desmos
+        ('red', 0.15): grid_red_bezier_points,
+        ('green', 0.15): grid_green_bezier_points,
+        ('blue', 0.15): grid_blue_bezier_points,
+    },
+    [
+        (grid_red_bezier, 'red'),
+        (grid_green_bezier, 'green'),
+        (grid_blue_bezier, 'blue'),
+    ]
+)
 
 
 if __name__ == '__main__':

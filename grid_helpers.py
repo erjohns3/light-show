@@ -471,14 +471,14 @@ grid_red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
 grid_green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]
 grid_blue_test_points = [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)]
 
-grid_red_bezier_points = [(0.588, 0.06), (0.716, .705)] # MANUAL
-# grid_red_bezier_points = [(0.44, 0.01), (0.99, 0.94)] # FROM ALGORITHM
+# grid_red_bezier_points = [(0.588, 0.06), (0.716, .705)] # MANUAL
+grid_red_bezier_points = [(0.44, 0.01), (0.99, 0.94)] # FROM ALGORITHM
 
-grid_green_bezier_points = [(0.465, 0.09), (0.87, 0.573)] #  MANUAL: 
-# grid_green_bezier_points = [(0.20, 0.01), (1.0, 0.6)] # FROM ALGORITHM
+# grid_green_bezier_points = [(0.465, 0.09), (0.87, 0.573)] #  MANUAL: 
+grid_green_bezier_points = [(0.20, 0.01), (1.0, 0.6)] # FROM ALGORITHM
 
-grid_blue_bezier_points = [(0.9932, 0.033), (0.653, 0.935)] # MANUAL
-# grid_blue_bezier_points = [(0.66, 0.09), (0.40, 0.09)] # FROM ALGORITHM
+# grid_blue_bezier_points = [(0.9932, 0.033), (0.653, 0.935)] # MANUAL
+grid_blue_bezier_points = [(0.66, 0.09), (0.40, 0.09)] # FROM ALGORITHM
 
 
 
@@ -515,24 +515,24 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     plt.show()
     exit()
 
-debug_plot_bezier_curves(
-    {
-        # test points
-        ('red', 1): grid_red_test_points,
-        ('green', 1): grid_green_test_points,
-        ('blue', 1): grid_blue_test_points,
+# debug_plot_bezier_curves(
+#     {
+#         # test points
+#         ('red', 1): grid_red_test_points,
+#         ('green', 1): grid_green_test_points,
+#         ('blue', 1): grid_blue_test_points,
 
-        # bezier points from desmos
-        ('red', 0.15): grid_red_bezier_points,
-        ('green', 0.15): grid_green_bezier_points,
-        ('blue', 0.15): grid_blue_bezier_points,
-    },
-    [
-        (grid_red_bezier, 'red'),
-        (grid_green_bezier, 'green'),
-        (grid_blue_bezier, 'blue'),
-    ]
-)
+#         # bezier points from desmos
+#         ('red', 0.15): grid_red_bezier_points,
+#         ('green', 0.15): grid_green_bezier_points,
+#         ('blue', 0.15): grid_blue_bezier_points,
+#     },
+#     [
+#         (grid_red_bezier, 'red'),
+#         (grid_green_bezier, 'green'),
+#         (grid_blue_bezier, 'blue'),
+#     ]
+# )
 
 
 if __name__ == '__main__':

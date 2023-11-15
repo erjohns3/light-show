@@ -422,9 +422,13 @@ def compute_x_to_y_bezier_cubic(p1, p2, resolution=10000):
         x_to_y_bezier[round(bezier_cubic_assumptions(t, p1[0], p2[0]) * 100)] = bezier_cubic_assumptions(t, p1[1], p2[1]) * 100
         # x_to_y_bezier[round(bezier_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_cubic(t, 0, p1[1], p2[1], 1) * 100
 
-    if any([value for value in x_to_y_bezier == 0.0]):
-        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
-        exit()
+    # sensible mappings
+    x_to_y_bezier[0] = 0
+    x_to_y_bezier[100] = 100
+    for index, value in enumerate(x_to_y_bezier):
+        if index > 0 and value == 0:
+            print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+            exit()
     return x_to_y_bezier
 
 

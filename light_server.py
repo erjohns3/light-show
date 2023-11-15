@@ -955,7 +955,7 @@ async def light():
         # Sends the grid to the pi 
         if not args.local:
             if args.no_curve:
-                grid_helpers.apply_bezier_to_grid() # New way
+                grid_helpers.apply_bezier_to_grid()
             grid_helpers.render()
 
 

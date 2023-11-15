@@ -40,7 +40,7 @@ print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 
 parser = argparse.ArgumentParser(description = '')
-parser.add_argument('--local', dest='local', default=False, action='store_true')
+parser.add_argument('--local', dest='local', default=None, action='store_true')
 parser.add_argument('--show', dest='show_name', type=str, default='')
 parser.add_argument('--skip', dest='skip_show_beats', type=float, default=1)
 parser.add_argument('--skip_seconds', dest='skip_show_seconds', type=float, default=0)
@@ -68,7 +68,8 @@ parser.add_argument('--full_grid', dest='full_grid', default=False, action='stor
 args = parser.parse_args()
 
 if is_doorbell():
-    args.local = False
+    if args.local is None:
+        args.local = False
     args.keyboard = False
 else:
     args.local = True

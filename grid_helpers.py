@@ -150,14 +150,14 @@ def resize_PIL_image(pil_image, dimensions):
     desired_width, desired_height = dimensions
     # !TODO rely on cache here
     if pil_image.size[0] != desired_width or pil_image.size[1] != desired_height:
-        print_yellow(f'resizeing image, this should only happen once, if you see it multiple runs theres something wrong')
+        print_yellow(f'resizeing image {id(pil_image)}')
         pil_image = pil_image.resize((desired_width, desired_height), Image.LANCZOS)
     return pil_image
 
 
 def ensure_PIL_is_color(pil_image, goal_color_mode):
     if pil_image.mode != goal_color_mode:
-        print_yellow(f'was {pil_image.mode=}, but recoloring image to {goal_color_mode}, this should only happen once, if you see it multiple runs theres something wrong')
+        print_yellow(f'was {pil_image.mode=}, but recoloring image to {goal_color_mode}')
         pil_image = pil_image.convert(goal_color_mode)
     return pil_image
 
@@ -260,9 +260,8 @@ def save_resize_and_color_image(source_path, destination_path, rotate_90=False):
                 # !TODO i have a hunch that the webp (nyan.webp) at least is getting lost compresesion if i recolor it because RGB might by lossy, only RGBA is lossless
                 # converted_frames.append(resize_PIL_image(frame, rotate_90=rotate_90))
             return converted_frames[0].save(destination_path, save_all=True, append_images=converted_frames[1:], quality=100)
-
-    with Image.open(source_path) as static_pil_image:
-        resize_and_color_PIL_image(static_pil_image, rotate_90=rotate_90).save(destination_path, format=destination_path.suffix[1:].lower(), quality=100)
+        else:
+            resize_and_color_PIL_image(pil_image, rotate_90=rotate_90).save(destination_path, format=destination_path.suffix[1:].lower(), quality=100)
 
 
 # !TODO this is linear, could make log(n) if someone writes a BST 

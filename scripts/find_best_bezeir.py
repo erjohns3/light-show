@@ -37,7 +37,6 @@ def find_best_bezier_points():
         print_cyan(f'color: {color}')
         for mse, bx1, by1, bx2, by2 in results_for_color[:10]:
             print(f'    mse: {mse:.2f}, bx1: {bx1:.2f}, by1: {by1:.2f}, bx2: {bx2:.2f}, by2: {by2:.2f}')
-
 find_best_bezier_points()
 
 
@@ -77,9 +76,3 @@ find_best_bezier_points()
 # mse: 0.01, bx1: 0.87, by1: 0.05, bx2: 0.64, by2: 0.78
 # mse: 0.01, bx1: 0.75, by1: 0.05, bx2: 0.57, by2: 0.47
 # mse: 0.01, bx1: 0.95, by1: 0.05, bx2: 0.65, by2: 0.98
-
-# start_bezier_time = time.time()
-# grid_red_bezier = grid_helpers.bezier_cubic_assumptions((0.588, 0.06), (0.716, .705), resolution=100000)
-# grid_green_bezier = grid_helpers.bezier_cubic_assumptions((0.465, 0.09), (0.87, 0.573), resolution=100000)
-# grid_blue_bezier = grid_helpers.bezier_cubic_assumptions((0.932, 0.033), (0.653, 0.935), resolution=100000)
-# print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')

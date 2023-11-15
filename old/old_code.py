@@ -17,3 +17,16 @@ def detailed_output_on_enter():
 
 if args.enter:
     x = threading.Thread(target=detailed_output_on_enter).start()
+
+
+# from add_effect_from_dj
+    # if has_song(effect_name):
+    #     song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
+    #     if not os.path.exists(song_path):
+    #         print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
+    #         return
+    #     if song_playing and len(song_queue) > 0:
+    #         song_queue.pop()
+    #     song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
+    #     play_song(effect_name)
+    #     broadcast_song_status = True

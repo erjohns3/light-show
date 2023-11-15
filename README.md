@@ -2,20 +2,19 @@
 ## TLDR:
 
 ### Requirements
+* Python 3.8+
 * Install ffmpeg, and have avaliable on your path
+* **WARNING** On Linux you need to run `pip install aubio` BEFORE the below command. All other OS's should be fine
 * `pip install -r requirements.txt`
 
-#### warning
-on linux you need to "pip install aubio", on everything else, just "pip install -r requirements.txt"
-
-### Running locally (not on the doorbell, just on your computer)
-* example 1, start the light show "shelter" locally (terminal UI), and with arrow key support. 
-    * `python light_server.py --local --keyboard --show shelter`
-* example 2, start the show hooked with 5% volume locally (terminal UI). Starts with arrow key support.
-    * `python light_server.py --local --keyboard --volume 7 --show butter --skip 30`
+### TLDR: Running locally (not on the rasberry pi, just on your computer in your terminal)
+* example 1, start the light show "shelter" locally (terminal UI). 
+    * `python light_server.py --show shelter`
+* example 2, start the show hooked with 7% volume locally (terminal UI), skip to beat 30.
+    * `python light_server.py --volume 7 --show butter --skip 30`
 
 ## Using the UI 
-To use the UI, the terminal output will output something like:
+To use the UI, the terminal commands above will output something like:
 ```
 Dj interface: http://YOUR_IP:9555/dj.html
 Queue: http://YOUR_IP:9555
@@ -28,10 +27,6 @@ Just copy either into your browser, and you'll be able to control the show from 
   * support windows
   * ask on the discord about low res rendering
   * milkdrop v2? not supported in projectM yet i think
-* look for inspiration:
-  * https://www.youtube.com/watch?app=desktop&v=Jrb5PqiDMSY
-* check that --speed .5 follows --delay .189
-* cubic bezier for custom curves
 * label intensity of some lights and cleanup
     * get rid of white flashes alone
 * add more variety
@@ -39,32 +34,40 @@ Just copy either into your browser, and you'll be able to control the show from 
     * andrew's idea: apply a custom fade to all effects in a scene.  could end at a different point too
     * chris's idea - changing some effects but not all - on non-high delta changes
 
-
-#### stem stuff
-* djmdContent looks like right table
-  * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"
-    * C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\share\PIONEER\USBANLZ
-      * for fileformat https://github.com/dylanljones/pyrekordbox
-      * https://pyrekordbox.readthedocs.io/en/stable/formats/anlz.html
-* unencrypting db:
-  * building sqlcipher
-    * https://www.domstamand.com/compiling-sqlcipher-sqlite-encrypted-for-windows-using-visual-studio-2022/
-    * C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
-    * T:\programming\random\sqlcipher\bld\sqlite3.exe
-      * PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';
-      * .output decrypted_master.db
-      * .exit
+## STRETCH TODO
+* halloween
+    * spooky lights for UI
+    * make it spooky button
+        * add "boo" sounds to drop
+        * lights are all orange
+* dvd logo bouncing around
 
 
 
-# To autogenerate
-### Note that the --show parameter here fuzzy finds the filename
-`python light_server.py --local --autogen shelter`
+## random commands that are useful
+* pid of process for port: `sudo ss -lptn 'sport = :1337'`
+* mp3 to ogg: `ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"`
+* cloc: `cloc . --exclude-dir="temp,old,experimental,songs,effects,__pycache__,.pytest_cache,testing,projectm,presets"`
+* andrew: `python light_server.py --delay .285 --autogen shelter --volume 5`
+* andrew: `python light_server.py --delay .285 --volume 5 --show "a breath"`
 
-### to autogenerate everything for a party
-`python light_server.py --local --autogen`
 
-### autogen_mode options
+## ideas for lights
+* look for inspiration:
+  * https://www.youtube.com/watch?app=desktop&v=Jrb5PqiDMSY
+* from tokyo vent
+  * Flash  75 blue, 25 of, right to red 
+  * 1 beat before drop the flash
+
+
+# Autogeneration
+### Putting a parameter after --autogen fuzzy finds the song filename
+`python light_server.py --autogen shelter`
+
+### No parameter autogenerates all songs
+`python light_server.py --autogen`
+
+### --autogen_mode options
 * `both` [DEFAULT] - autogenerates both normal and laser modes
 * `normal` - autogenerates normal
 * `lasers` - autogenerates laser mode
@@ -91,37 +94,27 @@ It should be pretty good about auto downloading specific songs with the --show p
 `youtube-dl -f bestaudio --extract-audio --audio-format mp3 --audio-quality 0 "https://www.youtube.com/watch?v=rwCJvSKzQkc"`
 
 
-## light calibration (gamma curve)
-
-* For testing: `python light_server.py --terminal --no_gamma --full_grid --skip_autogen`
-
-quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
-cubic: https://www.desmos.com/calculator/pbaugufzbr
+# light calibration (gamma curve)
+* For testing on rasp pi: `python light_server.py --terminal --no_curve --full_grid --skip_autogen`
+* quadradic bezier: https://www.desmos.com/calculator/sef06jhcok
+* cubic bezier: https://www.desmos.com/calculator/pbaugufzbr
 
 #### grid
 * red (tested with 100% blue)
   * 60 light -> 75 term
   * 31 light -> 50 term
   * 8 light  -> 25 term
-  * NEW: (worst of the three i think)
-    https://www.desmos.com/calculator/7h0prkfihz
-    p1 = (.588, 0.06)
-    p2 = (.716, 0.705)
+  * MANUAL ATTEMPT OF ABOVE: https://www.desmos.com/calculator/7h0prkfihz
 * green (tested with 100% red)
   * 52 light -> 75 term
   * 31 light -> 50 term
   * 10 light  -> 25 term
-  * NEW:
-    https://www.desmos.com/calculator/xwm9vz7xds
-    p1 = (.465, 0.09)
-    p2 = (.87, 0.573)
+  * MANUAL ATTEMPT OF ABOVE: https://www.desmos.com/calculator/xwm9vz7xds
 * blue (tested with 100% red)
   * 60 light -> 75 term
-  * 1
-  * NEW:
-    https://www.desmos.com/calculator/o3mmcdahfd
-    p1 = (.932, 0.033)
-    p2 = (.653, 0.935)
+  * 17 light -> 50 term
+  * 4 light  -> 25 term
+  * MANUAL ATTEMPT OF ABOVE: https://www.desmos.com/calculator/o3mmcdahfd
 
 #### floor
 * red (tested with 100% blue)
@@ -134,82 +127,8 @@ Needs above x to trigger
 Needs at least 29 to maintain slowest speed
 needs 70 to activate, but then can go down to like 40?
 
-#### older stuff
-```
-def bezier_quad_only_p1(t, p1):
-    return 2 * (1 - t) * t * p1 + t**2
-
-def bezier_full_quad(t, p0, p1, p2):
-    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
-
-def compute_x_to_y_bezier_quad(p1):
-    x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    resolution = 100000
-    for i in range(resolution + 1):
-        t = i / resolution
-        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
-
-    if any([value for value in x_to_y_bezier == None]):
-        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
-        exit()
-    return x_to_y_bezier
-
-grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
-grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
-grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
-```
-
-* red (tested with 100% blue)
-  * OLD
-    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
-      * p1 = (.4425, 0)
-* green (tested with 100% red)
-  * OLD
-    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
-      * p1 = (.6, 0) 
-* blue (tested with 100% red)
-  * NEW:
-    https://www.desmos.com/calculator/o3mmcdahfd
-    p1 = (.932, 0.033)
-    p2 = (.653, 0.935)
-
-
-### old gamma stuff
-```
-scaled_grid_0_1 = grid_helpers.grid / 100
-scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
-scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
-grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
-```
-
-## settiing up on new rasp pi
-* you HAVE to install pulse (or else audio will suck i think)
-* you have to compile SDL from source (unless updated) you need 2.0.16 i think (2.0.14 as of writing)
-
-
-## andrew specific commands
-
-`python light_server.py --local --keyboard --delay .189 --autogen shelter --volume 5`
-`python light_server.py --local --keyboard --reload --delay .189 --volume 5 --show "a breath"`
-
-## ideas for lights
-* from tokyo vent
-  * Flash  75 blue, 25 of, right to red 
-  * 1 beat before drop the flash
-
-## stretch todo
-* visualizer: https://github.com/projectM-visualizer/projectm
-  * milkdrop is the name of the old winamp one
-* halloween
-    * spooky lights for UI
-    * make it spooky button
-        * add "boo" sounds to drop
-        * lights are all orange
-
 ## concepts in the code
-simple_effects = [
-
-]
+simple_effects = [] !TODO
 
 effects_config = {
   effect_name: {
@@ -234,7 +153,27 @@ channel_lut = {
 
 }
 
+## setting up on new rasp pi
+* you HAVE to install pulse (or else audio will suck i think)
+* you have to compile SDL from source (unless updated) you need 2.0.16 i think (2.0.14 as of writing)
+
 # Other
+## stem stuff
+* djmdContent looks like right table
+  * from db: "/PIONEER/USBANLZ/6f8/d6979-9a49-430c-9d42-ba5122158a4c/ANLZ0000.DAT"
+    * C:\Users\Ray\AppData\Roaming\Pioneer\rekordbox\share\PIONEER\USBANLZ
+      * for fileformat https://github.com/dylanljones/pyrekordbox
+      * https://pyrekordbox.readthedocs.io/en/stable/formats/anlz.html
+* unencrypting db:
+  * building sqlcipher
+    * https://www.domstamand.com/compiling-sqlcipher-sqlite-encrypted-for-windows-using-visual-studio-2022/
+    * C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat
+    * T:\programming\random\sqlcipher\bld\sqlite3.exe
+      * PRAGMA key = '402fd482c38817c35ffa8ffb8c7d93143b749e7d315df7a81732a1ff43608497';
+      * .output decrypted_master.db
+      * .exit
+
+
 ## ideas for python audio feature extraction:
 * https://github.com/Yaafe/Yaafe
 * https://github.com/tyiannak/pyAudioAnalysis
@@ -293,24 +232,12 @@ channel_lut = {
 * fixing octave error (double or half bpm instead of dead on)
     * https://stackoverflow.com/questions/61621282/how-can-we-improve-tempo-detection-accuracy-in-librosa
 
-## find pid of the process using the port
-sudo ss -lptn 'sport = :1337'
-
-## convert an mp3 to ogg
-ffmpeg -i "input.mp3" -c:a libvorbis -q:a 4 "output.ogg"
 
 ## songs andrew might want to make shows to
 * joji: https://www.youtube.com/watch?v=PEBS2jbZce4
 * https://www.youtube.com/watch?v=Luq2a3Q244U
    * a lot of the songs from it are here https://www.youtube.com/watch?v=FAsrHKXHh4o
 
-
-## andrews zetai timing
-* FINISHED AUTOGENERATING ALL (208) SHOWS IN DIRECTORY songs in 107.53671836853027 seconds
-
-
-## compress png on linux
-pngquant --quality=65-80 image.png
 
 ## benchmark
 * python -m cProfile -s tottime light_server.py --local --show "dom dolla" --volume 0 > testing/temp.txt
@@ -320,8 +247,58 @@ pngquant --quality=65-80 image.png
 
 
 
+# OLD STUFF THAT PROBABLY ISN'T NEEDED
+
+#### older stuff
+```
+def bezier_quad_only_p1(t, p1):
+    return 2 * (1 - t) * t * p1 + t**2
+
+def bezier_full_quad(t, p0, p1, p2):
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+def compute_x_to_y_bezier_quad(p1):
+    x_to_y_bezier = np.array(np.zeros((101)), np.double)
+    resolution = 100000
+    for i in range(resolution + 1):
+        t = i / resolution
+        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
+
+    if any([value for value in x_to_y_bezier == None]):
+        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+        exit()
+    return x_to_y_bezier
+
+grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
+grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
+grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+```
+
+* red (tested with 100% blue)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/sef06jhcok
+      * p1 = (.4425, 0)
+* green (tested with 100% red)
+  * OLD
+    * quadratic bezier with these two: https://www.desmos.com/calculator/ayyj9zmmuk
+      * p1 = (.6, 0) 
+* blue (tested with 100% red)
+  * NEW:
+    https://www.desmos.com/calculator/o3mmcdahfd
+    p1 = (.932, 0.033)
+    p2 = (.653, 0.935)
 
 
+### old gamma stuff
+```
+scaled_grid_0_1 = grid_helpers.grid / 100
+scaled_grid_0_1[:, :, 0] = np.power(scaled_grid_0_1[:, :, 0], 2)
+scaled_grid_0_1[:, :, 1] = np.power(scaled_grid_0_1[:, :, 1], 2.3)
+grid_helpers.grid[:, :, 2] = np.power(scaled_grid_0_1[:, :, 2], 2)
+```
+
+
+## errors 
 aubio error on rasp pi
 
 

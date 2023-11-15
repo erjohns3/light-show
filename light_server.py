@@ -26,14 +26,15 @@ import websockets
 print(f'Up to pip import: {time.time() - first_start_time:.3f}')
 
 from helpers import *
+from users import users
 import sound_video_helpers
 import youtube_download_helpers
-from users import users
-import grid_helpers # this double prints winamp_wrapper stuff for some reason
-
-from effects.compiler import GridInfo
-import effects.compiler
 import joystick_and_keyboard_helpers
+print_cyan(f'After cheap custom imports import: {time.time() - first_start_time:.3f}')
+import grid_helpers
+print_cyan(f'Half the custom imports: {time.time() - first_start_time:.3f}')
+import effects.compiler
+from effects.compiler import GridInfo
 print_cyan(f'After custom import: {time.time() - first_start_time:.3f}')
 
 
@@ -48,11 +49,12 @@ parser.add_argument('--jump_back', dest='jump_back', type=int, default=0)
 parser.add_argument('--speed', dest='speed', type=float, default=1)
 parser.add_argument('--autogen', dest='autogen', nargs="?", type=str, const='all')
 parser.add_argument('--autogen_mode', dest='autogen_mode', default='both')
-parser.add_argument('--delay', dest='absolute_delay_seconds', type=float, default=0.0) #bluetooth qc35 headphones are .189 latency
+parser.add_argument('--delay', dest='absolute_delay_seconds', type=float, default=0.0)
     # https://nullvoxpopuli.github.io/latency-tester/
         # qc35 on arch linux:  395ms
         # wired on arch linux: 110ms
         # 0.285 second difference
+        # OLD was .189
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
@@ -139,16 +141,6 @@ def add_effect_from_dj(effect_name):
     global song_time, broadcast_song_status
     song_time = 0
     add_effect(effect_name)
-    # if has_song(effect_name):
-    #     song_path = this_file_directory.joinpath(pathlib.Path(effects_config[effect_name]['song_path']))
-    #     if not os.path.exists(song_path):
-    #         print_red(f'Client wanted to play {effect_name}, but the song_path: {song_path} doesnt exist')
-    #         return
-    #     if song_playing and len(song_queue) > 0:
-    #         song_queue.pop()
-    #     song_queue.insert(0, [effect_name, get_queue_salt(), 'DJ'])
-    #     play_song(effect_name)
-    #     broadcast_song_status = True
 
 
 laser_mode = False
@@ -165,8 +157,7 @@ async def init_rekordbox_bridge_client(websocket, path):
         try:
             msg = json.loads(await websocket.recv())
         except:
-            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
-            break
+            return print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
 
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
@@ -208,7 +199,6 @@ async def init_rekordbox_bridge_client(websocket, path):
             if rekordbox_effect_name is None:
                 print_yellow(f'Cant update rekordbox time and bpm! Missing effect {rekordbox_title}\n' * 8)  
                 continue
-
 
             if 'master_time' in msg and 'master_bpm' in msg and 'timestamp' in msg:
                 # print(f'Time delay from bridge: {time.time() - float(msg["timestamp"])}')
@@ -267,11 +257,6 @@ async def init_dj_client(websocket, path):
 
             elif msg['type'] == 'remove_effect':
                 effect_name = msg['effect']
-                # if has_song(effect_name):
-                #     if song_playing and len(song_queue) > 0:
-                #         song_queue.pop()
-                #     stop_song()
-                #     broadcast_song_status = True
                 remove_effect_name(effect_name)
 
             elif msg['type'] == 'beat_sens_up':
@@ -321,8 +306,7 @@ def download_song(url, uuid):
     import autogen
 
     if 'search_query' in url:
-        print_yellow(f'user {uuid_to_user(uuid)} entered a url with search_query in it, returning')
-        return None
+        return print_yellow(f'user {uuid_to_user(uuid)} entered a url with search_query in it, returning')
 
     max_length_seconds = None
     if not is_admin(uuid):
@@ -331,8 +315,7 @@ def download_song(url, uuid):
     # TODO add caching here
     filepath = youtube_download_helpers.download_youtube_url(url=url, dest_path=this_file_directory.joinpath('songs'), max_length_seconds=max_length_seconds)
     if filepath is None:
-        print_yellow('Couldnt download video, returning')
-        return
+        return print_yellow('Couldnt download video, returning')
     print(f'finished downloading {url} to {filepath} in {time.time() - download_start_time} seconds')
 
     add_song_to_config(filepath)
@@ -401,14 +384,19 @@ async def init_queue_client(websocket, path):
             break
 
         print('Song Queue: message recieved:', msg)
+        if 'uuid' not in msg:
+            print_red(f'uuid not in msg: {msg}')
+            continue
+        uuid = msg['uuid']
+        username = uuid_to_user(uuid)
+        
         if 'type' in msg:
-            if msg['type'] == 'add_queue_balanced' and 'uuid' in msg:
-                print(f'Song Queue: added to queue by {uuid_to_user(msg["uuid"])}')
-                add_queue_balanced(msg['effect'], msg['uuid'])
+            if msg['type'] == 'add_queue_balanced':
+                print(f'Song Queue: added to queue by {username}')
+                add_queue_balanced(msg['effect'], uuid)
 
-            elif msg['type'] == 'remove_queue' and 'uuid' in msg:
-                uuid = msg['uuid']
-                print(f'Song Queue: removed from queue by {uuid_to_user(msg["uuid"])}')
+            elif msg['type'] == 'remove_queue':
+                print(f'Song Queue: removed from queue by {username}')
                 effect_name = msg['effect']
                 salt = msg['salt']
                 # TODO share this code with light() probably
@@ -416,24 +404,20 @@ async def init_queue_client(websocket, path):
                     if song_queue[i][0] == effect_name and song_queue[i][1] == salt and (song_queue[i][2] == uuid or is_admin(uuid)):
                         song_queue.pop(i)
                         if i == 0:
-                            # andrew: oops, this is ew
-                            song_was_playing = song_playing
-                            stop_song()
-                            song_playing = song_was_playing
+                            song_was_playing = stop_song()
                             song_time = 0
                             remove_effect_name(effect_name)
-                            if song_playing and len(song_queue) > 0:
+                            if song_was_playing and len(song_queue) > 0:
                                 new_effect_name = song_queue[0][0]
                                 add_effect(new_effect_name)
                                 play_song(new_effect_name)
                             broadcast_light_status = True
                         break
-                if len(song_queue) == 0:
+                if len(song_queue) == 0: # is this possible?
                     song_playing = False
 
-            elif msg['type'] == 'play_queue' and 'uuid' in msg:
-                uuid = msg['uuid']
-                print(f'Song Queue: Play requested ----UUID: {uuid_to_user(uuid)}')
+            elif msg['type'] == 'play_queue':
+                print(f'Song Queue: Play requested ----UUID: {username}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and not song_playing:
                         effect_name = song_queue[0][0]
@@ -441,9 +425,8 @@ async def init_queue_client(websocket, path):
                         broadcast_light_status = True
                         play_song(effect_name)
 
-            elif msg['type'] == 'pause_queue' and 'uuid' in msg:
-                uuid = msg['uuid']
-                print(f'Song Queue: Pause requested ----UUID: {uuid_to_user(uuid)}')
+            elif msg['type'] == 'pause_queue':
+                print(f'Song Queue: Pause requested ----UUID: {username}')
                 if is_admin(uuid):
                     if len(song_queue) > 0 and song_playing:
                         effect_name = song_queue[0][0]
@@ -453,28 +436,21 @@ async def init_queue_client(websocket, path):
                         broadcast_light_status = True
 
             elif msg['type'] == 'set_time':
-                # !TODO im not sure about restart_show...
                 restart_show(abs_time=msg['time'])
                 broadcast_light_status = True
 
-            elif msg['type'] == 'download_song' and 'uuid' in msg:
-                uuid = msg['uuid']
-                url = msg.get('url', None)
-                print_blue(f'Song Queue: Adding "{url}" to youtube downloading queue from {uuid_to_user(uuid)}')
+            elif msg['type'] == 'download_song' and 'url' in msg:
+                url = msg['url']
+                print_blue(f'Song Queue: Adding "{url}" to youtube downloading queue from {username}')
                 download_queue.append([url, uuid])
-                message = {
-                    'notification': 'Download Started...'
-                }
-                dump = json.dumps(message)
                 try:
-                    await websocket.send(dump)
+                    await websocket.send(json.dumps({ 'notification': 'Download Started...' }))
                 except:
-                    print('socket send failed', flush=True)
+                    print_red('socket send failed on download_song response', flush=True)
 
-            elif msg['type'] == 'search_song' and 'uuid' in msg:
-                uuid = msg['uuid']
+            elif msg['type'] == 'search_song':
                 search = msg.get('search', None)
-                print(f'Song Queue: searching youtube "{search}" from {uuid_to_user(uuid)}')
+                print(f'Song Queue: searching youtube "{search}" from {username}')
                 search_queue.append([search, websocket, False])
             broadcast_song_status = True
 
@@ -1123,7 +1099,9 @@ def play_song(effect_name, quiet=False): # disabled rekordbox input
 def stop_song():
     global song_playing
     pygame.mixer.music.stop()
+    song_was_playing_before = song_playing
     song_playing = False
+    return song_was_playing_before
 
 
 ######################################
@@ -1371,9 +1349,9 @@ def precompile_some_luts_effects_config():
     # print(f'Size of effects_config_client: {bytes_to_human_readable_string(asizeof.asizeof(effects_config_dj_client))}')
     # exit()
 
-    if False and is_doorbell():
+    if True:
         for effect_name, effect in effects_config.items(): # eager compile all normal effects
-            if 'bpm' not in effect:
+            if 'bpm' not in effect and not effect.get('winamp') and effect.get('profiles'):
                 effects_config_to_compile[effect_name] = effect
 
     compile_lut(effects_config_to_compile)

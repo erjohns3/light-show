@@ -12,8 +12,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <cstring>      // for strcmp
-#include <unistd.h>     // for gethostname
+#include <chrono>
 
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 
@@ -61,7 +60,6 @@ void audioInputCallbackF32(void *userdata, unsigned char *stream, int len) {
     // }
 }
 
-char hostname[1024];
 int initAudioInput(int selected_device) {
     SDL_AudioSpec want, have; // requested format: https://wiki.libsdl.org/SDL_AudioSpec#Remarks
     SDL_zero(want);
@@ -225,12 +223,12 @@ GlslVersion QueryGlslVersion() {
     return {major, minor};
 }
 
+
 static PyObject*
-winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
+winamp_visual_init_sdl(PyObject* self, PyObject* args) {
     SDL_version linked;
     SDL_GetVersion(&linked);
     SDL_Log("C++ Python extension: Using SDL version %d.%d.%d\n", linked.major, linked.minor, linked.patch);
-
 
     SDL_SetHint(SDL_HINT_AUDIO_INCLUDE_MONITORS, "1"); // this allows listening to speakers
 
@@ -250,15 +248,26 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); //OpenGL 3+
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3); //OpenGL 3.3
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG); //Enable forward compatibility
+    return Py_BuildValue("");
+}
+
+
+static PyObject*
+winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
+    auto start_time = std::chrono::high_resolution_clock::now();
+    auto end_time = std::chrono::high_resolution_clock::now();
 
     // SDL
-    // std::cout << "C++ - Python Extension: setting up sdl window" << std::endl;
+    std::cout << "C++ - Python Extension: setting up sdl window" << std::endl;
     SDL_Window* window = SDL_CreateWindow("", 0, 0, 32, 20, SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
     SDL_GL_CreateContext(window);
 
     GlslVersion m_GLSLVersion{0, 0};
     m_GLSLVersion = QueryGlslVersion();
     cout << "C++ - Python Extension: Using OpenGL shader language version " << m_GLSLVersion.major << "." << m_GLSLVersion.minor << "\n";
+
+    end_time = std::chrono::high_resolution_clock::now();
+    cout << "C++ - Python Extension: setup_winamp after creating window and sdl setup " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << " milliseconds" << endl;
 
 
     // std::cout << "C++ - Python Extension: setting up winamp" << std::endl;
@@ -316,6 +325,9 @@ winamp_visual_setup_winamp(PyObject* self, PyObject* args) {
     // eglMakeCurrent(display, surface, surface, context);
 
     // cout << "C++ - Python Extension: AFTER SETUP" << endl;
+
+    end_time = std::chrono::high_resolution_clock::now();
+    cout << "C++ - Python Extension: setup_winamp took " << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << " milliseconds" << endl;
     return Py_BuildValue("");
 }
 
@@ -475,6 +487,7 @@ winamp_visual_print_to_terminal(PyObject* self, PyObject* args) {
 
 static PyMethodDef winamp_visual_methods[] = {
     {"systemcall",  winamp_visual_systemcall, METH_VARARGS, ""},
+    {"init_sdl", winamp_visual_init_sdl, METH_VARARGS, ""},
     {"setup_winamp", winamp_visual_setup_winamp, METH_VARARGS, ""},
     {"load_preset", winamp_visual_load_preset, METH_VARARGS, ""},
     {"load_preset_using_raw_data", winamp_visual_load_preset_using_raw_data, METH_VARARGS, ""},
@@ -501,8 +514,5 @@ static struct PyModuleDef winamp_visualmodule = {
 PyMODINIT_FUNC
 PyInit_winamp_visual(void) {
     import_array();
-    if (gethostname(hostname, sizeof(hostname)) == -1) {
-        cout << "gethostname ERROR" << endl;
-    }
     return PyModule_Create(&winamp_visualmodule);
 }

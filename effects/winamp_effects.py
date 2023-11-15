@@ -1,7 +1,5 @@
 from effects.compiler import *
 
-
-
 effects = {
 
 }

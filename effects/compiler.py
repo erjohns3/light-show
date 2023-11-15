@@ -703,6 +703,9 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     return final
 
 def winamp_grid(grid_info):
+    if not grid_helpers.try_setup_winamp():
+        print_red(f'Failed to load winamp when args spec, exiting\n' * 100)
+        exit()
     winamp.winamp_wrapper.load_preset(grid_info.preset)
     winamp.winamp_wrapper.compute_frame()
     winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

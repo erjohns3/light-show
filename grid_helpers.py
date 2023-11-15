@@ -1,17 +1,13 @@
 import time
-time_before_imports = time.time()
-
 import sys
 import random
 
 import numpy as np
 from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageOps
-print(f'grid_helpers.py: After installed imports: {time.time() - time_before_imports:.2f}s')
 
 from helpers import *
 import winamp.winamp_wrapper
-print(f'grid_helpers.py: After our imports: {time.time() - time_before_imports:.2f}s')
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 if is_doorbell():
@@ -387,13 +383,28 @@ def get_2d_arr_from_text(*args, **kwargs):
         return PIL_image_to_numpy_arr(image)
 
 
+result_of_last_call = None
 def try_load_winamp():
-    if not winamp.winamp_wrapper.try_load_winamp_cxx_module():
-        return False
-    return winamp.winamp_wrapper.try_load_audio_device()
+    global result_of_last_call
+    if result_of_last_call is not None:
+        return result_of_last_call
+    result_of_last_call = winamp.winamp_wrapper.try_load_winamp_cxx_module()
+    return result_of_last_call
 
 
-print(f'grid_helpers.py: before bezeir stuff: {time.time() - time_before_imports:.2f}s')
+result_of_last_setup_call = None
+def try_setup_winamp():
+    global result_of_last_setup_call
+    if result_of_last_setup_call is not None:
+        return result_of_last_setup_call
+    if not try_load_winamp():
+        return print_red('Failed to load winamp, exiting')
+    result_of_last_setup_call = winamp.winamp_wrapper.setup_winamp_visual()
+    if not result_of_last_setup_call:
+        return result_of_last_setup_call
+    result_of_last_setup_call = winamp.winamp_wrapper.try_load_audio_device()
+    return result_of_last_setup_call
+
 
 # def bezier_cubic(t, p0, p1, p2, p3):
 #     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3

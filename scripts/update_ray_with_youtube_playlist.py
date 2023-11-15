@@ -17,12 +17,15 @@
 import json
 import time
 import random
+import pathlib
+import sys
+from copy import deepcopy
 
+this_file_directory = pathlib.Path(__file__).parent.resolve()
+sys.path.insert(0, str(this_file_directory.parent))
 import autogen
 import youtube_download_helpers
 from helpers import *
-import generate_rekordbox_effects
-from copy import deepcopy
 
 
 if __name__ == '__main__':
@@ -62,7 +65,6 @@ if __name__ == '__main__':
                 print(f'Couldnt download url {url}... continuing')
                 continue
             print_green(f'Downloaded file to "{filepath}", {filepath.exists()=}')
-            # generate_rekordbox_effects.generate_rekordbox_effect(filepath)
             src_bpm_offset_cache = autogen.get_src_bpm_offset(filepath, use_boundaries=True)
             rekordbox_effects_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
 
@@ -73,8 +75,6 @@ if __name__ == '__main__':
                 remote_folder = pathlib.Path('/home/pi/light-show/effects/rekordbox_effects')
                 scp_to_doorbell(effect_filepath1, remote_folder)
                 scp_to_doorbell(effect_filepath2, remote_folder)
-                # generate_rekordbox_effects.ssh_to_doorbell(effect_filepath1)
-                # generate_rekordbox_effects.ssh_to_doorbell(effect_filepath2)
             except Exception as e:
                 print_stacktrace()
                 print_yellow(f'Failed to ssh to doorbell, continuing...')

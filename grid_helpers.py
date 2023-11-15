@@ -206,30 +206,15 @@ def resize_and_color_PIL_image(pil_image, rotate_90=False):
     return pil_image
 
 
-
-
 # @profile
 def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
-    
-    # this is because we are working with 0-100 in the grid, not 0-255
-    # np_arr = np.array(pil_image)
-    np_arr = np.array(pil_image) / 2.55
-
-    # https://www.desmos.com/calculator
-    # iterate through numpy array and run ln(x) * 22
-    # np_arr = np.power(np_arr, 2.2) * .004
-    # np_arr = np.log(np_arr) * 22
-
+    np_arr = np.array(pil_image) / 2.55 # this is because we are working with 0-100 in the grid, not 0-255
     np_arr = np_arr.astype(np.uint8)
-
     if rotate_90:
         return np_arr
     return np.transpose(np_arr, (1, 0, 2))
 
-
-resize_cache_dir = get_temp_dir().joinpath('image_resize_cache')
-make_if_not_exist(resize_cache_dir)
 
 static_image_cache = {}
 static_image_cache_color = {}
@@ -349,6 +334,7 @@ def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False, subtrac
         print_red(f'file suffix {filepath.suffix} not supported')
 
 
+resize_cache_dir = make_if_not_exist(get_temp_dir().joinpath('image_resize_cache'))
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 run_once = set()
 def get_cached_converted_filepath(filepath, rotate_90=False, use_cache=True):
@@ -435,7 +421,6 @@ def get_2d_arr_from_text(*args, **kwargs):
     filepath = create_image_from_text_pilmoji(*args, **kwargs)
     with Image.open(filepath) as image:
         return PIL_image_to_numpy_arr(image)
-        # return image
 
 
 def try_load_winamp():
@@ -479,7 +464,6 @@ grid_green_bezier_points = [(0.20, 0.01), (1.0, 0.6)] # FROM ALGORITHM
 
 # grid_blue_bezier_points = [(0.9932, 0.033), (0.653, 0.935)] # MANUAL
 grid_blue_bezier_points = [(0.66, 0.09), (0.40, 0.09)] # FROM ALGORITHM
-
 
 
 grid_red_bezier = compute_x_to_y_bezier_cubic(grid_red_bezier_points[0], grid_red_bezier_points[1])
@@ -537,7 +521,6 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
 
 if __name__ == '__main__':
     # !TODO why antialiasing at 12 and not 8???
-    # filepath = create_image_from_text_pilmoji('OY', font_size=12)
     filepath = create_image_from_text_pilmoji('OY', font_size=8)
 
     rotated_filepath = get_temp_dir().joinpath('test.png')
@@ -566,37 +549,3 @@ if __name__ == '__main__':
         'rotate 90',
         str(rotated_filepath),
     ])
-
-
-# def create_image_from_text(text, rotate_90=False):
-#     if not rotate_90:
-#         width, height = 32, 20
-#     else:
-#         width, height = 20, 32
-#     image = Image.new('RGB', (width, height), 'black')
-
-#     draw = ImageDraw.Draw(image)
-    
-#     # font_name = 'NotoEmoji-Medium.ttf'
-#     font_name = 'NotoColorEmoji-Regular.ttf'
-#     filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
-#     font = ImageFont.truetype(str(filepath_font), 20)
-
-#     # text_width, text_height = draw.textsize(text, font)
-#     # text_width, text_height = draw.textsize(text, font, 'white')
-#     text_width, text_height = draw.textsize(text, font)
-
-#     x = (width - text_width) // 2
-#     y = (height - text_height) // 2
-
-#     # draw.text((x, y), text, font=font)
-#     draw.text((x, y), text, font=font, embedded_color=True) 
-
-
-#     if not rotate_90:
-#         image = image.rotate(90, expand=True)
-
-#     hash_filename = hash(text)
-#     filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-#     image.save(filepath)
-#     return filepath

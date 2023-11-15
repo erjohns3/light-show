@@ -571,6 +571,10 @@ def spawn_col(info):
         grid_helpers.grid[info.x][y] = info.color
 
 
+def fill_color(info):
+    grid_helpers.fill(info.color)
+
+
 # === image, animation and text info effects ===
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()

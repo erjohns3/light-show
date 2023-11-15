@@ -133,6 +133,7 @@ def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
 
 
+# !TODO OPTIMIZE 
 def fill(to_fill):
     if type(to_fill) in [float, int]:
         return grid.fill(0)

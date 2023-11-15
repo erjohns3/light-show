@@ -55,6 +55,7 @@ parser.add_argument('--delay', dest='absolute_delay_seconds', type=float, defaul
         # wired on arch linux: 110ms
         # 0.285 second difference
         # OLD was .189
+        # anecdoteadley the best is .225 though
 parser.add_argument('--watch', dest='load_new_rekordbox_shows_live', default=True, action='store_false')
 parser.add_argument('--rotate', dest='rotate_grid_terminal', default=False, action='store_true')
 parser.add_argument('--skip_autogen', dest='load_autogen_shows', default=True, action='store_false')
@@ -1407,7 +1408,7 @@ def compile_lut(local_effects_config):
         set_effect_defaults(name, effect)
         missing_effect = dfs(name)
         if missing_effect is not None:
-            raise Exception(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.')
+            raise Exception(red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.'))
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
@@ -1608,8 +1609,16 @@ def signal_handler(sig, frame):
 def fuzzy_find(search, collection):
     import thefuzz.process
     choices = thefuzz.process.extractBests(query=search, choices=collection, limit=3)
-    print_cyan(f'top 3 choices: {choices}, returning top no matter what')
-    return choices[0][0]
+    # sort so that g_ is deprioritized by 20
+    deprioed_choices = []
+    for name, rating in choices:
+        if name.startswith('g_'):
+            deprioed_choices.append((name, max(rating - 20, 0)))
+        else:
+            deprioed_choices.append((name, rating))
+    deprioed_choices.sort(key=lambda x: x[1], reverse=True)
+    print_cyan(f'top 3 choices: {deprioed_choices}, returning top no matter what')
+    return deprioed_choices[0][0]
 
 
 def restart_show(skip=0, abs_time=None, quiet=False):

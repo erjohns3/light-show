@@ -394,6 +394,9 @@ def try_load_winamp():
 
 result_of_last_setup_call = None
 def try_setup_winamp():
+    if winamp.winamp_wrapper.winamp_visual_loaded is not None:
+        return winamp.winamp_wrapper.winamp_visual_loaded
+
     global result_of_last_setup_call
     if result_of_last_setup_call is not None:
         return result_of_last_setup_call

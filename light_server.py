@@ -89,7 +89,7 @@ effects_dir = this_file_directory.joinpath('effects')
 
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
-    effects.compiler.winamp = effects.compiler.twinkle
+    effects.compiler.winamp_grid = effects.compiler.twinkle
     winamp.winamp_wrapper.winamp_visual_loaded = True
 
 elif args.winamp:
@@ -1262,7 +1262,6 @@ def load_effects_config_from_disk():
     if args.load_autogen_shows:
         found_paths += list(get_all_paths(effects_dir.joinpath('rekordbox_effects'), quiet=True, only_files=True)) + list(get_all_paths(effects_dir.joinpath('autogen_shows'), quiet=True, only_files=True))
 
-    # grid_helpers.try_load_winamp()
     for name, filepath in found_paths:
         if name == 'compiler.py':
             continue
@@ -1285,7 +1284,6 @@ def load_effects_config_from_disk():
         effects_config.update(globals()[module_name].effects)
         for effect_name in globals()[module_name].effects:
             effects_config[effect_name]['from_python_file'] = str(relative_path)
-    grid_helpers.try_load_winamp()
 
     prep_loaded_effects(list(effects_config.keys()))
     print_blue(f'load_effects_config_from_disk took {time.time() - update_config_and_lut_time:.3f}, import modules time: {import_time:.3f}, imported {len(found_paths)} modules')

@@ -754,16 +754,16 @@ def render_terminal(light_levels):
         laser_style = [0, 0, 0]
 
     if any(disco_color_rgb):
-        disco_chars = [' '] * 14
+        disco_chars = [' '] * grid_helpers.GRID_HEIGHT
         for rgb_index in range(3):
             if disco_color_rgb[rgb_index]:
                 style_for_color = [0, 0, 0]
                 style_for_color[rgb_index] = disco_color_rgb[rgb_index]
-                for pos_offset in [0, 5, 10]:
-                    position = (int(disco_pos) + pos_offset + rgb_index) % 14
+                for pos_offset in [0, 5, 10, 15, 20, 25]:
+                    position = (int(disco_pos) + pos_offset + rgb_index) % grid_helpers.GRID_HEIGHT
                     disco_chars[position] = rgb_ansi('o', style_for_color)
     else:
-        disco_chars = ' ' * 14
+        disco_chars = ' ' * grid_helpers.GRID_HEIGHT
 
     if laser_motor_velocity < target_laser_motor_value:
         laser_motor_velocity += min(laser_motor_max_acceleration, target_laser_motor_value - laser_motor_velocity)
@@ -773,8 +773,8 @@ def render_terminal(light_levels):
     laser_motor_stage %= 1000
 
     disco_pos += disco_speed
-    if disco_pos > 14:
-        disco_pos -= 14    
+    if disco_pos > grid_helpers.GRID_HEIGHT:
+        disco_pos -= grid_helpers.GRID_HEIGHT    
 
     # laser_intensity will be 0-1
     # if laser_intensity < 1:

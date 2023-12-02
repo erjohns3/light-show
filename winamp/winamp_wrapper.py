@@ -29,9 +29,7 @@ sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 
 
-winamp_visual_loaded = False
-def try_load_winamp_cxx_module():
-    global winamp_visual_loaded
+def try_load_winamp_cxx_module():    
     project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
     if not project_m_build_dir.exists():
         return print_red(f'project_m {project_m_build_dir} directory does not exist')
@@ -55,10 +53,21 @@ def try_load_winamp_cxx_module():
     import winamp_visual
     globals()[winamp_visual.__name__] = winamp_visual
     try:
+        winamp_visual.init_sdl()
+    except:
+        print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
+        return False
+    return True
+
+
+winamp_visual_loaded = False
+def setup_winamp_visual():
+    global winamp_visual_loaded
+    try:
         winamp_visual.setup_winamp()
     except:
-        return print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
-
+        print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
+        return False
     print_green(f'winamp_visual.setup_winamp() succeeded')
     winamp_visual_loaded = True
     return True

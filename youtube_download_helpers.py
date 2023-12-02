@@ -309,7 +309,6 @@ if __name__ == '__main__':
                     'delay_lights': delay,
                     'skip_song': 0.0,
                     'beats': [
-                        # 'b(1, "RBBB 1 bar", 500),'
                     ],
                 }
             },

@@ -126,12 +126,8 @@ keyboard_dict = {
     'b': lambda: print(winamp_wrapper.get_beat_sensitivity()),
     'up': lambda: winamp_wrapper.increase_beat_sensitivity(),
     'down': lambda: winamp_wrapper.decrease_beat_sensitivity(),
-
     'left': lambda: winamp_wrapper.last_preset(),
     'right': lambda: winamp_wrapper.next_preset(),
-    # 'left': lambda: restart_show(skip=-skip_time),
-    # 'right': lambda: restart_show(skip=skip_time),
-    # 'space': 'UV',
 }
 
 winamp_wrapper.load_preset(winamp_wrapper.presets_directory.joinpath('tests', '001-line.milk'))

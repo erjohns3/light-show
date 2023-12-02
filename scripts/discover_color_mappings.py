@@ -2,7 +2,6 @@
 
 import pathlib
 import sys
-import time
 import signal
 import json
 

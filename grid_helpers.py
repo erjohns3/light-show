@@ -1,3 +1,4 @@
+import time
 import sys
 import random
 
@@ -6,12 +7,9 @@ from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
-
-
-this_file_directory = pathlib.Path(__file__).parent.resolve()
 import winamp.winamp_wrapper
 
-
+this_file_directory = pathlib.Path(__file__).parent.resolve()
 if is_doorbell():
     import serial
     grid_serial = serial.Serial(
@@ -23,26 +21,6 @@ if is_doorbell():
         timeout=0,
         write_timeout=0
     )
-
-# Give me the python code to compute to map all the values of the numpy array representing rgb values with the following Bézier curve values:
-#     rx1, ry1 = 0.4425, 0
-#     gx1, gy1 = 0.5, 0
-#     bx1, by1 = 0.25, 0
-
-# p0 is at (0, 0), p2 is at (1, 1) always. I just want P1 to equal the values above. 
-
-
-# this is how the numpy array looks:
-# ```grid = np.array(np.zeros((GRID_WIDTH, GRID_HEIGHT, 3)), np.double)````
-
-# The values in grid will be numbers from 0-1 representing their rgb values. change the memory of grid in place.
-
-try:
-    profile
-except NameError:
-    profile = lambda x: x
-
-# !TODO dvd logo bouncing around
 
 GRID_WIDTH = 20
 GRID_HEIGHT = 32
@@ -80,28 +58,20 @@ def coords_y_first():
             yield (x, y)
 
 
-def copy_of_grid():
-    return np.array(grid)
-
-
-
 def move(vector):
     global grid
-
     if vector[0]:
         if vector[0] > 0:
             grid[-vector[0]:, :] = 0
         else:
             grid[:abs(vector[0]), :] = 0
         grid = np.roll(grid, shift=vector[0], axis=0)
-
     if vector[1]:
         if vector[1] > 0:
             grid[:, -vector[1]:] = 0
         else:
             grid[:, :abs(vector[1])] = 0
         grid = np.roll(grid, shift=vector[1], axis=1)
-
 
 
 def move_wrap(vector):
@@ -163,6 +133,7 @@ def grid_pack():
     return (np.round(grid.reshape(GRID_SIZE)[grid_index] * 127 / 100) * 2).astype(np.byte).tobytes()
 
 
+# !TODO OPTIMIZE 
 def fill(to_fill):
     if type(to_fill) in [float, int]:
         return grid.fill(0)
@@ -170,66 +141,45 @@ def fill(to_fill):
         for rgb_index, value in enumerate(to_fill):
             grid[x][y][rgb_index] = value
 
+
 def reset():
     grid.fill(0)
 
 # ====== image stuff ======
-
-# @profile
 def resize_PIL_image(pil_image, dimensions):
     desired_width, desired_height = dimensions
-
-    # rely on cache here
+    # !TODO rely on cache here
     if pil_image.size[0] != desired_width or pil_image.size[1] != desired_height:
-        print_yellow(f'resizeing image, this should only happen once, if you see it multiple runs theres something wrong')
+        print_yellow(f'resizeing image {id(pil_image)}')
         pil_image = pil_image.resize((desired_width, desired_height), Image.LANCZOS)
-    
     return pil_image
 
 
-# @profile
-def recolor_PIL_image(pil_image, color_mode='RGB'):
-    if pil_image.mode != color_mode:
-        print_yellow(f'was {pil_image.mode=}, but recoloring image to RGB, this should only happen once, if you see it multiple runs theres something wrong')
-        pil_image = pil_image.convert(color_mode)
+def ensure_PIL_is_color(pil_image, goal_color_mode):
+    if pil_image.mode != goal_color_mode:
+        print_yellow(f'was {pil_image.mode=}, but recoloring image to {goal_color_mode}')
+        pil_image = pil_image.convert(goal_color_mode)
     return pil_image
 
 
-# @profile
 def resize_and_color_PIL_image(pil_image, rotate_90=False):
     dimensions = (GRID_WIDTH, GRID_HEIGHT)
     if rotate_90:
         dimensions = (GRID_HEIGHT, GRID_WIDTH)
     
     pil_image = resize_PIL_image(pil_image, dimensions)
-    pil_image = recolor_PIL_image(pil_image)
+    pil_image = ensure_PIL_is_color(pil_image, goal_color_mode='RGB')
     return pil_image
 
 
-
-
-# @profile
 def PIL_image_to_numpy_arr(pil_image, rotate_90=False):
     pil_image = resize_and_color_PIL_image(pil_image, rotate_90=rotate_90)
-    
-    # this is because we are working with 0-100 in the grid, not 0-255
-    # np_arr = np.array(pil_image)
-    np_arr = np.array(pil_image) / 2.55
-
-    # https://www.desmos.com/calculator
-    # iterate through numpy array and run ln(x) * 22
-    # np_arr = np.power(np_arr, 2.2) * .004
-    # np_arr = np.log(np_arr) * 22
-
+    np_arr = np.array(pil_image) / 2.55 # this is because we are working with 0-100 in the grid, not 0-255
     np_arr = np_arr.astype(np.uint8)
-
     if rotate_90:
         return np_arr
     return np.transpose(np_arr, (1, 0, 2))
 
-
-resize_cache_dir = get_temp_dir().joinpath('image_resize_cache')
-make_if_not_exist(resize_cache_dir)
 
 static_image_cache = {}
 static_image_cache_color = {}
@@ -250,10 +200,9 @@ def load_image_to_grid(image_filepath, color=None, rotate_90=False, subtract=Non
         grid[:] -= to_add
     else:
         grid[:] += to_add
-    # grid = np.clip(grid, a_min=0, a_max=100)
+    # grid = np.clip(grid, a_min=0, a_max=100) # idk when to clip
 
 animation_cache = {}
-# @profile
 def try_load_into_animation_cache(filepath, color=None, rotate_90=False):
     with Image.open(filepath) as animation_file:
         print(f'loading animation {filepath.name}, {animation_file.info=}')
@@ -273,7 +222,6 @@ def try_load_into_animation_cache(filepath, color=None, rotate_90=False):
             all_frames.append([PIL_image_to_numpy_arr(frame, rotate_90=rotate_90) * color, duration])
         animation_cache[filepath] = [0, all_frames, total_duration]
         print(f'loaded animation {filepath.name}, {total_duration=}, {len(all_frames)=}, shape {all_frames[0][0].shape}')
-        # exit()
 
 
 def load_animation_to_grid(filepath, color=None, rotate_90=False):
@@ -312,9 +260,8 @@ def save_resize_and_color_image(source_path, destination_path, rotate_90=False):
                 # !TODO i have a hunch that the webp (nyan.webp) at least is getting lost compresesion if i recolor it because RGB might by lossy, only RGBA is lossless
                 # converted_frames.append(resize_PIL_image(frame, rotate_90=rotate_90))
             return converted_frames[0].save(destination_path, save_all=True, append_images=converted_frames[1:], quality=100)
-
-    with Image.open(source_path) as static_pil_image:
-        resize_and_color_PIL_image(static_pil_image, rotate_90=rotate_90).save(destination_path, format=destination_path.suffix[1:].lower(), quality=100)
+        else:
+            resize_and_color_PIL_image(pil_image, rotate_90=rotate_90).save(destination_path, format=destination_path.suffix[1:].lower(), quality=100)
 
 
 # !TODO this is linear, could make log(n) if someone writes a BST 
@@ -349,6 +296,7 @@ def fill_grid_from_image_filepath(filepath, color=None, rotate_90=False, subtrac
         print_red(f'file suffix {filepath.suffix} not supported')
 
 
+resize_cache_dir = make_if_not_exist(get_temp_dir().joinpath('image_resize_cache'))
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 run_once = set()
 def get_cached_converted_filepath(filepath, rotate_90=False, use_cache=True):
@@ -374,8 +322,7 @@ def get_font_path(font_filename):
     try:
         return get_ray_directory().joinpath('random', 'fonts').joinpath(font_filename)
     except Exception:
-        print("Skipping emoji generation, couldn't find font")
-        return ''
+        return print_red('Skipping emoji generation, couldn\'t find font from ray')
 
 
 run_once_text_image = set()
@@ -391,12 +338,11 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
     else:
         width, height = 20, 32
     with Image.new('RGB', (width, height), 'black') as image:
-        # font_name = 'arial.ttf', 'Noto-Medium.ttf', 'ariblk.ttf', verdana.ttf
-        # font_name = 'verdana.ttf'
-        font_name = 'dogicapixel.otf'
-        font_path = str(get_font_path(font_name))
-        if font_path != '':
-            font = ImageFont.truetype(str(get_font_path(font_name)), font_size)
+        # font_name = 'arial.ttf', 'Noto-Medium.ttf', 'ariblk.ttf', verdana.ttf, 'verdana.ttf' 
+        font_name = 'dogicapixel.otf' # font for small things
+        font_path = get_font_path(font_name)
+        if font_path is not None:
+            font = ImageFont.truetype(str(font_path), font_size)
 
             # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
             with Pilmoji(image) as pilmoji:
@@ -435,74 +381,79 @@ def get_2d_arr_from_text(*args, **kwargs):
     filepath = create_image_from_text_pilmoji(*args, **kwargs)
     with Image.open(filepath) as image:
         return PIL_image_to_numpy_arr(image)
-        # return image
 
 
+result_of_last_call = None
 def try_load_winamp():
-    if not winamp.winamp_wrapper.try_load_winamp_cxx_module():
-        return False
-    return winamp.winamp_wrapper.try_load_audio_device()
+    global result_of_last_call
+    if result_of_last_call is not None:
+        return result_of_last_call
+    result_of_last_call = winamp.winamp_wrapper.try_load_winamp_cxx_module()
+    return result_of_last_call
 
 
-# assumes p0 = (0, 0) and p2 = (1, 1)
-def bezier_quad_only_p1(t, p1):
-    return 2 * (1 - t) * t * p1 + t**2
+result_of_last_setup_call = None
+def try_setup_winamp():
+    if winamp.winamp_wrapper.winamp_visual_loaded is not None:
+        return winamp.winamp_wrapper.winamp_visual_loaded
 
-def bezier_full_quad(t, p0, p1, p2):
-    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+    global result_of_last_setup_call
+    if result_of_last_setup_call is not None:
+        return result_of_last_setup_call
+    if not try_load_winamp():
+        return print_red('Failed to load winamp, exiting')
+    result_of_last_setup_call = winamp.winamp_wrapper.setup_winamp_visual()
+    if not result_of_last_setup_call:
+        return result_of_last_setup_call
+    result_of_last_setup_call = winamp.winamp_wrapper.try_load_audio_device()
+    return result_of_last_setup_call
 
-def bezier_full_cubic(t, p0, p1, p2, p3):
-    return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
 
-def compute_x_to_y_bezier_quad(p1):
+# def bezier_cubic(t, p0, p1, p2, p3):
+#     return (1 - t)**3 * p0 + 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3 * p3
+
+@profile
+def bezier_cubic_assumptions(t, p1, p2):
+    return 3 * (1 - t)**2 * t * p1 + 3 * (1 - t) * t**2 * p2 + t**3
+
+
+@profile
+def compute_x_to_y_bezier_cubic(p1, p2, resolution=10000):
     x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    resolution = 100000
     for i in range(resolution + 1):
         t = i / resolution
-        x_to_y_bezier[round(bezier_quad_only_p1(t, p1[0]) * 100)] = bezier_quad_only_p1(t, p1[1]) * 100
+        x_to_y_bezier[round(bezier_cubic_assumptions(t, p1[0], p2[0]) * 100)] = bezier_cubic_assumptions(t, p1[1], p2[1]) * 100
+        # x_to_y_bezier[round(bezier_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_cubic(t, 0, p1[1], p2[1], 1) * 100
 
-    if any([value for value in x_to_y_bezier == None]):
-        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
-        exit()
+    # sensible mappings
+    x_to_y_bezier[0] = 0
+    x_to_y_bezier[100] = 100
+    for index, value in enumerate(x_to_y_bezier):
+        if index > 0 and value == 0:
+            print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
+            exit()
     return x_to_y_bezier
-
-
-def compute_x_to_y_bezier_cubic(p1, p2):
-    x_to_y_bezier = np.array(np.zeros((101)), np.double)
-    resolution = 100000
-    for i in range(resolution + 1):
-        t = i / resolution
-        x_to_y_bezier[round(bezier_full_cubic(t, 0, p1[0], p2[0], 1) * 100)] = bezier_full_cubic(t, 0, p1[1], p2[1], 1) * 100
-
-    if any([value for value in x_to_y_bezier == None]):
-        print_red(f'x_to_y_bezier: {x_to_y_bezier} has None values with {p1=}, exiting')
-        exit()
-    return x_to_y_bezier
-
-# red
-#     p1 = (.588, 0.06)
-#     p2 = (.716, 0.705)
-
-# green
-#     p1 = (.465, 0.09)
-#     p2 = (.87, 0.573)
-# blue
-#     p1 = (.932, 0.033)
-#     p2 = (.653, 0.935)
 
 
 
 start_bezier_time = time.time()
-# old quad
-# grid_red_bezier = compute_x_to_y_bezier_quad_quad((0.4425, 0))
-# grid_green_bezier = compute_x_to_y_bezier_quad((0.6, 0))
-# grid_blue_bezier = compute_x_to_y_bezier_quad((0.5, 0))
+grid_red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
+grid_green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]
+grid_blue_test_points = [(0.75, 0.60), (0.50, 0.17), (0.25, 0.04)]
 
-# new cubics
-grid_red_bezier = compute_x_to_y_bezier_cubic((0.588, 0.06), (0.716, .705))
-grid_green_bezier = compute_x_to_y_bezier_cubic((0.465, 0.09), (0.87, 0.573))
-grid_blue_bezier = compute_x_to_y_bezier_cubic((0.932, 0.033), (0.653, 0.935))
+# grid_red_bezier_points = [(0.588, 0.06), (0.716, .705)] # MANUAL
+grid_red_bezier_points = [(0.44, 0.01), (0.99, 0.94)] # FROM ALGORITHM
 
+# grid_green_bezier_points = [(0.465, 0.09), (0.87, 0.573)] #  MANUAL: 
+grid_green_bezier_points = [(0.20, 0.01), (1.0, 0.6)] # FROM ALGORITHM
+
+# grid_blue_bezier_points = [(0.9932, 0.033), (0.653, 0.935)] # MANUAL
+grid_blue_bezier_points = [(0.66, 0.09), (0.40, 0.09)] # FROM ALGORITHM
+
+
+grid_red_bezier = compute_x_to_y_bezier_cubic(grid_red_bezier_points[0], grid_red_bezier_points[1])
+grid_green_bezier = compute_x_to_y_bezier_cubic(grid_green_bezier_points[0], grid_green_bezier_points[1])
+grid_blue_bezier = compute_x_to_y_bezier_cubic(grid_blue_bezier_points[0], grid_blue_bezier_points[1])
 def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
     global grid
     grid_as_int = grid.astype(int)
@@ -512,11 +463,13 @@ def apply_bezier_to_grid(): # !TODO vectorize with fancy indexing and reshaping
             grid[x][y][1] = grid_green_bezier[grid_as_int[x][y][1]]
             grid[x][y][2] = grid_blue_bezier[grid_as_int[x][y][2]]
 
-# !TODO 
+
+
+# !TODO floor points
 # bottom_red_bezier = compute_x_to_y_bezier((.5,, p2 .5))
 # bottom_green_bezier = compute_x_to_y_bezier((.5, .5))
 # bottom_blue_bezier = compute_x_to_y_bezier((.5, .5))
-
+print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
 
 
 def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
@@ -526,35 +479,33 @@ def debug_plot_bezier_curves(points_to_graph, arrs_to_graph):
     _fig, ax = plt.subplots()
     for graph, color in arrs_to_graph:
         ax.plot(graph, color=color)
-
-    
-    for color, points in points_to_graph.items():
-        xpoints = list(map(lambda x: x[0] * 100, points))
-        ypoints = list(map(lambda x: x[1] * 100, points))
-        ax.plot(xpoints, ypoints, 'o', color=color)
+    for (color, opacity), points in points_to_graph.items():
+        ax.scatter(list(map(lambda x: x[0] * 100, points)), list(map(lambda x: x[1] * 100, points)), color=color, alpha=opacity)
     plt.show()
     exit()
 
-# grid debugging
-debug_plot_bezier_curves(
-    {
-        'red': [(0.588, 0.06), (0.716, 0.705)],
-        'green': [(0.465, 0.09), (0.87, 0.573)],
-        'blue': [(0.932, 0.033), (0.653, 0.935)],
-    },
-    [
-        (grid_red_bezier, 'red'),
-        (grid_green_bezier, 'green'),
-        (grid_blue_bezier, 'blue'),
-    ]
-)
+# debug_plot_bezier_curves(
+#     {
+#         # test points
+#         ('red', 1): grid_red_test_points,
+#         ('green', 1): grid_green_test_points,
+#         ('blue', 1): grid_blue_test_points,
 
-print_cyan(f'start_bezier_time: {time.time() - start_bezier_time:.2f} seconds')
+#         # bezier points from desmos
+#         ('red', 0.15): grid_red_bezier_points,
+#         ('green', 0.15): grid_green_bezier_points,
+#         ('blue', 0.15): grid_blue_bezier_points,
+#     },
+#     [
+#         (grid_red_bezier, 'red'),
+#         (grid_green_bezier, 'green'),
+#         (grid_blue_bezier, 'blue'),
+#     ]
+# )
 
 
 if __name__ == '__main__':
     # !TODO why antialiasing at 12 and not 8???
-    # filepath = create_image_from_text_pilmoji('OY', font_size=12)
     filepath = create_image_from_text_pilmoji('OY', font_size=8)
 
     rotated_filepath = get_temp_dir().joinpath('test.png')
@@ -583,37 +534,3 @@ if __name__ == '__main__':
         'rotate 90',
         str(rotated_filepath),
     ])
-
-
-# def create_image_from_text(text, rotate_90=False):
-#     if not rotate_90:
-#         width, height = 32, 20
-#     else:
-#         width, height = 20, 32
-#     image = Image.new('RGB', (width, height), 'black')
-
-#     draw = ImageDraw.Draw(image)
-    
-#     # font_name = 'NotoEmoji-Medium.ttf'
-#     font_name = 'NotoColorEmoji-Regular.ttf'
-#     filepath_font = get_ray_directory().joinpath('random', 'fonts', font_name)
-#     font = ImageFont.truetype(str(filepath_font), 20)
-
-#     # text_width, text_height = draw.textsize(text, font)
-#     # text_width, text_height = draw.textsize(text, font, 'white')
-#     text_width, text_height = draw.textsize(text, font)
-
-#     x = (width - text_width) // 2
-#     y = (height - text_height) // 2
-
-#     # draw.text((x, y), text, font=font)
-#     draw.text((x, y), text, font=font, embedded_color=True) 
-
-
-#     if not rotate_90:
-#         image = image.rotate(90, expand=True)
-
-#     hash_filename = hash(text)
-#     filepath = get_temp_dir().joinpath(f'{hash_filename}.png')
-#     image.save(filepath)
-#     return filepath

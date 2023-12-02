@@ -1,7 +1,5 @@
 from effects.compiler import *
 
-
-
 effects = {
 
 }
@@ -96,6 +94,7 @@ for preset_name, preset_filepath in winamp.winamp_wrapper.preset_name_to_filepat
         'loop': True,
         'profiles': profiles,
         'intensity': 'low',
+        'winamp': True,
         'autogen': autogen_category if autogen_category else None,
         'beats': [
             grid_f(1, function=winamp_grid, preset=preset_name, priority=-50, length=1),

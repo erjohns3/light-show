@@ -8,14 +8,27 @@ effects = {
         ],
     },
 
+    "grid fill rbbb 4 bar": {
+        'length': 4,
+        'beats': [
+            grid_f(1, function=fill_color, color=GColor.red, length=.25),
+            grid_f(2, function=fill_color, color=GColor.blue, length=.25),
+            grid_f(3, function=fill_color, color=GColor.blue, length=.25),
+            grid_f(4, function=fill_color, color=GColor.blue, length=.25),
+        ],
+    },
+
     # 1 - 64: 
     "deadmau5 & Kaskade - I Remember (HQ)": {
         "not_done": False,
         "beats": [
+            b(1, name='grid fill rbbb 4 bar', length=1640),
+            b(1, name='RBBB 1 bar bottom', length=1640),
+
+
             # [1, "Red disco", 2000],
             # [1, "Blue disco", 2000],
             # [1, "Green disco", 2000],
-            [1, "RBBB 1 bar", 1640],
             # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],

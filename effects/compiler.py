@@ -571,6 +571,10 @@ def spawn_col(info):
         grid_helpers.grid[info.x][y] = info.color
 
 
+def fill_color(info):
+    grid_helpers.fill(info.color)
+
+
 # === image, animation and text info effects ===
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 directory_above_this_file = this_file_directory.parent.resolve()
@@ -703,6 +707,9 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     return final
 
 def winamp_grid(grid_info):
+    if not grid_helpers.try_setup_winamp():
+        print_red(f'Failed to load winamp when args spec, exiting\n' * 100)
+        exit()
     winamp.winamp_wrapper.load_preset(grid_info.preset)
     winamp.winamp_wrapper.compute_frame()
     winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)

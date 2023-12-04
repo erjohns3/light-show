@@ -27,6 +27,7 @@ from helpers import *
 class GColor:
     white = (100, 100, 100)
     blue = (0, 0, 100)
+    seafoam = (0, 100, 50)
     blue_some_green = (0, 30, 100)
     red = (100, 0, 0)
     green = (0, 100, 0)

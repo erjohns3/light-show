@@ -722,6 +722,7 @@ purple = [153, 50, 204]
 disco_speed = .15
 disco_pos = 0
 # !TODO remove the 0-5 indexes
+@profile
 def render_terminal(light_levels):
     global laser_motor_stage, disco_pos, laser_motor_velocity, laser_intensity
 

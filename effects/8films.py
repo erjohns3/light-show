@@ -19,6 +19,9 @@ def box_filler(info):
                     grid_helpers.grid[x][y] = color
 
 
+# pink, blue, seafoam, purple, yellow, orange, white, green, cyan, red
+
+
 effects = {
     "8films effect": {
         "length": 24,

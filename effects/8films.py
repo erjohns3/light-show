@@ -5,7 +5,7 @@ from effects.compiler import *
 def box_filler(info):
     y_sections = 2
     x_sections = 3
-    order = [GColor.pink, GColor.blue, GColor.seafoam, GColor.purple, GColor.yellow, GColor.orange]
+    order = [(100,40,80), GColor.blue, (10, 80, 60), (50,0,50), GColor.yellow, GColor.orange]
     color_index = int(info.percent_done * 6)
     color = order[color_index]
     for y_section in range(y_sections):

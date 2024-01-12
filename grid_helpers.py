@@ -383,28 +383,23 @@ def get_2d_arr_from_text(*args, **kwargs):
         return PIL_image_to_numpy_arr(image)
 
 
-result_of_last_call = None
 def try_load_winamp():
-    global result_of_last_call
-    if result_of_last_call is not None:
-        return result_of_last_call
-    result_of_last_call = winamp.winamp_wrapper.try_load_winamp_cxx_module()
-    return result_of_last_call
+    return winamp.winamp_wrapper.try_load_winamp_cxx_module()
 
 
 result_of_last_setup_call = None
 def try_setup_winamp():
-    if winamp.winamp_wrapper.winamp_visual_loaded is not None:
-        return winamp.winamp_wrapper.winamp_visual_loaded
-
     global result_of_last_setup_call
     if result_of_last_setup_call is not None:
         return result_of_last_setup_call
+
     if not try_load_winamp():
-        return print_red('Failed to load winamp, exiting')
-    result_of_last_setup_call = winamp.winamp_wrapper.setup_winamp_visual()
-    if not result_of_last_setup_call:
-        return result_of_last_setup_call
+        result_of_last_setup_call = False
+        return False
+    if not winamp.winamp_wrapper.setup_winamp_visual():
+        result_of_last_setup_call = False
+        return False
+
     result_of_last_setup_call = winamp.winamp_wrapper.try_load_audio_device()
     return result_of_last_setup_call
 

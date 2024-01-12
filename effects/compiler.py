@@ -68,6 +68,24 @@ class GridInfo:
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
 
+# relies on there being a named object in our_transform
+def sidechain_grid_shape(grid_info):
+    intensity = getattr(grid_info, 'intensity', 1)
+
+    if type(intensity) not in [list, tuple]:
+        start_intensity = intensity
+        end_intensity = intensity
+    else:
+        start_intensity, end_intensity = intensity
+    
+    current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+    
+    curr_object_box = cached_by_name_last_arr[grid_info.name]
+    for x, y in grid_helpers.coords():
+        if not curr_object_box[x][y].any():
+            grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], 1 - current_intesity)
+
+
 def sidechain_grid(grid_info):
     intensity = getattr(grid_info, 'intensity', 1)
 
@@ -341,6 +359,9 @@ def load_object(info):
         info.start_scale = getattr(info, 'start_scale', (1, 1))
         info.start_rot = getattr(info, 'start_rot', 0)
 
+        if getattr(info, 'color', None) is not None:
+            info.start_color = getattr(info, 'start_color', info.color)
+
         if getattr(info, 'start_color', None) is not None:
             info.start_color = getattr(info, 'start_color', (0, 0, 0))
             info.end_color = getattr(info, 'end_color', info.start_color)
@@ -378,6 +399,7 @@ def change_to_color(pillow_image, color):
 
 
 object_memory = {}
+cached_by_name_last_arr = {}
 def our_transform(info):
     if not load_object(info):
         return
@@ -401,6 +423,9 @@ def our_transform(info):
     transformed_image = transform_scale_rotation_and_translation(colored_object, size, midpoint, scale, rot, pos)
     
     arr_version = np.array(transformed_image)
+
+    if getattr(info, 'name', None) is not None:
+        cached_by_name_last_arr[info.name] = arr_version
     if getattr(info, 'overwrite', None):
         grid_helpers.grid = arr_version
     else:
@@ -709,7 +734,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
 
 def winamp_grid(grid_info):
     if not grid_helpers.try_setup_winamp():
-        print_red(f'Failed to load winamp when args spec, exiting\n' * 100)
+        print_red(f'Failed to load winamp when args spec, exiting\n' * 10)
         exit()
     winamp.winamp_wrapper.load_preset(grid_info.preset)
     winamp.winamp_wrapper.compute_frame()

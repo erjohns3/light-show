@@ -71,6 +71,7 @@ def get_eric_directory():
         return pathlib.Path(r'\\ERIC-DESKTOP\Network')
     print_red('dont know how contact ray_directory')
 
+
 def get_ray_directory():
     if is_ray() or is_erics_laptop() or is_dj():
         return pathlib.Path('T:/')
@@ -134,6 +135,7 @@ def maybe_open_scp_connection_doorbell():
     print_cyan('opening scp_connection to doorbell')    
     maybe_open_ssh_connection_doorbell()
     scp_connection = SCPClient(ssh_connection.get_transport())
+    return scp_connection
 
 
 def close_connections_to_doorbell():

@@ -1822,6 +1822,7 @@ if __name__ == '__main__':
             else:
                 key_name = key.name
 
+            print(f'{key}\n' * 10)
             if key_name in keyboard_dict:
                 if type(keyboard_dict[key_name]) == str:
                     add_effect(keyboard_dict[key_name])

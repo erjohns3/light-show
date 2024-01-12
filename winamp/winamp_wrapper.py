@@ -29,10 +29,17 @@ sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 
 
-def try_load_winamp_cxx_module():    
+result_of_last_load_call = None
+def try_load_winamp_cxx_module():
+    global result_of_last_load_call
+    if result_of_last_load_call is not None:
+        return result_of_last_load_call
+
     project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
     if not project_m_build_dir.exists():
-        return print_red(f'project_m {project_m_build_dir} directory does not exist')
+        print_red(f'project_m {project_m_build_dir} directory does not exist')
+        result_of_last_load_call = False
+        return False
 
     if is_doorbell():
         os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
@@ -46,7 +53,9 @@ def try_load_winamp_cxx_module():
     elif is_macos():
         wanted_so = project_m_build_dir.joinpath('libprojectM-4.dylib').resolve()
     if not wanted_so.exists():
-        return print_red(f'project_m c++ library: {wanted_so} does not exist')
+        print_red(f'project_m c++ library: {wanted_so} does not exist')
+        result_of_last_load_call = False
+        return False
 
     ctypes.cdll.LoadLibrary(str(wanted_so))
 
@@ -56,7 +65,9 @@ def try_load_winamp_cxx_module():
         winamp_visual.init_sdl()
     except:
         print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
+        result_of_last_load_call = False
         return False
+    result_of_last_load_call = True
     return True
 
 

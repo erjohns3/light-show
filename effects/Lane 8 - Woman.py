@@ -21,6 +21,7 @@ effects = {
                 1, 
                 function=sidechain_grid_shape,
                 name='sidechain_test',
+                priority=10000,
                 length=8,
             ),
         ]

@@ -68,22 +68,22 @@ class GridInfo:
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
 
-# relies on there being a named object in our_transform
-def sidechain_grid_shape(grid_info):
-    intensity = getattr(grid_info, 'intensity', 1)
+# relies on there being a named object in our_transform (i think not comprehensive enough)
+# def sidechain_grid_shape(grid_info):
+#     intensity = getattr(grid_info, 'intensity', 1)
 
-    if type(intensity) not in [list, tuple]:
-        start_intensity = intensity
-        end_intensity = intensity
-    else:
-        start_intensity, end_intensity = intensity
+#     if type(intensity) not in [list, tuple]:
+#         start_intensity = intensity
+#         end_intensity = intensity
+#     else:
+#         start_intensity, end_intensity = intensity
     
-    current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+#     current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
     
-    curr_object_box = cached_by_name_last_arr[grid_info.name]
-    for x, y in grid_helpers.coords():
-        if not curr_object_box[x][y].any():
-            grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], 1 - current_intesity)
+#     curr_object_box = cached_by_name_last_arr[grid_info.name]
+#     for x, y in grid_helpers.coords():
+#         if not curr_object_box[x][y].any():
+#             grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], 1 - current_intesity)
 
 
 def sidechain_grid(grid_info):
@@ -424,8 +424,8 @@ def our_transform(info):
     
     arr_version = np.array(transformed_image)
 
-    if getattr(info, 'name', None) is not None:
-        cached_by_name_last_arr[info.name] = arr_version
+    # if getattr(info, 'name', None) is not None: # old for sidechain_grid_shape (i think was bad)
+    #     cached_by_name_last_arr[info.name] = arr_version
     if getattr(info, 'overwrite', None):
         grid_helpers.grid = arr_version
     else:

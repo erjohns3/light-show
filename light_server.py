@@ -934,7 +934,6 @@ async def light():
                 except Exception:
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
-                    return False
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
         # Render the grid to the terminal
@@ -942,13 +941,11 @@ async def light():
             # grid_helpers.apply_bezier_to_grid() # for testing
             render_terminal(pin_light_levels) # this also renders the grid to the terminal
 
-        # Send relevant pin light levels to the pi
+        # Send relevant pin light levels to the pi. Pins 6-8 are the floor
         if not args.local:
-            # 6-8 are the floor pins i think?
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
-
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
@@ -958,7 +955,6 @@ async def light():
             if args.no_curve:
                 grid_helpers.apply_bezier_to_grid()
             grid_helpers.render()
-
 
         # check on youtube downloads
         if download_thread is not None:
@@ -981,14 +977,15 @@ async def light():
             search_thread = threading.Thread(target=search_youtube, args=())
             search_thread.start()
 
+        # if anything's changed we need to resend info to clients
         if broadcast_light_status:
             await send_light_status()
         if broadcast_song_status:
             await send_song_status()
-
         if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
         
+        # math for the next beat
         time_diff = time.time() - time_start
 
         direction = 1 

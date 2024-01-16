@@ -15,6 +15,8 @@ import time
 import math
 import random
 from collections import deque
+import copy
+import joystick_and_keyboard_helpers
 
 import numpy as np
 from PIL import Image
@@ -67,6 +69,40 @@ class GridInfo:
         
         return f'GridInfo({self.grid_function.__name__}, attrs: {", ".join(building)})'
 
+grid_copy_for_mask = copy.deepcopy(grid_helpers.grid)
+def grid_winamp_mask(grid_info):
+    if not grid_helpers.try_setup_winamp():
+        print_red(f'Failed to load winamp when args spec, exiting\n' * 10)
+        exit()
+
+    if grid_info.curr_sub_beat == 0:
+        joystick_and_keyboard_helpers.clear_events()
+        
+    for event in joystick_and_keyboard_helpers.inputs_since_last_called():
+        if event == 'r':
+            grid_info.preset = winamp.winamp_wrapper.get_random_preset_path()
+
+    winamp.winamp_wrapper.load_preset(grid_info.preset)
+    winamp.winamp_wrapper.compute_frame()
+    winamp.winamp_wrapper.load_into_numpy_array(grid_copy_for_mask)
+
+    intensity = getattr(grid_info, 'intensity', 1)
+
+    if type(intensity) not in [list, tuple]:
+        start_intensity = intensity
+        end_intensity = intensity
+    else:
+        start_intensity, end_intensity = intensity
+    current_intensity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+    
+    for x, y in grid_helpers.coords():
+        if grid_helpers.grid[x][y].any():
+            grid_helpers.grid[x][y] = scale_vector(grid_copy_for_mask[x][y], current_intensity)
+
+
+def randomize_preset_on_object(grid_info):
+    grid_info.bobby_jones.preset = winamp.winamp_wrapper.get_random_preset_path()
+
 
 # relies on there being a named object in our_transform (i think not comprehensive enough)
 # def sidechain_grid_shape(grid_info):
@@ -78,12 +114,12 @@ class GridInfo:
 #     else:
 #         start_intensity, end_intensity = intensity
     
-#     current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+#     current_intensity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
     
 #     curr_object_box = cached_by_name_last_arr[grid_info.name]
 #     for x, y in grid_helpers.coords():
 #         if not curr_object_box[x][y].any():
-#             grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], 1 - current_intesity)
+#             grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], 1 - current_intensity)
 
 
 def sidechain_grid(grid_info):
@@ -95,9 +131,9 @@ def sidechain_grid(grid_info):
     else:
         start_intensity, end_intensity = intensity
     
-    current_intesity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)
+    current_intensity = interpolate_float(start_intensity, end_intensity, grid_info.percent_done)    
     for x, y in grid_helpers.coords():
-        grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], current_intesity)
+        grid_helpers.grid[x][y] = scale_vector(grid_helpers.grid[x][y], current_intensity)
 
 
 def twinkle(grid_info):

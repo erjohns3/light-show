@@ -1,5 +1,12 @@
 from effects.compiler import *
 
+mask_grid_info = grid_f(
+    1, 
+    function=grid_winamp_mask,
+    preset='202.milk',
+    priority=10000,
+    length=1,
+)
 effects = {
     "A - Nothing": {
         "length": 1,
@@ -7,6 +14,27 @@ effects = {
         "profiles": ['Andrew'],
         "beats": [
             [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000], 1],
+        ],
+    },
+    "A - Mask winamp": {
+        "length": 1,
+        "trigger": "toggle",
+        "profiles": ['Andrew'],
+        "beats": [
+            mask_grid_info,
+        ],
+    },
+    "A - random winamp": {
+        "length": 1,
+        "trigger": "hold", # TODO MAKE A NEW TYPE TAP THAT ONLY RUNS 1 FRAME
+        "profiles": ['Andrew'],
+        "beats": [
+            grid_f(
+                1, 
+                function=randomize_preset_on_object,
+                bobby_jones=mask_grid_info,
+                length=1,
+            ),
         ],
     },
     "A - laser only rotate green": {

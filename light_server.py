@@ -1779,69 +1779,21 @@ if __name__ == '__main__':
         observer.start()
 
     if args.keyboard:
-        from pynput.keyboard import Listener, KeyCode
-
-        if is_linux():
-            _return_code, stdout, _stderr = run_command_blocking([
-                'xdotool',
-                'getactivewindow',
-            ])
-            process_window_id = int(stdout.strip())
-
+        import joystick_and_keyboard_helpers
         skip_time = 5
-        keyboard_dict = {
-            '`': output_current_beat,
+        joystick_and_keyboard_helpers.add_keyboard_events({
+            'p': output_current_beat,
+            'b': lambda: print(winamp.winamp_wrapper.get_beat_sensitivity()),
+            'u': lambda: winamp.winamp_wrapper.increase_beat_sensitivity(),
+            'i': lambda: winamp.winamp_wrapper.decrease_beat_sensitivity(),
             'up': lambda: restart_show(skip=2),
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
-            'cmd_r': lambda: restart_show(skip=-skip_time),
-            'alt_r': lambda: restart_show(skip=skip_time),
-        }
-        # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
+        })
+        joystick_and_keyboard_helpers.listen_to_keyboard()
 
-        def window_focus():
-            if is_linux():
-                return_code, stdout, _stderr = run_command_blocking([
-                    'xdotool',
-                    'getwindowfocus',
-                ])
-                if return_code != 0:
-                    return False
-                other = int(stdout.strip())
-                return process_window_id == other
-            return True
-
-        def on_press(key):
-            if not window_focus(): return
-            if type(key) == KeyCode:
-                key_name = key.char
-            else:
-                key_name = key.name
-
-            print(f'{key}\n' * 10)
-            if key_name in keyboard_dict:
-                if type(keyboard_dict[key_name]) == str:
-                    add_effect(keyboard_dict[key_name])
-                else:
-                    keyboard_dict[key_name]()
-
-        def on_release(key):
-            if not window_focus(): return
-            if type(key) == KeyCode:
-                key_name = key.char
-            else:
-                key_name = key.name
-            if key_name in keyboard_dict:
-                if type(keyboard_dict[key_name]) == str:
-                    remove_effect_name(keyboard_dict[key_name])
-        
-        def keyboard_listener():
-            with Listener(on_press=on_press, on_release=on_release) as listener: 
-                listener.join()
-        threading.Thread(target=keyboard_listener, args=[], daemon=True).start()
-
-    http_server_async(9555, this_file_directory, ['', 'queue.html'])
+    http_server_async(9555, this_file_directory, ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')

@@ -28,7 +28,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--real', default=False, action='store_true')
 args = parser.parse_args()
 
-keys_to_proccess = collections.deque([])
+keys_to_process = collections.deque([])
 def start_listen_keys():
     if is_andrews_main_computer():
         from pynput.keyboard import Listener, KeyCode
@@ -58,7 +58,7 @@ def start_listen_keys():
             else:
                 key_name = key.name
             if key_name in keyboard_dict:
-                keys_to_proccess.append(key_name)
+                keys_to_process.append(key_name)
 
         def on_release(key):
             if not window_focus():
@@ -79,7 +79,7 @@ def start_listen_keys():
         from sshkeyboard import listen_keyboard
         def press(key):
             print(f'ssh keyboard detected key: {key}')
-            keys_to_proccess.append(key)
+            keys_to_process.append(key)
         def listen_for_keystrokes_ssh():
             listen_keyboard(on_press=press)
         threading.Thread(target=listen_for_keystrokes_ssh, args=[], daemon=True).start()
@@ -122,7 +122,7 @@ def render_grid(terminal=True):
 
 
 keyboard_dict = {
-    'r': lambda: winamp_wrapper.random_preset(),
+    'r': lambda: winamp_wrapper.load_random_preset(),
     'b': lambda: print(winamp_wrapper.get_beat_sensitivity()),
     'up': lambda: winamp_wrapper.increase_beat_sensitivity(),
     'down': lambda: winamp_wrapper.decrease_beat_sensitivity(),
@@ -135,9 +135,9 @@ winamp_wrapper.load_preset(winamp_wrapper.presets_directory.joinpath('tests', '0
 
 start_listen_keys()
 while True:
-    if len(keys_to_proccess) > 0:
-        print(f'Running a key {keys_to_proccess[0]}')
-        key = keys_to_proccess.popleft()
+    if len(keys_to_process) > 0:
+        print(f'Running a key {keys_to_process[0]}')
+        key = keys_to_process.popleft()
         if key in keyboard_dict:
             keyboard_dict[key]()
         else:

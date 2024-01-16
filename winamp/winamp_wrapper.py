@@ -192,15 +192,20 @@ def load_preset(preset_path_or_string, smooth_transition=False, load_from_cache=
     return result
 
 
-def random_preset():
+def load_random_preset():
     global preset_index
-    preset_path = random.choice(all_presets)[1]
-
+    preset_path = get_random_preset_path()
     preset_history.append(preset_path)
     preset_index = len(preset_history) - 1
-    print(f'Python: randomly loading preset, preset index at {preset_index}/{len(preset_history) - 1} now')
-
+    print(f'Python: Loading random preset, preset index at {preset_index}/{len(preset_history) - 1} now')
     load_preset(preset_path)
+
+
+def get_random_preset_path():
+    preset_path = random.choice(all_presets)[1]
+    print(f'Python: randomly getting preset {preset_path}')
+    return preset_path
+
 
 def increase_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:

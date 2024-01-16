@@ -101,6 +101,8 @@ def grid_winamp_mask(grid_info):
 
 
 def randomize_preset_on_object(grid_info):
+    print(f'{type(grid_info)=}')
+    print(f'{type(grid_info.bobby_jones)=}')
     grid_info.bobby_jones.preset = winamp.winamp_wrapper.get_random_preset_path()
 
 

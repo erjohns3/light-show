@@ -3,9 +3,12 @@ import threading
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
-from pynput.keyboard import Listener, KeyCode
 
 from helpers import *
+
+if not is_doorbell():
+    from pynput.keyboard import Listener, KeyCode
+
 
 
 
@@ -91,7 +94,7 @@ def add_keyboard_events(keys_and_functions):
         if key in keyboard_dict:
             print_red(f'WARNING: {key} already in keyboard_dict, overwriting\n' * 40)
         keyboard_dict[key] = function
-if is_linux():
+if is_linux() and not is_doorbell():
     _return_code, stdout, _stderr = run_command_blocking([
         'xdotool',
         'getactivewindow',

@@ -1778,7 +1778,7 @@ if __name__ == '__main__':
         observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive=True)
         observer.start()
 
-    if args.keyboard:
+    if args.keyboard and not is_doorbell():
         import joystick_and_keyboard_helpers
         skip_time = 5
         joystick_and_keyboard_helpers.add_keyboard_events({

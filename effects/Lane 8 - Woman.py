@@ -2,6 +2,10 @@ from effects.compiler import *
 
 
 
+# cool masking effects:
+#     Python: randomly getting preset /home/andrew/programming/python/light-show/winamp/projectm/presets/presets-cream-of-the-crop/Fractal/Core/shifter - interference field v3_Phat_Darken_Pop_Edit_v4 EoS edit B dickless.milk    
+
+
 effects = {
     "woman sidechain_test": {
         "beats": [

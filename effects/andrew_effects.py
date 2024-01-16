@@ -1,6 +1,6 @@
 from effects.compiler import *
 
-mask_grid_info = grid_f(
+grid_f_mask_return = grid_f(
     1, 
     function=grid_winamp_mask,
     preset='202.milk',
@@ -21,7 +21,7 @@ effects = {
         "trigger": "toggle",
         "profiles": ['Andrew'],
         "beats": [
-            mask_grid_info,
+            grid_f_mask_return,
         ],
     },
     "A - random winamp": {
@@ -32,7 +32,7 @@ effects = {
             grid_f(
                 1, 
                 function=randomize_preset_on_object,
-                bobby_jones=mask_grid_info,
+                bobby_jones=grid_f_mask_return[1],
                 length=1,
             ),
         ],

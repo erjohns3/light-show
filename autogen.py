@@ -321,7 +321,7 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
     while iter < len(peaks_to_use):
         peak = peaks_to_use[iter]
         if peak-prev > 40:
-            chunk = [(x for x in sorted_peaks if x > prev+6 and x < prev+40)]
+            chunk = [x for x in sorted_peaks if x > prev+6 and x < prev+40]
             if not chunk:
                 break
             add = chunk[0]

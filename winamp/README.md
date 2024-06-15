@@ -9,8 +9,6 @@ Windows will be harder. Need to reconstruct a bunch of makefile stuff and code I
 * GLSL shaders (version 3.3 or higher) 
 
 # installation
-* `git clone https://github.com/aduerig/projectm`
-    * run in this directory
 * `git clone https://github.com/projectM-visualizer/presets-cream-of-the-crop`
     * run inside the projectm/presets directory
 

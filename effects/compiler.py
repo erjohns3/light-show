@@ -101,8 +101,6 @@ def grid_winamp_mask(grid_info):
 
 
 def randomize_preset_on_object(grid_info):
-    print(f'{type(grid_info)=}')
-    print(f'{type(grid_info.bobby_jones)=}')
     grid_info.bobby_jones.preset = winamp.winamp_wrapper.get_random_preset_path()
 
 
@@ -310,7 +308,6 @@ def get_down_line_numpy(length, offset_x=0, offset_y=0, color=(100, 100, 100)):
     mid_x = (grid_width // 2) + offset_x
     mid_y = (grid_height // 2) + offset_y
 
-    print(f'{mid_x}, {mid_y}, {length}, {offset_x}, {offset_y}')
     for i in range(length):
         circle[mid_x][mid_y + i] = color
 
@@ -513,7 +510,6 @@ def move_y_wrap(info):
     if getattr(info, 'beat_divide', None) is None:
         info.beat_divide = 1
     if info.curr_sub_beat % info.beat_divide == 0:
-        print(f'{info.running}')
         grid_helpers.move_wrap([0, info.running])
         info.running += info.by
 
@@ -523,7 +519,6 @@ def move_y(info):
     if getattr(info, 'beat_divide', None) is None:
         info.beat_divide = 1
     if info.curr_sub_beat % info.beat_divide == 0:
-        print(f'{info.running}')
         grid_helpers.move([0, info.running])
         info.running += info.by
 

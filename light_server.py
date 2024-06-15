@@ -1730,6 +1730,7 @@ if __name__ == '__main__':
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
             args.show_name, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            print_blue(f'AUTOGENED, {args.show_name}')
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 

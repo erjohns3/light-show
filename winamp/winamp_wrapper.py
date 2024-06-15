@@ -94,7 +94,7 @@ def try_load_audio_device():
     
     loaded_id = -1
     if is_doorbell():
-        loaded_id = init_audio_id(2)
+        loaded_id = init_audio_id(1)
         if loaded_id != -1:
             print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
     elif is_andrews_main_computer():

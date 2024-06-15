@@ -1729,8 +1729,7 @@ if __name__ == '__main__':
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
-            args.show_name, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
-            print_blue(f'AUTOGENED, {args.show_name}')
+            args.show_name, _, song_path = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 
@@ -1806,7 +1805,10 @@ if __name__ == '__main__':
         if args.show_name:
             print('Starting show from CLI:', args.show_name)
             only_shows = list(filter(lambda x: has_song(x), effects_config.keys()))
-            args.show_name = fuzzy_find(args.show_name, only_shows)
+            if args.show_name in only_shows:
+                print_blue(f'Found "{args.show_name}" in shows')
+            else:
+                args.show_name = fuzzy_find(args.show_name, only_shows)
 
             if effects_config[args.show_name].get('song_not_avaliable'):
                 print_yellow(f'Song isnt availiable for effect "{args.show_name}", press enter to try downloading?')

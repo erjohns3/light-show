@@ -108,6 +108,7 @@ def try_load_audio_device():
             print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
     elif is_macos():
         for id, device_name in audio_devices.items():
+            print_cyan(f'AUDIO {id=}, {device_name=}')
             if 'blackhole' in device_name.lower():
                 loaded_id = init_audio_id(id)
                 if loaded_id != -1:
@@ -149,6 +150,7 @@ def next_preset():
 
 
 presets_directory = this_file_directory.joinpath('projectm', 'presets')
+print(presets_directory)
 presets_drawing_liquid_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Drawing', 'Liquid')
 presets_dancer_glowsticks_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror')
 all_presets = list(get_all_paths(presets_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))

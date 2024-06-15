@@ -3,7 +3,6 @@ import sys
 import random
 
 import numpy as np
-from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
@@ -344,7 +343,7 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
         font_path = get_font_path(font_name)
         if font_path is not None:
             font = ImageFont.truetype(str(font_path), font_size)
-
+            from pilmoji import Pilmoji
             # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
             with Pilmoji(image) as pilmoji:
                 # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?

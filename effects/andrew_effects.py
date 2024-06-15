@@ -3,7 +3,7 @@ from effects.compiler import *
 grid_f_mask_return = grid_f(
     1, 
     function=grid_winamp_mask,
-    preset='202.milk',
+    preset='202-wave.milk',
     priority=10000,
     length=1,
 )

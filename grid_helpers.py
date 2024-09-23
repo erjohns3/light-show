@@ -3,7 +3,6 @@ import sys
 import random
 
 import numpy as np
-from pilmoji import Pilmoji
 from PIL import Image, ImageSequence, ImageFont, ImageOps
 
 from helpers import *
@@ -102,14 +101,15 @@ def render(terminal=False, reset_terminal=True, rotate_terminal=False):
             else:
                 return GRID_WIDTH
         else:
+            # optimized from below (but not sure if this one is right)
+            # [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
+
             for y in range(GRID_HEIGHT):
                 column_parts = []
                 for x in range(GRID_WIDTH):
                     ansi_string = rgb_ansi('▆', to_print_grid[x][y]) * 2
                     column_parts.append(ansi_string)
                 print(''.join(column_parts))
-
-            # [print(''.join([f'\033[38;2;{to_print_grid[x][y][0]};{to_print_grid[x][y][1]};{to_print_grid[x][y][2]}m▆\033[0m' for x in range(GRID_WIDTH)])) for y in range(GRID_HEIGHT)]
             if reset_terminal:
                 print('\033[F' * GRID_HEIGHT, end='')
             else:
@@ -343,7 +343,7 @@ def create_image_from_text_pilmoji(text, font_size=12, rotate_90=False, text_col
         font_path = get_font_path(font_name)
         if font_path is not None:
             font = ImageFont.truetype(str(font_path), font_size)
-
+            from pilmoji import Pilmoji
             # another option is source=MicrosoftEmojiSource, or Twemoji    # emoji_scale_factor=1.15, emoji_position_offset=(0, -2)
             with Pilmoji(image) as pilmoji:
                 # !TODO get a better method for this, isn't factoring in emoji stuff, but it kinda works cause they are non printable?
@@ -383,28 +383,23 @@ def get_2d_arr_from_text(*args, **kwargs):
         return PIL_image_to_numpy_arr(image)
 
 
-result_of_last_call = None
 def try_load_winamp():
-    global result_of_last_call
-    if result_of_last_call is not None:
-        return result_of_last_call
-    result_of_last_call = winamp.winamp_wrapper.try_load_winamp_cxx_module()
-    return result_of_last_call
+    return winamp.winamp_wrapper.try_load_winamp_cxx_module()
 
 
 result_of_last_setup_call = None
 def try_setup_winamp():
-    if winamp.winamp_wrapper.winamp_visual_loaded is not None:
-        return winamp.winamp_wrapper.winamp_visual_loaded
-
     global result_of_last_setup_call
     if result_of_last_setup_call is not None:
         return result_of_last_setup_call
+
     if not try_load_winamp():
-        return print_red('Failed to load winamp, exiting')
-    result_of_last_setup_call = winamp.winamp_wrapper.setup_winamp_visual()
-    if not result_of_last_setup_call:
-        return result_of_last_setup_call
+        result_of_last_setup_call = False
+        return False
+    if not winamp.winamp_wrapper.setup_winamp_visual():
+        result_of_last_setup_call = False
+        return False
+
     result_of_last_setup_call = winamp.winamp_wrapper.try_load_audio_device()
     return result_of_last_setup_call
 

@@ -1,4 +1,7 @@
 # Club time
+
+* Light show, patterns make the visualizer light up, all else black
+
 ## TLDR:
 
 ### Requirements

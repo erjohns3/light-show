@@ -29,10 +29,17 @@ sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
 
 
-def try_load_winamp_cxx_module():    
+result_of_last_load_call = None
+def try_load_winamp_cxx_module():
+    global result_of_last_load_call
+    if result_of_last_load_call is not None:
+        return result_of_last_load_call
+
     project_m_build_dir = this_file_directory.joinpath('projectm', 'src', 'libprojectM')
     if not project_m_build_dir.exists():
-        return print_red(f'project_m {project_m_build_dir} directory does not exist')
+        print_red(f'project_m {project_m_build_dir} directory does not exist')
+        result_of_last_load_call = False
+        return False
 
     if is_doorbell():
         os.environ['MESA_GL_VERSION_OVERRIDE'] = '3.3'
@@ -46,7 +53,9 @@ def try_load_winamp_cxx_module():
     elif is_macos():
         wanted_so = project_m_build_dir.joinpath('libprojectM-4.dylib').resolve()
     if not wanted_so.exists():
-        return print_red(f'project_m c++ library: {wanted_so} does not exist')
+        print_red(f'project_m c++ library: {wanted_so} does not exist')
+        result_of_last_load_call = False
+        return False
 
     ctypes.cdll.LoadLibrary(str(wanted_so))
 
@@ -56,7 +65,9 @@ def try_load_winamp_cxx_module():
         winamp_visual.init_sdl()
     except:
         print_red(f'winamp_visual.setup_winamp() failed, stacktrace: {get_stack_trace()}')
+        result_of_last_load_call = False
         return False
+    result_of_last_load_call = True
     return True
 
 
@@ -83,7 +94,7 @@ def try_load_audio_device():
     
     loaded_id = -1
     if is_doorbell():
-        loaded_id = init_audio_id(2)
+        loaded_id = init_audio_id(1)
         if loaded_id != -1:
             print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
     elif is_andrews_main_computer():
@@ -97,6 +108,7 @@ def try_load_audio_device():
             print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
     elif is_macos():
         for id, device_name in audio_devices.items():
+            print_cyan(f'AUDIO {id=}, {device_name=}')
             if 'blackhole' in device_name.lower():
                 loaded_id = init_audio_id(id)
                 if loaded_id != -1:
@@ -138,6 +150,7 @@ def next_preset():
 
 
 presets_directory = this_file_directory.joinpath('projectm', 'presets')
+print(presets_directory)
 presets_drawing_liquid_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Drawing', 'Liquid')
 presets_dancer_glowsticks_directory = presets_directory.joinpath('presets-cream-of-the-crop', 'Dancer', 'Glowsticks Mirror')
 all_presets = list(get_all_paths(presets_directory, recursive=True, only_files=True, allowed_extensions=['.milk']))
@@ -181,15 +194,20 @@ def load_preset(preset_path_or_string, smooth_transition=False, load_from_cache=
     return result
 
 
-def random_preset():
+def load_random_preset():
     global preset_index
-    preset_path = random.choice(all_presets)[1]
-
+    preset_path = get_random_preset_path()
     preset_history.append(preset_path)
     preset_index = len(preset_history) - 1
-    print(f'Python: randomly loading preset, preset index at {preset_index}/{len(preset_history) - 1} now')
-
+    print(f'Python: Loading random preset, preset index at {preset_index}/{len(preset_history) - 1} now')
     load_preset(preset_path)
+
+
+def get_random_preset_path():
+    preset_path = random.choice(all_presets)[1]
+    print(f'Python: randomly getting preset {preset_path}')
+    return preset_path
+
 
 def increase_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:

@@ -722,6 +722,7 @@ purple = [153, 50, 204]
 disco_speed = .15
 disco_pos = 0
 # !TODO remove the 0-5 indexes
+@profile
 def render_terminal(light_levels):
     global laser_motor_stage, disco_pos, laser_motor_velocity, laser_intensity
 
@@ -933,7 +934,6 @@ async def light():
                 except Exception:
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
-                    return False
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
         # Render the grid to the terminal
@@ -941,13 +941,11 @@ async def light():
             # grid_helpers.apply_bezier_to_grid() # for testing
             render_terminal(pin_light_levels) # this also renders the grid to the terminal
 
-        # Send relevant pin light levels to the pi
+        # Send relevant pin light levels to the pi. Pins 6-8 are the floor
         if not args.local:
-            # 6-8 are the floor pins i think?
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
-
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
@@ -957,7 +955,6 @@ async def light():
             if args.no_curve:
                 grid_helpers.apply_bezier_to_grid()
             grid_helpers.render()
-
 
         # check on youtube downloads
         if download_thread is not None:
@@ -980,14 +977,15 @@ async def light():
             search_thread = threading.Thread(target=search_youtube, args=())
             search_thread.start()
 
+        # if anything's changed we need to resend info to clients
         if broadcast_light_status:
             await send_light_status()
         if broadcast_song_status:
             await send_song_status()
-
         if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
         
+        # math for the next beat
         time_diff = time.time() - time_start
 
         direction = 1 
@@ -1731,7 +1729,7 @@ if __name__ == '__main__':
 
             all_song_names = [name for name, _path in all_song_name_and_paths]
             song_path = pathlib.Path('songs').joinpath(fuzzy_find(args.autogen, all_song_names))
-            args.show_name, _, _ = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
+            args.show_name, _, song_path = autogen.generate_show(song_path, overwrite=True, mode=args.autogen_mode)
             if args.autogen_mode == 'lasers':
                 laser_mode = True
 
@@ -1780,69 +1778,22 @@ if __name__ == '__main__':
         observer.schedule(RekordboxFilesystemHandler(), dir_to_watch, recursive=True)
         observer.start()
 
-    if args.keyboard:
-        from pynput.keyboard import Listener, KeyCode
-
-        if is_linux():
-            _return_code, stdout, _stderr = run_command_blocking([
-                'xdotool',
-                'getactivewindow',
-            ])
-            process_window_id = int(stdout.strip())
-
+    if args.keyboard and not is_doorbell():
+        import joystick_and_keyboard_helpers
         skip_time = 5
-        keyboard_dict = {
-            '`': output_current_beat,
+        joystick_and_keyboard_helpers.add_keyboard_events({
+            'p': output_current_beat,
+            'b': lambda: print(winamp.winamp_wrapper.get_beat_sensitivity()),
+            'u': lambda: winamp.winamp_wrapper.increase_beat_sensitivity(),
+            'i': lambda: winamp.winamp_wrapper.decrease_beat_sensitivity(),
             'up': lambda: restart_show(skip=2),
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
-            'cmd_r': lambda: restart_show(skip=-skip_time),
-            'alt_r': lambda: restart_show(skip=skip_time),
-        }
-        # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
+        })
+        joystick_and_keyboard_helpers.listen_to_keyboard()
 
-        def window_focus():
-            if is_linux():
-                return_code, stdout, _stderr = run_command_blocking([
-                    'xdotool',
-                    'getwindowfocus',
-                ])
-                if return_code != 0:
-                    return False
-                other = int(stdout.strip())
-                return process_window_id == other
-            return True
-
-        def on_press(key):
-            if not window_focus(): return
-            if type(key) == KeyCode:
-                key_name = key.char
-            else:
-                key_name = key.name
-
-            if key_name in keyboard_dict:
-                if type(keyboard_dict[key_name]) == str:
-                    add_effect(keyboard_dict[key_name])
-                else:
-                    keyboard_dict[key_name]()
-
-        def on_release(key):
-            if not window_focus(): return
-            if type(key) == KeyCode:
-                key_name = key.char
-            else:
-                key_name = key.name
-            if key_name in keyboard_dict:
-                if type(keyboard_dict[key_name]) == str:
-                    remove_effect_name(keyboard_dict[key_name])
-        
-        def keyboard_listener():
-            with Listener(on_press=on_press, on_release=on_release) as listener: 
-                listener.join()
-        threading.Thread(target=keyboard_listener, args=[], daemon=True).start()
-
-    http_server_async(9555, this_file_directory, ['', 'queue.html'])
+    http_server_async(9555, this_file_directory, ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
@@ -1854,7 +1805,10 @@ if __name__ == '__main__':
         if args.show_name:
             print('Starting show from CLI:', args.show_name)
             only_shows = list(filter(lambda x: has_song(x), effects_config.keys()))
-            args.show_name = fuzzy_find(args.show_name, only_shows)
+            if args.show_name in only_shows:
+                print_blue(f'Found "{args.show_name}" in shows')
+            else:
+                args.show_name = fuzzy_find(args.show_name, only_shows)
 
             if effects_config[args.show_name].get('song_not_avaliable'):
                 print_yellow(f'Song isnt availiable for effect "{args.show_name}", press enter to try downloading?')

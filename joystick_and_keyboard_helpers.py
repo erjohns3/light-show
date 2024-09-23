@@ -1,9 +1,14 @@
 import os
+import threading
 
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame
 
 from helpers import *
+
+if not is_doorbell():
+    from pynput.keyboard import Listener, KeyCode
+
 
 
 
@@ -42,6 +47,11 @@ joystick_normalized = {
     # 14: 'down',
 }
 
+joyhat_x_mapping = {
+    -1: 'right' if is_doorbell() else 'left',
+    1: 'left' if is_doorbell() else 'right',
+}
+# idk if this is used
 def invert_left_right_joystick():
     global joystick_normalized
     new_joystick_normalized = {}
@@ -78,22 +88,70 @@ def ensure_joystick_init():
             has_inited.add(joystick)
 
 
-joyhat_x_mapping = {
-    -1: 'left',
-    1: 'right',
-}
-if is_doorbell():
-    joyhat_x_mapping = {
-        1: 'left',
-        -1: 'right',
-    }
+keyboard_dict = {}
+def add_keyboard_events(keys_and_functions):
+    for key, function in keys_and_functions.items():
+        if key in keyboard_dict:
+            print_red(f'WARNING: {key} already in keyboard_dict, overwriting\n' * 40)
+        keyboard_dict[key] = function
+if is_linux() and not is_doorbell():
+    _return_code, stdout, _stderr = run_command_blocking([
+        'xdotool',
+        'getactivewindow',
+    ])
+    original_process_window_id = int(stdout.strip())
+# https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
+def has_window_focus():
+    if is_linux():
+        return_code, stdout, _stderr = run_command_blocking([
+            'xdotool',
+            'getwindowfocus',
+        ])
+        if return_code != 0:
+            return False
+        other = int(stdout.strip())
+        return original_process_window_id == other
+    return True
 
+
+def key_norm(key):
+    if type(key) == KeyCode:
+        return key.char
+    else:
+        return key.name
+
+
+def listen_to_keyboard():
+    def on_press(key):
+        if not has_window_focus(): 
+            return
+        key_name = key_norm(key)
+        if key_name in keyboard_dict:
+            keyboard_dict[key_name]()
+        else:
+            all_events.append(key_name)
+
+    def on_release(key):
+        pass
+        # if not has_window_focus(): 
+        #     return
+        # key = key_norm(key)
+        # if key_name in keyboard_dict:
+        #     if type(keyboard_dict[key_name]) == str:
+        #         remove_effect_name(keyboard_dict[key_name])
+    
+    def keyboard_listener():
+        with Listener(on_press=on_press, on_release=on_release) as listener: 
+            listener.join()
+    threading.Thread(target=keyboard_listener, args=[], daemon=True).start()
+
+
+all_events = []
 def inputs_since_last_called():
     if not ensure_init():
         return
     ensure_joystick_init()
 
-    all_events = []
     for event in pygame.event.get():
         if not is_doorbell():
             pass
@@ -108,8 +166,9 @@ def inputs_since_last_called():
                 all_events.append('down')
             elif y == 1:
                 all_events.append('up')
-    return all_events
-
+    copy_of_all_events = all_events.copy()
+    all_events.clear()
+    return copy_of_all_events
 
     # active_joystick = get_active_joystick()
     # if active_joystick is None:

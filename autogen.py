@@ -161,7 +161,7 @@ def separate_stem(audio_path, part, model=None, cache=True):
 
 def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     to_delete_after = []
-    if is_windows():
+    if is_windows() or is_macos():
         song_filepath_maybe_utf_8 = sound_video_helpers.convert_to_wav(song_filepath)
         clean_name = song_filepath_maybe_utf_8.name.encode('ascii', 'ignore').decode('ascii')
         if clean_name != song_filepath_maybe_utf_8.name:
@@ -175,6 +175,7 @@ def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
     hop_s = win_s // 2          # hop size
     
     try:
+
         src = aubio.source(str(song_filepath), 0, hop_s)
     except Exception as e:
         print_stacktrace()
@@ -183,11 +184,12 @@ def get_src_bpm_offset(song_filepath, use_boundaries=True, queue=None):
             print_red(f'since file truly doesnt exist according to python raising again')
             raise Exception('read above exception')
 
-        safe_name = [char if char.isascii() else '_' for char in song_filepath.name]
+        safe_name = ''.join([char if char.isascii() else '_' for char in song_filepath.name])
         safe_filepath = get_temp_dir().joinpath(safe_name)
         shutil.copy(song_filepath, safe_filepath)
         print_yellow(f'moving "{song_filepath}" to safe path: "{safe_filepath}"')
         song_filepath = safe_filepath
+        print(f'attempting to open {song_filepath}')
         src = aubio.source(str(song_filepath), 0, hop_s)
 
     # print(src.uri, src.samplerate, src.channels, src.duration)
@@ -321,7 +323,10 @@ def get_boundary_beats(energies_in, beat_length, delay, length_s):
     while iter < len(peaks_to_use):
         peak = peaks_to_use[iter]
         if peak-prev > 40:
-            add = next((x for x in sorted_peaks if x > prev+6 and x < prev+40))
+            chunk = [x for x in sorted_peaks if x > prev+6 and x < prev+40]
+            if not chunk:
+                break
+            add = chunk[0]
             peaks_to_use.insert(iter, add) # = peak, next iteration
             prev = add
             iter+=1
@@ -456,28 +461,27 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     # either just double the ceiling brightness or do something more complex
 
     scenes = [
-        [8, ['winamp top alone', 'downbeat bottom']],
+        [8, ['winamp top alone', ]],
         [8, ['winamp top alone']],
         [8, ['winamp top alone', 'disco strobe']],
         [8, ['winamp top alone']],
         [8, ['winamp top alone', 'disco strobe']],
 
-        [8, ['downbeat top', 'downbeat bottom']],
-        [8, ['downbeat top', 'downbeat bottom', 'disco']],
+        [8, ['downbeat top']],
+        [8, ['downbeat top', 'disco']],
         [8, ['downbeat top']],
         [8, ['downbeat top']],
         [8, ['downbeat top', 'disco strobe']],
-        [8, ['downbeat bottom']],
         [8, ['downbeat mixed']],
         [8, ['downbeat mixed']],
         [8, ['downbeat mixed', 'disco']],
         [8, ['downbeat mixed', 'disco strobe']],
         [8, ['downbeat mixed', 'UV pulse']],
         [8, ['downbeat mixed', 'UV']],
-        [8, ['downbeat top', 'downbeat bottom', 'UV']],
         [8, ['downbeat top', 'UV']],
-        [8, ['downbeat bottom', 'UV']],
-        [8, ['downbeat top', 'downbeat bottom']],
+        [8, ['downbeat top', 'UV']],
+        [8, ['UV']],
+        [8, ['downbeat top']],
         [8, ['downbeat top', 'disco strobe']],
         [8, ['disco strobe']],
         [2, ['filler']],

@@ -177,14 +177,15 @@ def process_playlist_video_renderers(playlist_video_renderers, videos):
         watch_endpoint_obj = navigation_obj['watchEndpoint']
         video_id = watch_endpoint_obj['videoId']
         video_url = f'https://www.youtube.com/watch?v={video_id}'
-
-        contributor_list = item3['playlistVideoRenderer']['contributorName']['runs']
-        
-        contributor_name = ''
-        for contributor_obj in contributor_list:
-            if 'Added by ' == contributor_obj['text']:
-                continue
-            contributor_name = contributor_obj['text']
+        try: # chris doing this and it might be wrong
+            contributor_list = item3['playlistVideoRenderer']['contributorName']['runs']
+            contributor_name = ''
+            for contributor_obj in contributor_list:
+                if 'Added by ' == contributor_obj['text']:
+                    continue
+                contributor_name = contributor_obj['text']
+        except: 
+            contributor_name = 'unknown_err'
 
         videos.append((title, video_url, contributor_name))
     return continuation_token

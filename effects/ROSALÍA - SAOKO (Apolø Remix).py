@@ -41,7 +41,7 @@ def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=N
         components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
     return components
 
-verse_colors = [GColor.red, GColor.orange, GColor.yellow] * 14
+verse_colors = [GColor.red, GColor.orange, GColor.red] * 14
 
 
 
@@ -62,7 +62,7 @@ effects = {
             # b(4, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(1, 0)),        
             b(1, name='Red bottom', length=1.5, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),
             b(2.75, name='Orange bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),
-            b(3.75, name='Yellow bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),        
+            b(3.75, name='Firebrick bottom', length=0.75, hue_shift=.85, sat_shift=-.25, intensity=(.4, 0)),        
         ],
     },
      "S chorus laser": {
@@ -77,7 +77,7 @@ effects = {
     "S circle pulse": {
         "length": 2,
         "beats": [
-            *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
+            *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.orange),
         ],
     },
     "ROSALÍA - SAOKO (Apolø Remix)": {

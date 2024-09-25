@@ -37,7 +37,7 @@ effects = {
         "beats": [
             # intro w/ bass
             b(1, name='guess bass', length=17),
-            # (you wanna guess the color of)
+            # no bass (you wanna guess the color of)
 
             # bass comes back (put them in your mouth)
             b(50, name='guess bass', length=32),
@@ -58,7 +58,7 @@ effects = {
             # bass comes back (you wanna guess the color of)
             b(130, name='guess bass', length=32),
             #b(180)
-            #b(210) (GUESS)
+            #b(210) (GO NUTS---GUESS)
 
 
 

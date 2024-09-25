@@ -122,8 +122,12 @@ def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max
             'key': 'FFmpegExtractAudio',
             'preferredcodec': codec,
             'preferredquality': '0',
+            'postprocessor_args': ['-ar', '48000'],
         }]
     }
+#     ffmpeg
+#  -i input.ogg -ar 48000 output.ogg
+
     if keep_video:
         ydl_opts['format'] = 'mp4/bestvideo/best' # !todo figure out if this is sacking video quality
         del ydl_opts['postprocessors']

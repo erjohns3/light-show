@@ -5,6 +5,7 @@ import json
 from copy import deepcopy
 import time
 import subprocess
+import shutil
 
 from helpers import *
 
@@ -122,7 +123,7 @@ def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max
             'key': 'FFmpegExtractAudio',
             'preferredcodec': codec,
             'preferredquality': '0',
-            'postprocessor_args': ['-ar', '48000'],
+            # 'postprocessor_args': ['-ar', '48000'],
         }]
     }
 #     ffmpeg
@@ -161,6 +162,24 @@ def download_youtube_url(url=None, dest_path=None, restrict_filenames=False, max
         cache[url] = str(downloaded_filepath.absolute())
         with open(cache_path, 'w') as f:
             f.write(json.dumps(cache, indent=4))
+
+
+    # changing to 48000hz in place
+    # ffmpeg -i input.ogg -ar 48000 output.ogg
+
+    extension = downloaded_filepath.suffix[1:]
+    temp_output = get_temp_dir().joinpath(f'output.{extension}')
+    print_green(f'Converting to 48000hz')
+    retcode, stdout, stderr = run_command_blocking([
+        'ffmpeg',
+        '-i', str(downloaded_filepath),
+        '-ar', '48000',
+        str(temp_output),
+    ])
+    if retcode:
+        print_red(f'Couldnt convert "{downloaded_filepath}" due to {stderr}')
+        return None
+    shutil.move(temp_output, downloaded_filepath)
 
     return downloaded_filepath
 

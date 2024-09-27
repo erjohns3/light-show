@@ -108,6 +108,10 @@ elif args.winamp:
 
 pi = None
 
+
+
+# 8, 7, 26 is floor horizontal (r g b)
+# 19, 24, 25 is floor vertical (r g b)
 LED_PINS = [5, 6, 13, 19, 24, 25, 8, 7, 26, 16, 2, 3, 4, 17, 27, 22]
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ
@@ -734,7 +738,7 @@ def render_terminal(light_levels):
     line_length = terminal_size - 1
 
     levels_255 = list(map(lambda x: int(x * 2.55), light_levels))
-    bottom_rgb = levels_255[6:9]
+    bottom_rgb_complete = levels_255[6:9]
     uv_value = levels_255[9]
     target_laser_color_rgb = levels_255[10:12]
     target_laser_motor_value = min(100, max(0, levels_255[12] / 2.55))
@@ -781,7 +785,7 @@ def render_terminal(light_levels):
     # if laser_intensity < 1:
 
     top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled)
-    bottom_light_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, bottom_rgb)
+    bottom_light_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, bottom_rgb_complete)
     laser_row = rgb_ansi(laser_string, laser_style)
     disco_row = ''.join([char for char in disco_chars])
 
@@ -946,9 +950,18 @@ async def light():
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
+
+
+            # horizontal
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+
+            # vertical
+            for index in range(6, len(pin_light_levels)):
+                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
+                pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+
 
         # Sends the grid to the pi 
         if not args.local:

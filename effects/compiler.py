@@ -711,7 +711,6 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
 
-
     if name is None:
         if top_rgb is None:
             top_rgb = [0, 0, 0]

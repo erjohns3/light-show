@@ -43,15 +43,15 @@ effects = {
             b(1.1, [0, 0, 255, 0, 0, 0, 0], 1, intensity=(0.4, 0.1)),
         ],
     },
-    "shelter Yellow Top to Bottom hang": {
-        "length": 4,
-        "beats": [
-            b(1, [114, 60, 5, 0, 25, 0, 0], .2, intensity=(0, .5)),
-            b(1.2, [114, 60, 5, 0, 25, 0, 0], 1.1, intensity=(.5, 0)),
-            b(1.3, [0, 0, 0, 114, 60, 5, 0], 1.3, intensity=(0, .6)),
-            b(2.6, [0, 0, 0, 114, 60, 5, 0], 38, intensity=(.6, .6)),
-        ],
-    },
+    # "shelter Yellow Top to Bottom hang": {
+    #     "length": 4,
+    #     "beats": [
+    #         b(1, [114, 60, 5, 0, 25, 0, 0], .2, intensity=(0, .5)),
+    #         b(1.2, [114, 60, 5, 0, 25, 0, 0], 1.1, intensity=(.5, 0)),
+    #         b(1.3, [0, 0, 0, 114, 60, 5, 0], 1.3, intensity=(0, .6)),
+    #         b(2.6, [0, 0, 0, 114, 60, 5, 0], 38, intensity=(.6, .6)),
+    #     ],
+    # },
     "muddy yellow ay": {
         "length": 1,
         "beats": [

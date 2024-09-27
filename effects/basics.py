@@ -735,6 +735,3 @@ for amt in range(1, 101):
 # with open(fp, 'w') as f:
 #     json.dump(effects, f, indent=4)
 # print(f'Effects saved to {fp}')
-
-
-exit()

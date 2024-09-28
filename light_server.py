@@ -955,10 +955,11 @@ async def light():
             # THIS SHOULD BE MOVED TO ACCEPTING DIFFERENT PIN LIGHT LEVELS FOR HORIZTONAL AND VERTICAL. PENDING SIMPLE EFFECT CHANGES
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
-                # horizontal
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
 
-                # vertical (pins are indexes 3-6)
+            for index in range(6, 9):
+                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
+                # vertical
                 pi.set_PWM_dutycycle(LED_PINS[index - 3], send_num_to_pi)
 
 

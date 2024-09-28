@@ -7,14 +7,14 @@ effects = {
     "guess circles" : {
         "length": 4,
         "beats": [
-            *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=1.2, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=1.4, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=1.6, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=1.8, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=2, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=2.2, start_color=GColor.blue, end_color=GColor.purple),
-            *get_circle_pulse_beats(start_beat=2.4, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.2, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.4, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.6, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.8, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2.2, start_color=GColor.light_green, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2.4, start_color=GColor.light_green, end_color=GColor.purple),
         ],
     },
 

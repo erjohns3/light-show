@@ -1,11 +1,36 @@
 from effects.compiler import *
 
+
+
+
 effects = {
+    "guess circles" : {
+        "length": 4,
+        "beats": [
+            *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.2, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.4, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.6, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=1.8, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2.2, start_color=GColor.blue, end_color=GColor.purple),
+            *get_circle_pulse_beats(start_beat=2.4, start_color=GColor.blue, end_color=GColor.purple),
+        ],
+    },
+
+
+    "guess intro" : {
+        "length": 32,
+        "beats": [
+            *make_rain(start_beat=1, length=15, speed=.35, lower_wait=2, upper_wait=6, color=GColor.light_green, num_rains=40),
+            b(18, name='guess circles', length=14),
+
+        ],
+    },
     "guess bass" : {
         "length": 1,
         "beats": [
             b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
-                  
         ],
     },
     "synth high" : {
@@ -52,7 +77,11 @@ effects = {
         "skip_song": 4.80,
         "beats": [
             # intro w/ bass
-            b(1, name='guess bass', length=17),
+            # b(1, name='guess bass', length=17),
+
+            b(1, name='guess intro', length=32),
+
+
             # (you wanna guess the color of)
 
             # bass comes back (put them in your mouth)

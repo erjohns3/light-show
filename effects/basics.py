@@ -211,27 +211,6 @@ effects = {
             [1, [-100, -100, -100, 0, 0, 0, 0], 1],
         ],
     },
-    # timings
-    "RBBB 1 bar": {
-        "length": 4,
-        "beats": [
-            [1, [100, 0, 0, 0, 0, 0, 0], 0.25],
-            [2, [0, 0, 100, 0, 0, 0, 0], 0.25],
-            [3, [0, 0, 100, 0, 0, 0, 0], 0.25],
-            [4, [0, 0, 100, 0, 0, 0, 0], 0.25],
-        ],
-    },
-
-    "RBBB 1 bar bottom": {
-        "length": 4,
-        "beats": [
-            [1, [0, 0, 0, 100, 0, 0, 0], 0.25],
-            [2, [0, 0, 0, 0, 0, 100, 0], 0.25],
-            [3, [0, 0, 0, 0, 0, 100, 0], 0.25],
-            [4, [0, 0, 0, 0, 0, 100, 0], 0.25],
-        ],
-    },
-
 
     ################################## disco
     "Red disco": {
@@ -679,15 +658,6 @@ for color in ['Red', 'Blue', 'Green']:
             }
 
 
-effects[f'Red bottom green laser flash'] = {
-    'length': 1,
-    'profiles': [f'All lasers'],
-    'beats': [
-        b(1, name='Red bottom', length=.5),    
-        b(1.5, name='green laser', length=.5),    
-    ],
-}
-
 effects[f'Red bottom flash .96'] = {
     'length': 1,
     'profiles': [f'All lasers'],
@@ -747,6 +717,21 @@ for amt in range(1, 101):
             'profiles': [f'All lasers'],
             'beats': [
                 [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, amt], 1],
+                
+                
+                # b(1, name='laser motor', laser_motor=amt, length=1),
             ],
         }
 
+
+# for key, value in effects.items():
+#     if len(value['beats']) != 1:
+#         print(key)
+
+# serialize the effects dictionary to a file
+
+# import json
+# fp = get_temp_dir().joinpath('AFTER_effects.json')
+# with open(fp, 'w') as f:
+#     json.dump(effects, f, indent=4)
+# print(f'Effects saved to {fp}')

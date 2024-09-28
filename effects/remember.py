@@ -29,7 +29,6 @@ effects = {
             # [1, "Red disco", 2000],
             # [1, "Blue disco", 2000],
             # [1, "Green disco", 2000],
-            # [1, "Yellow Top to Bottom hang", 64],
             # [65, "wandering", 64],
             # [129, "Ghosts UV", 64],
             # [193, "Ghosts bassline", 64],

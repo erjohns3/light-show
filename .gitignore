@@ -23,6 +23,7 @@ youtube_cache.json
 *.mp3
 *.ogg
 *.webm
+input_download_mp3s_bulk.txt
 temp/
 *.wav
 .DS_Store

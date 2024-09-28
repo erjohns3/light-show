@@ -952,15 +952,14 @@ async def light():
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
 
 
-            # horizontal
+            # THIS SHOULD BE MOVED TO ACCEPTING DIFFERENT PIN LIGHT LEVELS FOR HORIZTONAL AND VERTICAL. PENDING SIMPLE EFFECT CHANGES
             for index in range(6, len(pin_light_levels)):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
+                # horizontal
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
 
-            # vertical
-            for index in range(6, len(pin_light_levels)):
-                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
-                pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+                # vertical (pins are indexes 3-6)
+                pi.set_PWM_dutycycle(LED_PINS[index - 3], send_num_to_pi)
 
 
         # Sends the grid to the pi 

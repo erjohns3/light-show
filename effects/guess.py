@@ -29,6 +29,22 @@ effects = {
                   
         ],
     },
+    "the drop" : {
+        "length": 1,
+        "beats": [
+            b(1, name='green laser', length=1),
+            b(1, name='green laser motor', length=.5),
+        ],
+    },
+    "the drop 2" : {
+        "length": 1,
+        "beats": [
+            b(1, name='green laser', length=1),
+            b(1, name='green laser motor', length=.5),
+            b(1, name='Sidechain laser', length=.5, intensity=(1, 0)),
+        ],
+    },
+
     "Guess": {
         "bpm": 130,
         "song_path": "songs/Charli xcx - Guess (official lyric video).ogg",
@@ -58,7 +74,12 @@ effects = {
             # bass comes back (you wanna guess the color of)
             b(130, name='guess bass', length=32),
             #b(180)
-            #b(210) (GUESS)
+            
+            # b(209) # says "guess" before drop
+            b(210, name='the drop', length=32),
+            b(242, name='the drop 2', length=32),
+            # b(210)
+            # 242 repeats guess
 
 
 

@@ -1,6 +1,5 @@
 from effects.compiler import *
 
-print('file in question')
 effects = {
     "Mad Zach - The Visitor": {
         "beats": [

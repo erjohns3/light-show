@@ -32,23 +32,23 @@ for _, filepath in get_all_paths(effects_directory):
 
 
         # this just checks if there's any remaining inner bracket combos
-        good_check = r'\[.*?\[(.*?)\].*?\]'
-        print_blue(filepath)
-        if filepath.stem == 'compiler':
-            continue
-        for line in data.splitlines():
-            brackets = []
-            for char in line:
-                if char == '#':
-                    break
-                if char == '[':
-                    if brackets:
-                        print(line)
-                    brackets.append('[')
-                elif char == ']':
-                    if brackets and brackets[-1] == '[':
-                        brackets.pop()
-        continue
+        # good_check = r'\[.*?\[(.*?)\].*?\]'
+        # print_blue(filepath)
+        # if filepath.stem == 'compiler':
+        #     continue
+        # for line in data.splitlines():
+        #     brackets = []
+        #     for char in line:
+        #         if char == '#':
+        #             break
+        #         if char == '[':
+        #             if brackets:
+        #                 print(line)
+        #             brackets.append('[')
+        #         elif char == ']':
+        #             if brackets and brackets[-1] == '[':
+        #                 brackets.pop()
+        # continue
 
 
         # migration script below

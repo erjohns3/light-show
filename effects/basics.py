@@ -647,8 +647,7 @@ effects = {
 
 
     # OTHER
-
-        "RBBB 1 bar": {
+    "RBBB 1 bar": {
         "length": 4,
         "beats": [
             [1, "Red top", 0.25],

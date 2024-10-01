@@ -851,8 +851,42 @@ def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=N
     return [start_beat, info, length]
 
 
+def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None):
+    if disco_rgb is None:
+        disco_rgb = [0, 0, 0]
+
+    if top_rgb:
+        front_rgb = top_rgb
+        back_rgb = top_rgb
+
+    if bottom_rgb:
+        bottom_hori_rgb = bottom_rgb
+        bottom_vert_rgb = bottom_rgb
+
+    if uv is None:
+        uv = 0
+    if green_laser is None:
+        green_laser = 0
+    if red_laser is None:
+        red_laser = 0
+    if laser_motor is None:
+        laser_motor = 0
+
+    if not back_rgb:
+        back_rgb = [0, 0, 0]
+    if not front_rgb:
+        front_rgb = [0, 0, 0]
+
+    if not bottom_hori_rgb:
+        bottom_hori_rgb = [0, 0, 0]
+    if not bottom_vert_rgb:
+        bottom_vert_rgb = [0, 0, 0]
+
+    return back_rgb[:] + front_rgb[:] + bottom_hori_rgb[:] + [uv, green_laser, red_laser, laser_motor] + disco_rgb[:] + bottom_vert_rgb[:]
+
+
 next_beat = None
-def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None):
+def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None):
     global next_beat
     if length is None:
         raise Exception('length must be defined')
@@ -863,36 +897,17 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         start_beat = next_beat
     next_beat = start_beat + length
 
-    if (name or intensity or offset or hue_shift or sat_shift or bright_shift) and (disco_rgb or top_rgb or front_rgb or back_rgb or bottom_rgb or uv or green_laser or red_laser or laser_motor):
-        raise Exception(f'Anything between the sets "name intensity offset hue_shift sat_shift bright_shift" and "disco_rgb top_rgb front_rgb back_rgb bottom_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')
+    if (name or intensity or offset or hue_shift or sat_shift or bright_shift) and (disco_rgb or top_rgb or front_rgb or back_rgb or bottom_rgb or bottom_hori_rgb or bottom_vert_rgb or uv or green_laser or red_laser or laser_motor):
+        raise Exception(f'Anything between the sets "name intensity offset hue_shift sat_shift bright_shift" and "disco_rgb top_rgb front_rgb back_rgb bottom_rgb bottom_hori_rgb bottom_vert_rgb uv,  green_laser red_laser laser_motor" cannot be used together, dont use them in the same call')
     
     if (back_rgb or front_rgb) and top_rgb:
         raise Exception('Cannot define back_rgb or front_rgb if top_rgb is defined')
-
-    if disco_rgb is None:
-        disco_rgb = [0, 0, 0]
+    
+    if (bottom_hori_rgb or bottom_vert_rgb) and bottom_rgb:
+        raise Exception('Cannot define bottom_hori_rgb or bottom_vert_rgb if bottom_rgb is defined')
 
     if name is None:
-        if top_rgb:
-            front_rgb = top_rgb
-            back_rgb = top_rgb
-
-        if bottom_rgb is None:
-            bottom_rgb = [0, 0, 0]
-        if uv is None:
-            uv = 0
-        if green_laser is None:
-            green_laser = 0
-        if red_laser is None:
-            red_laser = 0
-        if laser_motor is None:
-            laser_motor = 0
-
-        if not back_rgb:
-            back_rgb = [0, 0, 0]
-        if not front_rgb:
-            front_rgb = [0, 0, 0]
-        channel = back_rgb[:] + front_rgb[:] + bottom_rgb[:] + [uv, green_laser, red_laser, laser_motor] + disco_rgb[:]
+        channel = s(top_rgb, front_rgb, back_rgb, bottom_rgb, bottom_hori_rgb, bottom_vert_rgb, uv, green_laser, red_laser, laser_motor, disco_rgb)
         return [start_beat, channel, length]
 
     if intensity is None:

@@ -854,7 +854,6 @@ def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=N
 next_beat = None
 def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_shift=None, sat_shift=None, bright_shift=None, top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, grid_bright_shift=None):
     global next_beat
-
     if length is None:
         raise Exception('length must be defined')
 
@@ -874,8 +873,10 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         disco_rgb = [0, 0, 0]
 
     if name is None:
-        if top_rgb is None:
-            top_rgb = [0, 0, 0]
+        if top_rgb:
+            front_rgb = top_rgb
+            back_rgb = top_rgb
+
         if bottom_rgb is None:
             bottom_rgb = [0, 0, 0]
         if uv is None:
@@ -887,9 +888,10 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         if laser_motor is None:
             laser_motor = 0
 
-        if top_rgb:
-            front_rgb = top_rgb
-            back_rgb = top_rgb
+        if not back_rgb:
+            back_rgb = [0, 0, 0]
+        if not front_rgb:
+            front_rgb = [0, 0, 0]
         channel = back_rgb[:] + front_rgb[:] + bottom_rgb[:] + [uv, green_laser, red_laser, laser_motor] + disco_rgb[:]
         return [start_beat, channel, length]
 

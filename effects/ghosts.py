@@ -36,12 +36,12 @@ effects = {
     "Ghosts rainbow": {
         "length": 2,
         "beats": [
-            [1, [40, 0, 0, 0, 0, 0, 0], 0.7],
-            [1.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 1, 0],
-            [1.7, [0, 30, 20, 0, 0, 0, 0], 0.3, 0, 1],
-            [2, [0, 30, 20, 0, 0, 0, 0], 0.7],
-            [2.7, [0, 30, 20, 0, 0, 0, 0], 0.3, 1, 0], 
-            [2.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 0, 1],
+            [1, "Rainbow bad color 1", 0.7],
+            [1.7, "Rainbow bad color 1", 0.3, 1, 0],
+            [1.7, "Rainbow bad color 2", 0.3, 0, 1],
+            [2, "Rainbow bad color 2", 0.7],
+            [2.7, "Rainbow bad color 2", 0.3, 1, 0], 
+            [2.7, "Rainbow bad color 1", 0.3, 0, 1],
         ],
     },
     "Ghosts riser": {
@@ -73,16 +73,31 @@ effects = {
     #         "1.2": [[[0, 0, 0, 0, 0, 0, 100], 0.07],
     #     }
     # },
+
+    "Rainbow bad color 1": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[40, 0, 0], length=1),
+        ],
+    },
+
+    "Rainbow bad color 2": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[0, 30, 20], length=1),
+        ],
+    },
+
     "Rainbow bad": {
         "length": 2,
         "autogen": True,
         "beats": [
-            [1, [40, 0, 0, 0, 0, 0, 0], 0.7],
-            [1.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 1, 0], 
-            [1.7, [0, 30, 20, 0, 0, 0, 0], 0.3, 0, 1],
-            [2, [0, 30, 20, 0, 0, 0, 0], 0.7],
-            [2.7, [0, 30, 20, 0, 0, 0, 0], 0.3, 1, 0], 
-            [2.7, [40, 0, 0, 0, 0, 0, 0], 0.3, 0, 1],
+            [1, "Rainbow bad color 1", 0.7],
+            [1.7, "Rainbow bad color 1", 0.3, 1, 0], 
+            [1.7, "Rainbow bad color 2", 0.3, 0, 1],
+            [2, "Rainbow bad color 2", 0.7],
+            [2.7, "Rainbow bad color 2", 0.3, 1, 0], 
+            [2.7, "Rainbow bad color 1", 0.3, 0, 1],
         ],
     },
     "Ghosts breakdown": {

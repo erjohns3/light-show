@@ -153,59 +153,78 @@ effects = {
         ],
     },
 
+    "control subtract 20 top color": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[-20, -20, -20], length=1),
+        ],
+    },
+
     "control subtract 20 top": {
         "length": .1,
         "beats": [
-            [1, [-20, -20, -20, 0, 0, 0, 0], 1, 1, .5],
+            [1, "control subtract 20 top color", 1, 1, .5],
         ],
     },
 
+    "control subtract 20 bottom color": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[-20, -20, -20], length=1),
+        ],
+    },
     "control subtract 20 bottom": {
         "length": .1,
         "beats": [
-            [1, [0, 0, 0, -20, -20, -20, 0], 1, 1, .5],
+            [1, "control subtract 20 bottom color", 1, 1, .5],
         ],
     },
 
+    "control subtract 20 top green color": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[-20, -20, -20], length=1),
+        ],
+    },
     "control subtract 20 top green": {
         "length": .1,
         "beats": [
-            [1, [0, -20, 0, 0, 0, 0, 0], 1, 1, .5],
+            [1, "control subtract 20 top green color", 1, 1, .5],
         ],
     },
 
     "control subtract 20 bottom green": {
         "length": .1,
         "beats": [
-            [1, [0, 0, 0, 0, -20, 0, 0], 1],
+            b(1, bottom_rgb=[0, -20, 0], length=1),
         ],
     },
 
     "control subtract 20 top blue": {
         "length": .1,
         "beats": [
-            [1, [0, 0, -20, 0, 0, 0, 0], 1],
+            b(1, top_rgb=[0, 0, -20], length=1),
         ],
     },
 
     "control subtract 20 top red": {
         "length": .1,
         "beats": [
-            [1, [-20, 0, 0, 0, 0, 0, 0], 1],
+            b(1, top_rgb=[-20, 0, 0], length=1),
         ],
     },
 
     "control subtract 20 bottom blue": {
         "length": .1,
         "beats": [
-            [1, [0, 0, 0, 0, 0, -20, 0], 1],
+            b(1, bottom_rgb=[0, 0, -20], length=1),
         ],
     },
 
     "control subtract 20 bottom red": {
         "length": .1,
         "beats": [
-            [1, [0, 0, 0, -20, 0, 0, 0], 1],
+            b(1, bottom_rgb=[-20, 0, 0], length=1),
         ],
     },
 

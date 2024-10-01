@@ -13,7 +13,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, disco_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - Mask winamp": {
@@ -42,7 +42,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, -1000, 100, -1000, -1000, -1000], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=100, red_laser=-1000, laser_motor=100, disco_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - laser only green": {
@@ -50,7 +50,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, -1000, -1000, -1000, -1000, -1000], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=100, red_laser=-1000, laser_motor=-1000, disco_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - laser only rotate red": {
@@ -58,7 +58,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, 100, -1000, -1000, -1000], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=100, laser_motor=100, disco_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - laser red": {
@@ -66,7 +66,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], 1],
+            b(1, red_laser=100, length=1),
         ],
     },
     "A - laser motor": {
@@ -74,7 +74,7 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100], 1],
+            b(1, laser_motor=100, length=1),
         ],
     },
     "A - only Flash Top": {
@@ -82,9 +82,9 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [100, 100, 100, 0, 0, 0, 0], 0.07],
-            [1, [0, 0, 0, -10000, -10000, -10000, 0], 2],
-            [1.07, [-10000, -10000, -10000, -10000, -10000, -10000, 0], 2],
+            b(1, top_rgb=[100, 100, 100], length=0.07),
+            b(1, bottom_rgb=[-10000, -10000, -10000], length=2),
+            b(1.07, top_rgb=[-10000, -10000, -10000], bottom_rgb=[-10000, -10000, -10000], length=2),
         ],
     },
     "A - only Flash Bottom": {
@@ -92,9 +92,9 @@ effects = {
         "trigger": "hold",
         "profiles": ['Andrew'],
         "beats": [
-            [1, [0, 0, 0, 100, 100, 100, 0], 0.07],
-            [1, [-10000, -10000, -10000, 0, 0, 0, 0], 2],
-            [1.07, [-10000, -10000, -10000, -10000, -10000, -10000, 0], 2],
+            b(1, bottom_rgb=[100, 100, 100], length=0.07),
+            b(1, top_rgb=[-10000, -10000, -10000], length=2),
+            b(1.07, top_rgb=[-10000, -10000, -10000], bottom_rgb=[-10000, -10000, -10000], length=2),
         ],
     },
     "A - only UV": {
@@ -102,7 +102,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, 100], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=100, length=1),
         ],
     },
     "A - only Red top": {
@@ -110,7 +110,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [2000, -1000, -1000, -1000, -1000, -1000, 0], 1],
+            b(1, top_rgb=[2000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - only Green top": {
@@ -118,7 +118,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, 2000, -1000, -1000, -1000, -1000, 0], 1],
+            b(1, top_rgb=[-1000, 2000, -1000], bottom_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - only Blue top": {
@@ -126,7 +126,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, 2000, -1000, -1000, -1000, 0], 1],
+            b(1, top_rgb=[-1000, -1000, 2000], bottom_rgb=[-1000, -1000, -1000], length=1),
         ],
     },
     "A - only Red bottom": {
@@ -134,7 +134,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, 2000, -1000, -1000, 0], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[2000, -1000, -1000], length=1),
         ],
     },
     "A - only Green bottom": {
@@ -142,7 +142,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, 2000, -1000, 0], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, 2000, -1000], length=1),
         ],
     },
     "A - only Blue bottom": {
@@ -150,7 +150,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, 2000, 0], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, 2000], length=1),
         ],
     },
     "A - only disco red": {
@@ -158,7 +158,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 100, 0, 0], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, disco_rgb=[100, 0, 0], length=1),
         ],
     },
     "A - only disco green": {
@@ -166,7 +166,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 0, 100, 0], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, disco_rgb=[0, 100, 0], length=1),
         ],
     },
     "A - only disco blue": {
@@ -174,7 +174,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [-1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 0, 0, 100], 1],
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, disco_rgb=[0, 0, 100], length=1),
         ],
     },
     "A - disco red": {
@@ -182,7 +182,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 0], 1],
+            b(1, disco_rgb=[100, 0, 0], length=1),
         ],
     },
     "A - disco green": {
@@ -190,7 +190,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0], 1],
+            b(1, disco_rgb=[0, 100, 0], length=1),
         ],
     },
     "A - disco blue": {
@@ -198,7 +198,7 @@ effects = {
         "trigger": "hold",
         "profiles": ["Andrew"],
         "beats": [
-            [1, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100], 1],
+            b(1, disco_rgb=[0, 0, 100], length=1),
         ],
     },
 }

@@ -12,13 +12,12 @@ import youtube_download_helpers
 effects_directory = this_file_directory.parent.joinpath('effects')
 
 
-# regex for this to check if ok
-# [1, [0, -20, 0, 0, 0, 0, 0], 1, 1, .5]
+
 
 for _, filepath in get_all_paths(effects_directory):
 
-    if str(filepath).endswith('basics_old.py'):
-        continue
+    # if str(filepath).endswith('basics_old.py'):
+    #     continue
 
     lines_to_write = {}
     if filepath.is_dir():
@@ -28,11 +27,31 @@ for _, filepath in get_all_paths(effects_directory):
         data = file.read()
         
         # Regex pattern to capture the full match and the innermost arrays within "beats"
-        # pattern = r'(\[1\s*,?\s*\[\s*(.*?)\s*\]\s*,?\s*1\s*\])'
-        # pattern = r'(\[1\s*,?\s*\[\s*(.*?)\s*\]\s*,?\s*\d+(?:\.\d+)?\s*\])'
-        # pattern = r'(\[1\s*,?\s*\[\s*(.*?)\s*\]\s*,?\s*(?:\d+(?:\.\d+)?|\.\d+)\s*\])'
         pattern = r'(\[\s*(?:\d+(?:\.\d+)?|\.\d+)\s*,?\s*\[\s*(.*?)\s*\]\s*,?\s*(?:\d+(?:\.\d+)?|\.\d+)\s*\])'
 
+
+
+        # this just checks if there's any remaining inner bracket combos
+        good_check = r'\[.*?\[(.*?)\].*?\]'
+        print_blue(filepath)
+        if filepath.stem == 'compiler':
+            continue
+        for line in data.splitlines():
+            brackets = []
+            for char in line:
+                if char == '#':
+                    break
+                if char == '[':
+                    if brackets:
+                        print(line)
+                    brackets.append('[')
+                elif char == ']':
+                    if brackets and brackets[-1] == '[':
+                        brackets.pop()
+        continue
+
+
+        # migration script below
 
         # Find all matches in the data along with their positions
         matches = re.finditer(pattern, data)

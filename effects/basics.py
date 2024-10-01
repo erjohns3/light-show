@@ -38,6 +38,28 @@ effects = {
             b(1, uv=100, length=0.07),
         ],
     },
+
+    "UV pulse": {
+        "length": 1,
+        "autogen": True,
+        "trigger": "add",
+        "loop": False,
+        "profiles": ["Andrew"],
+        "beats": [
+            [1, "UV", 1, 1, 0, 0],
+        ]
+    },
+    "UV pulse slow": {
+        "length": 2,
+        "autogen": True,
+        "trigger": "add",
+        "loop": False,
+        "beats": [
+            [1, "UV", 1, 1, 0, 0],
+        ]
+    },
+
+
     # laser stuff
     "green laser": {
         "length": 1,
@@ -611,6 +633,56 @@ effects = {
             b(1, bottom_rgb=[70, 30, 30], length=1),
         ],
     },
+
+
+    'Red bottom green laser flash': {
+        'length': 1,
+        'profiles': [f'All lasers'],
+        'beats': [
+            b(1, name='Red bottom', length=.5),    
+            b(1.5, name='green laser', length=.5),    
+        ],
+    },
+
+
+
+    # OTHER
+
+        "RBBB 1 bar": {
+        "length": 4,
+        "beats": [
+            [1, "Red top", 0.25],
+            [2, "Blue top", 0.25],
+            [3, "Blue top", 0.25],
+            [4, "Blue top", 0.25],
+        ],
+    },
+
+    "RBBB 1 bar bottom": {
+        "length": 4,
+        "beats": [
+            [1, "Red bottom", 0.25],
+            [2, "Blue bottom", 0.25],
+            [3, "Blue bottom", 0.25],
+            [4, "Blue bottom", 0.25],
+        ],
+    },
+
+    # flashes
+    "White flash": {
+        "length": 1,
+        "beats": [
+            [1, "White top", 0.3, 0.1, 0],
+            [1, "White bottom", 0.3, 0.1, 0],
+        ],
+    },
+
+    "Pulse": {
+        "length": 1,
+        "beats": [
+            [1, "White top", 0.9, 1, 0],
+        ],
+    },
 }
 
 
@@ -678,7 +750,15 @@ effects[f'Red laser full'] = {
     ],
 }
 
-
+for amt in range(1, 101):
+    if amt < 7 or amt % 5 == 0:
+        effects[f'Laser motor {amt}'] = {
+            'length': 1,
+            'profiles': [f'All lasers'],
+            'beats': [
+                b(1, laser_motor=amt, length=1),
+            ],
+        }
 
 # for key, value in effects.items():
 #     if len(value['beats']) != 1:

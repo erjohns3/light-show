@@ -298,11 +298,36 @@ def http_server_blocking(port, directory_to_serve, for_printing=['']):
     for service in for_printing:
         print_green(f'http://{get_local_ip()}:{port}/{service}', flush=True)
     http.server.ThreadingHTTPServer(('', port), CustomHTTPRequestHandler).serve_forever()
-    
+
+def https_server_blocking(port, directory_to_serve, certificate_file, key_file, for_printing=['']):
+    import http.server
+    import ssl
+    class CustomHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+        def translate_path(self, path):
+            return os.path.join(str(directory_to_serve), path.lstrip("/"))
+
+    for service in for_printing:
+        print_green(f'https://{get_local_ip()}:{port}/{service}', flush=True)
+
+    httpd = http.server.ThreadingHTTPServer(('', port), CustomHTTPRequestHandler)
+    httpd.socket = ssl.wrap_socket(httpd.socket, 
+                                    certfile=certificate_file, 
+                                    keyfile=key_file, 
+                                    server_side=True)    
+    httpd.serve_forever()
+
+
+
+def https_server_async(port, filepath_to_serve, for_printing=['']):
+    import threading
+    the_args = (port, filepath_to_serve, 'cert.pem', 'key.pem', for_printing)
+    threading.Thread(target=https_server_blocking, args=the_args).start()
+
 
 def http_server_async(port, filepath_to_serve, for_printing=['']):
     import threading
     threading.Thread(target=http_server_blocking, args=(port, filepath_to_serve, for_printing)).start()
+
 
 
 def is_python_32_bit():

@@ -647,6 +647,20 @@ def get_smallest_equivilent_vectors(vector):
     return all_vectors
 
 
+last_accel = [0, 0]
+def set_accel(accel):
+    global last_accel
+    last_accel = accel
+
+
+def accel(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.offset_x = 0
+        info.offset_y = 0
+    grid_helpers.move_wrap([int(last_accel[0]), int(last_accel[1])])
+
+
+
 def move_x_wrap(info):
     if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
         info.running = info.by

@@ -51,7 +51,7 @@
     function socketInit() {
         console.log("socket init");
         
-        socket = new WebSocket("ws://" + location.hostname + ":1337");
+        socket = new WebSocket("wss://" + location.hostname + ":1337");
 
         socket.onopen = function () {
             // sometimes takes a long time to get here
@@ -378,7 +378,26 @@
     }
     customElements.define('profile-button', ProfileButton);
 
+    var trackAccel = false;
+    const acl = new Accelerometer({ frequency: 60 });
+    acl.addEventListener("reading", () => {
+        if (trackAccel) {
+            let msg = {
+                type: 'accel',
+                x: acl.x,
+                y: acl.y,
+                z: acl.z
+            };
+            socket.send(JSON.stringify(msg));
+        }
+    });
+    acl.start();
+    
     function addEffect(effect){
+        if (effect == 'Accel') {
+            trackAccel = true;
+        }
+        
         let msg = {
             type: 'add_effect',
             effect: effect
@@ -388,6 +407,10 @@
     }
 
     function removeEffect(effect){
+        if (effect == 'Accel') {
+            trackAccel = false;
+        }
+
         let msg = {
             type: 'remove_effect',
             effect: effect

@@ -274,7 +274,13 @@ async def init_dj_client(websocket, path):
 
         beat_sens_number = 'N/A'
         if 'type' in msg:
-            if msg['type'] == 'add_effect':
+            if msg['type'] == 'accel':
+                # print(f'Recieved accel: {msg}' * 20)
+                # last_accel = [msg['x'], msg['y']]
+                effects.compiler.set_accel([msg['x'], msg['y']])
+
+
+            elif msg['type'] == 'add_effect':
                 add_effect_from_dj(msg['effect'])
 
             elif msg['type'] == 'remove_effect':
@@ -1810,12 +1816,17 @@ if __name__ == '__main__':
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 
-    http_server_async(9555, this_file_directory, ['', 'dj.html'])
+    https_server_async(9555, this_file_directory, ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
-        dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
+
+        import ssl
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
+        dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
+
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
 
         if args.show_name:

@@ -22,8 +22,11 @@ effects = {
     "deadmau5 & Kaskade - I Remember (HQ)": {
         "not_done": False,
         "beats": [
-            b(1, name='grid fill rbbb 4 bar', length=1640),
-            b(1, name='RBBB 1 bar bottom', length=1640),
+            b(1, s(bottom_hori_rgb=[100, 0, 0]), length=4),
+            b(5, s(bottom_vert_rgb=[100, 0, 0]), length=4),
+
+            # b(1, name='grid fill rbbb 4 bar', length=1640),
+            # b(1, name='RBBB 1 bar bottom', length=1640),
 
 
             # [1, "Red disco", 2000],

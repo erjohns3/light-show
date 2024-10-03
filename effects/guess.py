@@ -1,11 +1,99 @@
 from effects.compiler import *
 
+
+
+
 effects = {
+    # "guess circles" : {
+    #     "length": 4,
+    #     "beats": [
+    #         *get_circle_pulse_beats(start_beat=1, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=1.2, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=1.4, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=1.6, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=1.8, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=2, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=2.2, start_color=GColor.light_green, end_color=GColor.purple),
+    #         *get_circle_pulse_beats(start_beat=2.4, start_color=GColor.light_green, end_color=GColor.purple),
+    #     ],
+    # },
+
+    "guess circles": {
+        "length": 8,
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.55,
+            ),
+            grid_f(
+                3,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(6)),
+                color=GColor.light_green,
+                length=.55,
+            ),
+            grid_f(
+                5,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(7)),
+                color=GColor.light_green,
+                length=.55,
+            ),
+            grid_f(
+                7,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(9)),
+                color=GColor.light_green,
+                length=.55,
+            ),
+        ],
+    },
+
+    "guess circles 2": {
+        "length": 4,
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(9)),
+                color=GColor.blue,
+                length=.3,
+            ),
+            grid_f(
+                1.5,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(7)),
+                color=GColor.blue,
+                length=.55,
+            ),
+            grid_f(
+                2.5,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(5)),
+                color=GColor.blue,
+                length=.55,
+            ),
+        ],
+    },
+
+    "guess intro" : {
+        "length": 64,
+        "beats": [
+            *make_rain(start_beat=1, length=15, speed=.35, lower_wait=2, upper_wait=6, color=GColor.light_green, num_rains=40),
+            b(18, name='guess circles', length=20),
+            b(38, name='guess circles 2', length=4),
+            b(42, name='guess circles', length=4),
+            b(46, name='guess circles 2', length=4),
+
+        ],
+    },
     "guess bass" : {
         "length": 1,
         "beats": [
             b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
-                  
         ],
     },
     "synth high" : {
@@ -29,6 +117,22 @@ effects = {
                   
         ],
     },
+    "the drop" : {
+        "length": 1,
+        "beats": [
+            b(1, name='green laser', length=1),
+            b(1, name='green laser motor', length=.5),
+        ],
+    },
+    "the drop 2" : {
+        "length": 1,
+        "beats": [
+            b(1, name='green laser', length=1),
+            b(1, name='green laser motor', length=.5),
+            b(1, name='Sidechain laser', length=.5, intensity=(1, 0)),
+        ],
+    },
+
     "Guess": {
         "bpm": 130,
         "song_path": "songs/Charli xcx - Guess (official lyric video).ogg",
@@ -36,10 +140,15 @@ effects = {
         "skip_song": 4.80,
         "beats": [
             # intro w/ bass
-            b(1, name='guess bass', length=17),
-            # no bass (you wanna guess the color of)
+            # b(1, name='guess bass', length=17),
+
+            b(1, name='guess intro', length=64),
+
+
+            # (you wanna guess the color of)
 
             # bass comes back (put them in your mouth)
+            b(50, name='guess circles', length=20),
             b(50, name='guess bass', length=32),
             # synth high (buy it, bite it, lick it, slipt it)
             b(82, name='synth high', length=8),
@@ -58,7 +167,7 @@ effects = {
             # bass comes back (you wanna guess the color of)
             b(130, name='guess bass', length=32),
             #b(180)
-            #b(210) (GO NUTS---GUESS)
+            #b(210) (GUESS)
 
 
 

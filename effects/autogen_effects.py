@@ -400,18 +400,18 @@ effects = {
         ],
     },
 
-    "z_solid mixed 4": {
-        "length": 4,
-        "autogen": "downbeat mixed",
-        "beats": [
-            [1, "Yellow Top to Bottom hang", 3],
-            [2, "Sidechain top b", .5, 1, 0],
-            [2, "Green bottom", .2, .2, 0],
-            [3, "Sidechain bottom b", .5, 1, 0],
-            [3, "Green bottom", .2, .2, 0],
-            [4, "Blue top", .8, 1, 0],
-        ],
-    },
+    # "z_solid mixed 4": {
+    #     "length": 4,
+    #     "autogen": "downbeat mixed",
+    #     "beats": [
+    #         [1, "Yellow Top to Bottom hang", 3],
+    #         [2, "Sidechain top b", .5, 1, 0],
+    #         [2, "Green bottom", .2, .2, 0],
+    #         [3, "Sidechain bottom b", .5, 1, 0],
+    #         [3, "Green bottom", .2, .2, 0],
+    #         [4, "Blue top", .8, 1, 0],
+    #     ],
+    # },
 
     "z_solid mixed cycle": {
         "length": 4,

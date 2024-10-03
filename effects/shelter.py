@@ -1,84 +1,116 @@
 from effects.compiler import *
 
 effects = {
-    "Triplets bottom": {
+
+    "Random color 1": {
         "length": 1,
         "beats": [
-            b(1, [0, 0, 0, 10, 40, 0, 0], 0.33),
-            b(1.33, [0, 0, 0, 0, 10, 40, 0], 0.33),
-            b(1.66, [0, 0, 0, 40, 0, 10, 0], 0.33),
+            b(1, top_rgb=[10, 40, 10], length=1),
         ],
     },
+
+    "Random color 2": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[0, 10, 40], length=1),
+        ],
+    },
+
+    "Random color 3": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[40, 0, 10], length=1),
+        ],
+    },
+
     "Triplets top": {
         "length": 1,
         "beats": [
-            b(1, [10, 40, 10, 0, 0, 0, 0], 0.33, intensity=(0.3, 0.2)),
-            b(1.33, [0, 10, 40, 0, 0, 0, 0], 0.33, intensity=(0.3, 0.2)),
-            b(1.66, [40, 0, 10, 0, 0, 0, 0], 0.33, intensity=(0.3, 0.2)),
+            b(1, "Random color 1", 0.33, intensity=(0.3, 0.2)),
+            b(1.33, "Random color 2", 0.33, intensity=(0.3, 0.2)),
+            b(1.66, "Random color 3", 0.33, intensity=(0.3, 0.2)),
         ],
     },
+
+    "Random color 4": {
+        "length": 1,
+        "beats": [
+            b(1, bottom_rgb=[30, 30, 0], length=1),
+        ],
+    },
+
     "Yellow fade": {
         "length": 1,
         "beats": [
-            b(1, [0, 0, 0, 30, 30, 0, 0], 1, intensity=(1, 0)),
+            b(1, "Random color 4", 1, intensity=(1, 0)),
+        ],
+    },
+
+    "Random color 5": {
+        "length": 1,
+        "beats": [
+            b(1, bottom_rgb=[0, 25, 0], length=1),
         ],
     },
     "Green fade": {
         "length": 2,
         "beats": [
-            b(2, [0, 0, 0, 0, 25, 0, 0], 0.55, intensity=(1, 0.5)),
+            b(2, "Random color 5", 0.55, intensity=(1, 0.5)),
+        ],
+    },
+
+
+    "Random color 6": {
+        "length": 1,
+        "beats": [
+            b(1, bottom_rgb=[-30, -30, -30], length=1),
         ],
     },
     "shelter bottom sidechain": {
         "length": 1,
         "beats": [
-            b(1, [0, 0, 0, -30, -30, -30, 0], .1, intensity=(1, .5)),
-            b(1.1, [0, 0, 0, -30, -30, -30, 0], 0.9, intensity=(.5, 0)),
+            b(1, "Random color 6", .1, intensity=(1, .5)),
+            b(1.1, "Random color 6", 0.9, intensity=(.5, 0)),
+        ],
+    },
+
+    "Random color 7": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[0, 0, 255], length=1),
         ],
     },
     "top blue kick": {
         "length": 1,
         "beats": [
-            b(1, [0, 0, 255, 0, 0, 0, 0], 0.1, intensity=(0, 0.4)),
-            b(1.1, [0, 0, 255, 0, 0, 0, 0], 1, intensity=(0.4, 0.1)),
+            b(1, "Random color 7", 0.1, intensity=(0, 0.4)),
+            b(1.1, "Random color 7", 1, intensity=(0.4, 0.1)),
         ],
     },
-    # "shelter Yellow Top to Bottom hang": {
-    #     "length": 4,
-    #     "beats": [
-    #         b(1, [114, 60, 5, 0, 25, 0, 0], .2, intensity=(0, .5)),
-    #         b(1.2, [114, 60, 5, 0, 25, 0, 0], 1.1, intensity=(.5, 0)),
-    #         b(1.3, [0, 0, 0, 114, 60, 5, 0], 1.3, intensity=(0, .6)),
-    #         b(2.6, [0, 0, 0, 114, 60, 5, 0], 38, intensity=(.6, .6)),
-    #     ],
-    # },
+
+    "Random color 8": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[114, 60, 5], length=1),
+        ],
+    },
     "muddy yellow ay": {
         "length": 1,
         "beats": [
-            b(1, [114, 60, 5, 0, 0, 0, 0], 1, intensity=(0.4, 0)),
+            b(1, "Random color 8", 1, intensity=(0.4, 0)),
         ],
     },
-    "Blue fade bottom": {
-        "length": 16,
+
+
+    "Triplets bottom": {
+        "length": 1,
         "beats": [
-            b(1, [0, 0, 0, 0, 255, 0, 0], 8, intensity=(0, 0.1)),
-            b(9, [0, 0, 0, 0, 255, 0, 0], 4, intensity=(0.1, 0.13)),
-            b(13, [0, 0, 0, 0, 255, 0, 0], 4, intensity=(0.13, 0.2)),
+            b(1, bottom_rgb=[10, 40, 0], length=0.33),
+            b(1.33, bottom_rgb=[0, 10, 40], length=0.33),
+            b(1.66, bottom_rgb=[40, 0, 10], length=0.33),
         ],
     },
-    "Rainbow smooth": {
-        "length": 4,
-        "beats": [
-            b(1, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0, 0.1)),
-            b(1.5, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.1, 0.1)),
-            b(2, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.1, 0.2)),
-            b(2.5, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.2, 0.2)),
-            b(3, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.3, 0.4)),
-            b(3.5, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.3, 0.3)),
-            b(4, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.4, 0.5)),
-            b(4.5, [100, 0, 0, 0, 0, 0, 0], 0.5, intensity=(0.3, 0.3)),
-        ],
-    },
+
     "Chorus bottom": {
         "length": 3,
         "beats": [
@@ -109,16 +141,7 @@ effects = {
             b(1, "Shelter sub Chorus", 32),
         ],
     },
-    "Long way forward": {
-        "length": 16,
-        "beats": [
-            b(1.25, [0, 255, 0, 0, 0, 0, 0], 1, intensity=(0.08, 0.08)),
-            b(1.75, [0, 0, 255, 0, 0, 0, 0], 1, intensity=(0.08, 0.08)),
-            b(2, [0, 255, 0, 0, 0, 0, 0], 1, intensity=(0.08, 0.08)),
-            b(3, [0, 0, 255, 0, 0, 0, 0], 2, intensity=(0.08, 0.08)),
-            b(5, [0, 255, 0, 0, 0, 0, 0], 3, intensity=(0.08, 0.08)),
-        ],
-    },
+
     "shelter rising uh uh uh uh": {
         "length": 4,
         "beats": [

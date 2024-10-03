@@ -152,13 +152,13 @@ effects = {
     "Some color top": {
         "length": 1,
         "beats": [
-            [1, [20, 0, 40, 0, 0, 0, 0], 1],
+            b(1, top_rgb=[20, 0, 40], length=1),
         ],
     },
     "Some color bottom": {
         "length": 1,
         "beats": [
-            [1, [0, 0, 0, 20, 0, 40, 0], 1],
+            b(1, bottom_rgb=[20, 0, 40], length=1),
         ],
     },
     "butter kicks": {

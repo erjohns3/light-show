@@ -12,8 +12,8 @@ effects = {
     "RB Strobe Top Bottom": {
         "length": 0.4,
         "beats": [
-            [1, [50, 100, 0, 0, 0, 0, 0], 0.07],
-            [1.2, [0, 100, 50, 0, 0, 0, 0], 0.07],
+            b(1, top_rgb=[50, 100, 0], length=0.07),
+            b(1.2, top_rgb=[0, 100, 50], length=0.07),
         ],
     },
     "cheesecake show": {
@@ -31,11 +31,24 @@ effects = {
         "song_path": "songs/Cheesecake.ogg",
         "profiles": ["Shows"]
     },
+    
+    "Musical idk color 1": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[100, 0, 0], length=1),
+        ],
+    },
+    "Musical idk color 2": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[0, 80, 100], length=1),
+        ],
+    },
     "Musician Lyrical Oo": {
         "length": 2,
         "beats": [
-            [1, [0, 100, 0, 0, 0, 0, 0], 0.5, 1, 0.2],
-            [2, [0, 80, 100, 0, 0, 0, 0], 0.5, 1, 0.2],
+            [1, "Musical idk color 1", .5, 1, 0.2],
+            [2, "Musical idk color 2", .5, 1, 0.2],
         ],
     },
     "musician sidechain": {
@@ -63,40 +76,6 @@ effects = {
     },
 
 
-    "Attack repeater": {
-        "length": 8,
-        "beats": [
-            [1, [20, 0, 20, 0, 0, 0, 0], 0.55, 0.5, 0],
-            [2, [0, 0, 0, 0, 30, 5, 0], 0.55, 0.5, 0],
-            [3, [20, 0, 20, 0, 0, 0, 0], 0.55, 0.5, 0],
-            [4, [0, 0, 0, 0, 30, 5, 0], 0.55, 0.5, 0],
-            [5, [20, 0, 20, 0, 0, 0, 0], 0.3, 0.5, 0],
-            [5.5, [0, 0, 0, 0, 30, 0, 5], 0.3, 1, 0],
-            [6, [0, 0, 0, 0, 0, 0, 70], 0.3, 1, 0],
-            [6.5, [0, 0, 0, 0, 0, 0, 70], 0.3, 1, 0],
-            [7, [0, 0, 0, 0, 0, 0, 70], 1.2, 1, 0]
-        ],
-    },
-    # "attack show": {
-    #     "beats": [
-    #         [1, "Green fade", 1],
-    #         [3, "Yellow fade", 1],
-    #         [5, "Green fade", 1],
-    #         [7, "Yellow fade", 1],
-    #         [9, "Green fade", 1],
-    #         [11, "Yellow fade", 1],
-    #         [13, "Green fade", 1],
-    #         [15, "Triplets top", 2],
-    #         [17, "White flash", 1], 
-    #         [17, "Attack repeater", 8],
-    #         [25, "Attack repeater", 24],
-    #     ],
-    #     "delay_lights": 0.0,
-    #     "skip_song": 0.35,
-    #     "bpm": 144,
-    #     "song_path": "songs/attack_season_4_op.ogg",
-    #     "profiles": ["Shows"],
-    # },
     "Luigi Bass hits": {
         "length": 4,
         "beats": [
@@ -113,29 +92,41 @@ effects = {
             [2, "Luigi Bass hits", 12],
         ],
     },
+    "Luigi color for hats": {
+        "length": 1,
+        "beats": [
+            b(1, uv=100, length=1),
+        ],
+    },
     "Luigi Hats": {
         "length": 0.5,
         "beats": [
-            [1, [0, 0, 0, 0, 0, 4, 0], 0.5, 1, 0.4],
+            [1, "Luigi color for hats", 0.5, 1, 0.4],
         ],
     },
     "Luigi Yellow Top": {
         "length": 1,
         "beats": [
-            [1, [20, 20, 0, 0, 0, 0, 0], 1],
+            b(1, top_rgb=[20, 20, 0], length=1),
         ],
     },
     "Luigi Cyan Bottom": {
         "length": 1,
         "beats": [
-            [1, [0, 0, 0, 20, 0, 20, 0], 1],
+            b(1, bottom_rgb=[20, 0, 20], length=1),
+        ],
+    },
+    "Luigi color for Whoo": {
+        "length": 1,
+        "beats": [
+            b(1, uv=100, length=1),
         ],
     },
     "Luigi Whoo": {
         "length": 1,
         "beats": [
-            [1, [0, 5, 0, 10, 0, 10, 5], 0.5, 0, 1],
-            [1.5, [0, 5, 0, 10, 0, 10, 5], 0.35, 1, 0],
+            [1, "Luigi color for Whoo", 0.5, 0, 1],
+            [1.5, "Luigi color for Whoo", 0.35, 1, 0],
         ],
     },
     "luigi show": {

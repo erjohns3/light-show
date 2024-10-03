@@ -109,10 +109,20 @@ elif args.winamp:
 pi = None
 
 
+# these are guessed by andrew:
+# I think the first 3 are officially unused, commenting out 
+LED_PINS = [
+    None, None, None, 
+    19, 24, 25, # floor vertical (r g b)
+    8, 7, 26, # floor horizontal (r g b)
+    16, 2, 3, 
+    4, 17, 27, 
+    22,
+    None, None, None, # Uh buffer for math? This is bad 
+]
 
-# 8, 7, 26 is floor horizontal (r g b)
-# 19, 24, 25 is floor vertical (r g b)
-LED_PINS = [5, 6, 13, 19, 24, 25, 8, 7, 26, 16, 2, 3, 4, 17, 27, 22]
+
+
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ
 LIGHT_COUNT = len(LED_PINS)
@@ -738,11 +748,14 @@ def render_terminal(light_levels):
     line_length = terminal_size - 1
 
     levels_255 = list(map(lambda x: int(x * 2.55), light_levels))
-    bottom_rgb_complete = levels_255[6:9]
+    # bottom_rgb_complete = levels_255[6:9]
+    bottom_rgb_hori_complete = levels_255[6:9]
     uv_value = levels_255[9]
     target_laser_color_rgb = levels_255[10:12]
     target_laser_motor_value = min(100, max(0, levels_255[12] / 2.55))
     disco_color_rgb = levels_255[13:16]
+    bottom_rgb_vert_complete = levels_255[16:19]
+
 
     purple_scaled = list(map(lambda x: int(x * (uv_value / 255)), purple))
  
@@ -785,7 +798,8 @@ def render_terminal(light_levels):
     # if laser_intensity < 1:
 
     top_uv_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, purple_scaled)
-    bottom_light_row = rgb_ansi(character * grid_helpers.GRID_HEIGHT, bottom_rgb_complete)
+    bottom_light_row = rgb_ansi(character * (grid_helpers.GRID_HEIGHT // 2), bottom_rgb_hori_complete)
+    bottom_light_row += rgb_ansi(character * (grid_helpers.GRID_HEIGHT // 2), bottom_rgb_vert_complete)
     laser_row = rgb_ansi(laser_string, laser_style)
     disco_row = ''.join([char for char in disco_chars])
 
@@ -951,16 +965,15 @@ async def light():
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
 
-
-            # horizontal
-            for index in range(6, len(pin_light_levels)):
+            # All the pin light levels and the pins are lined up except for the floor vertical floor lights
+            for index in range(6, len(pin_light_levels) - 3):
                 send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
 
-            # vertical
-            for index in range(6, len(pin_light_levels)):
-                send_num_to_pi = round((pin_light_levels[index] / 100) * LED_RANGE)
-                pi.set_PWM_dutycycle(LED_PINS[index], send_num_to_pi)
+            # vertical floor
+            for light_level_index, pin_index in zip([16, 17, 18], [3, 4, 5]):
+                send_num_to_pi = round((pin_light_levels[light_level_index] / 100) * LED_RANGE)
+                pi.set_PWM_dutycycle(LED_PINS[pin_index], send_num_to_pi)
 
 
         # Sends the grid to the pi 
@@ -1418,7 +1431,7 @@ def compile_lut(local_effects_config):
         set_effect_defaults(name, effect)
         missing_effect = dfs(name)
         if missing_effect is not None:
-            raise Exception(red(f'dfs: while trying to find dependancies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.'))
+            raise Exception(red(f'dfs: while trying to find dependencies of effect {name}, we found sub complex effect "{missing_effect}" missing from effects_config, probably you changed an effect name.'))
     print_blue(f'Sort took: {time.time() - sort_perf_timer:.3f} seconds')
     
     simple_effect_perf_timer = time.time()
@@ -1433,15 +1446,6 @@ def compile_lut(local_effects_config):
         for component in effect['beats']:
             start_beat = round((component[0] - 1) * SUB_BEATS)
             channels = component[1]
-
-            if len(channels) == 4:
-                channels[3:3] = channels[0:3]
-            if len(channels) == 7:
-                channels[3:3] = channels[0:3]
-            if len(channels) == 10:
-                channels += [0,0,0]
-            if len(channels) == 13:
-                channels += [0,0,0]
 
             if len(component) == 2:
                 component.append(effect['length'])
@@ -1813,7 +1817,6 @@ if __name__ == '__main__':
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
-
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

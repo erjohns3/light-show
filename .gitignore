@@ -25,6 +25,7 @@ youtube_cache.json
 *.webm
 input_download_mp3s_bulk.txt
 temp/
+effects_migrated/
 *.wav
 .DS_Store
 chris.py

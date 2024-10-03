@@ -64,11 +64,19 @@ effects = {
             [1.4, "Yellow bottom", 0.4, 0.14, 0.14],
         ],
     },
+
+    "hooked random color 1": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[0, -100, -100], length=1),
+        ],
+    },
+
     "hooked top sidechain non red": {
         "length": 2,
         "beats": [
-            [1, [0, -100, -100, 0, 0, 0, 0], 0.1, 0, 1],
-            [1.1, [0, -100, -100, 0, 0, 0, 0], 0.3, 1, 0],
+            [1, "hooked random color 1", 0.1, 0, 1],
+            [1.1, "hooked random color 1", 0.3, 1, 0],
         ],
     },
     "hooked claps": {

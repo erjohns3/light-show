@@ -78,6 +78,25 @@ effects = {
             ),
         ],
     },
+    "extra circles": {
+        "length": 2,
+        "beats": [
+            grid_f(
+                1.2,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.2,
+            ),
+            grid_f(
+                1.6,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.2,
+            ),
+        ],
+    },
 
     "guess intro" : {
         "length": 64,
@@ -87,8 +106,6 @@ effects = {
             b(38, name='guess circles 2', length=4),
             b(42, name='guess circles', length=4),
             b(46, name='guess circles 2', length=4),
-            b(50, name='guess circles', length=32),
-
         ],
     },
     "guess bass" : {
@@ -170,6 +187,7 @@ effects = {
             b(1, name='guess intro', length=64),
             # bass comes back (put them in your mouth)
             b(50, name='guess circles', length=32),
+            b(65, name="extra circles", length=2),
             b(50, name='guess bass', length=32),
             # synth high (buy it, bite it, lick it, slipt it)
             b(82, name='synth high', length=8),

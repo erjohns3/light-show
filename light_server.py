@@ -121,8 +121,6 @@ LED_PINS = [
     None, None, None, # Uh buffer for math? This is bad 
 ]
 
-
-
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ
 LIGHT_COUNT = len(LED_PINS)
@@ -153,9 +151,10 @@ def setup_gpio():
     if not pi.connected:
         exit()
     for pin in LED_PINS:
-        pi.set_PWM_frequency(pin, LED_FREQ)
-        pi.set_PWM_range(pin, LED_RANGE)
-        pi.set_PWM_dutycycle(pin, 0)
+        if pin != None:
+            pi.set_PWM_frequency(pin, LED_FREQ)
+            pi.set_PWM_range(pin, LED_RANGE)
+            pi.set_PWM_dutycycle(pin, 0)
 
 ########################################
 
@@ -1621,7 +1620,8 @@ def signal_handler(sig, frame):
         grid_helpers.reset()
         grid_helpers.render()
         for pin in LED_PINS:
-            pi.set_PWM_dutycycle(pin, 0)
+            if pin != None:
+                pi.set_PWM_dutycycle(pin, 0)
     sys.exit()
 
 #################################################

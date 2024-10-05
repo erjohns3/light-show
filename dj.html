@@ -381,11 +381,15 @@
     var trackAccel = false;
     const acl = new Accelerometer({ frequency: 60 });
     acl.addEventListener("reading", () => {
+        // beatSensElem.textContent = `x: ${acl.x.toFixed(2)}, y: ${acl.y.toFixed(2)}, z: ${acl.z.toFixed(2)}`;
+        // beatSensElem.textContent = `pitch: ${pitch.toFixed(2)}, roll: ${roll.toFixed(2)}`
         if (trackAccel) {
+            let pitch = Math.atan2(acl.z, acl.y);
+            let roll = Math.atan2(acl.x, acl.y);
             let msg = {
                 type: 'accel',
-                x: acl.x,
-                y: acl.y,
+                x: roll * 12,
+                y: pitch * 12,
                 z: acl.z
             };
             socket.send(JSON.stringify(msg));
@@ -394,7 +398,7 @@
     acl.start();
     
     function addEffect(effect){
-        if (effect == 'Accel') {
+        if (effect.toLowerCase().includes('accel')) {
             trackAccel = true;
         }
         
@@ -407,7 +411,7 @@
     }
 
     function removeEffect(effect){
-        if (effect == 'Accel') {
+        if (effect.toLowerCase().includes('accel')) {
             trackAccel = false;
         }
 

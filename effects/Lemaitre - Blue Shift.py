@@ -6,7 +6,8 @@ effects = {
     "Rain fast": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6)},
     "Rain fast lots": {"profiles": ['Fun Grid'], "loop": True, "beats": make_rain(speed=.6, num_rains=40)},
     
-    "Accel": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=accel, length=1),]},
+    "Accel Wrap": {"profiles": ['Fun Grid'], "trigger": "toggle", "loop": True, "beats": [grid_f(1, function=accel_wrap, length=1),]},
+    "Accel No Wrap": {"profiles": ['Fun Grid'], "trigger": "toggle", "loop": True, "beats": [grid_f(1, function=accel_nowrap, length=1),]},
     "Move Left": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x, length=1, by=1),]},
     "Move Right": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_x, length=1, by=-1)]},
     "Move Up": {"profiles": ['Fun Grid'], "trigger": "hold", "loop": True, "beats": [grid_f(1, function=move_y, length=1, by=1)]},

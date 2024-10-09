@@ -18,6 +18,19 @@ effects = {
     #     ],
     # },
 
+    "guess pink circle": {
+        "length": 2,
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(6)),
+                color=GColor.pink,
+                length=.55,
+            )
+        ],
+    },
+
     "guess circles": {
         "length": 8,
         "beats": [
@@ -82,27 +95,47 @@ effects = {
         "length": 2,
         "beats": [
             grid_f(
-                1.2,
+                1.3,
                 function=our_transform,
                 object=get_centered_circle_numpy_nofill(radius=(4)),
                 color=GColor.light_green,
-                length=.2,
+                length=.17,
             ),
             grid_f(
                 1.6,
                 function=our_transform,
                 object=get_centered_circle_numpy_nofill(radius=(4)),
                 color=GColor.light_green,
-                length=.2,
+                length=.17,
+            ),
+
+            grid_f(
+                1.85,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.17,
+            ),
+
+            grid_f(
+                2.05,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.17,
             ),
         ],
     },
 
     "guess intro" : {
-        "length": 64,
+        "length": 50,
         "beats": [
             #*make_rain(start_beat=1, length=15, speed=.35, lower_wait=2, upper_wait=6, color=GColor.light_green, num_rains=40),
-            b(18, name='guess circles', length=20),
+            b(18, name='guess circles', length=12),
+            b(30, name='guess circles 2', length=4),
+            b(34, name='guess circles', length=2),
+            b(36, name='guess pink circle', length=2),
+            # beat 36 pink circle
             b(38, name='guess circles 2', length=4),
             b(42, name='guess circles', length=4),
             b(46, name='guess circles 2', length=4),
@@ -153,26 +186,28 @@ effects = {
     "wub" : {
         "length": 2,
         "beats": [
-            grid_f(
-                1,
-                function=our_transform,
-                object=get_centered_circle_numpy(radius=16, color=GColor.green, offset_y=0),
-                name='Ok 2',
-                start_pos=(0, 0),
-                start_scale = (.01, .01),
-                end_scale = (1, 1),
-                length=1,
-            ),
-            grid_f(
-                2,
-                function=our_transform,
-                object=get_centered_circle_numpy(radius=16, color=GColor.green, offset_y=0),
-                name='Ok 2',
-                start_pos=(0, 0),
-                start_scale = (1, 1),
-                end_scale = (.01, .01),
-                length=1,
-            ),
+            *get_circle_pulse_beats(start_beat=1, total=12, start_color=GColor.green, length=15),
+            *get_circle_pulse_beats(start_beat=2, total=12, start_color=GColor.green, length=15, reverse=True),
+            # grid_f(
+            #     1,
+            #     function=our_transform,
+            #     object=get_centered_circle_numpy_nofill(radius=11, color=GColor.green, offset_y=0),
+            #     name='Ok 2',
+            #     start_pos=(0, 0),
+            #     start_scale = (.01, .01),
+            #     end_scale = (1, 1),
+            #     length=1,
+            # ),
+            # grid_f(
+            #     2,
+            #     function=our_transform,
+            #     object=get_centered_circle_numpy_nofill(radius=11, color=GColor.green, offset_y=0),
+            #     name='Ok 2',
+            #     start_pos=(0, 0),
+            #     start_scale = (1, 1),
+            #     end_scale = (.01, .01),
+            #     length=1,
+            # ),
         ]
     },
 
@@ -184,11 +219,15 @@ effects = {
         "beats": [
 
             # intro w/ bass
-            b(1, name='guess intro', length=64),
+            b(1, name='guess intro', length=49),
             # bass comes back (put them in your mouth)
-            b(50, name='guess circles', length=32),
-            b(65, name="extra circles", length=2),
             b(50, name='guess bass', length=32),
+            b(50, name='guess circles', length=12),
+            b(62, name='guess circles 2', length=2),
+
+            b(65, name="extra circles", length=2),
+            b(66, name='guess circles', length=16),
+
             # synth high (buy it, bite it, lick it, slipt it)
             b(82, name='synth high', length=8),
             # synth low (wear them)

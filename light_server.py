@@ -893,7 +893,7 @@ async def light():
                         infos_for_this_sub_beat[priority].append(info)
 
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
-                        grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
+                        grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', True)
 
         # Preparing the pin light values (laser, laser motor, disco, floor lights, old grid)
         for light_index in range(LIGHT_COUNT):
@@ -949,7 +949,7 @@ async def light():
             # semi fill (looks like pre-grid)
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
-            
+
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
                 try:

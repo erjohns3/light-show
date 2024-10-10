@@ -388,8 +388,8 @@
             let roll = Math.atan2(acl.x, acl.y);
             let msg = {
                 type: 'accel',
-                x: roll * 12,
-                y: pitch * 12,
+                x: roll * 13,
+                y: pitch * 13,
                 z: acl.z
             };
             socket.send(JSON.stringify(msg));

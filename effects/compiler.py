@@ -670,6 +670,8 @@ def accel_nowrap(info):
     if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
         info.offset_x = 0
         info.offset_y = 0
+    # for row in grid_helpers.grid:
+    #     print(row)
     grid_helpers.move([int(last_accel[0]), int(last_accel[1])])
 
 

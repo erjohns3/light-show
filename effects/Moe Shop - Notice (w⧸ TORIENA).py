@@ -7,8 +7,8 @@ effects = {
         "delay_lights": 0.45539999999999997,
         "skip_song": 0.0,
         "beats": [
-            *make_twinkle(start_beat=7.75, length=1, color=GColor.pink, twinkle_length=.15, num_twinkles=40, twinkle_lower_wait=0, twinkle_upper_wait=.5),
-            *make_twinkle(start_beat=7.75, length=1, color=GColor.green, twinkle_length=.15, num_twinkles=40, twinkle_lower_wait=0, twinkle_upper_wait=.5),
+            *make_twinkle(start_beat=7.75, length=1.25, color=GColor.pink, twinkle_length=.25, num_twinkles=40, twinkle_lower_wait=0, twinkle_upper_wait=.5),
+            *make_twinkle(start_beat=7.75, length=1.25, color=GColor.green, twinkle_length=.25, num_twinkles=40, twinkle_lower_wait=0, twinkle_upper_wait=.5),
             b(33, 'RBBB 1 bar', length=128)
         ]
     }

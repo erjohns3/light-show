@@ -144,7 +144,7 @@ effects = {
     "guess bass" : {
         "length": 1,
         "beats": [
-            b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
+            b(1, name='Green bottom', length=.45, hue_shift=.85, sat_shift=-.25, intensity=(0.2, 0.1)), 
         ],
     },
     "synth high" : {
@@ -157,7 +157,7 @@ effects = {
     "synth low" : {
         "length": 1,
         "beats": [
-            b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
+            b(1, name='Green bottom', length=.45, hue_shift=.85, sat_shift=-.25, intensity=(0.2, 0.1)), 
                   
         ],
     },
@@ -172,7 +172,8 @@ effects = {
         "length": 1,
         "beats": [
             b(1, name='green laser', length=1),
-            b(1, name='green laser motor', length=.5),
+            b(1, name='green laser motor', length=.3),
+            b(1.9, name='green laser motor', length=.1),
         ],
     },
     "the drop 2" : {
@@ -186,6 +187,7 @@ effects = {
     "wub" : {
         "length": 2,
         "beats": [
+            b(1, name='Sidechain laser', length=2),
             *get_circle_pulse_beats(start_beat=1, total=12, start_color=GColor.green, length=15),
             *get_circle_pulse_beats(start_beat=2, total=12, start_color=GColor.green, length=15, reverse=True),
             # grid_f(
@@ -246,6 +248,8 @@ effects = {
             b(130, name='guess bass', length=48),
             #b(180)
             #b(210) (GUESS)
+            b(178, name='Green disco', length=16),
+
             b(210, name="the drop", length=32),
             b(242, name="the drop 2", length=64),
             b(278, name="wub", length=4),

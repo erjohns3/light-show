@@ -378,24 +378,7 @@
     }
     customElements.define('profile-button', ProfileButton);
 
-    var trackAccel = false;
-    const acl = new Accelerometer({ frequency: 60 });
-    acl.addEventListener("reading", () => {
-        // beatSensElem.textContent = `x: ${acl.x.toFixed(2)}, y: ${acl.y.toFixed(2)}, z: ${acl.z.toFixed(2)}`;
-        // beatSensElem.textContent = `pitch: ${pitch.toFixed(2)}, roll: ${roll.toFixed(2)}`
-        if (trackAccel) {
-            let pitch = Math.atan2(acl.z, acl.y);
-            let roll = Math.atan2(acl.x, acl.y);
-            let msg = {
-                type: 'accel',
-                x: roll * 13,
-                y: pitch * 13,
-                z: acl.z
-            };
-            socket.send(JSON.stringify(msg));
-        }
-    });
-    acl.start();
+
     
     function addEffect(effect){
         if (effect.toLowerCase().includes('accel')) {
@@ -406,7 +389,7 @@
             type: 'add_effect',
             effect: effect
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -419,7 +402,7 @@
             type: 'remove_effect',
             effect: effect
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -427,7 +410,7 @@
         let msg = {
             type: 'toggle_laser_mode',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -435,7 +418,7 @@
         let msg = {
             type: 'update_config'
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -443,7 +426,7 @@
         let msg = {
             type: 'clear_effects'
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -451,7 +434,7 @@
         let msg = {
             type: 'toggle_dev_mode',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -477,6 +460,131 @@
     }
     console.log('----UUID----')
     console.log(uuid);
+
+    function send(msg){
+        if(socket != null && socket.readyState == WebSocket.OPEN){
+            socket.send(msg);
+        }
+    }
+
+
+    // Function to create a rotation matrix for a given angle (in radians) around the Z axis
+    function createRotationMatrixZ(angleRad) {
+        return [
+            [Math.cos(angleRad), -Math.sin(angleRad), 0],
+            [Math.sin(angleRad), Math.cos(angleRad), 0],
+            [0, 0, 1]
+        ];
+    }
+
+    // Function to apply a rotation matrix to a vector
+    function applyRotationMatrix(rotationMatrix, vector) {
+        return {
+            x: rotationMatrix[0][0] * vector.x + rotationMatrix[0][1] * vector.y + rotationMatrix[0][2] * vector.z,
+            y: rotationMatrix[1][0] * vector.x + rotationMatrix[1][1] * vector.y + rotationMatrix[1][2] * vector.z,
+            z: rotationMatrix[2][0] * vector.x + rotationMatrix[2][1] * vector.y + rotationMatrix[2][2] * vector.z
+        };
+    }
+
+    // Function to convert quaternion to rotation matrix
+    function quaternionToRotationMatrix(q) {
+        let x2 = q.x * q.x;
+        let y2 = q.y * q.y;
+        let z2 = q.z * q.z;
+        let xy = q.x * q.y;
+        let xz = q.x * q.z;
+        let yz = q.y * q.z;
+        let wx = q.w * q.x;
+        let wy = q.w * q.y;
+        let wz = q.w * q.z;
+
+        return [
+            [1 - 2 * (y2 + z2), 2 * (xy - wz), 2 * (xz + wy)],
+            [2 * (xy + wz), 1 - 2 * (x2 + z2), 2 * (yz - wx)],
+            [2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (x2 + y2)]
+        ];
+    }
+
+    // Function to get the ground plane intersection for the device's Y-axis with a rotated ground plane
+    function getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle) {
+        // Convert quaternion to rotation matrix
+        let rotationMatrix = quaternionToRotationMatrix(quaternion);
+
+        // The device's Y-axis direction is represented by the second column of the rotation matrix
+        let deviceYAxisDirection = {
+            x: rotationMatrix[0][1],
+            y: rotationMatrix[1][1],
+            z: rotationMatrix[2][1]
+        };
+
+        // Find where the device's Y-axis intersects with the standard ground plane (Z = 0)
+        let t = deviceHeightBelowGround / deviceYAxisDirection.z; // Solve for intersection with Z=0
+        let intersectionX = deviceYAxisDirection.x * t;
+        let intersectionY = deviceYAxisDirection.y * t;
+
+        // Apply the ground plane's Z-axis rotation
+        let groundRotationMatrixZ = createRotationMatrixZ(groundPlaneRotationAngle);
+        let intersectionRotated = applyRotationMatrix(groundRotationMatrixZ, { x: intersectionX, y: intersectionY, z: 0 });
+
+        return { x: intersectionRotated.x, y: intersectionRotated.y };
+    }
+
+    var trackAccel = false;
+
+
+    const sensor = new AbsoluteOrientationSensor({
+        frequency: 60, 
+        referenceFrame: "device" 
+    });
+    sensor.addEventListener("reading", () => {
+        if (trackAccel) {
+            let quaternion = {
+                x: sensor.quaternion[0],
+                y: sensor.quaternion[1],
+                z: sensor.quaternion[2],
+                w: sensor.quaternion[3]
+            };
+
+            let deviceHeightBelowGround = 10;
+            let groundPlaneRotationAngle = -0.175;
+
+            let intersection = getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle);
+            // beatSensElem.textContent = `x: ${intersection.x.toFixed(2)}, y: ${intersection.y.toFixed(2)}`;
+            let msg = {
+                type: 'accel',
+                x: intersection.x,
+                y: intersection.y - 10,
+                z: 0
+            };
+            send(JSON.stringify(msg));
+        }
+    });
+    sensor.addEventListener("error", (event) => {
+        if (event.error.name === "NotReadableError") {
+            console.log("Sensor is not available.");
+        }
+    });
+    sensor.start();
+
+    
+    // const acl = new Accelerometer({ frequency: 60 });
+    // acl.addEventListener("reading", () => {
+    //     // beatSensElem.textContent = `x: ${acl.x.toFixed(2)}, y: ${acl.y.toFixed(2)}, z: ${acl.z.toFixed(2)}`;
+    //     // beatSensElem.textContent = `pitch: ${pitch.toFixed(2)}, roll: ${roll.toFixed(2)}`
+    //     if (trackAccel) {
+    //         let pitch = Math.atan2(acl.z, acl.y);
+    //         let roll = Math.atan2(acl.x, acl.y);
+    //         let msg = {
+    //             type: 'accel',
+    //             x: roll * 13,
+    //             y: pitch * 13,
+    //             z: acl.z
+    //         };
+    //         send(JSON.stringify(msg));
+    //     }
+    // });
+    // acl.start();
+    
 
     var profileOrder = {
         'Andrew': 0,
@@ -672,14 +780,14 @@
         let msg = {
             type: 'beat_sens_up',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
     }
     
     function beatSensDown() {
         let msg = {
             type: 'beat_sens_down',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
     }
 
     function paintBackground(){

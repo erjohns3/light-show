@@ -545,15 +545,15 @@
                 w: sensor.quaternion[3]
             };
 
-            let deviceHeightBelowGround = 10;
+            let deviceHeightBelowGround = 8;
             let groundPlaneRotationAngle = -0.175;
 
             let intersection = getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle);
             // beatSensElem.textContent = `x: ${intersection.x.toFixed(2)}, y: ${intersection.y.toFixed(2)}`;
             let msg = {
                 type: 'accel',
-                x: intersection.x,
-                y: intersection.y - 10,
+                x: -intersection.x,
+                y: intersection.y - 18,
                 z: 0
             };
             send(JSON.stringify(msg));

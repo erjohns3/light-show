@@ -47,7 +47,7 @@
     function socketInit() {
         console.log("socket init");
         
-        socket = new WebSocket("ws://" + location.hostname + ":1337");
+        socket = new WebSocket("wss://" + location.hostname + ":1337");
 
         socket.onopen = function () {
             // sometimes takes a long time to get here

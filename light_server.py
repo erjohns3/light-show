@@ -1827,7 +1827,7 @@ if __name__ == '__main__':
         ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
 
-        queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
+        queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

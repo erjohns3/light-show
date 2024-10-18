@@ -529,43 +529,6 @@
         return { x: intersectionRotated.x, y: intersectionRotated.y };
     }
 
-    var trackAccel = false;
-
-
-    const sensor = new AbsoluteOrientationSensor({
-        frequency: 60, 
-        referenceFrame: "device" 
-    });
-    sensor.addEventListener("reading", () => {
-        if (trackAccel) {
-            let quaternion = {
-                x: sensor.quaternion[0],
-                y: sensor.quaternion[1],
-                z: sensor.quaternion[2],
-                w: sensor.quaternion[3]
-            };
-
-            let deviceHeightBelowGround = 8;
-            let groundPlaneRotationAngle = -0.175;
-
-            let intersection = getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle);
-            // beatSensElem.textContent = `x: ${intersection.x.toFixed(2)}, y: ${intersection.y.toFixed(2)}`;
-            let msg = {
-                type: 'accel',
-                x: -intersection.x,
-                y: intersection.y - 18,
-                z: 0
-            };
-            send(JSON.stringify(msg));
-        }
-    });
-    sensor.addEventListener("error", (event) => {
-        if (event.error.name === "NotReadableError") {
-            console.log("Sensor is not available.");
-        }
-    });
-    sensor.start();
-
     
     // const acl = new Accelerometer({ frequency: 60 });
     // acl.addEventListener("reading", () => {
@@ -822,6 +785,138 @@
             gradient.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
             context.fillStyle = gradient;
             context.fillRect(0, 0, width, height);
+        }
+    }
+
+    var trackAccel = false;
+
+    // Function to convert alpha, beta, gamma to the device's Y-axis in world coordinates
+    // function getDeviceYAxisInWorldCoordinates(alpha, beta, gamma) {
+    //     const degToRad = Math.PI / 180;
+
+    //     // Convert angles from degrees to radians
+    //     alpha = alpha * degToRad;
+    //     beta = beta * degToRad;
+    //     gamma = gamma * degToRad;
+
+    //     beatSensElem.textContent = `a: ${alpha.toFixed(2)}, b: ${beta.toFixed(2)}, g: ${gamma.toFixed(2)}`;
+
+    //     // Rotation matrices for each axis
+    //     const Rz = [
+    //         [Math.cos(alpha), -Math.sin(alpha), 0],
+    //         [Math.sin(alpha), Math.cos(alpha), 0],
+    //         [0, 0, 1]
+    //     ];
+
+    //     const Rx = [
+    //         [1, 0, 0],
+    //         [0, Math.cos(beta), -Math.sin(beta)],
+    //         [0, Math.sin(beta), Math.cos(beta)]
+    //     ];
+
+    //     const Ry = [
+    //         [Math.cos(gamma), 0, Math.sin(gamma)],
+    //         [0, 1, 0],
+    //         [-Math.sin(gamma), 0, Math.cos(gamma)]
+    //     ];
+
+    //     // Initial Y-axis vector in local device coordinates (0, 1, 0)
+    //     let yAxis = { x: 0, y: 1, z: 0 };
+
+    //     // Apply the rotations: First gamma (Y-axis), then beta (X-axis), then alpha (Z-axis)
+    //     yAxis = applyRotationMatrix(Ry, yAxis);
+    //     yAxis = applyRotationMatrix(Rx, yAxis);
+    //     yAxis = applyRotationMatrix(Rz, yAxis);
+
+    //     // beatSensElem.textContent = `x: ${yAxis.x.toFixed(2)}, y: ${yAxis.y.toFixed(2)}, z: ${yAxis.z.toFixed(2)}`;
+    //     return yAxis;
+    // }
+
+    // // Helper function to apply a rotation matrix to a vector
+    // function applyRotationMatrix(matrix, vector) {
+    //     return {
+    //         x: matrix[0][0] * vector.x + matrix[0][1] * vector.y + matrix[0][2] * vector.z,
+    //         y: matrix[1][0] * vector.x + matrix[1][1] * vector.y + matrix[1][2] * vector.z,
+    //         z: matrix[2][0] * vector.x + matrix[2][1] * vector.y + matrix[2][2] * vector.z
+    //     };
+    // }
+
+    // // Example usage: Get the Y-axis in world coordinates
+    // function handleOrientation(event) {
+    //     const alpha = event.alpha || 0; // Z-axis rotation
+    //     const beta = event.beta || 0;   // X-axis rotation
+    //     const gamma = event.gamma || 0; // Y-axis rotation
+
+    //     const yAxisInWorld = getDeviceYAxisInWorldCoordinates(alpha, beta, gamma);
+
+    //     console.log(`Device Y-axis in world coordinates: x = ${yAxisInWorld.x}, y = ${yAxisInWorld.y}, z = ${yAxisInWorld.z}`);
+    // }
+
+    // // Request permission and add event listener
+    // function initOrientation() {
+    //     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    //         beatSensElem.textContent = `IMU 0`;
+    //         DeviceOrientationEvent.requestPermission()
+    //             .then(permissionState => {
+    //                 if (permissionState === 'granted') {
+    //                     beatSensElem.textContent = `IMU 2`;
+    //                     window.addEventListener('deviceorientation', handleOrientation);
+    //                 } else {
+    //                     // beatSensElem.textContent = `IMU 3`;
+    //                     console.error('Permission denied for DeviceOrientationEvent');
+    //                 }
+    //             })
+    //             .catch(
+    //                 beatSensElem.textContent = `IMU 5`
+    //             );
+    //     } else {
+    //         beatSensElem.textContent = `IMU 1`;
+    //         // For browsers that don't require permission (non-Safari)
+    //         window.addEventListener('deviceorientation', handleOrientation);
+    //     }
+    // }
+
+    // Initialize the orientation tracking
+    // initOrientation();
+
+    // Initialize the orientation tracking
+    // initOrientation();
+
+    if ('AbsoluteOrientationSensor' in window) {
+        try {
+            const sensor = new AbsoluteOrientationSensor({
+                frequency: 60, 
+                referenceFrame: "device" 
+            });
+            sensor.addEventListener("reading", () => {
+                if (trackAccel) {
+                    let quaternion = {
+                        x: sensor.quaternion[0],
+                        y: sensor.quaternion[1],
+                        z: sensor.quaternion[2],
+                        w: sensor.quaternion[3]
+                    };
+
+                    let deviceHeightBelowGround = 8;
+                    let groundPlaneRotationAngle = -0.175;
+
+                    let intersection = getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle);
+                    // beatSensElem.textContent = `x: ${intersection.x.toFixed(2)}, y: ${intersection.y.toFixed(2)}`;
+                    let msg = {
+                        type: 'accel',
+                        x: -intersection.x,
+                        y: intersection.y - 18,
+                        z: 0
+                    };
+                    send(JSON.stringify(msg));
+                }
+            });
+            sensor.addEventListener("error", (event) => {
+                if (event.error.name === "NotReadableError") {
+                }
+            });
+            sensor.start();
+        } catch (error) {
         }
     }
 

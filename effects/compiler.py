@@ -978,3 +978,43 @@ def winamp_grid(grid_info):
     winamp.winamp_wrapper.load_preset(grid_info.preset)
     winamp.winamp_wrapper.compute_frame()
     winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)
+
+
+
+
+
+
+
+#  FROM 5 HOURS
+
+
+def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=None):
+    white = (100, 100, 100)
+    components = []
+    counter = 0
+    y_index = 0
+    spawn_points = [0, 31]
+    vectors = [(0, speed), (0, -speed)]
+
+    for index, beat in enumerate(beats):
+        next_beat = beats[index + 1] if index + 1 < len(beats) else end_point
+        color = white
+        if type(colors[0]) in [int, float]:
+            color = colors
+        elif start_colors_at_beat is None or beat > start_colors_at_beat:
+            color = colors[counter % len(colors)]
+            counter += 1
+        y_index = 1 - y_index
+        # print(f'creating at {beat}, for length {next_beat - beat}')
+        # if speed == 1:
+        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.05))    
+        # if speed == 3:
+        #     sub_or_add = 1
+        #     if y_index == 1:
+        #         sub_or_add = -1
+        #     components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index] + sub_or_add * 2, color=color, length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index] + sub_or_add, color=list(map(lambda x: x // 10, color)), length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index], color=list(map(lambda x: x // 20, color)), length=0.01))
+
+        components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
+    return components

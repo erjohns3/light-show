@@ -117,6 +117,19 @@ effects = {
             b(1, laser_motor=-1000, length=1),
         ],
     },
+    "Sidechain top": {
+        "length": 1,
+        "beats": [
+            b(1, top_rgb=[-1000, -1000, -1000], length=1),
+        ],
+    },
+    "Sidechain bottom": {
+        "length": 1,
+        "beats": [
+            b(1, bottom_rgb=[-1000, -1000, -1000], length=1),
+        ],
+    },
+
     "Sidechain top r": {
         "length": 1,
         "beats": [

@@ -49,7 +49,7 @@ effects = {
     "saoko verse" : {
         'length': 42,
         'beats': [
-            grid_f(1, function=lambda x: x, clear=False, length=42),
+            grid_f(1, function=lambda x: x, clear=False, grid_fill_from_old=False, length=42),
             *get_wub_bounce(list(range(1, 42)), verse_colors, end_point=42, start_colors_at_beat=1),
         ],
     },

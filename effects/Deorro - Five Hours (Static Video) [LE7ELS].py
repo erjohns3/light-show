@@ -217,7 +217,7 @@ effects = {
     '5 hours grid intro': {
         'length': 113,
         'beats': [
-            grid_f(1, function=lambda x: x, clear=False, length=113),
+            grid_f(1, function=lambda x: x, grid_fill_from_old=False, clear=False, length=113),
 
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),

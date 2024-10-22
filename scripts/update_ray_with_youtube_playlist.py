@@ -1,25 +1,10 @@
-# !FIX ERROR
-
-# wZkR2a3FMY2dyc1lDaC0%3D
-# Querying continuation_token: 4qmFsgJfEiRWTFBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0aEkNBWjZCMUJVT2tOUGMwVSUzRJoCIlBMOGdKZ2wwRHdjaEI2SW1vQjYwZkR2a3FMY2dyc1lDaC0%3D
-# continuation request 5 status code: 200
-# started downloading https://www.youtube.com/watch?v=oWqvIzXQFkU
-# [youtube] Extracting URL: https://www.youtube.com/watch?v=oWqvIzXQFkU
-# [youtube] oWqvIzXQFkU: Downloading webpage
-# [youtube] oWqvIzXQFkU: Downloading android player API JSON
-# [info] oWqvIzXQFkU: Downloading 1 format(s): 251
-# ERROR: unable to download video data: HTTP Error 403: Forbidden
-# Couldnt download url https://www.youtube.com/watch?v=oWqvIzXQFkU due to ERROR: unable to download video data: HTTP Error 403: ForbiddenTraceback (most recent call last):
-#   File "T:\programming\light-show\update_ray_with_youtube_playlist.py", line 45, in <module>
-#     print_green(f'Downloaded file to "{filepath}", {filepath.exists()=}')
-
-
 import json
 import time
 import random
 import pathlib
 import sys
 from copy import deepcopy
+from datetime import datetime
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory.parent))
@@ -30,13 +15,22 @@ from helpers import *
 
 if __name__ == '__main__':
     downloaded_songs_directory = get_ray_directory().joinpath('music_creation').joinpath('downloaded_songs')
-    urls_downloaded_filepath = get_ray_directory().joinpath('music_creation').joinpath('url_cache.json')
+    urls_downloaded_directory = get_ray_directory().joinpath('music_creation').joinpath('url_caches')
+    urls_downloaded_directory.mkdir(exist_ok=True, parents=True)
+    downloaded_songs_directory.mkdir(exist_ok=True, parents=True)
+
+    current_timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    current_cache_filepath = urls_downloaded_directory.joinpath(f'url_cache_{current_timestamp}.json')
 
     try:
-        with open(urls_downloaded_filepath, 'r') as f:
-            urls_downloaded = json.loads(f.read())
+        latest_cache_file = max(urls_downloaded_directory.glob('url_cache_*.json'), key=os.path.getctime)
+        with open(latest_cache_file, 'r') as f:
+            urls_downloaded = json.load(f)
     except:
         urls_downloaded = {}
+
+    with open(current_cache_filepath, 'w') as f:
+        json.dump(urls_downloaded, f, indent=4)
 
     while True:
         already_downloaded = False
@@ -83,9 +77,8 @@ if __name__ == '__main__':
             
             print(f'{green("DOWNLOADED")}: author: {yellow(contributor_name)}, title: {blue(title)}, video url: {url} to {filepath}')
 
-            with open(urls_downloaded_filepath, 'w') as f:
-                file_str = json.dumps(urls_downloaded, indent=4, sort_keys=True)
-                f.writelines([file_str])
+            with open(current_cache_filepath, 'w') as f:
+                json.dump(urls_downloaded, f, indent=4)
 
         if not already_downloaded:
             print('nothing downloaded, long sleep')

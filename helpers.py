@@ -82,7 +82,7 @@ def get_ray_directory():
         return mount_path
     elif is_windows():
         return pathlib.Path(r'\\Ray\T')
-    print_red('dont know how contact ray_directory')
+    print_red('dont know how to contact ray_directory')
 
 
 def get_nas_directory():

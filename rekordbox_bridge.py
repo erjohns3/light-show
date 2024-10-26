@@ -244,7 +244,7 @@ def run_rekordbox_bridge_forever():
     # tries to fix the infinite error: "dj_client.run_forever EXCEPTION: maximum recursion depth exceeded while calling a Python object", make non_recursive    
     while True:
         try:
-            dj_client = websocket.WebSocketApp(f"ws://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
+            dj_client = websocket.WebSocketApp(f"wss://{light_show_server}:1567", on_error=light_show_on_error, on_open=light_show_on_open, on_message=light_show_on_message, on_close=light_show_on_close)
             dj_client.run_forever(ping_interval=10, ping_timeout=9, ping_payload="{\"ok\": \"ok2\"}") 
         except Exception as e:
             # import traceback

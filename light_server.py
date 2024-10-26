@@ -178,8 +178,12 @@ async def init_rekordbox_bridge_client(websocket, path):
         try:
             msg = json.loads(await websocket.recv())
         except:
-            return print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
-
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
+            return
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
             broadcast_song_status = True
@@ -268,7 +272,11 @@ async def init_dj_client(websocket, path):
             light_sockets.remove(websocket)
             if websocket in dev_sockets:
                 dev_sockets.remove(websocket)
-            print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         beat_sens_number = 'N/A'
@@ -407,7 +415,11 @@ async def init_queue_client(websocket, path):
             msg = json.loads(await websocket.recv())
         except:
             song_sockets.remove(websocket)
-            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         print('Song Queue: message recieved:', msg)
@@ -1826,7 +1838,6 @@ if __name__ == '__main__':
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
-
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
 
         if args.show_name:

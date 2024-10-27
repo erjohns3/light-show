@@ -1832,10 +1832,12 @@ if __name__ == '__main__':
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
-        rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
-
         import ssl
         ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+
+        # keeping as non FOR NOW
+        rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
+
         ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)

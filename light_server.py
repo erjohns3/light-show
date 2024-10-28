@@ -121,8 +121,6 @@ LED_PINS = [
     None, None, None, # Uh buffer for math? This is bad 
 ]
 
-
-
 LED_FREQ = 500
 LED_RANGE = 200000 // LED_FREQ
 LIGHT_COUNT = len(LED_PINS)
@@ -153,9 +151,10 @@ def setup_gpio():
     if not pi.connected:
         exit()
     for pin in LED_PINS:
-        pi.set_PWM_frequency(pin, LED_FREQ)
-        pi.set_PWM_range(pin, LED_RANGE)
-        pi.set_PWM_dutycycle(pin, 0)
+        if pin != None:
+            pi.set_PWM_frequency(pin, LED_FREQ)
+            pi.set_PWM_range(pin, LED_RANGE)
+            pi.set_PWM_dutycycle(pin, 0)
 
 ########################################
 
@@ -179,8 +178,12 @@ async def init_rekordbox_bridge_client(websocket, path):
         try:
             msg = json.loads(await websocket.recv())
         except:
-            return print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
-
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
+            return
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
             broadcast_song_status = True
@@ -269,12 +272,22 @@ async def init_dj_client(websocket, path):
             light_sockets.remove(websocket)
             if websocket in dev_sockets:
                 dev_sockets.remove(websocket)
-            print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         beat_sens_number = 'N/A'
         if 'type' in msg:
-            if msg['type'] == 'add_effect':
+            if msg['type'] == 'accel':
+                # print(f'Recieved accel: {msg}' * 20)
+                # last_accel = [msg['x'], msg['y']]
+                effects.compiler.set_accel([msg['x'], msg['y']])
+
+
+            elif msg['type'] == 'add_effect':
                 add_effect_from_dj(msg['effect'])
 
             elif msg['type'] == 'remove_effect':
@@ -402,7 +415,11 @@ async def init_queue_client(websocket, path):
             msg = json.loads(await websocket.recv())
         except:
             song_sockets.remove(websocket)
-            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         print('Song Queue: message recieved:', msg)
@@ -888,7 +905,7 @@ async def light():
                         infos_for_this_sub_beat[priority].append(info)
 
                         clear_grid_at_start = clear_grid_at_start and getattr(info, 'clear', True)
-                        grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', False)
+                        grid_fill_from_old = grid_fill_from_old and getattr(info, 'grid_fill_from_old', True)
 
         # Preparing the pin light values (laser, laser motor, disco, floor lights, old grid)
         for light_index in range(LIGHT_COUNT):
@@ -944,7 +961,7 @@ async def light():
             # semi fill (looks like pre-grid)
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
-            
+
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
                 try:
@@ -1615,7 +1632,8 @@ def signal_handler(sig, frame):
         grid_helpers.reset()
         grid_helpers.render()
         for pin in LED_PINS:
-            pi.set_PWM_dutycycle(pin, 0)
+            if pin != None:
+                pi.set_PWM_dutycycle(pin, 0)
     sys.exit()
 
 #################################################
@@ -1810,13 +1828,19 @@ if __name__ == '__main__':
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 
-    http_server_async(9555, this_file_directory, ['', 'dj.html'])
+    https_server_async(9555, this_file_directory, ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
+        import ssl
+        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+
+        # keeping as non FOR NOW
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
-        dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337)
-        queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654)
+
+        ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
+        dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
+        queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

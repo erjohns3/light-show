@@ -27,6 +27,7 @@ from helpers import *
 
 
 class GColor:
+    negative = (-1000, -1000, -1000)
     white = (100, 100, 100)
     blue = (0, 0, 100)
     seafoam = (0, 100, 50)
@@ -182,19 +183,23 @@ def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, n
         length=length,
     )]
 
-def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=GColor.red):
+def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=None, total=20, reverse=False, length=10):
+    if end_color is None:
+        end_color = start_color
     arr = []
-    total = 20
-    for i in range(total):
+    to_iter = list(range(total))
+    if reverse:
+        to_iter = reversed(to_iter)
+    for index, i in enumerate(to_iter):
         before_color = interpolate_vectors_float(start_color, end_color, i / total)
         after_color = interpolate_vectors_float(start_color, end_color, (i+1) / total)
         arr.append(grid_f(
-            start_beat + (i / 10),
+            start_beat + (index / length),
             function=our_transform,
             object=get_centered_circle_numpy_nofill(radius=(i+1)),
             start_color=before_color,
             end_color=after_color,
-            length=1/10,
+            length=1/length,
         ))
     return arr
 
@@ -214,7 +219,6 @@ def get_centered_circle_numpy(radius, offset_x=0, offset_y=0, color=(100, 100, 1
         for y in range(grid_height):
             if (x - mid_x) ** 2 + (y - mid_y) ** 2 <= radius ** 2:
                 circle[x][y] = color
-
     return circle
 
 
@@ -455,6 +459,9 @@ def our_transform(info):
     if getattr(info, 'color', None) is not None:
         current_color = interpolate_vectors_float(info.start_color, info.end_color, percent_done)
         colored_object = change_to_color(info.object, current_color)
+    
+    # if getattr(info, 'negative', None) is not None:
+
     transformed_image = transform_scale_rotation_and_translation(colored_object, size, midpoint, scale, rot, pos)
     
     arr_version = np.array(transformed_image)
@@ -645,6 +652,27 @@ def get_smallest_equivilent_vectors(vector):
         needed_x -= should_x
         needed_y -= should_y
     return all_vectors
+
+
+last_accel = [0, 0]
+def set_accel(accel):
+    global last_accel
+    last_accel = accel
+
+
+def accel_wrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.offset_x = 0
+        info.offset_y = 0
+    grid_helpers.move_wrap([int(last_accel[0]), int(last_accel[1])])
+
+def accel_nowrap(info):
+    if getattr(info, 'running', None) is None or (info.curr_sub_beat == 1 and not info.looped):
+        info.offset_x = 0
+        info.offset_y = 0
+    # for row in grid_helpers.grid:
+    #     print(row)
+    grid_helpers.move([int(last_accel[0]), int(last_accel[1])])
 
 
 def move_x_wrap(info):
@@ -950,3 +978,43 @@ def winamp_grid(grid_info):
     winamp.winamp_wrapper.load_preset(grid_info.preset)
     winamp.winamp_wrapper.compute_frame()
     winamp.winamp_wrapper.load_into_numpy_array(grid_helpers.grid)
+
+
+
+
+
+
+
+#  FROM 5 HOURS
+
+
+def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=None):
+    white = (100, 100, 100)
+    components = []
+    counter = 0
+    y_index = 0
+    spawn_points = [0, 31]
+    vectors = [(0, speed), (0, -speed)]
+
+    for index, beat in enumerate(beats):
+        next_beat = beats[index + 1] if index + 1 < len(beats) else end_point
+        color = white
+        if type(colors[0]) in [int, float]:
+            color = colors
+        elif start_colors_at_beat is None or beat > start_colors_at_beat:
+            color = colors[counter % len(colors)]
+            counter += 1
+        y_index = 1 - y_index
+        # print(f'creating at {beat}, for length {next_beat - beat}')
+        # if speed == 1:
+        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.05))    
+        # if speed == 3:
+        #     sub_or_add = 1
+        #     if y_index == 1:
+        #         sub_or_add = -1
+        #     components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index] + sub_or_add * 2, color=color, length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index] + sub_or_add, color=list(map(lambda x: x // 10, color)), length=0.01))
+        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index], color=list(map(lambda x: x // 20, color)), length=0.01))
+
+        components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
+    return components

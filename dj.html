@@ -51,7 +51,7 @@
     function socketInit() {
         console.log("socket init");
         
-        socket = new WebSocket("ws://" + location.hostname + ":1337");
+        socket = new WebSocket("wss://" + location.hostname + ":1337");
 
         socket.onopen = function () {
             // sometimes takes a long time to get here
@@ -378,21 +378,31 @@
     }
     customElements.define('profile-button', ProfileButton);
 
+
+    
     function addEffect(effect){
+        if (effect.toLowerCase().includes('accel')) {
+            trackAccel = true;
+        }
+        
         let msg = {
             type: 'add_effect',
             effect: effect
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
     function removeEffect(effect){
+        if (effect.toLowerCase().includes('accel')) {
+            trackAccel = false;
+        }
+
         let msg = {
             type: 'remove_effect',
             effect: effect
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -400,7 +410,7 @@
         let msg = {
             type: 'toggle_laser_mode',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -408,7 +418,7 @@
         let msg = {
             type: 'update_config'
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -416,7 +426,7 @@
         let msg = {
             type: 'clear_effects'
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -424,7 +434,7 @@
         let msg = {
             type: 'toggle_dev_mode',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
         // console.log('Sending:', msg);
     }
 
@@ -450,6 +460,94 @@
     }
     console.log('----UUID----')
     console.log(uuid);
+
+    function send(msg){
+        if(socket != null && socket.readyState == WebSocket.OPEN){
+            socket.send(msg);
+        }
+    }
+
+
+    // Function to create a rotation matrix for a given angle (in radians) around the Z axis
+    function createRotationMatrixZ(angleRad) {
+        return [
+            [Math.cos(angleRad), -Math.sin(angleRad), 0],
+            [Math.sin(angleRad), Math.cos(angleRad), 0],
+            [0, 0, 1]
+        ];
+    }
+
+    // Function to apply a rotation matrix to a vector
+    function applyRotationMatrix(rotationMatrix, vector) {
+        return {
+            x: rotationMatrix[0][0] * vector.x + rotationMatrix[0][1] * vector.y + rotationMatrix[0][2] * vector.z,
+            y: rotationMatrix[1][0] * vector.x + rotationMatrix[1][1] * vector.y + rotationMatrix[1][2] * vector.z,
+            z: rotationMatrix[2][0] * vector.x + rotationMatrix[2][1] * vector.y + rotationMatrix[2][2] * vector.z
+        };
+    }
+
+    // Function to convert quaternion to rotation matrix
+    function quaternionToRotationMatrix(q) {
+        let x2 = q.x * q.x;
+        let y2 = q.y * q.y;
+        let z2 = q.z * q.z;
+        let xy = q.x * q.y;
+        let xz = q.x * q.z;
+        let yz = q.y * q.z;
+        let wx = q.w * q.x;
+        let wy = q.w * q.y;
+        let wz = q.w * q.z;
+
+        return [
+            [1 - 2 * (y2 + z2), 2 * (xy - wz), 2 * (xz + wy)],
+            [2 * (xy + wz), 1 - 2 * (x2 + z2), 2 * (yz - wx)],
+            [2 * (xz - wy), 2 * (yz + wx), 1 - 2 * (x2 + y2)]
+        ];
+    }
+
+    // Function to get the ground plane intersection for the device's Y-axis with a rotated ground plane
+    function getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle) {
+        // Convert quaternion to rotation matrix
+        let rotationMatrix = quaternionToRotationMatrix(quaternion);
+
+        // The device's Y-axis direction is represented by the second column of the rotation matrix
+        let deviceYAxisDirection = {
+            x: rotationMatrix[0][1],
+            y: rotationMatrix[1][1],
+            z: rotationMatrix[2][1]
+        };
+
+        // Find where the device's Y-axis intersects with the standard ground plane (Z = 0)
+        let t = deviceHeightBelowGround / deviceYAxisDirection.z; // Solve for intersection with Z=0
+        let intersectionX = deviceYAxisDirection.x * t;
+        let intersectionY = deviceYAxisDirection.y * t;
+
+        // Apply the ground plane's Z-axis rotation
+        let groundRotationMatrixZ = createRotationMatrixZ(groundPlaneRotationAngle);
+        let intersectionRotated = applyRotationMatrix(groundRotationMatrixZ, { x: intersectionX, y: intersectionY, z: 0 });
+
+        return { x: intersectionRotated.x, y: intersectionRotated.y };
+    }
+
+    
+    // const acl = new Accelerometer({ frequency: 60 });
+    // acl.addEventListener("reading", () => {
+    //     // beatSensElem.textContent = `x: ${acl.x.toFixed(2)}, y: ${acl.y.toFixed(2)}, z: ${acl.z.toFixed(2)}`;
+    //     // beatSensElem.textContent = `pitch: ${pitch.toFixed(2)}, roll: ${roll.toFixed(2)}`
+    //     if (trackAccel) {
+    //         let pitch = Math.atan2(acl.z, acl.y);
+    //         let roll = Math.atan2(acl.x, acl.y);
+    //         let msg = {
+    //             type: 'accel',
+    //             x: roll * 13,
+    //             y: pitch * 13,
+    //             z: acl.z
+    //         };
+    //         send(JSON.stringify(msg));
+    //     }
+    // });
+    // acl.start();
+    
 
     var profileOrder = {
         'Andrew': 0,
@@ -645,14 +743,14 @@
         let msg = {
             type: 'beat_sens_up',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
     }
     
     function beatSensDown() {
         let msg = {
             type: 'beat_sens_down',
         };
-        socket.send(JSON.stringify(msg));
+        send(JSON.stringify(msg));
     }
 
     function paintBackground(){
@@ -687,6 +785,138 @@
             gradient.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
             context.fillStyle = gradient;
             context.fillRect(0, 0, width, height);
+        }
+    }
+
+    var trackAccel = false;
+
+    // Function to convert alpha, beta, gamma to the device's Y-axis in world coordinates
+    // function getDeviceYAxisInWorldCoordinates(alpha, beta, gamma) {
+    //     const degToRad = Math.PI / 180;
+
+    //     // Convert angles from degrees to radians
+    //     alpha = alpha * degToRad;
+    //     beta = beta * degToRad;
+    //     gamma = gamma * degToRad;
+
+    //     beatSensElem.textContent = `a: ${alpha.toFixed(2)}, b: ${beta.toFixed(2)}, g: ${gamma.toFixed(2)}`;
+
+    //     // Rotation matrices for each axis
+    //     const Rz = [
+    //         [Math.cos(alpha), -Math.sin(alpha), 0],
+    //         [Math.sin(alpha), Math.cos(alpha), 0],
+    //         [0, 0, 1]
+    //     ];
+
+    //     const Rx = [
+    //         [1, 0, 0],
+    //         [0, Math.cos(beta), -Math.sin(beta)],
+    //         [0, Math.sin(beta), Math.cos(beta)]
+    //     ];
+
+    //     const Ry = [
+    //         [Math.cos(gamma), 0, Math.sin(gamma)],
+    //         [0, 1, 0],
+    //         [-Math.sin(gamma), 0, Math.cos(gamma)]
+    //     ];
+
+    //     // Initial Y-axis vector in local device coordinates (0, 1, 0)
+    //     let yAxis = { x: 0, y: 1, z: 0 };
+
+    //     // Apply the rotations: First gamma (Y-axis), then beta (X-axis), then alpha (Z-axis)
+    //     yAxis = applyRotationMatrix(Ry, yAxis);
+    //     yAxis = applyRotationMatrix(Rx, yAxis);
+    //     yAxis = applyRotationMatrix(Rz, yAxis);
+
+    //     // beatSensElem.textContent = `x: ${yAxis.x.toFixed(2)}, y: ${yAxis.y.toFixed(2)}, z: ${yAxis.z.toFixed(2)}`;
+    //     return yAxis;
+    // }
+
+    // // Helper function to apply a rotation matrix to a vector
+    // function applyRotationMatrix(matrix, vector) {
+    //     return {
+    //         x: matrix[0][0] * vector.x + matrix[0][1] * vector.y + matrix[0][2] * vector.z,
+    //         y: matrix[1][0] * vector.x + matrix[1][1] * vector.y + matrix[1][2] * vector.z,
+    //         z: matrix[2][0] * vector.x + matrix[2][1] * vector.y + matrix[2][2] * vector.z
+    //     };
+    // }
+
+    // // Example usage: Get the Y-axis in world coordinates
+    // function handleOrientation(event) {
+    //     const alpha = event.alpha || 0; // Z-axis rotation
+    //     const beta = event.beta || 0;   // X-axis rotation
+    //     const gamma = event.gamma || 0; // Y-axis rotation
+
+    //     const yAxisInWorld = getDeviceYAxisInWorldCoordinates(alpha, beta, gamma);
+
+    //     console.log(`Device Y-axis in world coordinates: x = ${yAxisInWorld.x}, y = ${yAxisInWorld.y}, z = ${yAxisInWorld.z}`);
+    // }
+
+    // // Request permission and add event listener
+    // function initOrientation() {
+    //     if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    //         beatSensElem.textContent = `IMU 0`;
+    //         DeviceOrientationEvent.requestPermission()
+    //             .then(permissionState => {
+    //                 if (permissionState === 'granted') {
+    //                     beatSensElem.textContent = `IMU 2`;
+    //                     window.addEventListener('deviceorientation', handleOrientation);
+    //                 } else {
+    //                     // beatSensElem.textContent = `IMU 3`;
+    //                     console.error('Permission denied for DeviceOrientationEvent');
+    //                 }
+    //             })
+    //             .catch(
+    //                 beatSensElem.textContent = `IMU 5`
+    //             );
+    //     } else {
+    //         beatSensElem.textContent = `IMU 1`;
+    //         // For browsers that don't require permission (non-Safari)
+    //         window.addEventListener('deviceorientation', handleOrientation);
+    //     }
+    // }
+
+    // Initialize the orientation tracking
+    // initOrientation();
+
+    // Initialize the orientation tracking
+    // initOrientation();
+
+    if ('AbsoluteOrientationSensor' in window) {
+        try {
+            const sensor = new AbsoluteOrientationSensor({
+                frequency: 60, 
+                referenceFrame: "device" 
+            });
+            sensor.addEventListener("reading", () => {
+                if (trackAccel) {
+                    let quaternion = {
+                        x: sensor.quaternion[0],
+                        y: sensor.quaternion[1],
+                        z: sensor.quaternion[2],
+                        w: sensor.quaternion[3]
+                    };
+
+                    let deviceHeightBelowGround = 8;
+                    let groundPlaneRotationAngle = -0.175;
+
+                    let intersection = getDeviceYAxisIntersectionWithGroundRotatedZ(quaternion, deviceHeightBelowGround, groundPlaneRotationAngle);
+                    // beatSensElem.textContent = `x: ${intersection.x.toFixed(2)}, y: ${intersection.y.toFixed(2)}`;
+                    let msg = {
+                        type: 'accel',
+                        x: -intersection.x,
+                        y: intersection.y - 18,
+                        z: 0
+                    };
+                    send(JSON.stringify(msg));
+                }
+            });
+            sensor.addEventListener("error", (event) => {
+                if (event.error.name === "NotReadableError") {
+                }
+            });
+            sensor.start();
+        } catch (error) {
         }
     }
 

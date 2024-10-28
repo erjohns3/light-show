@@ -96,35 +96,7 @@ def get_wub_across(beats, colors):
         components.append(grid_f(beat, function=spawn_row, y=0, color=color, length=0.01))
     return components
 
-def get_wub_bounce(beats, colors, speed=1, end_point=112, start_colors_at_beat=None):
-    components = []
-    counter = 0
-    y_index = 0
-    spawn_points = [0, 31]
-    vectors = [(0, speed), (0, -speed)]
 
-    for index, beat in enumerate(beats):
-        next_beat = beats[index + 1] if index + 1 < len(beats) else end_point
-        color = white
-        if type(colors[0]) in [int, float]:
-            color = colors
-        elif start_colors_at_beat is None or beat > start_colors_at_beat:
-            color = colors[counter % len(colors)]
-            counter += 1
-        y_index = 1 - y_index
-        # print(f'creating at {beat}, for length {next_beat - beat}')
-        # if speed == 1:
-        components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index], color=color, length=0.05))    
-        # if speed == 3:
-        #     sub_or_add = 1
-        #     if y_index == 1:
-        #         sub_or_add = -1
-        #     components.append(grid_f(beat, function=spawn_row, clear=True, y=spawn_points[y_index] + sub_or_add * 2, color=color, length=0.01))
-        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index] + sub_or_add, color=list(map(lambda x: x // 10, color)), length=0.01))
-        #     components.append(grid_f(beat, function=spawn_row, y=spawn_points[y_index], color=list(map(lambda x: x // 20, color)), length=0.01))
-
-        components.append(grid_f(beat, function=move_until_y_occupy, y=spawn_points[1-y_index], vector=vectors[y_index], length=next_beat - beat))
-    return components
 
 
 last_object_name = None
@@ -217,7 +189,7 @@ effects = {
     '5 hours grid intro': {
         'length': 113,
         'beats': [
-            grid_f(1, function=lambda x: x, clear=False, length=113),
+            grid_f(1, function=lambda x: x, grid_fill_from_old=False, clear=False, length=113),
 
             # *get_wub_across(intro_beats, intro_melody_colors),
             *get_wub_bounce(intro_beats, intro_melody_colors, end_point=112, start_colors_at_beat=79),

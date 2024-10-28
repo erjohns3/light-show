@@ -33,19 +33,43 @@ effects = {
             b(2.33, bottom_rgb=[100, 100, 100], length=0.04),
         ],
     },
+    # "RGB Flash": {
+    #     "length": 1.5,
+    #     "autogen": "flash",
+    #     "beats": [
+    #         b(1, back_rgb=[100, 0, 0], length=0.04),
+    #         b(1.17, bottom_rgb=[0, 100, 0], length=0.04),
+    #         b(1.33, front_rgb=[0, 0, 100], length=0.04),
+    #         b(1.5, bottom_rgb=[100, 0, 0], length=0.04),
+    #         b(1.67, front_rgb=[0, 100, 0], length=0.04),
+    #         b(1.83, back_rgb=[0, 0, 100], length=0.04),
+    #         b(2, front_rgb=[100, 0, 0], length=0.04),
+    #         b(2.17, back_rgb=[0, 100, 0], length=0.04),
+    #         b(2.33, bottom_rgb=[0, 0, 100], length=0.04),
+    #     ],
+    # },
+
     "RGB Flash": {
-        "length": 1.5,
+        "length": 1.9,
         "autogen": "flash",
         "beats": [
             b(1, back_rgb=[100, 0, 0], length=0.04),
-            b(1.17, bottom_rgb=[0, 100, 0], length=0.04),
+            b(1.17, bottom_hori_rgb=[0, 100, 0], length=0.04),
             b(1.33, front_rgb=[0, 0, 100], length=0.04),
-            b(1.5, bottom_rgb=[100, 0, 0], length=0.04),
-            b(1.67, front_rgb=[0, 100, 0], length=0.04),
-            b(1.83, back_rgb=[0, 0, 100], length=0.04),
+            b(1.5, bottom_vert_rgb=[100, 0, 0], length=0.04),
+            
+            b(1.67, back_rgb=[0, 100, 0], length=0.04),
+            b(1.83, bottom_hori_rgb=[0, 0, 100], length=0.04),
             b(2, front_rgb=[100, 0, 0], length=0.04),
-            b(2.17, back_rgb=[0, 100, 0], length=0.04),
-            b(2.33, bottom_rgb=[0, 0, 100], length=0.04),
+            b(2.17, bottom_vert_rgb=[0, 100, 0], length=0.04),
+            
+            b(2.33, back_rgb=[0, 0, 100], length=0.04),
+            b(2.50, bottom_hori_rgb=[100, 0, 0], length=0.04),
+            b(2.63, front_rgb=[0, 100, 0], length=0.04),
+            b(2.77, bottom_vert_rgb=[0, 0, 100], length=0.04),
         ],
-    }
+    },
 }
+
+
+

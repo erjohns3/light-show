@@ -1,6 +1,94 @@
 from effects.compiler import *
 
 
+def bounce_line_y(grid_info):
+    if getattr(grid_info, 'curr_y', None) is None:
+        grid_info.curr_y = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    if getattr(grid_info, 'curr_wait', None) is None:
+        grid_info.curr_wait = 0
+
+    if getattr(grid_info, 'wait', None) is None:
+        grid_info.wait = 32
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
+
+    if grid_info.curr_sub_beat % speed == 0:
+
+        if grid_info.curr_wait != 0:
+            grid_info.curr_wait -= 1
+        
+        else:
+            if grid_info.dir == 1:
+                if grid_info.curr_y == grid_helpers.GRID_HEIGHT - 1:
+                    grid_info.dir = -1
+                    grid_info.curr_wait = grid_info.wait
+                else:
+                    grid_info.curr_y += 2
+            else:
+                if grid_info.curr_y == 0:
+                    grid_info.dir = 1
+                    grid_info.curr_wait = grid_info.wait
+                else:
+                    grid_info.curr_y -= 2
+        if grid_info.curr_y < 0:
+            grid_info.curr_y = 0
+        if grid_info.curr_y >= grid_helpers.GRID_HEIGHT:
+            grid_info.curr_y = grid_helpers.GRID_HEIGHT - 1
+
+        for x in range(0, grid_helpers.GRID_WIDTH):
+            grid_helpers.grid[x][grid_info.curr_y] = grid_info.color
+
+
+def bounce_line_x(grid_info):
+    if getattr(grid_info, 'curr_x', None) is None:
+        grid_info.curr_x = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    if getattr(grid_info, 'curr_wait', None) is None:
+        grid_info.curr_wait = 0
+
+    if getattr(grid_info, 'wait', None) is None:
+        grid_info.wait = 38
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
+
+    if grid_info.curr_sub_beat % speed == 0:
+
+        if grid_info.curr_wait != 0:
+            grid_info.curr_wait -= 1
+        
+        else:
+            if grid_info.dir == 1:
+                if grid_info.curr_x == grid_helpers.GRID_WIDTH - 1:
+                    grid_info.dir = -1
+                    grid_info.curr_wait = grid_info.wait
+                else:
+                    grid_info.curr_x += 2
+            else:
+                if grid_info.curr_x == 0:
+                    grid_info.dir = 1
+                    grid_info.curr_wait = grid_info.wait
+                else:
+                    grid_info.curr_x -= 2
+        if grid_info.curr_x < 0:
+            grid_info.curr_x = 0
+        if grid_info.curr_x >= grid_helpers.GRID_WIDTH:
+            grid_info.curr_x = grid_helpers.GRID_WIDTH - 1
+
+        for y in range(0, grid_helpers.GRID_HEIGHT):
+            grid_helpers.grid[grid_info.curr_x][y] = grid_info.color
 
 
 effects = {
@@ -17,6 +105,19 @@ effects = {
     #         *get_circle_pulse_beats(start_beat=2.4, start_color=GColor.light_green, end_color=GColor.purple),
     #     ],
     # },
+
+    "guess pink circle": {
+        "length": 2,
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(6)),
+                color=GColor.pink,
+                length=.55,
+            )
+        ],
+    },
 
     "guess circles": {
         "length": 8,
@@ -82,27 +183,47 @@ effects = {
         "length": 2,
         "beats": [
             grid_f(
-                1.2,
+                1.3,
                 function=our_transform,
                 object=get_centered_circle_numpy_nofill(radius=(4)),
                 color=GColor.light_green,
-                length=.2,
+                length=.17,
             ),
             grid_f(
                 1.6,
                 function=our_transform,
                 object=get_centered_circle_numpy_nofill(radius=(4)),
                 color=GColor.light_green,
-                length=.2,
+                length=.17,
+            ),
+
+            grid_f(
+                1.85,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.17,
+            ),
+
+            grid_f(
+                2.05,
+                function=our_transform,
+                object=get_centered_circle_numpy_nofill(radius=(4)),
+                color=GColor.light_green,
+                length=.17,
             ),
         ],
     },
 
     "guess intro" : {
-        "length": 64,
+        "length": 50,
         "beats": [
             #*make_rain(start_beat=1, length=15, speed=.35, lower_wait=2, upper_wait=6, color=GColor.light_green, num_rains=40),
-            b(18, name='guess circles', length=20),
+            b(18, name='guess circles', length=12),
+            b(30, name='guess circles 2', length=4),
+            b(34, name='guess circles', length=2),
+            b(36, name='guess pink circle', length=2),
+            # beat 36 pink circle
             b(38, name='guess circles 2', length=4),
             b(42, name='guess circles', length=4),
             b(46, name='guess circles 2', length=4),
@@ -111,7 +232,7 @@ effects = {
     "guess bass" : {
         "length": 1,
         "beats": [
-            b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
+            b(1, name='Green bottom', length=.45, hue_shift=.85, sat_shift=-.25, intensity=(0.2, 0.1)), 
         ],
     },
     "synth high" : {
@@ -124,7 +245,7 @@ effects = {
     "synth low" : {
         "length": 1,
         "beats": [
-            b(1, name='Green bottom', length=.75, hue_shift=.85, sat_shift=-.25, intensity=(0.75, 0.2)), 
+            b(1, name='Green bottom', length=.45, hue_shift=.85, sat_shift=-.25, intensity=(0.2, 0.1)), 
                   
         ],
     },
@@ -139,7 +260,8 @@ effects = {
         "length": 1,
         "beats": [
             b(1, name='green laser', length=1),
-            b(1, name='green laser motor', length=.5),
+            b(1, name='green laser motor', length=.3),
+            b(1.9, name='green laser motor', length=.1),
         ],
     },
     "the drop 2" : {
@@ -153,27 +275,54 @@ effects = {
     "wub" : {
         "length": 2,
         "beats": [
-            grid_f(
-                1,
-                function=our_transform,
-                object=get_centered_circle_numpy(radius=16, color=GColor.green, offset_y=0),
-                name='Ok 2',
-                start_pos=(0, 0),
-                start_scale = (.01, .01),
-                end_scale = (1, 1),
-                length=1,
-            ),
-            grid_f(
-                2,
-                function=our_transform,
-                object=get_centered_circle_numpy(radius=16, color=GColor.green, offset_y=0),
-                name='Ok 2',
-                start_pos=(0, 0),
-                start_scale = (1, 1),
-                end_scale = (.01, .01),
-                length=1,
-            ),
+            b(1, name='Sidechain laser', length=2),
+            *get_circle_pulse_beats(start_beat=1, total=12, start_color=GColor.green, length=15),
+            *get_circle_pulse_beats(start_beat=2, total=12, start_color=GColor.green, length=15, reverse=True),
+            # grid_f(
+            #     1,
+            #     function=our_transform,
+            #     object=get_centered_circle_numpy_nofill(radius=11, color=GColor.green, offset_y=0),
+            #     name='Ok 2',
+            #     start_pos=(0, 0),
+            #     start_scale = (.01, .01),
+            #     end_scale = (1, 1),
+            #     length=1,
+            # ),
+            # grid_f(
+            #     2,
+            #     function=our_transform,
+            #     object=get_centered_circle_numpy_nofill(radius=11, color=GColor.green, offset_y=0),
+            #     name='Ok 2',
+            #     start_pos=(0, 0),
+            #     start_scale = (1, 1),
+            #     end_scale = (.01, .01),
+            #     length=1,
+            # ),
         ]
+    },
+
+    "guess main chrous" : {
+        "length": 8,
+        "beats": [
+            b(1, name='guess bass', length=6.5),
+            b(1, name='guess bass', length=1),
+
+
+            b(1, name='grid color pulse .3', length=8),
+            grid_f(1, function=bounce_line_x, length=8),
+            grid_f(1.5, function=bounce_line_y, length=8),
+            
+            grid_f(6.5, function=sidechain_grid, length=1.5, intensity=0, priority=5021),
+
+        ],
+    },
+
+    "grid color pulse .3": {
+        "length": 1,
+        "beats": [
+            grid_f(1, function=sidechain_grid, length=.3, intensity=(1, .2), priority=5000),
+            grid_f(1.3, function=sidechain_grid, length=.7, intensity=.2, priority=5000),
+        ],
     },
 
     "Guess": {
@@ -184,11 +333,15 @@ effects = {
         "beats": [
 
             # intro w/ bass
-            b(1, name='guess intro', length=64),
+            b(1, name='guess intro', length=49),
             # bass comes back (put them in your mouth)
-            b(50, name='guess circles', length=32),
-            b(65, name="extra circles", length=2),
             b(50, name='guess bass', length=32),
+            b(50, name='guess circles', length=12),
+            b(62, name='guess circles 2', length=2),
+
+            b(65, name="extra circles", length=2),
+            b(66, name='guess circles', length=16),
+
             # synth high (buy it, bite it, lick it, slipt it)
             b(82, name='synth high', length=8),
             # synth low (wear them)
@@ -204,9 +357,11 @@ effects = {
             # synth higher
             b(122, name='synth higher', length=6),
             # bass comes back (you wanna guess the color of)
-            b(130, name='guess bass', length=48),
+            b(130, name='guess main chrous', length=48),
             #b(180)
             #b(210) (GUESS)
+            b(178, name='Green disco', length=16),
+
             b(210, name="the drop", length=32),
             b(242, name="the drop 2", length=64),
             b(278, name="wub", length=4),

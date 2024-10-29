@@ -9,17 +9,17 @@ effects = {
         ]
     },
 
-    "Repeat": {
-        "length": 16,
-        "beats": [
+    # "Repeat": {
+    #     "length": 16,
+    #     "beats": [
 
 
-            b(7.75, 'Sidechain top', length=1.25),
-            b(7.75, 'Sidechain bottom', length=1.25),
+    #         b(7.75, 'Sidechain top', length=1.25),
+    #         b(7.75, 'Sidechain bottom', length=1.25),
 
-            b(1, 'RBBB 1 bar', length=16),
-        ]
-    },
+    #         b(1, 'RBBB 1 bar', length=16),
+    #     ]
+    # },
     "Slow twinkle": {
         "length": 64,
         "beats": [
@@ -178,7 +178,6 @@ effects = {
 
 
             # end
-            #b(33, 'Repeat', length=128)
         ]
     }
 }

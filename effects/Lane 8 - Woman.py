@@ -29,6 +29,25 @@ effects = {
             ),
         ]
     },
+    # b(1, name='woman sidechain_test', length=4000),
+
+
+
+
+    "woman intro": {
+        "length": 1,
+        "beats": [
+            b(1, name='Green top', length=1)
+        ]
+    },
+
+    "woman drops": {
+        "length": 4,
+        "beats": [
+            b(1, name='RBBB 1 bar', length=4)
+        ]
+    },
+
 
 
     "Lane 8 - Woman": {
@@ -37,7 +56,10 @@ effects = {
         "delay_lights": -0.0,
         "skip_song": 0.0,
         "beats": [
-            b(1, name='woman sidechain_test', length=4000)
+            b(1, name='woman intro', length=128),
+
+
+            b(129, name='woman drops', length=128),
 
         ]
     }

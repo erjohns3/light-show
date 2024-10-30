@@ -133,6 +133,36 @@ effects = {
         ]
     },
 
+    "Verse": {
+        "length": 16,
+        "beats":[
+            b(1, 'Pink top', length=.5),
+
+            b(4.5, 'Pink top', length=.5),
+            b(5, 'Blue top', length=.5),
+
+            b(8.25, 'Pink top', length=.12),
+            b(8.5, 'Pink top', length=.12),
+            b(8.75, 'Pink top', length=.12),
+            b(9, 'Blue top', length=.5),
+
+            b(12.5, 'Pink top', length=.5),
+            b(13, 'Blue top', length=.5),
+            b(14, 'Green top', length=.5),
+            b(15, 'Yellow top', length=.5),
+            b(16, 'Orange top', length=.5),
+
+
+            b(2, 'Verse bass', length=1),
+            b(3, 'Verse bass', length=1),
+            b(4, 'Verse bass', length=1),
+            b(6, 'Verse bass', length=1),
+            b(7, 'Verse bass', length=1),
+            b(10, 'Verse bass', length=1),
+            b(11, 'Verse bass', length=1),
+        ]
+    },
+
     "Moe Shop - Notice (w\u29f8 TORIENA)": {
         "bpm": 125,
         "song_path": "songs/Moe Shop - Notice (w\u29f8 TORIENA).ogg",
@@ -156,7 +186,7 @@ effects = {
 
             # Back to verse
             # Keep with the tunnel? Something similar to intro with off-beats?
-            b(102, 'Verse bass', length=64),
+            b(102, 'Verse', length=64),
 
             
             # quiet part
@@ -165,6 +195,9 @@ effects = {
             
 
             # "Moe sempai notice me"
+            # !TODO maybe different, this section doesn't have filter, + has vocals
+            b(230, 'Intro', length=32),
+
             #b(230)
 
             # back to verse
@@ -173,9 +206,8 @@ effects = {
 
 
             # verse break
-            #b(326)
             b(326, 'Verse break', length=4),
-
+            b(330, 'Verse', length=64),
 
             # end
         ]

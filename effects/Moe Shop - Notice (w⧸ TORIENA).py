@@ -23,9 +23,9 @@ effects = {
     "Slow twinkle": {
         "length": 64,
         "beats": [
-            *make_twinkle(start_beat=1, length=64, color=GColor.pink, twinkle_length=.75, num_twinkles=20, twinkle_lower_wait=0.25, twinkle_upper_wait=.75),
-            *make_twinkle(start_beat=1, length=64, color=GColor.green, twinkle_length=.75, num_twinkles=20, twinkle_lower_wait=0.25, twinkle_upper_wait=.75),
-            *make_twinkle(start_beat=1, length=64, color=GColor.light_blue, twinkle_length=.75, num_twinkles=30, twinkle_lower_wait=0.25, twinkle_upper_wait=.75),
+            *make_twinkle(start_beat=1, length=64, color=GColor.pink, twinkle_length=.75, num_twinkles=20, twinkle_lower_wait=0.25, twinkle_upper_wait=2),
+            *make_twinkle(start_beat=1, length=64, color=GColor.green, twinkle_length=.75, num_twinkles=20, twinkle_lower_wait=0.25, twinkle_upper_wait=2),
+            *make_twinkle(start_beat=1, length=64, color=GColor.light_blue, twinkle_length=.75, num_twinkles=30, twinkle_lower_wait=0.25, twinkle_upper_wait=2),
         ]
     },
     "Verse bass": {
@@ -106,23 +106,23 @@ effects = {
     "Intro": {
         "length": 16,
         "beats":[
-            b(1, 'UV pulse', length=0.5),
-            b(2, 'UV pulse', length=0.5),
-            b(3, 'UV pulse', length=0.5),
-            b(3.5, 'Red top', length=0.5),            
-            b(5, 'UV pulse', length=0.5),
-            b(6, 'UV pulse', length=0.5),
-            b(7, 'UV pulse', length=0.5),
+            b(1, 'UV', length=0.5, intensity=(1, 0)),
+            b(2, 'UV', length=0.5, intensity=(1, 0)),
+            b(3, 'UV', length=0.5, intensity=(1, 0)),
+            b(3.75, 'Green top', length=0.5),            
+            b(5, 'UV', length=0.5, intensity=(1, 0)),
+            b(6, 'UV', length=0.5, intensity=(1, 0)),
+            b(7, 'UV', length=0.5, intensity=(1, 0)),
             b(7.5, 'Fast twinkle', length=1),
 
-            b(9, 'UV pulse', length=0.5),
-            b(10, 'UV pulse', length=0.5),
-            b(11, 'UV pulse', length=0.5),
-            b(11.5, 'Red top', length=0.5),
-            b(13, 'UV pulse', length=0.5),
-            b(14, 'UV pulse', length=0.5),
-            b(15, 'UV pulse', length=0.5),
-            b(15.75, 'Red top', length=0.3),
+            b(9, 'UV', length=0.5, intensity=(1, 0)),
+            b(10, 'UV', length=0.5, intensity=(1, 0)),
+            b(11, 'UV', length=0.5, intensity=(1, 0)),
+            b(11.75, 'Green top', length=0.5),
+            b(13, 'UV', length=0.5, intensity=(1, 0)),
+            b(14, 'UV', length=0.5, intensity=(1, 0)),
+            b(15, 'UV', length=0.5, intensity=(1, 0)),
+            b(16, 'Red top', length=0.3),
         ]
     },
 
@@ -136,18 +136,18 @@ effects = {
     "Moe Shop - Notice (w\u29f8 TORIENA)": {
         "bpm": 125,
         "song_path": "songs/Moe Shop - Notice (w\u29f8 TORIENA).ogg",
-        "delay_lights": 0.15, # Andrew HELP: I tried my best here, it still feels slightly off tho
+        "delay_lights": 0.02, 
         "skip_song": 0.0,
         "beats": [
             # Intro
             # Andrew HELP: Ok I tabbed out close to where all of the hits are... I kind of like
             # the UV pulse but I think we need something special for the other hits. Each one could be
             # special in its own way?
-            b(2, 'Intro', length=30),
+            b(2, 'Intro', length=32),
             
             # Verse
-            b(33, 'Tunnel', length=64), # !TODO fix looping somehow
-            b(33, 'Verse bass', length=64),
+            b(34, 'Tunnel', length=64), # !TODO fix looping somehow
+            b(34, 'Verse bass', length=64),
 
             # Verse break
             # Andrew HELP: Something cooler here? Maybe its fine
@@ -169,7 +169,7 @@ effects = {
 
             # back to verse
             b(262, 'Verse bass', length=64),
-            b(262, 'Tunnel', length=64), # !TODO fix looping somehow
+            b(262, 'Tunnel', length=64),
 
 
             # verse break

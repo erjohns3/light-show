@@ -170,7 +170,7 @@ def twinkle(grid_info):
             interpol_color = interpolate_vectors_float(overall_color, (0, 0, 0), (percent_done * 2) - 1)
         grid_helpers.grid[curr_x][curr_y] += interpol_color
 
-
+# !TODO fix so first cycle isn't bad if upper and lower are too close
 def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=20, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,

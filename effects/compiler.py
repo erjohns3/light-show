@@ -41,6 +41,7 @@ class GColor:
     pink = (100, 0, 50)
     light_blue = (0, 50, 100)
     light_green = (50, 100, 0)
+    nothing = (0, 0, 0)
 
 
 
@@ -204,7 +205,37 @@ def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=Non
     return arr
 
 
-def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20):
+
+
+
+
+def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20, start_pos=None):
+    if end_color is None:
+        end_color = start_color
+
+    arr = []
+    inv_speed = 1 / speed
+    beats = list(zip([x * inv_speed for x in range(steps)], [inv_speed for x in range(steps)]))
+    if reverse:
+        beats = reversed(beats)
+
+    for index, (beat_offset, length_of_step) in enumerate(beats):
+        before_color = interpolate_vectors_float(start_color, end_color, index / steps)
+        after_color = interpolate_vectors_float(start_color, end_color, (index+1) / steps)
+
+        arr.append(grid_f(
+            start_beat + beat_offset,
+            function=our_transform,
+            object=get_centered_circle_numpy_nofill(radius=(index+1)),
+            start_color=before_color,
+            end_color=after_color,
+            start_pos=start_pos,
+            length=length_of_step,
+        ))
+    return arr
+
+
+def get_circle_pulse_beats_fade(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20):
     if end_color is None:
         end_color = start_color
 
@@ -227,7 +258,6 @@ def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color
             length=length_of_step,
         ))
     return arr
-
 
 
 # ==== eric and andrews transformation matrix stuff

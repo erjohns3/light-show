@@ -64,6 +64,7 @@ parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='
 parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
 parser.add_argument('--no_curve', dest='no_curve', default=True, action='store_false')
 parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
+parser.add_argument('--print_info_terminal_lines', dest='should_print_info_terminal_lines', default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -177,6 +178,7 @@ async def init_rekordbox_bridge_client(websocket, path):
     while True:
         try:
             msg = json.loads(await websocket.recv())
+            # print('rekordbox msg', msg)
         except:
             if websocket.remote_address and len(websocket.remote_address) == 2:
                 addy_1, addy_2 = websocket.remote_address
@@ -834,9 +836,10 @@ def render_terminal(light_levels):
 
 pin_light_levels = [0] * LIGHT_COUNT
 
+last_guys = None
 @profile
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects, last_guys
 
     download_thread = None
     search_thread = None 
@@ -1009,7 +1012,11 @@ async def light():
                 send_num_to_pi = round((pin_light_levels[light_level_index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[pin_index], send_num_to_pi)
 
-
+        if args.should_print_info_terminal_lines:
+            if last_guys:
+                print('\033[F' * last_guys, end='')
+            last_guys = print_info_terminal_lines()
+            
         # Sends the grid to the pi 
         if not args.local:
             if args.no_curve:

@@ -24,13 +24,31 @@ effects = {
     # },
 
 
+    "autogen test": {
+        "length": 8,
+        "autogen": "complex grid",
+        "intensity": "low",
+        "beats": [
+            grid_f(
+                1,
+                function=our_transform,
+                object=get_rectangle_numpy(14, 13),
+                color=(1, 1, 1),
+                start_rot=0,
+                end_rot=6.28,
+                length=8,
+            ),
+        ],
+    },
+
+
     "autogen twinkle": {
         "length": 8,
         "autogen": "complex grid",
         "intensity": "low",
         "beats": [
-            *make_twinkle(color=GColor.white, length=8)
-        ],
+            *make_twinkle(start_beat=1, length=8, color=GColor.seafoam, twinkle_length=2, num_twinkles=25, twinkle_lower_wait=0.25, twinkle_upper_wait=2),
+        ]
     },
 
     "autogen s circle": {

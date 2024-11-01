@@ -13,8 +13,11 @@ effects = {
             # grid_f(1, filename='dog.jpg', length=100),
             # grid_f(1, text='lmfao', font_size=8, length=100),
             # grid_f(1, function=winamp_grid, preset='202.milk', length=400),
-            grid_f(1, function=winamp_grid, preset='300-beatdetect-bassmidtreb.milk', length=400),
             # grid_f(1, function=winamp_grid, preset='202.milk', length=400),
+
+            b(1, name='autogen s circle 2', length=400),
+
+            # grid_f(1, function=winamp_grid, preset='300-beatdetect-bassmidtreb.milk', length=400),
         ]
     }
 }

@@ -462,35 +462,41 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     # either just double the ceiling brightness or do something more complex
 
     scenes = [
-        [8, ['winamp top alone', ]],
-        [8, ['winamp top alone']],
-        [8, ['winamp top alone', 'disco strobe']],
-        [8, ['winamp top alone']],
-        [8, ['winamp top alone', 'disco strobe']],
-
-        [8, ['downbeat top']],
-        [8, ['downbeat top', 'disco']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top', 'disco strobe']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed']],
-        [8, ['downbeat mixed', 'disco']],
-        [8, ['downbeat mixed', 'disco strobe']],
-        [8, ['downbeat mixed', 'UV pulse']],
-        [8, ['downbeat mixed', 'UV']],
-        [8, ['downbeat top', 'UV']],
-        [8, ['downbeat top', 'UV']],
         [8, ['UV']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top', 'disco strobe']],
-        [8, ['disco strobe']],
-        [2, ['filler']],
         [2, ['UV pulse']],
-        [2, ['disco']],
         [1, ['filler']],
-        [1, ['filler', 'disco strobe']],
-        [1, ['UV pulse single']],
+
+
+        # [8, ['winamp top alone', ]],
+        # [8, ['winamp top alone']],
+        # [8, ['winamp top alone', 'disco strobe']],
+        # [8, ['winamp top alone']],
+        # [8, ['winamp top alone', 'disco strobe']],
+
+
+        [8, ['complex grid', 'disco']],
+        [8, ['complex grid']],
+        [8, ['complex grid', 'disco strobe']],
+
+        # [8, ['downbeat top']],
+        # [8, ['downbeat top', 'disco']],
+
+        # [8, ['downbeat top', 'disco strobe']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed']],
+        # [8, ['downbeat mixed', 'disco']],
+        # [8, ['downbeat mixed', 'disco strobe']],
+        # [8, ['downbeat mixed', 'UV pulse']],
+        # [8, ['downbeat mixed', 'UV']],
+        # [8, ['downbeat top', 'UV']],
+        # [8, ['downbeat top', 'UV']],
+        # [8, ['downbeat top']],
+        # [8, ['downbeat top', 'disco strobe']],
+        # [8, ['disco strobe']],
+        # [2, ['filler']],
+        # [2, ['disco']],
+        # [1, ['filler', 'disco strobe']],
+        # [1, ['UV pulse single']],
     ]
 
     if mode == 'lasers':

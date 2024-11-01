@@ -172,6 +172,67 @@ def twinkle(grid_info):
             interpol_color = interpolate_vectors_float(overall_color, (0, 0, 0), (percent_done * 2) - 1)
         grid_helpers.grid[curr_x][curr_y] += interpol_color
 
+
+
+
+def bounce_line_y(grid_info):
+    if getattr(grid_info, 'curr_y', None) is None:
+        grid_info.curr_y = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    speed = getattr(grid_info, 'speed', 1)
+
+    if (grid_info.curr_sub_beat + getattr(grid_info, 'sub_beat_offset', 0)) % 48 == 0:
+        if grid_info.curr_y == grid_helpers.GRID_HEIGHT - 1:
+            grid_info.dir = -1
+        else:
+            grid_info.dir = 1
+
+    # if grid_info.curr_sub_beat % speed == 0:
+    grid_info.curr_y += grid_info.dir * speed
+    if grid_info.curr_y < 0:
+        grid_info.curr_y = 0
+    if grid_info.curr_y >= grid_helpers.GRID_HEIGHT:
+        grid_info.curr_y = grid_helpers.GRID_HEIGHT - 1
+
+    for x in range(0, grid_helpers.GRID_WIDTH):
+        grid_helpers.grid[x][grid_info.curr_y] = grid_info.color
+
+
+def bounce_line_x(grid_info):
+    if getattr(grid_info, 'curr_x', None) is None:
+        grid_info.curr_x = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
+
+    if grid_info.curr_sub_beat % 48 == 0:
+        if grid_info.curr_x == grid_helpers.GRID_WIDTH - 1:
+            grid_info.dir = -1
+        else:
+            grid_info.dir = 1
+
+    if grid_info.curr_sub_beat % speed == 0:
+        grid_info.curr_x += grid_info.dir * 2
+        if grid_info.curr_x < 0:
+            grid_info.curr_x = 0
+        if grid_info.curr_x >= grid_helpers.GRID_WIDTH:
+            grid_info.curr_x = grid_helpers.GRID_WIDTH - 1
+
+        for y in range(0, grid_helpers.GRID_HEIGHT):
+            grid_helpers.grid[grid_info.curr_x][y] = grid_info.color
+
+
 # !TODO fix so first cycle isn't bad if upper and lower are too close
 def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=20, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(

@@ -24,23 +24,21 @@ effects = {
     # },
 
 
-    "autogen test": {
+    "autogen bounce_line_x": {
         "length": 8,
         "autogen": "complex grid",
-        "intensity": "low",
         "beats": [
-            grid_f(
-                1,
-                function=our_transform,
-                object=get_rectangle_numpy(14, 13),
-                color=(1, 1, 1),
-                start_rot=0,
-                end_rot=6.28,
-                length=8,
-            ),
+            grid_f(1, function=bounce_line_x, color=GColor.orange, length=8),
         ],
     },
 
+    "autogen bounce_line_y": {
+        "length": 8,
+        "autogen": "complex grid",
+        "beats": [
+            grid_f(1, function=bounce_line_y, color=GColor.pink, speed=3, length=8),
+        ],
+    },
 
     "autogen twinkle": {
         "length": 8,
@@ -54,7 +52,7 @@ effects = {
     "autogen s circle": {
         "length": 2,
         "autogen": "complex grid",
-        "intensity": "low",
+        # "intensity": "low",
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
         ],
@@ -63,7 +61,7 @@ effects = {
     "autogen s circle 2": {
         "length": 2,
         "autogen": "complex grid",
-        "intensity": "low",
+        # "intensity": "low",
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.red),
         ],

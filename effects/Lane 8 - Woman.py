@@ -64,10 +64,10 @@ def construct_woman_melody(length):
             start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[1], speed=10, steps=4, start_radius=-1
         )
         beats += get_circle_pulse_beats_new(
-            start_beat=1.65 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=10, steps=4, start_radius=-1
+            start_beat=1.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=12, steps=5, start_radius=-1
         )
         beats += get_circle_pulse_beats_new(
-            start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9
+            start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9, start_radius=1
         )
     return beats
 
@@ -130,7 +130,7 @@ effects = {
             b(1, name='woman intro', length=128),
 
 
-            b(129, name='woman melody', length=128),
+            b(129, name='woman melody', length=256),
 
             b(385, name='woman bass drop', length=100),
 

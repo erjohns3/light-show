@@ -976,8 +976,25 @@ async def light():
             # grid_helpers.apply_bezier_to_grid() # for testing
             render_terminal(pin_light_levels) # this also renders the grid to the terminal
 
+
         # Send relevant pin light levels to the pi. Pins 6-8 are the floor
         if not args.local:
+            # just scale 0-500 to 0-100 for pin_light_levels [6, 7, 8, 16, 17, 18]
+            order_to_color = {
+                0: grid_helpers.grid_red_bezier,
+                1: grid_helpers.grid_green_bezier,
+                2: grid_helpers.grid_blue_bezier
+            }
+            for index, pin_index in enumerate([6, 7, 8, 16, 17, 18]):
+                bezier_color = order_to_color[index % 3]
+                pin_light_levels[pin_index] = round(pin_light_levels[pin_index])
+                pin_light_levels[pin_index] = bezier_color[pin_light_levels[pin_index]]
+
+                pin_light_levels[pin_index] = round((pin_light_levels[pin_index] / 600) * 100)
+                pin_light_levels[pin_index] = max(0, min(100, pin_light_levels[pin_index])) 
+
+
+
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]

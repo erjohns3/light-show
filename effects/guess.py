@@ -328,8 +328,8 @@ effects = {
     "Guess": {
         "bpm": 130,
         "song_path": "songs/Charli xcx - Guess (official lyric video).ogg",
-        "delay_lights": 0.00,
-        "skip_song": 4.80,
+        "delay_lights": 4.80,
+        "skip_song": 0,
         "beats": [
 
             # intro w/ bass

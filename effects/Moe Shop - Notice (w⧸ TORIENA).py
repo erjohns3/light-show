@@ -31,7 +31,7 @@ effects = {
     "Verse bass": {
         "length": 1,
         "beats": [
-            b(1, name='Indigo bottom', length=0.75, sat_shift=-.25, intensity=(1, 0)),
+            b(1, name='Indigo bottom', length=0.75, sat_shift=-.25, intensity=(.2, 0)),
         ]
     },
     "Tunnel": {

@@ -209,7 +209,7 @@ def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=Non
 
 
 
-def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20, start_pos=None):
+def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20, start_pos=None, start_radius=0):
     if end_color is None:
         end_color = start_color
 
@@ -225,7 +225,7 @@ def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color
         thing = grid_f(
             start_beat + beat_offset,
             function=our_transform,
-            object=get_centered_circle_numpy_nofill(radius=(index+1)),
+            object=get_centered_circle_numpy_nofill(radius=(index+1) + start_radius),
             start_color=before_color,
             end_color=after_color,
             length=length_of_step,

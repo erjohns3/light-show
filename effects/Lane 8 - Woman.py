@@ -1,3 +1,6 @@
+import random
+import math
+
 from effects.compiler import *
 
 
@@ -8,21 +11,44 @@ from effects.compiler import *
     # Python: loading preset Fractal/Nested Circle/Rozzor vs Esotic - Pixie Party Light (With Liquid Refreshment) Bonus Round.milk, real path: /Users/andrew/programming/python/light-show/winamp/projectm/presets/presets-cream-of-the-crop/Fractal/Nested Circle/Rozzor vs Esotic - Pixie Party Light (With Liquid Refreshment) Bonus Round.milk▆▆▆
 
 
+y_range = [-12, 13]
+x_range = [-6, 6]
+
+def is_far_enough(new_point, existing_points, min_distance):
+    for point in existing_points:
+        dx = new_point[0] - point[0]
+        dy = new_point[1] - point[1]
+        distance = math.hypot(dx, dy)
+        if distance < min_distance:
+            return False
+    return True
+
+min_distance = 4
+
+
+def get_random_points(x_range, y_range, num, min_distance):
+    locations = []
+    for i in range(140):
+        if len(locations) == num:
+            break
+        new_point = [random.randint(*x_range), random.randint(*y_range)]
+        if is_far_enough(new_point, locations, min_distance):
+            locations.append(new_point)
+    # backup if we didn't get enough points
+    for i in range(num - len(locations)):
+        new_point = [random.randint(*x_range), random.randint(*y_range)]
+        locations.append(new_point)
+    return locations
+
+
 def construct_woman_melody(length):
     beats = []
 
 
     for i in range(length // 2):
-        # center_x = random.randint(-4, 4)
-        # center_y = random.randint(-5, 5)
-
-        locations = [
-            [random.randint(-7, 7), random.randint(-7, 7)],
-            [random.randint(-7, 7), random.randint(-7, 7)],
-            [random.randint(-7, 7), random.randint(-7, 7)],
-            [random.randint(-7, 7), random.randint(-7, 7)],            
-        ]
-
+        y_range = [-12, 13]
+        x_range = [-6, 7]
+        points = get_random_points(x_range, y_range, 4, min_distance)
         beat_offset =  i * 2
 
         possible_colors = [GColor.blue, GColor.pink, GColor.red, GColor.seafoam, GColor.orange]
@@ -32,16 +58,16 @@ def construct_woman_melody(length):
         last_color = random.choice(remaining_colors)
 
         beats += get_circle_pulse_beats_new(
-            start_beat=1 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=locations[0], speed=8.5, steps=4
+            start_beat=1 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[0], speed=10, steps=4, start_radius=-1
         )
         beats += get_circle_pulse_beats_new(
-            start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=locations[1], speed=8.5, steps=4
+            start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[1], speed=10, steps=4, start_radius=-1
         )
         beats += get_circle_pulse_beats_new(
-            start_beat=1.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=locations[2], speed=8.5, steps=4
+            start_beat=1.65 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=10, steps=4, start_radius=-1
         )
         beats += get_circle_pulse_beats_new(
-            start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=locations[3], speed=8.5, steps=4
+            start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9
         )
     return beats
 
@@ -78,15 +104,6 @@ effects = {
         ]
     },
 
-    "woman melody first": {
-        "length": 2,
-        "beats": [
-            *get_circle_pulse_beats_new(start_beat=1, start_color=GColor.red, end_color=GColor.nothing, start_pos=[3, -2], speed=8.5, steps=4),
-            *get_circle_pulse_beats_new(start_beat=1.5, start_color=GColor.pink, end_color=GColor.nothing, start_pos=[-3, 2], speed=8.5, steps=4),
-            *get_circle_pulse_beats_new(start_beat=1.75, start_color=GColor.pink, end_color=GColor.nothing, start_pos=[0, -5], speed=8.5, steps=4),
-            *get_circle_pulse_beats_new(start_beat=2.5, start_color=GColor.blue, end_color=GColor.nothing, start_pos=[-5, 0], speed=8.5, steps=4),
-        ]
-    },
     "woman melody": {
         "length": 128,
         "beats": [

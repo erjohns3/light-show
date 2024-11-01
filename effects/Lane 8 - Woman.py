@@ -97,10 +97,10 @@ effects = {
 
 
 
-    "woman intro": {
-        "length": 1,
+    "woman intro/break": {
+        "length": 16,
         "beats": [
-            b(1, name='Green top', length=1)
+            b(1, name='z_rainbow good slow top', length=16)
         ]
     },
 
@@ -116,7 +116,15 @@ effects = {
     "woman bass drop": {
         "length": 4,
         "beats": [
-            b(1, name='RBBB 1 bar', length=4)
+            # b(1, name='RBBB 1 bar', length=4),
+            b(1, s(bottom_hori_rgb=[70, 0, 30]), length=1, intensity=[1, 0]),
+
+            b(2, s(bottom_rgb=[50, 30, 10]), length=.5, intensity=[1, 0]),
+
+            b(3, s(bottom_vert_rgb=[30, 0, 70]), length=1, intensity=[1, 0]),
+
+            b(4, s(bottom_rgb=[10, 30, 50]), length=.5, intensity=[1, 0]),
+
         ]
     },
 
@@ -127,13 +135,25 @@ effects = {
         "delay_lights": 0.04,
         "skip_song": 0.0,
         "beats": [
-            b(1, name='woman intro', length=128),
-
+            b(1, name='woman intro/break', length=128),
 
             b(129, name='woman melody', length=256),
 
-            b(385, name='woman bass drop', length=100),
+            b(385, name='woman bass drop', length=256),
+            b(385, name='woman melody', length=256),
 
+
+            
+            # b(449, name='woman high hats', length=256),
+
+
+            b(641, name='woman intro/break', length=128),
+            # b(641, name='RBBB 1 bar', length=128),
+
+            b(769, name='woman melody', length=128),
+
+            b(897, name='woman bass drop', length=256),
+            b(897, name='woman melody', length=400),
         ]
     }
 }

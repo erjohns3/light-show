@@ -1613,19 +1613,27 @@ def compile_lut(local_effects_config):
 
 
                     if hue_shift or sat_shift or bright_shift or grid_bright_shift:
-                        for part in range(3):
-                            rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
+                        for index, channel_index in enumerate([0, 3, 6, 16]):
+                            rd, gr, bl = beats[start_beat + i][channel_index:channel_index + 3]
+
+                            if any([rd, gr, bl]):
+                                print(f'Old final: {[rd, gr, bl]}')
+
+
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             # bright shift is relative to initial brightness
                             new_bright = min(1, max(0, bright + bright*bright_shift))
-                            if (part == 0 or part == 1): # tbd
+                            if index < 2: # tbd
                                 new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
-                            final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            final_channel[part * 3] *= 100
-                            final_channel[part * 3 + 1] *= 100
-                            final_channel[part * 3 + 2] *= 100
+                            beats[start_beat + i][channel_index:channel_index + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+                            if any([x for x in [rd, gr, bl]]):
+                                print(f'Old hue {hue:.2f}, sat {sat:.2f}, bright {bright:.2f}, new hue {new_hue:.2f}, new sat {new_sat:.2f}, new bright {new_bright:.2f}, old final: {[rd, gr, bl]}, new final: {beats[start_beat + i][channel_index:channel_index + 3]}')
+
+                            beats[start_beat + i][channel_index] *= 100
+                            beats[start_beat + i][channel_index + 1] *= 100
+                            beats[start_beat + i][channel_index + 2] *= 100
 
     print_blue(f'Complex effects took: {time.time() - complex_effect_perf_timer:.3f} seconds')
 

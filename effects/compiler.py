@@ -17,6 +17,7 @@ import random
 from collections import deque
 import copy
 import joystick_and_keyboard_helpers
+import colorsys
 
 import numpy as np
 from PIL import Image
@@ -936,7 +937,53 @@ def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=N
     return [start_beat, info, length]
 
 
-def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None):
+# if hue_shift or sat_shift or bright_shift or grid_bright_shift:
+#     for part in range(3):
+#         rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
+#         hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
+#         new_hue = (hue + hue_shift) % 1
+#         new_sat = min(1, max(0, sat + sat_shift))
+#         # bright shift is relative to initial brightness
+#         new_bright = min(1, max(0, bright + bright*bright_shift))
+#         if (part == 0 or part == 1): # tbd
+#             new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
+#         final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+#         if any([x for x in [rd, gr, bl]]):
+#             print(f'Old hue {hue:.2f}, sat {sat:.2f}, bright {bright:.2f}, new hue {new_hue:.2f}, new sat {new_sat:.2f}, new bright {new_bright:.2f}, old final: {[rd, gr, bl]}, new final: {final_channel[part * 3:(part * 3) + 3]}')
+
+#         final_channel[part * 3] *= 100
+#         final_channel[part * 3 + 1] *= 100
+#         final_channel[part * 3 + 2] *= 100
+
+# like above but simpler and better and no need for grid_bright_shift
+
+def shift(initial, hue_shift=None, sat_shift=None, bright_shift=None):
+    # Normalize initial RGB values to 0-1 scale
+    r, g, b = [max(0, min(1, c / 100.0)) for c in initial]
+    
+    # Convert RGB to HSV
+    hue, sat, bright = colorsys.rgb_to_hsv(r, g, b)
+    
+    # Adjust hue if hue_shift is specified
+    if hue_shift is not None:
+        hue = (hue + hue_shift) % 1
+    
+    # Adjust saturation if sat_shift is specified
+    if sat_shift is not None:
+        sat = min(1, max(0, sat + sat_shift))
+    
+    # Adjust brightness if bright_shift is specified
+    if bright_shift is not None:
+        bright = min(1, max(0, bright + bright * bright_shift))
+    
+    # Convert HSV back to RGB
+    r_new, g_new, b_new = colorsys.hsv_to_rgb(hue, sat, bright)
+    
+    # Scale RGB values back to 0-100
+    return [c * 100 for c in (r_new, g_new, b_new)]
+
+
+def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, hue_shift=None, sat_shift=None, bright_shift=None, grid_bright_shift=None):
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
 
@@ -967,6 +1014,13 @@ def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_
     if not bottom_vert_rgb:
         bottom_vert_rgb = [0, 0, 0]
 
+    bottom_hori_rgb = shift(bottom_hori_rgb, hue_shift, sat_shift, bright_shift)
+    bottom_vert_rgb = shift(bottom_vert_rgb, hue_shift, sat_shift, bright_shift)
+    front_rgb = shift(front_rgb, hue_shift, sat_shift, bright_shift)
+    back_rgb = shift(back_rgb, hue_shift, sat_shift, bright_shift)
+    # !TODO might need grid_shift here
+
+
     return back_rgb[:] + front_rgb[:] + bottom_hori_rgb[:] + [uv, green_laser, red_laser, laser_motor] + disco_rgb[:] + bottom_vert_rgb[:]
 
 
@@ -992,7 +1046,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         raise Exception('Cannot define bottom_hori_rgb or bottom_vert_rgb if bottom_rgb is defined')
 
     if name is None:
-        channel = s(top_rgb, front_rgb, back_rgb, bottom_rgb, bottom_hori_rgb, bottom_vert_rgb, uv, green_laser, red_laser, laser_motor, disco_rgb)
+        channel = s(top_rgb, front_rgb, back_rgb, bottom_rgb, bottom_hori_rgb, bottom_vert_rgb, uv, green_laser, red_laser, laser_motor, disco_rgb, hue_shift, sat_shift, bright_shift, grid_bright_shift)
         return [start_beat, channel, length]
 
     if intensity is None:

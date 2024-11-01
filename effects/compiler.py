@@ -222,16 +222,17 @@ def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color
     for index, (beat_offset, length_of_step) in enumerate(beats):
         before_color = interpolate_vectors_float(start_color, end_color, index / steps)
         after_color = interpolate_vectors_float(start_color, end_color, (index+1) / steps)
-
-        arr.append(grid_f(
+        thing = grid_f(
             start_beat + beat_offset,
             function=our_transform,
             object=get_centered_circle_numpy_nofill(radius=(index+1)),
             start_color=before_color,
             end_color=after_color,
-            start_pos=start_pos,
             length=length_of_step,
-        ))
+        )
+        if start_pos is not None:
+            thing[1].start_pos = start_pos
+        arr.append(thing)
     return arr
 
 

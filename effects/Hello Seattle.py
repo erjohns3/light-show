@@ -15,9 +15,9 @@ effects = {
             # grid_f(1, function=winamp_grid, preset='202.milk', length=400),
             # grid_f(1, function=winamp_grid, preset='202.milk', length=400),
 
-            b(1, name='autogen bounce_line_y', length=400),
+            # b(1, name='autogen circle pulsing', length=400),
 
-            # grid_f(1, function=winamp_grid, preset='300-beatdetect-bassmidtreb.milk', length=400),
+            grid_f(1, function=winamp_grid, preset='300-beatdetect-bassmidtreb.milk', length=400),
         ]
     }
 }

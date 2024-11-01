@@ -24,6 +24,16 @@ effects = {
     # },
 
 
+    "autogen circle pulsing": {
+        "length": 8,
+        "autogen": "complex grid",
+        "beats": [
+            b(1, name='grid color pulse .3', length=8),
+            b(1, name='5 hours rotate circle 2', length=8)        
+        ],
+    },
+
+
     "autogen bounce_line_x": {
         "length": 8,
         "autogen": "complex grid",

@@ -132,7 +132,7 @@ effects = {
     "Lane 8 - Woman": {
         "bpm": 124,
         "song_path": "songs/Lane 8 - Woman.ogg",
-        "delay_lights": 0.04,
+        "delay_lights": -0.04,
         "skip_song": 0.0,
         "beats": [
             b(1, name='woman intro/break', length=128),

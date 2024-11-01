@@ -24,7 +24,7 @@ if not winamp_wrapper.try_load_audio_device():
 
 random.seed(5)
 random.shuffle(winamp_wrapper.all_presets)
-print(f'Loaded {len(winamp_wrapper.all_presets)} presets'
+print(f'Loaded {len(winamp_wrapper.all_presets)} presets')
 
 time_per_preset = {}
 start_time = time.time()

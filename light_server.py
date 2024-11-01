@@ -1616,10 +1616,6 @@ def compile_lut(local_effects_config):
                         for index, channel_index in enumerate([0, 3, 6, 16]):
                             rd, gr, bl = beats[start_beat + i][channel_index:channel_index + 3]
 
-                            if any([rd, gr, bl]):
-                                print(f'Old final: {[rd, gr, bl]}')
-
-
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
@@ -1628,8 +1624,6 @@ def compile_lut(local_effects_config):
                             if index < 2: # tbd
                                 new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
                             beats[start_beat + i][channel_index:channel_index + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            if any([x for x in [rd, gr, bl]]):
-                                print(f'Old hue {hue:.2f}, sat {sat:.2f}, bright {bright:.2f}, new hue {new_hue:.2f}, new sat {new_sat:.2f}, new bright {new_bright:.2f}, old final: {[rd, gr, bl]}, new final: {beats[start_beat + i][channel_index:channel_index + 3]}')
 
                             beats[start_beat + i][channel_index] *= 100
                             beats[start_beat + i][channel_index + 1] *= 100

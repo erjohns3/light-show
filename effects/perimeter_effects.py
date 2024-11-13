@@ -8,11 +8,11 @@ def perimeter(info):
     scaled_color = [int(x * amt / 100) for x in color]
     for y in [0, grid_helpers.GRID_HEIGHT - 1]:
         for x in range(grid_helpers.GRID_WIDTH):
-            grid_helpers.grid[x][y] = scaled_color
+            grid_helpers.grid[x][y] += scaled_color
     
     for x in [0, grid_helpers.GRID_WIDTH - 1]:
         for y in range(grid_helpers.GRID_HEIGHT):
-            grid_helpers.grid[x][y] = scaled_color
+            grid_helpers.grid[x][y] += scaled_color
 
 
 for color_string, color in [('red', GColor.red), ('blue', GColor.blue), ('green', GColor.green)]:

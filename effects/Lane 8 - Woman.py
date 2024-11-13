@@ -78,6 +78,7 @@ def construct_woman_melody(length):
         y_range = [-12, 13]
         x_range = [-6, 7]
         points = get_random_points(x_range, y_range, 4, min_distance)
+        # points = [[0, 0], [0, 0], [0, 0], [0, 0]]
         beat_offset =  i * 2
 
         possible_colors = [GColor.blue, GColor.pink, GColor.red, GColor.seafoam, GColor.orange]
@@ -86,8 +87,8 @@ def construct_woman_melody(length):
         remaining_colors = [color for color in possible_colors if color not in first_color]
         last_color = random.choice(remaining_colors)
 
-        beats += get_shrinking_circle(
-            start_beat=1 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[0], speed=5.5, steps=4, start_radius=4
+        beats += get_circle_pulse_beats_new(
+            start_beat=1 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9, start_radius=1
         )
         beats += get_shrinking_circle(
             start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[1], speed=5.5, steps=4, start_radius=4
@@ -95,8 +96,8 @@ def construct_woman_melody(length):
         beats += get_shrinking_circle(
             start_beat=1.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=5.5, steps=4, start_radius=4
         )
-        beats += get_circle_pulse_beats_new(
-            start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9, start_radius=1
+        beats += get_shrinking_circle(
+            start_beat=2.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[0], speed=5.5, steps=4, start_radius=4
         )
     return beats
 

@@ -41,6 +41,34 @@ def get_random_points(x_range, y_range, num, min_distance):
     return locations
 
 
+def get_shrinking_circle(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20, start_pos=None, start_radius=5):
+    if end_color is None:
+        end_color = start_color
+
+    arr = []
+    inv_speed = 1 / speed
+    beats = list(zip([x * inv_speed for x in range(steps)], [inv_speed for x in range(steps)]))
+    if reverse:
+        beats = reversed(beats)
+
+    for index, (beat_offset, length_of_step) in enumerate(beats):
+        before_color = interpolate_vectors_float(start_color, end_color, index / steps)
+        after_color = interpolate_vectors_float(start_color, end_color, (index+1) / steps)
+        if start_radius - index <= 0:
+            break
+        thing = grid_f(
+            start_beat + beat_offset,
+            function=our_transform,
+            object=get_centered_circle_numpy_fill(radius=start_radius - index),
+            start_color=before_color,
+            end_color=after_color,
+            length=length_of_step,
+        )
+        if start_pos is not None:
+            thing[1].start_pos = start_pos
+        arr.append(thing)
+    return arr
+
 def construct_woman_melody(length):
     beats = []
 
@@ -57,14 +85,14 @@ def construct_woman_melody(length):
         remaining_colors = [color for color in possible_colors if color not in first_color]
         last_color = random.choice(remaining_colors)
 
-        beats += get_circle_pulse_beats_new(
-            start_beat=1 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[0], speed=10, steps=4, start_radius=-1
+        beats += get_shrinking_circle(
+            start_beat=1 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[0], speed=10, steps=4, start_radius=3
         )
-        beats += get_circle_pulse_beats_new(
-            start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[1], speed=10, steps=4, start_radius=-1
+        beats += get_shrinking_circle(
+            start_beat=1.5 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[1], speed=10, steps=4, start_radius=3
         )
-        beats += get_circle_pulse_beats_new(
-            start_beat=1.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=12, steps=5, start_radius=-1
+        beats += get_shrinking_circle(
+            start_beat=1.75 + beat_offset, start_color=first_color, end_color=GColor.nothing, start_pos=points[2], speed=12, steps=5, start_radius=3
         )
         beats += get_circle_pulse_beats_new(
             start_beat=2.5 + beat_offset, start_color=last_color, end_color=GColor.nothing, start_pos=points[3], speed=15.5, steps=9, start_radius=1

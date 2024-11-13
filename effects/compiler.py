@@ -408,18 +408,24 @@ def get_centered_circle_numpy_nofill(radius, offset_x=0, offset_y=0, color=(100,
             
             if distance <= radius and distance >= inner_radius:
                 circle[x][y] = color
-            # if (outer_radius - circle_width) ** 2 <= distance <= outer_radius ** 2:
-            #     circle[x][y] = color
-
-    # for x in range(grid_width):
-    #     for y in range(grid_height):
-    #         first =  (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2)
-    #         second = (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2
-    #         if first and second:
-    #             circle[x][y] = color
-
     return circle
 
+
+def get_centered_circle_numpy_fill(radius, offset_x=0, offset_y=0, color=(100, 100, 100)):
+    grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
+
+    circle = np.zeros((grid_width, grid_height, 3), dtype=np.double)
+
+    mid_x = (grid_width // 2) + offset_x
+    mid_y = (grid_height // 2) + offset_y
+
+    for x in range(grid_width):
+        for y in range(grid_height):
+            distance = math.sqrt((x - mid_x) ** 2 + (y - mid_y) ** 2)
+
+            if distance <= radius:
+                circle[x][y] = color
+    return circle
 
 
 

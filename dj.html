@@ -758,18 +758,16 @@
         send(JSON.stringify(msg));
     }
 
-    function paintBackground(){
-        let background = document.getElementById('background');
-        let context = background.getContext("2d", { alpha: false });
-        let ratio = window.devicePixelRatio;
-        let width = window.innerWidth * ratio;
-        let height = window.innerHeight * ratio;
-        background.width = width;
-        background.height = height;
+    function paintBackground() {
+        const ratio = window.devicePixelRatio || 1;
+        background.width = window.innerWidth * ratio;
+        background.height = window.innerHeight * ratio;
 
-        console.log(width);
+        let offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = background.width;
+        offscreenCanvas.height = background.height;
+        let ctx = offscreenCanvas.getContext('2d');
 
-        let size = height * 0.2;
         let bokehColor = [
             [150, 100, 30],
             [180, 100, 30],
@@ -779,18 +777,25 @@
             [300, 100, 30],
             [330, 100, 30],
         ];
-        let bokehCount = 1000;
 
+        let bokehCount = 100;
         for(let i=0; i<bokehCount; i++){
-            let x = (Math.random() * (width + (size*2))) - size;
-            let y = (Math.random() * (height + (size*2))) - size;
+            let x = Math.random() * background.width;
+            let y = Math.random() * background.height;
+            let radius = background.height * 0.25;
             let color = bokehColor[Math.floor(Math.random()*bokehColor.length)];
-            let gradient = context.createRadialGradient(x, y, 0, x, y, size);
-            gradient.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
-            gradient.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, width, height);
+            let grd = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            grd.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
+            grd.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
         }
+
+        let visibleCtx = background.getContext('2d');
+        visibleCtx.clearRect(0, 0, background.width, background.height);
+        visibleCtx.drawImage(offscreenCanvas, 0, 0);
     }
 
     var trackAccel = false;

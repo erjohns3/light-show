@@ -321,7 +321,7 @@ def https_server_blocking(port, directory_to_serve, certificate_file, key_file, 
 
 def https_server_async(port, filepath_to_serve, for_printing=['']):
     import threading
-    the_args = (port, filepath_to_serve, 'cert.pem', 'key.pem', for_printing)
+    the_args = (port, filepath_to_serve, 'fullchain.pem', 'privkey.pem', for_printing)
 
     threading.Thread(target=https_server_blocking, args=the_args).start()
 

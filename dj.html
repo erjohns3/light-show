@@ -744,7 +744,7 @@
             let randomIndex = Math.floor(Math.random() * profileEffects[activeProfile].length);
 
             // mod to the lowest 25
-            profileEffectsIndex[activeProfile] = Math.floor(randomIndex / 25);
+            profileEffectsIndex[activeProfile] = randomIndex - (randomIndex % 25);
 
             let effectName = profileEffects[activeProfile][randomIndex];
             if (effectName) {

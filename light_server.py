@@ -171,7 +171,7 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 rekordbox_effect_name = None
-async def init_rekordbox_bridge_client(websocket, path):
+async def init_rekordbox_bridge_client(websocket, path=None):
     global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, time_start, curr_bpm, song_time, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names, rekordbox_effect_name
     print('rekordbox made connection to new client')
     rekordbox_title = None
@@ -245,7 +245,7 @@ async def init_rekordbox_bridge_client(websocket, path):
                 time_start = time.time() - ((rekordbox_time - to_delay) * (rekordbox_original_bpm / rekordbox_bpm))
 
 
-async def init_dj_client(websocket, path):
+async def init_dj_client(websocket, path=None):
     global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
@@ -387,7 +387,7 @@ def download_song(url, uuid):
                 add_queue_balanced(show_name, uuid)
 
 
-async def init_queue_client(websocket, path):
+async def init_queue_client(websocket, path=None):
     global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
@@ -1854,19 +1854,22 @@ if __name__ == '__main__':
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 
-    https_server_async(9555, this_file_directory, ['', 'dj.html'])
+    import ssl
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain(certfile='fullchain.pem', keyfile='privkey.pem')
+
+    https_server_async(9555, this_file_directory, ssl_context=ssl_context, for_printing= ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
-        import ssl
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         # keeping as non FOR NOW
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
 
-        ssl_context.load_cert_chain(certfile='fullchain.pem', keyfile='privkey.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
+
+        print(f'Websocket servers started, {dj_socket_server.sockets[0].getsockname()=}, {queue_socket_server.sockets[0].getsockname()=}, {rekordbox_bridge_server.sockets[0].getsockname()=}')
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

@@ -100,13 +100,15 @@ def try_load_audio_device():
     elif is_andrews_main_computer():
         print(audio_devices)
         for id, device_name in audio_devices.items():
-            if 'Monitor of Starship' in device_name:
+            if 'Starship' in device_name:
+            # if 'henry' in device_name:
                 loaded_id = init_audio_id(id)
                 if loaded_id != -1:
                     print_green(f'Loaded audio device id: {loaded_id}')
                 break
+            
         else:
-            print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
+            print_red('WARNING: ON ANDREWS COMPUTER BUT COULDN\'T FIND CORRECT MONITOR')
     elif is_macos():
         for id, device_name in audio_devices.items():
             print_cyan(f'AUDIO {id=}, {device_name=}')

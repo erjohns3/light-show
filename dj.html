@@ -31,6 +31,28 @@
 
     <canvas id="background" width="200" height="200"></canvas>
 
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Adjust Settings</h2>
+            <div class="slider-container">
+            <label for="slider1">Slider 1</label>
+            <input type="range" min="1" max="100" value="50" class="slider" id="slider1">
+            <span id="sliderValue1">50</span>
+            </div>
+            <div class="slider-container">
+            <label for="slider2">Slider 2</label>
+            <input type="range" min="1" max="100" value="50" class="slider" id="slider2">
+            <span id="sliderValue2">50</span>
+            </div>
+            <div class="slider-container">
+            <label for="slider3">Slider 3</label>
+            <input type="range" min="1" max="100" value="50" class="slider" id="slider3">
+            <span id="sliderValue3">50</span>
+            </div>
+        </div>
+    </div>
+
     <div id="profile-box"></div>
 
     <div id="effects-box">
@@ -40,7 +62,8 @@
     <div id="page-up" class="button">Up</div>
     <div id="page-label">0/0</div>
     <div id="page-down" class="button">Dn</div>
-
+    <div id="page-random" class="button">random</div>
+    <div id="page-modifier" class="button">modify</div>
     <div id="beat-sens" class="text">Beat Sens: N/A</div>
     <div id="beat-sens-up" class="button">Beat up</div>
     <div id="beat-sens-down" class="button">Beat down</div>
@@ -54,9 +77,15 @@
     function socketInit() {
         console.log("socket init");
         
-        const parts = location.hostname.split('.');
-        const domain = parts.slice(-2).join('.');
-        socket = new WebSocket("wss://" + domain + ":1337");
+        let connectHost = location.hostname;
+        const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(connectHost);
+        if (!isIpAddress && connectHost.split('.').length > 2) {
+            const parts = connectHost.split('.');
+            connectHost = parts.slice(-2).join('.');
+        }
+        const string_to_connect = "wss://" + connectHost + ":1337"
+        console.log("Connecting to websocket:", string_to_connect);
+        socket = new WebSocket(string_to_connect);
 
         socket.onopen = function () {
             // sometimes takes a long time to get here
@@ -256,6 +285,10 @@
         }
 
         press(event){
+            if (!this.effect) {
+                console.log('Somehow press was called without this.effect existing');
+                return
+            }
             // event.preventDefault();
             this.pressed = true;
             if(this.toggle){
@@ -363,6 +396,16 @@
                 this.classList.add('profile-button-active');
                 this.active = true;
                 activeProfile = this.profileName;
+                
+                // if it contains the word 'winamp' in either case
+                if (this.profileName.toLowerCase().includes('winamp')) {
+                    randomButton.style.display = 'flex';
+                    modifyButton.style.display = 'flex';
+                } else {
+                    randomButton.style.display = 'none';
+                    modifyButton.style.display = 'none';
+                }
+
                 updateEffectButtons();
                 effectsTables[activeTable].style.animationName = 'curr-table-activate';
                 effectsTables[activeTable].style.zIndex = 2;
@@ -469,6 +512,9 @@
     function send(msg){
         if(socket != null && socket.readyState == WebSocket.OPEN){
             socket.send(msg);
+        } else {
+            console.log('socket == null', socket == null);
+            console.log('socket.readyState', socket ? socket.readyState : 'undefined');
         }
     }
 
@@ -579,6 +625,23 @@
 
     var effectButtonIndex = {};
 
+
+    const randomButton = document.getElementById('page-random');
+    randomButton.style.display = 'none';
+
+    const modifyButton = document.getElementById('page-modifier');
+    modifyButton.style.display = 'none';
+
+    var modal = document.getElementById("myModal");
+    var span = document.getElementsByClassName("close-button")[0];
+    var slider1 = document.getElementById("slider1");
+    var sliderValue1 = document.getElementById("sliderValue1");
+    var slider2 = document.getElementById("slider2");
+    var sliderValue2 = document.getElementById("sliderValue2");
+    var slider3 = document.getElementById("slider3");
+    var sliderValue3 = document.getElementById("sliderValue3");
+
+
     var profileBox = document.getElementById('profile-box');
 
     var effectsBox = document.getElementById('effects-box');
@@ -675,6 +738,52 @@
         pageDownElem.addEventListener('touchcancel', ()=>{
             clearInterval(pageInterval);
         }, {passive: true});
+
+        // just detect presses for randomButton, no interval stuff, just press
+        randomButton.addEventListener('click', ()=>{
+            let randomIndex = Math.floor(Math.random() * profileEffects[activeProfile].length);
+
+            // mod to the lowest 25
+            profileEffectsIndex[activeProfile] = Math.floor(randomIndex / 25);
+
+            let effectName = profileEffects[activeProfile][randomIndex];
+            if (effectName) {
+                addEffect(effectName);
+            }
+
+            updateEffectButtons();
+            effectsTables[activeTable].style.animationName = 'curr-table-up';
+            effectsTables[1 - activeTable].style.animationName = 'prev-table-up';
+        }, {passive: true});
+
+        modifyButton.addEventListener('click', ()=>{
+            modal.style.display = "block";
+        }, {passive: true});
+
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Update the slider value display
+        slider1.oninput = function() {
+            sliderValue1.innerHTML = this.value;
+        }
+
+        slider2.oninput = function() {
+            sliderValue2.innerHTML = this.value;
+        }
+
+        slider3.oninput = function() {
+            sliderValue3.innerHTML = this.value;
+        }
+        
     } else {
         pageUpElem.addEventListener('mousedown', ()=>{
             clearInterval(pageInterval);
@@ -968,6 +1077,85 @@
         z-index: -1;
     }
 
+    /* chatgpt modal nonsense */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 5px;
+        position: relative;
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close-button:hover,
+        .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .slider-container {
+        margin-bottom: 15px;
+    }
+
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 5px;
+        background: #d3d3d3;
+        outline: none;
+        opacity: 0.7;
+        -webkit-transition: .2s;
+        transition: opacity .2s;
+    }
+
+    .slider:hover {
+        opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #4CAF50;
+        cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background: #4CAF50;
+        cursor: pointer;
+    }
+
+
+    /* end chatgpt modal nonsense */
+
     #profile-box{
         position: absolute;
         width: 20vw;
@@ -1076,6 +1264,36 @@
         top: 26vh;
         width: 5vw;
         height: 15vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(180, 100%, 40%, 0.5);
+    }
+
+    #page-random{
+        position: absolute;
+        right: 0.5vw;
+        top: 44vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(180, 100%, 40%, 0.5);
+    }
+
+    #page-modifier{
+        position: absolute;
+        right: 0.5vw;
+        top: 53vh;
+        width: 5vw;
+        height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;

@@ -1005,52 +1005,6 @@ async def light():
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
 
-        def rgb_to_hsl(r, g, b):
-            r /= 100
-            g /= 100
-            b /= 100
-            mx = max(r, g, b)
-            mn = min(r, g, b)
-            h = s = l = (mx + mn) / 2
-
-            if mx == mn:
-                h = s = 0
-            else:
-                d = mx - mn
-                s = d / (1 - abs(2 * l - 1))
-                if mx == r:
-                    h = (g - b) / d + (6 if g < b else 0)
-                elif mx == g:
-                    h = (b - r) / d + 2
-                elif mx == b:
-                    h = (r - g) / d + 4
-                h /= 6
-            return int(h * 360), int(s * 100), int(l * 100)
-        def hsl_to_rgb(h, s, l):
-            h /= 360
-            s /= 100
-            l /= 100
-            if s == 0:
-                r = g = b = l * 255
-            else:
-                def hue_to_rgb(p, q, t):
-                    if t < 0: t += 1
-                    if t > 1: t -= 1
-                    if t < 1/6: return p + (q - p) * 6 * t
-                    if t < 1/2: return q
-                    if t < 2/3: return p + (q - p) * (2/3 - t) * 6
-                    return p
-
-                q = l * (1 + s) if l < 0.5 else l + s - l * s
-                p = 2 * l - q
-                r = hue_to_rgb(p, q, h + 1/3)
-                g = hue_to_rgb(p, q, h)
-                b = hue_to_rgb(p, q, h - 1/3)
-                r, g, b = int(r * 255), int(g * 255), int(b * 255)
-
-            return int(r / 2.55), int(g / 2.55), int(b / 2.55)
-        
-
         effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
         # this is the winamp offset
 
@@ -1059,9 +1013,8 @@ async def light():
                 lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
                 hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
                 sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
-                # The 'winamp_beat_sensitivity' is fetched but not used in the original color logic.
-
-                # go through all the colors in the grid and apply the color conversion
+                sensitivity = effect['winamp_offsets'].get('sensitivity', 1.0)
+                winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
                 for i in range(grid_helpers.GRID_WIDTH):
                     for j in range(grid_helpers.GRID_HEIGHT):
                         r, g, b = grid_helpers.grid[i, j]
@@ -1069,20 +1022,15 @@ async def light():
                         r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
 
                         h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
-
-                        # Apply the shifts. Note the order of components from colorsys (H, L, S).
-                        h = (h + hue_shift) % 1.0  # Hue is circular, wrap around 1.0
+                        h = (h + hue_shift) % 1.0
                         l += lightness_shift
                         s += sat_shift
 
-                        # Clamp lightness and saturation to the valid 0-1 range
                         l = max(0.0, min(1.0, l))
                         s = max(0.0, min(1.0, s))
 
-                        # Convert back to RGB
                         r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
 
-                        # De-normalize RGB values from 0-1 to 0-255
                         r_new = int(r_new_norm * 255)
                         g_new = int(g_new_norm * 255)
                         b_new = int(b_new_norm * 255)
@@ -1970,7 +1918,6 @@ if __name__ == '__main__':
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
             'esc': lambda: kill_self(0.5),
-
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 

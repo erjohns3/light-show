@@ -75,14 +75,14 @@ effects = {
     "hooked top sidechain non red": {
         "length": 2,
         "beats": [
-            [1, "hooked random color 1", 0.1, 0, 1],
+            [1, "hooked random color 1", 0.4, 0, 1],
             [1.1, "hooked random color 1", 0.3, 1, 0],
         ],
     },
     "hooked claps": {
         "length": 1,
         "beats": [
-            [1, "Cyan top", 0.2, 0.2, 0.1],
+            [1, "Cyan top", 0.2, 0.5, 0.1],
             [1.2, "Cyan top", 0.8, 0.1, 0.1],
         ],
     },

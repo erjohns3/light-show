@@ -93,7 +93,7 @@ if __name__ == '__main__':
     # else:
 
     rekordbox_song_directory = get_ray_directory().joinpath('music_creation', 'downloaded_songs')
-    rekordbox_shows_output_directory = pathlib.Path(__file__).parent.joinpath('effects').joinpath('rekordbox_effects')
+    rekordbox_shows_output_directory = pathlib.Path(__file__).parent.parent.joinpath('effects').joinpath('rekordbox_effects')
 
     if args.generate_shows:
         autogen.generate_all_songs_in_directory(rekordbox_song_directory, output_directory=rekordbox_shows_output_directory, include_song_path=True)

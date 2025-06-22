@@ -700,15 +700,25 @@ effects = {
 
 for color in ['Red', 'Blue', 'Green']:
     for amt in range(1, 101):
-        if amt < 7 or amt % 5 == 0:
-            effects[color + f' {amt}'] = {
+        if amt < 25 or amt % 5 == 0:
+            effects['t ' + color + f' {amt}'] = {
                 'length': 1,
-                'profiles': [f'All {color}'],
+                'profiles': [f'zTop {color}'],
                 'beats': [
                     b(1, f'{color} top', length=1, intensity=.01 * amt),
                 ],
             }
 
+for color in ['Red', 'Blue', 'Green']:
+    for amt in range(1, 101):
+        if amt < 25 or amt % 5 == 0:
+            effects['b ' + color + f' {amt}'] = {
+                'length': 1,
+                'profiles': [f'zBot {color}'],
+                'beats': [
+                    b(1, f'{color} bottom', length=1, intensity=.01 * amt),
+                ],
+            }
 
 effects[f'Red bottom flash .96'] = {
     'length': 1,

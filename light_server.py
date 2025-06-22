@@ -64,6 +64,7 @@ parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='
 parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
 parser.add_argument('--no_curve', dest='no_curve', default=True, action='store_false')
 parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
+parser.add_argument('--print_info_terminal_lines', dest='should_print_info_terminal_lines', default=False, action='store_true')
 
 args = parser.parse_args()
 
@@ -170,13 +171,14 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 rekordbox_effect_name = None
-async def init_rekordbox_bridge_client(websocket, path):
+async def init_rekordbox_bridge_client(websocket, path=None):
     global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, time_start, curr_bpm, song_time, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names, rekordbox_effect_name
     print('rekordbox made connection to new client')
     rekordbox_title = None
     while True:
         try:
             msg = json.loads(await websocket.recv())
+            # print('rekordbox msg', msg)
         except:
             if websocket.remote_address and len(websocket.remote_address) == 2:
                 addy_1, addy_2 = websocket.remote_address
@@ -243,7 +245,7 @@ async def init_rekordbox_bridge_client(websocket, path):
                 time_start = time.time() - ((rekordbox_time - to_delay) * (rekordbox_original_bpm / rekordbox_bpm))
 
 
-async def init_dj_client(websocket, path):
+async def init_dj_client(websocket, path=None):
     global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
     print('DJ Client: made connection to new client')
 
@@ -385,7 +387,7 @@ def download_song(url, uuid):
                 add_queue_balanced(show_name, uuid)
 
 
-async def init_queue_client(websocket, path):
+async def init_queue_client(websocket, path=None):
     global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
@@ -834,9 +836,10 @@ def render_terminal(light_levels):
 
 pin_light_levels = [0] * LIGHT_COUNT
 
+last_guys = None
 @profile
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects, last_guys
 
     download_thread = None
     search_thread = None 
@@ -976,8 +979,25 @@ async def light():
             # grid_helpers.apply_bezier_to_grid() # for testing
             render_terminal(pin_light_levels) # this also renders the grid to the terminal
 
+
         # Send relevant pin light levels to the pi. Pins 6-8 are the floor
         if not args.local:
+            # just scale 0-500 to 0-100 for pin_light_levels [6, 7, 8, 16, 17, 18]
+            order_to_color = {
+                0: grid_helpers.grid_red_bezier,
+                1: grid_helpers.grid_green_bezier,
+                2: grid_helpers.grid_blue_bezier
+            }
+            for index, pin_index in enumerate([6, 7, 8, 16, 17, 18]):
+                bezier_color = order_to_color[index % 3]
+                pin_light_levels[pin_index] = round(pin_light_levels[pin_index])
+                pin_light_levels[pin_index] = bezier_color[pin_light_levels[pin_index]]
+
+                pin_light_levels[pin_index] = round((pin_light_levels[pin_index] / 600) * 100)
+                pin_light_levels[pin_index] = max(0, min(100, pin_light_levels[pin_index])) 
+
+
+
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
@@ -992,7 +1012,11 @@ async def light():
                 send_num_to_pi = round((pin_light_levels[light_level_index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[pin_index], send_num_to_pi)
 
-
+        if args.should_print_info_terminal_lines:
+            if last_guys:
+                print('\033[F' * last_guys, end='')
+            last_guys = print_info_terminal_lines()
+            
         # Sends the grid to the pi 
         if not args.local:
             if args.no_curve:
@@ -1596,19 +1620,21 @@ def compile_lut(local_effects_config):
 
 
                     if hue_shift or sat_shift or bright_shift or grid_bright_shift:
-                        for part in range(3):
-                            rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
+                        for index, channel_index in enumerate([0, 3, 6, 16]):
+                            rd, gr, bl = beats[start_beat + i][channel_index:channel_index + 3]
+
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             # bright shift is relative to initial brightness
                             new_bright = min(1, max(0, bright + bright*bright_shift))
-                            if (part == 0 or part == 1): # tbd
+                            if index < 2: # tbd
                                 new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
-                            final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            final_channel[part * 3] *= 100
-                            final_channel[part * 3 + 1] *= 100
-                            final_channel[part * 3 + 2] *= 100
+                            beats[start_beat + i][channel_index:channel_index + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+
+                            beats[start_beat + i][channel_index] *= 100
+                            beats[start_beat + i][channel_index + 1] *= 100
+                            beats[start_beat + i][channel_index + 2] *= 100
 
     print_blue(f'Complex effects took: {time.time() - complex_effect_perf_timer:.3f} seconds')
 
@@ -1828,19 +1854,22 @@ if __name__ == '__main__':
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 
-    https_server_async(9555, this_file_directory, ['', 'dj.html'])
+    import ssl
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain(certfile='fullchain.pem', keyfile='privkey.pem')
+
+    https_server_async(9555, this_file_directory, ssl_context=ssl_context, for_printing= ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
-        import ssl
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
 
         # keeping as non FOR NOW
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
 
-        ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
+
+        print(f'Websocket servers started, {dj_socket_server.sockets[0].getsockname()=}, {queue_socket_server.sockets[0].getsockname()=}, {rekordbox_bridge_server.sockets[0].getsockname()=}')
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

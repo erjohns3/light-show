@@ -65,7 +65,8 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
             total_duration += duration
 
     all_song_paths = [song_path for _duration, song_path in sorted(duration_and_song_paths, reverse=True)]
-    print(f'finished getting all metadata info for {len(all_song_paths)} songs in {time.time() - time_start} seconds')
+    meta_data_time = time.time() - time_start
+    print(f'finished getting all metadata info for {len(all_song_paths)} songs in {meta_data_time} seconds')
 
     with tqdm.tqdm(total=len(all_song_paths)) as progress_bar:
         with ProcessPoolExecutor() as executor:
@@ -75,8 +76,8 @@ def generate_all_songs_in_directory(autogen_song_directory, output_directory=Non
                     print_red(f'Exception occured in subprocess: {future.exception()}')
                 progress_bar.update(1)
     time_diff = time.time() - time_start
-    print(f'finished getting all metadata info for {len(all_song_paths)} songs in {time.time() - time_start} seconds')
-    print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
+    print(f'All metadata info for {len(all_song_paths)} songs took {meta_data_time} seconds (subset of other number)')
+    print_green(f'FINISHED AUTOGENERATING ALL ({len(all_song_paths)} songs, {total_duration:.1f} seconds of music) SHOWS IN DIRECTORY {autogen_song_directory} in TOTAL {time_diff:.1f} seconds ({total_duration / time_diff:.1f} light show seconds per real second)', flush=True)
 
 
 def write_effect_to_file_pretty(output_filepath, dict_to_dump, write_compiler=False, rip_out_char=None):
@@ -461,16 +462,26 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
     # either just double the ceiling brightness or do something more complex
 
     scenes = [
+        [8, ['UV']],
+        [2, ['UV pulse']],
+        [1, ['filler']],
+
+
         [8, ['winamp top alone', ]],
         [8, ['winamp top alone']],
         [8, ['winamp top alone', 'disco strobe']],
         [8, ['winamp top alone']],
         [8, ['winamp top alone', 'disco strobe']],
 
+
+        [8, ['complex grid', 'disco']],
+        [8, ['complex grid']],
+        [8, ['complex grid', 'disco strobe']],
+        [8, ['complex grid', 'downbeat mixed']],
+
         [8, ['downbeat top']],
         [8, ['downbeat top', 'disco']],
-        [8, ['downbeat top']],
-        [8, ['downbeat top']],
+
         [8, ['downbeat top', 'disco strobe']],
         [8, ['downbeat mixed']],
         [8, ['downbeat mixed']],
@@ -480,14 +491,11 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
         [8, ['downbeat mixed', 'UV']],
         [8, ['downbeat top', 'UV']],
         [8, ['downbeat top', 'UV']],
-        [8, ['UV']],
         [8, ['downbeat top']],
         [8, ['downbeat top', 'disco strobe']],
         [8, ['disco strobe']],
         [2, ['filler']],
-        [2, ['UV pulse']],
         [2, ['disco']],
-        [1, ['filler']],
         [1, ['filler', 'disco strobe']],
         [1, ['UV pulse single']],
     ]

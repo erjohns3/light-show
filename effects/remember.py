@@ -20,10 +20,12 @@ effects = {
 
     # 1 - 64: 
     "deadmau5 & Kaskade - I Remember (HQ)": {
-        "not_done": False,
+        "not_done": True,
         "beats": [
-            b(1, s(bottom_hori_rgb=[100, 0, 0]), length=4),
-            b(5, s(bottom_vert_rgb=[100, 0, 0]), length=4),
+            b(1, name='autogen circle pulsing', length=400),
+
+            # b(1, s(bottom_hori_rgb=[100, 0, 0]), length=4),
+            # b(5, s(bottom_vert_rgb=[100, 0, 0]), length=4),
 
             # b(1, name='grid fill rbbb 4 bar', length=1640),
             # b(1, name='RBBB 1 bar bottom', length=1640),

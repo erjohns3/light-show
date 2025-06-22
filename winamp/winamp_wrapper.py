@@ -231,6 +231,14 @@ def decrease_beat_sensitivity(amt=.01):
     return new_val
 
 
+def set_beat_sensitivity(val):
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot set beat sensitivity')
+    winamp_visual.set_beat_sensitivity(val)
+    print(f'beat sensitivity: {get_beat_sensitivity()}')
+    return val
+
+
 def get_beat_sensitivity():
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot get beat sensitivity')

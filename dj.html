@@ -36,19 +36,26 @@
             <span class="close-button">&times;</span>
             <h2>Adjust Settings</h2>
             <div class="slider-container">
-            <label for="slider1">Slider 1</label>
-            <input type="range" min="1" max="100" value="50" class="slider" id="slider1">
-            <span id="sliderValue1">50</span>
+                <input type="range" min="0" max="360" value="0" class="slider" id="hue">
+                <span id="hueValue">0</span>
             </div>
+
             <div class="slider-container">
-            <label for="slider2">Slider 2</label>
-            <input type="range" min="1" max="100" value="50" class="slider" id="slider2">
-            <span id="sliderValue2">50</span>
+                <label for="saturation">Saturation</label>
+                <input type="range" min="-50" max="50" value="0" class="slider" id="saturation">
+                <span id="saturationValue">0</span>
             </div>
+
             <div class="slider-container">
-            <label for="slider3">Slider 3</label>
-            <input type="range" min="1" max="100" value="50" class="slider" id="slider3">
-            <span id="sliderValue3">50</span>
+                <label for="lightness">Lightness</label>
+                <input type="range" min="-50" max="50" value="0" class="slider" id="lightness">
+                <span id="lightnessValue">0</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="sensitivity">Sensitivity</label>
+                <input type="range" min="0" max="2" value="1" step="0.01" class="slider" id="sensitivity">
+                <span id="sensitivityValue">1</span>
             </div>
         </div>
     </div>
@@ -601,13 +608,14 @@
     
 
     var profileOrder = {
-        'Andrew': 0,
+        'Andrew': 6,
         'Eric': 1,
         'Emma': 2,
         'Fun Grid': 3,
         'Winamp Alone': 4,
         'Winamp Good 2': 5,
         'Colors': 10,
+        'winamp_all': 0,
         'winamp_good_1': 14,
         'winamp_tests': 15,
         'Shows': 16,        
@@ -634,13 +642,15 @@
 
     var modal = document.getElementById("myModal");
     var span = document.getElementsByClassName("close-button")[0];
-    var slider1 = document.getElementById("slider1");
-    var sliderValue1 = document.getElementById("sliderValue1");
-    var slider2 = document.getElementById("slider2");
-    var sliderValue2 = document.getElementById("sliderValue2");
-    var slider3 = document.getElementById("slider3");
-    var sliderValue3 = document.getElementById("sliderValue3");
-
+    var hue = document.getElementById("hue");
+    var hueValue = document.getElementById("hueValue");
+    var saturation = document.getElementById("saturation");
+    var saturationValue = document.getElementById("saturationValue");
+    var lightness = document.getElementById("lightness");
+    var lightnessValue = document.getElementById("lightnessValue");
+    var sensitivity = document.getElementById("sensitivity");
+    var sensitivityValue = document.getElementById("sensitivityValue");
+    const sliders = document.querySelectorAll('.slider');
 
     var profileBox = document.getElementById('profile-box');
 
@@ -739,51 +749,22 @@
             clearInterval(pageInterval);
         }, {passive: true});
 
-        // just detect presses for randomButton, no interval stuff, just press
-        randomButton.addEventListener('click', ()=>{
-            let randomIndex = Math.floor(Math.random() * profileEffects[activeProfile].length);
-
-            // mod to the lowest 25
-            profileEffectsIndex[activeProfile] = randomIndex - (randomIndex % 25);
-
-            let effectName = profileEffects[activeProfile][randomIndex];
-            if (effectName) {
-                addEffect(effectName);
-            }
-
-            updateEffectButtons();
-            effectsTables[activeTable].style.animationName = 'curr-table-up';
-            effectsTables[1 - activeTable].style.animationName = 'prev-table-up';
-        }, {passive: true});
-
-        modifyButton.addEventListener('click', ()=>{
-            modal.style.display = "block";
-        }, {passive: true});
-
-
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
 
         // Update the slider value display
-        slider1.oninput = function() {
-            sliderValue1.innerHTML = this.value;
-        }
+        // hue.oninput = function() {
+        //     hueValue.innerHTML = this.value;
+        // }
 
-        slider2.oninput = function() {
-            sliderValue2.innerHTML = this.value;
-        }
+        // lightness.oninput = function() {
+        //     lightnessValue.innerHTML = this.value;
+        // }
+        // saturation.oninput = function() {
+        //     saturationValue.innerHTML = this.value;
+        // }
+        // sensitivity.oninput = function() {
+        //     sensitivityValue.innerHTML = this.value;
+        // }
 
-        slider3.oninput = function() {
-            sliderValue3.innerHTML = this.value;
-        }
-        
     } else {
         pageUpElem.addEventListener('mousedown', ()=>{
             clearInterval(pageInterval);
@@ -809,6 +790,62 @@
             clearInterval(pageInterval);
         }, {passive: true});
     }
+
+    randomButton.addEventListener('click', ()=>{
+        let randomIndex = Math.floor(Math.random() * profileEffects[activeProfile].length);
+
+        // mod to the lowest 25
+        profileEffectsIndex[activeProfile] = randomIndex - (randomIndex % 25);
+
+        let effectName = profileEffects[activeProfile][randomIndex];
+        if (effectName) {
+            addEffect(effectName);
+        }
+
+        updateEffectButtons();
+        effectsTables[activeTable].style.animationName = 'curr-table-up';
+        effectsTables[1 - activeTable].style.animationName = 'prev-table-up';
+    }, {passive: true});
+
+    modifyButton.addEventListener('click', ()=>{
+        modal.style.display = "block";
+    }, {passive: true});
+
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    sliders.forEach(slider => {
+        slider.addEventListener('input', (event) => {
+            // Find the <span> element that is the next sibling of the slider
+            const valueSpan = slider.nextElementSibling;
+
+            if (valueSpan) {
+                let value = event.target.value;
+
+                if (event.target.id === 'sensitivity') {
+                    value = parseFloat(value).toFixed(2);
+                }
+                valueSpan.textContent = value;
+
+                console.log(`Slider ${event.target.id} changed to ${value}`);
+
+                let msg = {
+                    type: 'winamp_offset_update',
+                    id: event.target.id,
+                    value: value
+                };
+                send(JSON.stringify(msg));
+            }
+        });
+    });
 
     var beatSensElem = document.getElementById('beat-sens');
     var beatSensUpElem = document.getElementById('beat-sens-up');
@@ -1078,80 +1115,125 @@
     }
 
     /* chatgpt modal nonsense */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0,0,0,0.4);
-    }
 
-    .modal-content {
-        background-color: #fefefe;
-        margin: 15% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        max-width: 500px;
-        border-radius: 5px;
-        position: relative;
-    }
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            /* overflow: hidden;  */
+            background-color: rgba(0,0,0,0.5);
+        }
 
-    .close-button {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-    }
+        .modal-content {
+            background-color: #2d0e38;
+            margin: 10% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
 
-    .close-button:hover,
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .close-button:hover,
         .close-button:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        h2 {
+            margin-top: 0;
+        }
 
-    .slider-container {
-        margin-bottom: 15px;
-    }
+        /* --- Slider Layout (THIS IS THE CRUCIAL PART) --- */
+        .slider-container {
+            display: grid;
+            grid-template-columns: 1fr auto; /* Col 1: flexible width, Col 2: content width */
+            grid-template-rows: auto auto;    /* Row 1: label/value, Row 2: slider */
+            align-items: center;
+            row-gap: 5px;
+            margin-bottom: 20px;
+        }
 
-    .slider {
-        -webkit-appearance: none;
-        width: 100%;
-        height: 15px;
-        border-radius: 5px;
-        background: #d3d3d3;
-        outline: none;
-        opacity: 0.7;
-        -webkit-transition: .2s;
-        transition: opacity .2s;
-    }
+        /* Style for the Label (e.g., "Hue") */
+        .slider-container label {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            font-weight: bold;
+            color: #e6e6e6; /* Ensure text color is visible */
+            font-size: 1.2em;
+            margin-right: 10px; /* Space between label and value */
+        }
 
-    .slider:hover {
-        opacity: 1;
-    }
+        /* Style for the Number Span (e.g., "180") */
+        .slider-container span {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            justify-self: end; /* Align to the right side of the column */
+            font-family: monospace;
+            font-size: 1.1em;
+            color: #d8d8d8; /* Ensure text color is visible */
+            background-color: #eee;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
 
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        /* Style for the Slider bar */
+        .slider-container .slider {
+            grid-column: 1 / 3; /* Span across both columns */
+            grid-row: 2 / 3;
+            width: 100%;
+        }
 
-    .slider::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        /* --- Slider Appearance --- */
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
 
 
     /* end chatgpt modal nonsense */

@@ -84,9 +84,25 @@ if is_windows():
 if args.winamp == None:
     args.winamp = True
 
-
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+
+winamp_offsets_filepath = this_file_directory.joinpath('winamp_offsets.json')
+if winamp_offsets_filepath.exists() and winamp_offsets_filepath.stat().st_size == 0:
+    winamp_offsets_filepath.unlink()
+
+if not winamp_offsets_filepath.exists():
+    with open(winamp_offsets_filepath, 'w') as f:
+        json.dump({}, f)
+
+needs_to_save_winamp_offsets = []
+def save_winamp_offsets(effect_name):
+    global winamp_offsets_filepath
+    with open(winamp_offsets_filepath, 'w') as f:
+        json.dump(effects.compiler.winamp_offsets, f, indent=4)
+
+
 
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
@@ -1029,45 +1045,51 @@ async def light():
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
 
+        # !TODO stable sort it so that winamps are always first in the current effects? Then it'll only apply the winamp offsets once to just the winamp effects 
+        has_played_winamp = False
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
+                if getattr(info, 'is_winamp', None) is True:
+                    if has_played_winamp:
+                        continue
+                    has_played_winamp = True
+                
                 try:
                     info.grid_function(info)
                 except Exception:
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                
+                if getattr(info, 'is_winamp', None) is True:
+                    effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
+                    for effect in effects:
+                        if effect.get('winamp_offsets'):
+                            lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
+                            hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
+                            sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
+                            sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
+                            winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
+                            for i in range(grid_helpers.GRID_WIDTH):
+                                for j in range(grid_helpers.GRID_HEIGHT):
+                                    r, g, b = grid_helpers.grid[i, j]
 
-        effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
-        # this is the winamp offset
+                                    r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
 
-        for effect in effects:
-            if effect.get('winamp_offsets'):
-                lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
-                hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
-                sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
-                sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
-                winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
-                for i in range(grid_helpers.GRID_WIDTH):
-                    for j in range(grid_helpers.GRID_HEIGHT):
-                        r, g, b = grid_helpers.grid[i, j]
+                                    h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+                                    h = (h + hue_shift) % 1.0
+                                    l += lightness_shift
+                                    s += sat_shift
 
-                        r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+                                    l = max(0.0, min(1.0, l))
+                                    s = max(0.0, min(1.0, s))
 
-                        h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
-                        h = (h + hue_shift) % 1.0
-                        l += lightness_shift
-                        s += sat_shift
+                                    r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
 
-                        l = max(0.0, min(1.0, l))
-                        s = max(0.0, min(1.0, s))
+                                    r_new = int(r_new_norm * 255)
+                                    g_new = int(g_new_norm * 255)
+                                    b_new = int(b_new_norm * 255)
 
-                        r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
-
-                        r_new = int(r_new_norm * 255)
-                        g_new = int(g_new_norm * 255)
-                        b_new = int(b_new_norm * 255)
-
-                        grid_helpers.grid[i, j] = [r_new, g_new, b_new]
+                                    grid_helpers.grid[i, j] = [r_new, g_new, b_new]
 
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
@@ -1942,6 +1964,9 @@ if __name__ == '__main__':
     if args.keyboard and not is_doorbell():
         import joystick_and_keyboard_helpers
         skip_time = 5
+        def if_is_macos_then_kill_self(delay=0.5):
+            if is_macos():
+                kill_self(delay)
         joystick_and_keyboard_helpers.add_keyboard_events({
             'p': output_current_beat,
             'b': lambda: print(winamp.winamp_wrapper.get_beat_sensitivity()),
@@ -1951,7 +1976,7 @@ if __name__ == '__main__':
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
-            'esc': lambda: kill_self(0.5),
+            'esc': lambda: if_is_macos_then_kill_self(0.5),
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 

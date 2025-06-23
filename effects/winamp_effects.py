@@ -89,6 +89,8 @@ for preset_name, preset_filepath in winamp.winamp_wrapper.preset_name_to_filepat
         autogen_category = 'winamp top alone'
 
 
+    grid_info = grid_f(1, function=winamp_grid, preset=preset_name, priority=-50, length=1)
+    grid_info[1].is_winamp = True
     effects[preset_name] = {
         'length': 1,
         'loop': True,
@@ -97,6 +99,6 @@ for preset_name, preset_filepath in winamp.winamp_wrapper.preset_name_to_filepat
         'winamp': True,
         'autogen': autogen_category if autogen_category else None,
         'beats': [
-            grid_f(1, function=winamp_grid, preset=preset_name, priority=-50, length=1),
+            grid_info,
         ],
     }

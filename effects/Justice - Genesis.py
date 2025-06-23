@@ -53,8 +53,26 @@ effects = {
             b(66.25, name='Blue bottom', length=9.75, intensity=(1, 1)), 
             
             # This beat takes us into the next section
-            b(76, name='Yellow bottom', length=8, intensity=(1, 1)), 
+            b(76, name='Yellow bottom', length=1, intensity=(1, 1)), 
             #--------------------------------------------------------------#
+            # This part repeats in 8 bar sections, but with some variations
+            b(76, name='Red top', length = 64),
+            # same as before part but with laser sounds???
+            b(140, name='Blue top', length = 24),
+            # break down part 1
+            b(164, name='Green top', length = 8),
+            # back to normal beat
+            b(172, name='Blue top', length = 24),
+            # break down part 2
+            b(196, name = 'Green top', length = 8),
+            # back to normal beat but this one has a quieter first half
+            b(204, name='Blue top', length = 64),
+            #-------------------------------------------------------------#
+            # this part kind of trades off 1 section of 8, then second section of 8
+            # on and off until the end
+            b(268, name='Pink bottom', length = 110),
+            
+
 
         ]
     }

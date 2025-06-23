@@ -143,7 +143,7 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light_status, broadcast_song_status, broadcast_dev_status = False, False, False 
+broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update = False, False, False, False
 download_queue, search_queue = [], []
 
 def setup_gpio():
@@ -246,7 +246,7 @@ async def init_rekordbox_bridge_client(websocket, path=None):
 
 
 async def init_dj_client(websocket, path=None):
-    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode
     print('DJ Client: made connection to new client')
 
     message = {
@@ -351,12 +351,12 @@ async def init_dj_client(websocket, path=None):
                     continue
 
                 effect = curr_winamp_effect[1]
-                winamp_offsets = {
-                    'winamp_bright_shift': effect.get('winamp_bright_shift', 0),
-                    'winamp_hue_shift': effect.get('winamp_hue_shift', 0),
-                    'winamp_sat_shift': effect.get('winamp_sat_shift', 0),
-                    'winamp_beat_sensitivity': effect.get('winamp_beat_sensitivity', 0)
-                }
+                winamp_offsets = effect.get('winamp_offsets', {
+                    'winamp_bright_shift': 0,
+                    'winamp_hue_shift': 0,
+                    'winamp_sat_shift': 0,
+                    'winamp_beat_sensitivity': 0
+                })
                 if slider_id == 'lightness':
                     winamp_offsets['winamp_bright_shift'] = float(slider_value) / 100
                 elif slider_id == 'hue':
@@ -366,6 +366,7 @@ async def init_dj_client(websocket, path=None):
                 elif slider_id == 'sensitivity':
                     winamp_offsets['winamp_beat_sensitivity'] = float(slider_value)
                 effect['winamp_offsets'] = winamp_offsets
+                broadcast_winamp_offset_update = [effect_name]
 
             broadcast_light_status = True
 
@@ -657,6 +658,37 @@ async def send_song_status():
     }
     await broadcast(song_sockets, json.dumps(message))
     broadcast_song_status = False
+
+
+async def send_winamp_offsets():
+    global broadcast_winamp_offset_update
+
+    if broadcast_winamp_offset_update:
+        effect_names = [x for x in broadcast_winamp_offset_update]
+
+        my_arr = []
+        for effect_name in effect_names:
+            # print(f'UPDATING {effect_name=}, {winamp_offsets}' * 50)
+            effect = effects_config[effect_name]
+            winamp_offsets = effect.get('winamp_offsets', {
+                'winamp_bright_shift': 0,
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 0,
+                'winamp_beat_sensitivity': 0
+            })
+            my_arr.append({
+                'effect_name': effect_name,
+                'winamp_bright_shift': winamp_offsets['winamp_bright_shift'] * 100,
+                'winamp_hue_shift': winamp_offsets['winamp_hue_shift'] * 360,
+                'winamp_sat_shift': winamp_offsets['winamp_sat_shift'] * 100,
+                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity']
+            })
+        await broadcast(light_sockets, json.dumps({
+            'update_winamp_offsets': my_arr
+        }))
+        broadcast_winamp_offset_update = False
+
+
 
 
 async def send_dev_status():
@@ -1013,7 +1045,7 @@ async def light():
                 lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
                 hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
                 sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
-                sensitivity = effect['winamp_offsets'].get('sensitivity', 1.0)
+                sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
                 winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
                 for i in range(grid_helpers.GRID_WIDTH):
                     for j in range(grid_helpers.GRID_HEIGHT):
@@ -1117,6 +1149,8 @@ async def light():
             await send_song_status()
         if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
+        if broadcast_winamp_offset_update:
+            await send_winamp_offsets()
         
         # math for the next beat
         time_diff = time.time() - time_start

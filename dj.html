@@ -11,6 +11,8 @@
     <meta http-equiv="Expires" content="0"/>
     <title>DJ Lights</title>
     <link rel="manifest" href="lights-manifest.webmanifest">
+    <link rel="icon" href="lights_icons/icon48.png">
+    <link rel="apple-touch-icon" href="lights_icons/icon180.png" sizes="180x180">
 </head>
 
 <body tabindex="-1">
@@ -164,6 +166,26 @@
                     }
                     profileBox.children[0].activate();
                     init = true;
+                }
+            }
+
+            if(msg.update_winamp_offsets){
+                console.log(msg)
+                let winampOffsets = msg.update_winamp_offsets;
+
+                for (winampUpdate of winampOffsets) {
+                    let effectName = winampUpdate.effect_name;
+                    if (effectsConfig[effectName] != null) {
+                        effectsConfig[effectName].winamp_offsets = {
+                            'winamp_bright_shift': winampUpdate.winamp_bright_shift / 100,
+                            'winamp_hue_shift': winampUpdate.winamp_hue_shift / 360,
+                            'winamp_sat_shift': winampUpdate.winamp_sat_shift / 100,
+                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity
+                        };
+                        console.log('Updated winamp offsets for effect:', effectName, effectsConfig[effectName].winamp_offsets);
+                    } else {
+                        console.warn('Effect not found in config:', effectName);
+                    }   
                 }
             }
 
@@ -333,6 +355,39 @@
             if(!this.active){
                 this.classList.add('effect-button-active');
                 this.active = true;
+
+                console.log('LOOK AT ME: winamp_offsets', effectsConfig[this.effect].winamp_offsets);
+
+                // adjusts all the sliders to the winamp offsets
+                let the_winamp_offsets = {
+                    'winamp_hue_shift': 0,
+                    'winamp_sat_shift': 0,
+                    'winamp_bright_shift': 0,
+                    'winamp_beat_sensitivity': 1
+                }
+                if (effectsConfig[this.effect].winamp_offsets) {
+                    the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
+                }
+                let hueSlider = document.getElementById('hue');
+                if (hueSlider) {
+                    hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
+                    document.getElementById('hueValue').textContent = hueSlider.value;
+                }
+                let saturationSlider = document.getElementById('saturation');
+                if (saturationSlider) {
+                    saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
+                    document.getElementById('saturationValue').textContent = saturationSlider.value;
+                }
+                let lightnessSlider = document.getElementById('lightness');
+                if (lightnessSlider) {
+                    lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
+                    document.getElementById('lightnessValue').textContent = lightnessSlider.value;
+                }
+                let sensitivitySlider = document.getElementById('sensitivity');
+                if (sensitivitySlider) {
+                    sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
+                    document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
+                }
             }
         }
 
@@ -1139,6 +1194,7 @@
             border-radius: 8px;
             position: relative;
             box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            font-size: 3vh;
         }
 
         .close-button {
@@ -1191,6 +1247,7 @@
             background-color: #eee;
             padding: 2px 8px;
             border-radius: 4px;
+            background-color: transparent;
         }
 
         /* Style for the Slider bar */

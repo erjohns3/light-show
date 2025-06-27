@@ -36,7 +36,6 @@
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>Adjust Settings</h2>
             <div class="slider-container">
                 <input type="range" min="0" max="360" value="0" class="slider" id="hue">
                 <span id="hueValue">0</span>
@@ -44,13 +43,13 @@
 
             <div class="slider-container">
                 <label for="saturation">Saturation</label>
-                <input type="range" min="-50" max="50" value="0" class="slider" id="saturation">
+                <input type="range" min="-100" max="100" value="0" class="slider" id="saturation">
                 <span id="saturationValue">0</span>
             </div>
 
             <div class="slider-container">
                 <label for="lightness">Lightness</label>
-                <input type="range" min="-50" max="50" value="0" class="slider" id="lightness">
+                <input type="range" min="-100" max="100" value="0" class="slider" id="lightness">
                 <span id="lightnessValue">0</span>
             </div>
 
@@ -73,9 +72,9 @@
     <div id="page-down" class="button">Dn</div>
     <div id="page-random" class="button">random</div>
     <div id="page-modifier" class="button">modify</div>
-    <div id="beat-sens" class="text">Beat Sens: N/A</div>
+    <!-- <div id="beat-sens" class="text">Beat Sens: N/A</div>
     <div id="beat-sens-up" class="button">Beat up</div>
-    <div id="beat-sens-down" class="button">Beat down</div>
+    <div id="beat-sens-down" class="button">Beat down</div> -->
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
@@ -190,9 +189,9 @@
             }
 
             if(msg.status){
-                if (msg.status.beat_sens_string) {
-                    beatSensElem.textContent = msg.status.beat_sens_string;
-                }
+                // if (msg.status.beat_sens_string) {
+                //     beatSensElem.textContent = msg.status.beat_sens_string;
+                // }
                 if ('effects' in msg.status){
                     let effectsPrev = effectsCurr;
                     effectsCurr = {};
@@ -915,13 +914,13 @@
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
     }
     
-    beatSensUpElem.onclick = function () {
-        beatSensUp();
-    }
+    // beatSensUpElem.onclick = function () {
+    //     beatSensUp();
+    // }
 
-    beatSensDownElem.onclick = function () {
-        beatSensDown();
-    }
+    // beatSensDownElem.onclick = function () {
+    //     beatSensDown();
+    // }
 
     refreshElem.onclick = function () {
         location.reload();
@@ -1186,7 +1185,7 @@
 
         .modal-content {
             background-color: #2d0e38;
-            margin: 10% auto;
+            margin: 2% auto;
             padding: 25px;
             border: 1px solid #888;
             width: 90%;

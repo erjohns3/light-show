@@ -1,0 +1,26 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Define linear gradients -->
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(60, 100%, 50%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(20, 100%, 50%);stop-opacity:1" />
+    </linearGradient>
+
+    <!-- Foreground (note) gradient -->
+    <linearGradient id="noteGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:hsl(40, 100%, 50%);stop-opacity:1" />
+      <stop offset="100%" style="stop-color:hsl(0, 100%, 50%);stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background rectangle with gradient -->
+  <rect x="0" y="0" width="200" height="200" fill="url(#backgroundGradient)" rx="100" ry="100" />
+
+  <!-- Music note symbol using Unicode character -->
+  <!-- Unicode for two eighth notes: &#x266B; -->
+  <text x="50%" y="56%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Arial, sans-serif" font-size="180" fill="url(#noteGradient)">
+    &#x266B;
+  </text>
+</svg>

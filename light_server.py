@@ -88,19 +88,6 @@ this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
 
 
-winamp_offsets_filepath = this_file_directory.joinpath('winamp_offsets.json')
-if winamp_offsets_filepath.exists() and winamp_offsets_filepath.stat().st_size == 0:
-    winamp_offsets_filepath.unlink()
-
-if not winamp_offsets_filepath.exists():
-    with open(winamp_offsets_filepath, 'w') as f:
-        json.dump({}, f)
-
-needs_to_save_winamp_offsets = []
-def save_winamp_offsets(effect_name):
-    global winamp_offsets_filepath
-    with open(winamp_offsets_filepath, 'w') as f:
-        json.dump(effects.compiler.winamp_offsets, f, indent=4)
 
 
 
@@ -113,7 +100,6 @@ elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()
-
     # put this in for eager load of winamp
     # if not grid_helpers.try_setup_winamp():
     #     print_red(f'Failed to setup winamp, exiting')
@@ -121,6 +107,24 @@ elif args.winamp:
     # result = winamp.winamp_wrapper.get_beat_sensitivity()
     # if result is not None:
     #     beat_sens_string = f'Beat Sens: {result}'
+
+
+    needs_to_save_winamp_offsets = False
+    def save_all_winamp_offsets():
+        with open(grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath, 'w') as f:            
+            json.dump(grid_helpers.winamp.winamp_wrapper.winamp_offsets, f, indent=4)
+
+    # spawn a thread to save winamp offsets every 30 seconds
+    def save_winamp_offsets_thread():
+        global needs_to_save_winamp_offsets
+        the_f = grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath
+        while True:
+            time.sleep(5)
+            print(f'{cyan(f"Saving winamp offsets to {the_f}")}')
+            if needs_to_save_winamp_offsets:
+                save_all_winamp_offsets()
+                needs_to_save_winamp_offsets = False
+    threading.Thread(target=save_winamp_offsets_thread, daemon=True).start()
 
 
 pi = None
@@ -262,7 +266,7 @@ async def init_rekordbox_bridge_client(websocket, path=None):
 
 
 async def init_dj_client(websocket, path=None):
-    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode, needs_to_save_winamp_offsets
     print('DJ Client: made connection to new client')
 
     message = {
@@ -371,7 +375,8 @@ async def init_dj_client(websocket, path=None):
                     'winamp_bright_shift': 0,
                     'winamp_hue_shift': 0,
                     'winamp_sat_shift': 0,
-                    'winamp_beat_sensitivity': 0
+                    'winamp_beat_sensitivity': 0,
+                    'rating': 0,
                 })
                 if slider_id == 'lightness':
                     winamp_offsets['winamp_bright_shift'] = float(slider_value) / 100
@@ -381,8 +386,23 @@ async def init_dj_client(websocket, path=None):
                     winamp_offsets['winamp_sat_shift'] = float(slider_value) / 100
                 elif slider_id == 'sensitivity':
                     winamp_offsets['winamp_beat_sensitivity'] = float(slider_value)
+                elif slider_id == 'rating':
+                    winamp_offsets['rating'] = int(slider_value)
                 effect['winamp_offsets'] = winamp_offsets
                 broadcast_winamp_offset_update = [effect_name]
+                needs_to_save_winamp_offsets = True
+                grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = winamp_offsets
+
+
+                # from the current effect remove all profiles that have "winamp rated" in them
+                if 'profiles' in effect:
+                    new_profiles = []
+                    for profile in effect['profiles']:
+                        if 'winamp rated' not in profile.lower():
+                            new_profiles.append(profile)
+                    if winamp_offsets['rating'] > 0:
+                        new_profiles.append(f'winamp rated {winamp_offsets["rating"]}')
+                    effect['profiles'] = new_profiles
 
             broadcast_light_status = True
 
@@ -690,15 +710,18 @@ async def send_winamp_offsets():
                 'winamp_bright_shift': 0,
                 'winamp_hue_shift': 0,
                 'winamp_sat_shift': 0,
-                'winamp_beat_sensitivity': 0
+                'winamp_beat_sensitivity': 0,
+                'rating': 0,
             })
             my_arr.append({
                 'effect_name': effect_name,
                 'winamp_bright_shift': winamp_offsets['winamp_bright_shift'] * 100,
                 'winamp_hue_shift': winamp_offsets['winamp_hue_shift'] * 360,
                 'winamp_sat_shift': winamp_offsets['winamp_sat_shift'] * 100,
-                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity']
+                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity'],
+                'rating': winamp_offsets['rating'],
             })
+        print(my_arr)
         await broadcast(light_sockets, json.dumps({
             'update_winamp_offsets': my_arr
         }))
@@ -1513,6 +1536,12 @@ def set_effect_defaults(effect_name, effect): # this must be safe to run multipl
     if 'loop' not in effect:
         effect['loop'] = True
 
+    if args.winamp and effect_name in grid_helpers.winamp.winamp_wrapper.winamp_offsets:
+        effect['winamp_offsets'] = grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name]    
+        rating = effect['winamp_offsets'].get('rating', 0)
+        if rating > 0:
+            effect['profiles'].append(f'winamp rated {rating}')
+
 
 def precompile_some_luts_effects_config():
     compile_all_luts_start_time = time.time()
@@ -1532,6 +1561,11 @@ def precompile_some_luts_effects_config():
             needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated', 'winamp_offsets']
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {key: value for key, value in effect.items() if key in needed_fields}
+
+                # for key, value in effect.items():
+                #     if key == 'winamp_offsets':
+                #         print(f'OK HERE {value}')
+                        # exit()
 
     # print(effects_config_dj_client)
     # from pympler import asizeof

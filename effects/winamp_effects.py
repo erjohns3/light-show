@@ -1,4 +1,5 @@
 from effects.compiler import *
+import json
 
 effects = {
 
@@ -68,6 +69,8 @@ known_good_set_2_standalone = set([
 #     if result != name:
 #         print(f'{cyan(str(result))}\n{red(str(name))}')
 # exit()
+
+
 
 
 for preset_name, preset_filepath in winamp.winamp_wrapper.preset_name_to_filepath.items():

@@ -58,6 +58,12 @@
                 <input type="range" min="0" max="2" value="1" step="0.01" class="slider" id="sensitivity">
                 <span id="sensitivityValue">1</span>
             </div>
+
+            <div class="slider-container">
+                <label for="rating">Rating</label>
+                <input type="range" min="0" max="5" value="0" step="1" class="slider" id="rating">
+                <span id="ratingValue">0</span>
+            </div>
         </div>
     </div>
 
@@ -179,9 +185,19 @@
                             'winamp_bright_shift': winampUpdate.winamp_bright_shift / 100,
                             'winamp_hue_shift': winampUpdate.winamp_hue_shift / 360,
                             'winamp_sat_shift': winampUpdate.winamp_sat_shift / 100,
-                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity
+                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity,
+                            'rating': winampUpdate.rating
                         };
                         console.log('Updated winamp offsets for effect:', effectName, effectsConfig[effectName].winamp_offsets);
+
+                        // need to adjust the sliders if the effect is active, calls setCurrentWinampValueSliders() on the current effect
+                        let index = effectButtonIndex[activeProfile][effectName];
+                        if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                            if (effectButtons[activeTable][index % 25]) {
+                                effectButtons[activeTable][index % 25].setCurrentWinampValueSliders();
+                            }
+                        }
+
                     } else {
                         console.warn('Effect not found in config:', effectName);
                     }   
@@ -350,43 +366,52 @@
             }
         }
 
+        setCurrentWinampValueSliders() {
+            console.log('LOOK AT ME: winamp_offsets', effectsConfig[this.effect].winamp_offsets);
+
+            // adjusts all the sliders to the winamp offsets
+            let the_winamp_offsets = {
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 0,
+                'winamp_bright_shift': 0,
+                'winamp_beat_sensitivity': 1,
+                'rating': 0
+            }
+            if (effectsConfig[this.effect].winamp_offsets) {
+                the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
+            }
+            let hueSlider = document.getElementById('hue');
+            if (hueSlider) {
+                hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
+                document.getElementById('hueValue').textContent = hueSlider.value;
+            }
+            let saturationSlider = document.getElementById('saturation');
+            if (saturationSlider) {
+                saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
+                document.getElementById('saturationValue').textContent = saturationSlider.value;
+            }
+            let lightnessSlider = document.getElementById('lightness');
+            if (lightnessSlider) {
+                lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
+                document.getElementById('lightnessValue').textContent = lightnessSlider.value;
+            }
+            let sensitivitySlider = document.getElementById('sensitivity');
+            if (sensitivitySlider) {
+                sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
+                document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
+            }
+            let ratingSlider = document.getElementById('rating');
+            if (ratingSlider) {
+                ratingSlider.value = the_winamp_offsets['rating'];
+                document.getElementById('ratingValue').textContent = ratingSlider.value;
+            }
+        }
+
         activate(){
             if(!this.active){
                 this.classList.add('effect-button-active');
                 this.active = true;
-
-                console.log('LOOK AT ME: winamp_offsets', effectsConfig[this.effect].winamp_offsets);
-
-                // adjusts all the sliders to the winamp offsets
-                let the_winamp_offsets = {
-                    'winamp_hue_shift': 0,
-                    'winamp_sat_shift': 0,
-                    'winamp_bright_shift': 0,
-                    'winamp_beat_sensitivity': 1
-                }
-                if (effectsConfig[this.effect].winamp_offsets) {
-                    the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
-                }
-                let hueSlider = document.getElementById('hue');
-                if (hueSlider) {
-                    hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
-                    document.getElementById('hueValue').textContent = hueSlider.value;
-                }
-                let saturationSlider = document.getElementById('saturation');
-                if (saturationSlider) {
-                    saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
-                    document.getElementById('saturationValue').textContent = saturationSlider.value;
-                }
-                let lightnessSlider = document.getElementById('lightness');
-                if (lightnessSlider) {
-                    lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
-                    document.getElementById('lightnessValue').textContent = lightnessSlider.value;
-                }
-                let sensitivitySlider = document.getElementById('sensitivity');
-                if (sensitivitySlider) {
-                    sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
-                    document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
-                }
+                this.setCurrentWinampValueSliders()
             }
         }
 
@@ -704,6 +729,8 @@
     var lightnessValue = document.getElementById("lightnessValue");
     var sensitivity = document.getElementById("sensitivity");
     var sensitivityValue = document.getElementById("sensitivityValue");
+    var rating = document.getElementById("rating");
+    var ratingValue = document.getElementById("ratingValue");
     const sliders = document.querySelectorAll('.slider');
 
     var profileBox = document.getElementById('profile-box');

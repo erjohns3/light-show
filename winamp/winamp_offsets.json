@@ -1,0 +1,51 @@
+{
+    "31": {
+        "winamp_bright_shift": -0.08,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 0.72,
+        "rating": 4
+    },
+    "24": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 1.8,
+        "rating": 0
+    },
+    "Blendin to myself AdamFX Twist 2 martin - glassball dance with AdamFX b": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 1.43,
+        "rating": 0
+    },
+    "25": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 0.82,
+        "rating": 0
+    },
+    "38": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 0,
+        "rating": 3
+    },
+    "35": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 0,
+        "rating": 1
+    },
+    "23": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 0,
+        "rating": 2
+    }
+}

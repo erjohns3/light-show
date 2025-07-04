@@ -1546,7 +1546,7 @@ def set_effect_defaults(effect_name, effect): # this must be safe to run multipl
         if rating > 0:
             effect['profiles'].append(f'winamp rated {rating}')
     else:
-        if args.winamp and effect['from_python_file'] == 'effects/winamp_effects.py':
+        if args.winamp and 'from_python_file' in effect and effect['from_python_file'] == 'effects/winamp_effects.py':
             effect['winamp_offsets'] = {
                 'winamp_bright_shift': 0,
                 'winamp_hue_shift': 0,

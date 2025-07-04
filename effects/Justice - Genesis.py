@@ -166,6 +166,13 @@ effects = {
         ]
     },
 
+    'wub': {
+        "length": 8,
+        "beats": [
+            grid_f(1, function=bounce_line_x, length=8),
+        ]
+    },
+
 
     "Justice - Genesis": {
         "bpm": 117,
@@ -173,7 +180,6 @@ effects = {
         "delay_lights": 0.237,
         "skip_song": 0.0,
         "beats": [
-
             # Intro
             # dooooooooooo
             b(2.75, name='Green bottom', length=7.25, intensity=(1, 1)), 
@@ -228,11 +234,36 @@ effects = {
             b(132, name='genesis lasers', length=8),
             # same as before part but with laser sounds???
             b(140, name='genesis Chorus', length = 24),
+            b(142.2, name='wub', length=1 ),
+            b(143.2, name='wub', length=1 ),
+            b(144.2, name='wub', length=1 ),
+
+            b(150.2, name='wub', length=1 ),
+            b(151.2, name='wub', length=1 ),
+            b(152.2, name='wub', length=1 ),
+
+            b(158.2, name='wub', length=1 ),
+            b(159.2, name='wub', length=1 ),
+            b(160.2, name='wub', length=1 ),
+
 
             # break down part 1
             b(164, name='Green top', length = 8),
+            
             # back to normal beat
-            b(172, name='Blue top', length = 24),
+            b(172, name='genesis Chorus', length = 24),
+            b(174.2, name='wub', length=1 ),
+            b(175.2, name='wub', length=1 ),
+            b(176.2, name='wub', length=1 ),
+
+            b(182.2, name='wub', length=1 ),
+            b(183.2, name='wub', length=1 ),
+            b(184.2, name='wub', length=1 ),
+
+            b(190.2, name='wub', length=1 ),
+            b(191.2, name='wub', length=1 ),
+            b(192.2, name='wub', length=1 ),
+
             # break down part 2
             b(196, name = 'Green top', length = 8),
             # back to normal beat but this one has a quieter first half

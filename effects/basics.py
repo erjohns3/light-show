@@ -96,7 +96,8 @@ effects = {
     "Nothing": {
         "length": 1,
         "beats": [
-            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, length=1),
+            b(1, top_rgb=[-1000, -1000, -1000], bottom_rgb=[-1000, -1000, -1000], uv=-1000, green_laser=-1000, red_laser=-1000, laser_motor=-1000, length=1, disco_rgb=[-1000, -1000, -1000]),
+            grid_f(1, function=sidechain_grid, length=1, intensity=(1, 1), priority=5000),
         ],
     },
     "Sidechain laser": {

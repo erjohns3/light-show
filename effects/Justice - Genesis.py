@@ -135,6 +135,14 @@ effects = {
         ]
     },
 
+    "genesis Chorus empty top": {
+        "length": 64,
+        "beats": [
+            # b(1, name='genesis gen top beats', length=64),
+            b(1, name='genesis chorus bottom', length=64),
+        ]
+    },
+
     'genesis lasers': {
         "length": 8,
         "beats": [
@@ -255,7 +263,7 @@ effects = {
 
 
 
-            b(204, name='genesis Chorus', length = 64),
+            b(204, name='genesis Chorus empty top', length = 64),
 
             b(204, name='genesis lasers build', length=32),
             b(236, name='genesis lasers build 2', length=32),

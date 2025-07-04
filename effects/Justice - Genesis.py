@@ -149,6 +149,13 @@ effects = {
         ]
     },
 
+    'genesis breakdown': {
+        "length": 4,
+        "beats": [
+            b(1, name='autogen circle pulsing', length=4)
+        ]
+    },
+
     'genesis lasers build 2': {
         "length": 32,
         "beats": [
@@ -232,7 +239,7 @@ effects = {
 
 
             # break down part 1
-            b(164, name='Green top', length = 8),
+            b(164, name='genesis breakdown', length = 8),
 
             # back to normal beat
             b(172, name='genesis Chorus', length = 24),
@@ -243,7 +250,7 @@ effects = {
             b(190.2, name='genesis wub', length=3),
 
             # break down part 2
-            b(196, name = 'Green top', length = 8),
+            b(196, name = 'genesis breakdown', length = 8),
             # back to normal beat but this one has a quieter first half
 
 

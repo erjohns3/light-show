@@ -14,6 +14,8 @@ from helpers import *
 
 
 if __name__ == '__main__':
+    print("THIS SCRIPT MUST BE RUN FROM THE TOP-LEVEL DIRECTORY OF THE REPOSITORY")
+    print("IF RUN FROM SCRIPTS, IT FAILS")
     downloaded_songs_directory = get_ray_directory().joinpath('music_creation').joinpath('downloaded_songs')
     urls_downloaded_directory = get_ray_directory().joinpath('music_creation').joinpath('url_caches')
     urls_downloaded_directory.mkdir(exist_ok=True, parents=True)

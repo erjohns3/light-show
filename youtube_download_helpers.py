@@ -208,7 +208,8 @@ def process_playlist_video_renderers(playlist_video_renderers, videos):
     continuation_token = None
     for item3 in playlist_video_renderers:
         if 'playlistVideoListRenderer' not in item3 and 'continuationItemRenderer' in item3:
-            continuation_token = item3['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            ce = item3['continuationItemRenderer']['continuationEndpoint']; continuation_token = ce['commandExecutorCommand']['commands'][1]['continuationCommand']['token'] if 'commandExecutorCommand' in ce else ce['continuationCommand']['token']
+
             print_blue(f'continuation token: {continuation_token}')
             continue
             

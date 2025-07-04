@@ -456,7 +456,6 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
             if effect['autogen'] not in effect_types_to_name:
                 effect_types_to_name[effect['autogen']] = []
             effect_types_to_name[effect['autogen']].append(name)
-    
     # TBD.  winamp effects with negative sidechain
     # either just double the ceiling brightness or do something more complex
 
@@ -546,7 +545,7 @@ def generate_show(song_filepath, overwrite=True, mode=None, include_song_path=Tr
 
                 length, effect_types = random.choice([x for x in candidates])
                 while length_left >= length:
-                    for effect_type in effect_types:                        
+                    for effect_type in effect_types:    
                         effect_candidates = deepcopy(effect_types_to_name[effect_type])
 
                         if chunk_level == "hi":

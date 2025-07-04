@@ -135,6 +135,14 @@ effects = {
         ]
     },
 
+    "genesis Chorus empty top": {
+        "length": 64,
+        "beats": [
+            # b(1, name='genesis gen top beats', length=64),
+            b(1, name='genesis chorus bottom', length=64),
+        ]
+    },
+
     'genesis lasers': {
         "length": 8,
         "beats": [
@@ -146,6 +154,13 @@ effects = {
         "length": 32,
         "beats": [
             *spawn_half_fallers(start_beat=1, total_beats=32, start_color=GColor.seafoam, end_color=GColor.pink, intensity=1, speed=8, y_range=10, step_size=2),
+        ]
+    },
+
+    'genesis breakdown': {
+        "length": 4,
+        "beats": [
+            b(1, name='autogen circle pulsing', length=4)
         ]
     },
 
@@ -232,7 +247,7 @@ effects = {
 
 
             # break down part 1
-            b(164, name='Green top', length = 8),
+            b(164, name='genesis breakdown', length = 8),
 
             # back to normal beat
             b(172, name='genesis Chorus', length = 24),
@@ -243,12 +258,12 @@ effects = {
             b(190.2, name='genesis wub', length=3),
 
             # break down part 2
-            b(196, name = 'Green top', length = 8),
+            b(196, name = 'genesis breakdown', length = 8),
             # back to normal beat but this one has a quieter first half
 
 
 
-            b(204, name='genesis Chorus', length = 64),
+            b(204, name='genesis Chorus empty top', length = 64),
 
             b(204, name='genesis lasers build', length=32),
             b(236, name='genesis lasers build 2', length=32),

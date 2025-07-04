@@ -98,8 +98,11 @@ if is_linux() and not is_doorbell():
     _return_code, stdout, _stderr = run_command_blocking([
         'xdotool',
         'getactivewindow',
-    ])
-    original_process_window_id = int(stdout.strip())
+    ])    
+    if not stdout.strip():
+        original_process_window_id = None
+    else:
+        original_process_window_id = int(stdout.strip())
 # https://stackoverflow.com/questions/24072790/how-to-detect-key-presses how to check window name (not global)
 def has_window_focus():
     if is_linux():

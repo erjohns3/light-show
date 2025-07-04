@@ -404,9 +404,9 @@ async def init_dj_client(websocket, path=None):
                             new_profiles.append(profile)
                     if winamp_offsets['rating'] > 0:
                         new_profiles.append(f'winamp rated {winamp_offsets["rating"]}')
+                    new_profiles = list(set(new_profiles))
                     effect['profiles'] = new_profiles
                     effects_config_dj_client[effect_name]['profiles'] = new_profiles
-                    print(new_profiles)
 
             broadcast_light_status = True
 

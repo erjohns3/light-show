@@ -63,6 +63,53 @@ def generate_genesis_top_beats(length):
     return final
 
 
+def bar_down(grid_info):
+    """
+    Draws a vertical bar moving downwards on the grid.
+
+    Args:
+        grid_info: An object containing the bar's state, including
+                   y-position, color, speed, and current sub-beat.
+    """
+    # Initialize y if it doesn't exist or if it's the first sub-beat
+    if not hasattr(grid_info, 'y') or grid_info.curr_sub_beat == 0:
+        grid_info.y = 0
+
+    # Return if the bar is already off the bottom of the grid
+    if grid_info.y >= grid_helpers.GRID_HEIGHT:
+        return
+
+    # Draw the visible part of the bar
+    for y_off in range(grid_info.y_range):
+        current_y = grid_info.y + y_off
+        if 0 <= current_y < grid_helpers.GRID_HEIGHT:
+            grid_helpers.grid[grid_info.x_pos][current_y] = grid_info.color
+
+    # Determine the speed, ensuring it's at least 1
+    speed = max(1, int(1 / getattr(grid_info, 'speed', 1)))
+
+    # Move the bar down based on the speed and sub-beat
+    if grid_info.curr_sub_beat % speed == 0:
+        grid_info.y += 1
+
+
+def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, intensity=1, speed=1):
+    if end_color == None:
+        end_color = GColor.nothing
+    building = []
+    quarter_x = grid_helpers.GRID_WIDTH // 4
+    for beat in range(start_beat, start_beat + total_beats + 1):
+        percent_done = (beat - start_beat) / total_beats
+        curr_color = interpolate_vectors_float(start_color, end_color, percent_done)
+        curr_color = scale_vector(curr_color, intensity)
+        random_thing = random.randint(1, 3)
+        building += [
+            grid_f(beat, function=bar_down, length=2, x_pos=quarter_x * random_thing, y_range=5, color=curr_color, speed=speed),
+        ]
+    return building
+
+
+
 effects = {
     "genesis circle": {
         "length": 2,
@@ -77,23 +124,9 @@ effects = {
         ],
     },
 
-    # "genesis gen top beats": {
-    #     "length": 2,
-    #     "beats": [
-    #         grid_f(
-    #             1,
-    #             function=our_transform,
-    #             object=get_centered_circle_numpy_nofill(radius=(6)),
-    #             color=GColor.pink,
-    #             length=.55,
-    #         ),
-    #         grid_f(1, function=sidechain_grid, length=1, intensity=(1, .2), priority=5000),
-    #     ]
-    # },
-
     "genesis gen top beats": {
-        "length": 8,
-        "beats":generate_genesis_top_beats(8)
+        "length": 64,
+        "beats":generate_genesis_top_beats(64)
     },
 
     "genesis vert green": {
@@ -123,6 +156,13 @@ effects = {
         "beats": [
             b(1, name='genesis gen top beats', length=64),
             b(1, name='genesis chorus bottom', length=64),
+        ]
+    },
+
+    "genesis lasers": {
+        "length": 8,
+        "beats": [
+            *spawn_half_fallers(start_beat=1, total_beats=8, start_color=GColor.blue, end_color=GColor.pink, intensity=1, speed=4),
         ]
     },
 
@@ -181,10 +221,14 @@ effects = {
             # This beat takes us into the next section
             # b(76, name='Yellow bottom', length=1, intensity=(1, 1)), 
             #--------------------------------------------------------------#
+
             # This part repeats in 8 bar sections, but with some variations
             b(76, name='genesis Chorus', length = 64),
+
+            b(132, name='genesis lasers', length=8),
             # same as before part but with laser sounds???
-            b(140, name='Blue top', length = 24),
+            b(140, name='genesis Chorus', length = 24),
+
             # break down part 1
             b(164, name='Green top', length = 8),
             # back to normal beat

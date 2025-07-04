@@ -367,7 +367,7 @@
         }
 
         setCurrentWinampValueSliders() {
-            console.log('LOOK AT ME: winamp_offsets', effectsConfig[this.effect].winamp_offsets);
+            console.log('LOOK AT ME: winamp_offsets', this.effect, effectsConfig[this.effect].winamp_offsets);
 
             // adjusts all the sliders to the winamp offsets
             let the_winamp_offsets = {
@@ -687,22 +687,22 @@
     
 
     var profileOrder = {
-        'winamp rated 5': -6,
-        'winamp rated 4': -5,
-        'winamp rated 3': -4,
-        'winamp rated 2': -3,
-        'winamp rated 1': -2,
-        'winamp_all': -1,
+        'winamp rated 5': 6,
+        'winamp rated 4': 7,
+        'winamp rated 3': 8,
+        'winamp rated 2': 9,
+        'winamp rated 1': 10,
+        'winamp_all': 11,
         'Andrew': 0,
         'Eric': 1,
         'Emma': 2,
         'Fun Grid': 3,
         'Winamp Alone': 4,
         'Winamp Good 2': 5,
-        'Colors': 10,
-        'winamp_good_1': 14,
-        'winamp_tests': 15,
-        'Shows': 16,        
+        'Colors': 15,
+        'winamp_good_1': 20,
+        'winamp_tests': 21,
+        'Shows': 22,        
         'Autogen effects': 99999,
         'Generated Shows': 100000,
     }

@@ -375,7 +375,7 @@ async def init_dj_client(websocket, path=None):
                     'winamp_bright_shift': 0,
                     'winamp_hue_shift': 0,
                     'winamp_sat_shift': 0,
-                    'winamp_beat_sensitivity': 0,
+                    'winamp_beat_sensitivity': 1,
                     'rating': 0,
                 })
                 if slider_id == 'lightness':
@@ -389,6 +389,8 @@ async def init_dj_client(websocket, path=None):
                 elif slider_id == 'rating':
                     winamp_offsets['rating'] = int(slider_value)
                 effect['winamp_offsets'] = winamp_offsets
+
+                effects_config_dj_client[effect_name]['winamp_offsets'] = winamp_offsets
                 broadcast_winamp_offset_update = [effect_name]
                 needs_to_save_winamp_offsets = True
                 grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = winamp_offsets
@@ -403,6 +405,8 @@ async def init_dj_client(websocket, path=None):
                     if winamp_offsets['rating'] > 0:
                         new_profiles.append(f'winamp rated {winamp_offsets["rating"]}')
                     effect['profiles'] = new_profiles
+                    effects_config_dj_client[effect_name]['profiles'] = new_profiles
+                    print(new_profiles)
 
             broadcast_light_status = True
 
@@ -710,7 +714,7 @@ async def send_winamp_offsets():
                 'winamp_bright_shift': 0,
                 'winamp_hue_shift': 0,
                 'winamp_sat_shift': 0,
-                'winamp_beat_sensitivity': 0,
+                'winamp_beat_sensitivity': 1,
                 'rating': 0,
             })
             my_arr.append({
@@ -1537,10 +1541,20 @@ def set_effect_defaults(effect_name, effect): # this must be safe to run multipl
         effect['loop'] = True
 
     if args.winamp and effect_name in grid_helpers.winamp.winamp_wrapper.winamp_offsets:
-        effect['winamp_offsets'] = grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name]    
+        effect['winamp_offsets'] = grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name]
         rating = effect['winamp_offsets'].get('rating', 0)
         if rating > 0:
             effect['profiles'].append(f'winamp rated {rating}')
+    else:
+        if args.winamp and effect['from_python_file'] == 'effects/winamp_effects.py':
+            effect['winamp_offsets'] = {
+                'winamp_bright_shift': 0,
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 100,
+                'winamp_beat_sensitivity': 1.0,
+                'rating': 0,
+            }
+            grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = effect['winamp_offsets']
 
 
 def precompile_some_luts_effects_config():

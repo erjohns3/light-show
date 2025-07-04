@@ -215,23 +215,23 @@ def bounce_line_x(grid_info):
         grid_info.color = GColor.light_green
 
     if getattr(grid_info, 'dir', None) is None:
-        grid_info.dir = 1
+        grid_info.dir = 2
 
     speed = int(1 / getattr(grid_info, 'speed', 1))
 
-    extra_wait_arr = getattr(grid_info, 'extra_wait', [0])
-    safe_index = extra_wait_arr[grid_info.wait_index]
-    if grid_info.curr_sub_beat % (48 + extra_wait_arr[safe_index]) == 0:
+    wait_arr = getattr(grid_info, 'wait_arr', [48])
+    if grid_info.wait_index >= len(wait_arr):
+        grid_info.wait_index = 0
+
+    if grid_info.curr_sub_beat % wait_arr[grid_info.wait_index] == 0:
         if grid_info.curr_x == grid_helpers.GRID_WIDTH - 1:
-            grid_info.dir = -1
+            grid_info.dir *= -1
         else:
-            grid_info.dir = 1
+            grid_info.dir *= -1
         grid_info.wait_index += 1
-        if grid_info.wait_index >= len(extra_wait_arr):
-            grid_info.wait_index = 0
 
     if grid_info.curr_sub_beat % speed == 0:
-        grid_info.curr_x += grid_info.dir * 2
+        grid_info.curr_x += grid_info.dir
         if grid_info.curr_x < 0:
             grid_info.curr_x = 0
         if grid_info.curr_x >= grid_helpers.GRID_WIDTH:

@@ -21,7 +21,7 @@ def generate_genesis_top_beats(length):
 
         for j in randoms:
             the_rand = random.randint(-10, 10)
-            the_rand_2 = random.randint(5, 9)
+            the_rand_2 = random.randint(4, 8)
             building += [
                 grid_f(
                     i + j,
@@ -157,9 +157,9 @@ effects = {
     },
 
     'genesis wub': {
-        "length": 2,
+        "length": 3,
         "beats": [
-            grid_f(1, function=bounce_line_x, length=2, extra_wait_arr=[0, 0, 0]),
+            grid_f(1, function=bounce_line_x, length=3, wait_arr=[1, 15, 15, 30, 400], dir=3),
         ]
     },
 

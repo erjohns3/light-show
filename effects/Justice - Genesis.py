@@ -55,10 +55,11 @@ def bar_down(grid_info):
         return
 
     # Draw the visible part of the bar
-    for y_off in range(grid_info.y_range):
-        current_y = grid_info.y + y_off
-        if 0 <= current_y < grid_helpers.GRID_HEIGHT:
-            grid_helpers.grid[grid_info.x_pos][current_y] = grid_info.color
+    for x_off in range(getattr(grid_info, 'x_range', 1)):
+        for y_off in range(grid_info.y_range):
+            current_y = grid_info.y + y_off
+            if 0 <= current_y < grid_helpers.GRID_HEIGHT:
+                grid_helpers.grid[grid_info.x_pos + x_off][current_y] = grid_info.color
 
     # Determine the speed, ensuring it's at least 1
     speed = max(1, int(1 / getattr(grid_info, 'speed', 1)))
@@ -68,7 +69,7 @@ def bar_down(grid_info):
         grid_info.y += getattr(grid_info, 'step_size', 1)
 
 
-def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, intensity=1, speed=1, y_range=5, step_size=1):
+def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, intensity=1, speed=1, y_range=5, step_size=1, x_range=1):
     if end_color == None:
         end_color = GColor.nothing
     building = []
@@ -79,7 +80,7 @@ def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, int
         curr_color = scale_vector(curr_color, intensity)
         random_thing = random.randint(1, 3)
         building += [
-            grid_f(beat, function=bar_down, length=2, x_pos=quarter_x * random_thing, y_range=y_range, color=curr_color, speed=speed, step_size=step_size),
+            grid_f(beat, function=bar_down, length=2, x_pos=quarter_x * random_thing, y_range=y_range, color=curr_color, speed=speed, step_size=step_size, x_range=x_range),
         ]
     return building
 
@@ -134,10 +135,24 @@ effects = {
         ]
     },
 
-    "genesis lasers": {
+    'genesis lasers': {
         "length": 8,
         "beats": [
-            *spawn_half_fallers(start_beat=1, total_beats=8, start_color=GColor.blue, end_color=GColor.pink, intensity=1, speed=8, y_range=8, step_size=2),
+            *spawn_half_fallers(start_beat=1, total_beats=8, start_color=GColor.blue, end_color=GColor.pink, intensity=1, speed=6, y_range=6, step_size=2),
+        ]
+    },
+
+    'genesis lasers build': {
+        "length": 32,
+        "beats": [
+            *spawn_half_fallers(start_beat=1, total_beats=32, start_color=GColor.seafoam, end_color=GColor.pink, intensity=1, speed=8, y_range=10, step_size=2),
+        ]
+    },
+
+    'genesis lasers build 2': {
+        "length": 32,
+        "beats": [
+            *spawn_half_fallers(start_beat=1, total_beats=32, start_color=GColor.light_green, end_color=GColor.cyan, intensity=1, speed=8, y_range=12, step_size=3, x_range=5),
         ]
     },
 
@@ -230,7 +245,14 @@ effects = {
             # break down part 2
             b(196, name = 'Green top', length = 8),
             # back to normal beat but this one has a quieter first half
-            b(204, name='Blue top', length = 64),
+
+
+
+            b(204, name='genesis Chorus', length = 64),
+
+            b(204, name='genesis lasers build', length=32),
+            b(236, name='genesis lasers build 2', length=32),
+
             
 
             #-------------------------------------------------------------#

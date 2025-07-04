@@ -269,32 +269,38 @@ effects = {
             grid_f(270, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(273, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(274, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(278.2, name='genesis wub', length=2 ),
+            b(278.2, name='genesis wub', length=3 ),
 
             grid_f(285, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(286, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(289, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(290, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(294.2, name='genesis wub', length=2 ),
+            b(294.2, name='genesis wub', length=3 ),
 
             grid_f(301, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(302, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(305, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(306, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(310.2, name='genesis wub', length=2 ),
+            b(310.2, name='genesis wub', length=3 ),
 
 
             grid_f(317, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(318, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(321, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(322, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(326.2, name='genesis wub', length=2 ),
+            b(326.2, name='genesis wub', length=3 ),
 
             grid_f(333, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(334, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(337, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(338, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(332.2, name='genesis wub', length=2 ),
+            b(342.2, name='genesis wub', length=3 ),
+
+            grid_f(349, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(350, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            grid_f(353, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(354, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            b(358.2, name='genesis wub', length=3 ),
 
         ]
     }

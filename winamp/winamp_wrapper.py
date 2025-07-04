@@ -22,11 +22,27 @@ import pathlib
 import random
 import collections
 import ctypes
+import json
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
 sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
+
+
+winamp_offsets_filepath = this_file_directory.joinpath('winamp_offsets.json')
+if winamp_offsets_filepath.exists() and winamp_offsets_filepath.stat().st_size == 0:
+    winamp_offsets_filepath.unlink()
+
+if not winamp_offsets_filepath.exists():
+    with open(winamp_offsets_filepath, 'w') as f:
+        json.dump({}, f)
+
+winamp_offsets = {}
+with open(winamp_offsets_filepath, 'r') as f:
+    winamp_offsets = json.load(f)
+
+print(f'Loaded {len(winamp_offsets)} winamp offsets from {winamp_offsets_filepath}')
 
 
 result_of_last_load_call = None

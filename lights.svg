@@ -1,0 +1,53 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Define a linear gradient for the background from top-left to bottom-right using HSL colors -->
+    <linearGradient id="backgroundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(210, 100%, 50%)" /> <!-- Light blue (hsl(195, 53%, 79%)) -->
+      <stop offset="100%" stop-color="hsl(150, 100%, 50%)" /> <!-- Steel blue (hsl(207, 44%, 49%)) -->
+    </linearGradient>
+
+    <!-- Define a linear gradient for the disco ball lines and circle using HSL colors -->
+    <!-- This gradient goes from a dark silver to a light silver, creating a metallic look -->
+    <!-- gradientUnits="userSpaceOnUse" ensures the gradient spans the entire SVG viewport -->
+    <linearGradient id="lineGradient" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="hsl(320, 100%, 50%)" /> <!-- Dark silver (hsl(0, 0%, 63%)) -->
+      <stop offset="100%" stop-color="hsl(280, 100%, 50%)" /> <!-- Dark silver (hsl(0, 0%, 63%)) -->
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle filled with the background gradient -->
+  <!-- Set cx, cy, and r to cover the entire 200x200 SVG canvas -->
+  <circle cx="100" cy="100" r="100" fill="url(#backgroundGradient)"/>
+
+  <!-- Group containing all disco ball lines and circle.
+       The 'stroke' and 'stroke-width' applied here will affect all child elements.
+       The transform scales the group by 0.85 around its center (100, 100), making it smaller. -->
+  <g stroke="url(#lineGradient)" stroke-width="8" transform="translate(100, 100) scale(0.85) translate(-100, -100)">
+    <!-- Outer circle of the disco ball -->
+    <circle cx="100" cy="100" r="90" fill="none"/>
+
+    <!-- Horizontal lines (parallels) with curvature -->
+    <!-- Center horizontal line (equator) remains straight -->
+    <line x1="10" y1="100" x2="190" y2="100"/>
+
+    <!-- Lines above the center, curving upwards -->
+    <path d="M 15.15 70 Q 100 50 184.85 70" fill="none"/>
+    <path d="M 28.76 45 Q 100 20 171.24 45" fill="none"/>
+
+    <!-- Lines below the center, curving downwards -->
+    <path d="M 15.15 130 Q 100 150 184.85 130" fill="none"/>
+    <path d="M 28.76 155 Q 100 180 171.24 155" fill="none"/>
+
+    <!-- Vertical lines (meridians) with curvature -->
+    <!-- Center vertical line (prime meridian) remains straight -->
+    <line x1="100" y1="10" x2="100" y2="190"/>
+
+    <!-- Lines left of the center, curving leftwards -->
+    <path d="M 70 15.15 Q 50 100 70 184.85" fill="none"/>
+    <path d="M 45 28.76 Q 20 100 45 171.24" fill="none"/>
+
+    <!-- Lines right of the center, curving rightwards -->
+    <path d="M 130 15.15 Q 150 100 130 184.85" fill="none"/>
+    <path d="M 155 28.76 Q 180 100 155 171.24" fill="none"/>
+  </g>
+</svg>

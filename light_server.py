@@ -84,9 +84,12 @@ if is_windows():
 if args.winamp == None:
     args.winamp = True
 
-
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+
+
+
 
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
@@ -97,7 +100,6 @@ elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()
-
     # put this in for eager load of winamp
     # if not grid_helpers.try_setup_winamp():
     #     print_red(f'Failed to setup winamp, exiting')
@@ -105,6 +107,24 @@ elif args.winamp:
     # result = winamp.winamp_wrapper.get_beat_sensitivity()
     # if result is not None:
     #     beat_sens_string = f'Beat Sens: {result}'
+
+
+    needs_to_save_winamp_offsets = False
+    def save_all_winamp_offsets():
+        with open(grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath, 'w') as f:            
+            json.dump(grid_helpers.winamp.winamp_wrapper.winamp_offsets, f, indent=4)
+
+    # spawn a thread to save winamp offsets every 30 seconds
+    def save_winamp_offsets_thread():
+        global needs_to_save_winamp_offsets
+        the_f = grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath
+        while True:
+            time.sleep(30)
+            # print(f'{cyan(f"Saving winamp offsets to {the_f}")}')
+            if needs_to_save_winamp_offsets:
+                save_all_winamp_offsets()
+                needs_to_save_winamp_offsets = False
+    threading.Thread(target=save_winamp_offsets_thread, daemon=True).start()
 
 
 pi = None
@@ -246,7 +266,7 @@ async def init_rekordbox_bridge_client(websocket, path=None):
 
 
 async def init_dj_client(websocket, path=None):
-    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode, needs_to_save_winamp_offsets
     print('DJ Client: made connection to new client')
 
     message = {
@@ -355,7 +375,8 @@ async def init_dj_client(websocket, path=None):
                     'winamp_bright_shift': 0,
                     'winamp_hue_shift': 0,
                     'winamp_sat_shift': 0,
-                    'winamp_beat_sensitivity': 0
+                    'winamp_beat_sensitivity': 1,
+                    'rating': 0,
                 })
                 if slider_id == 'lightness':
                     winamp_offsets['winamp_bright_shift'] = float(slider_value) / 100
@@ -365,8 +386,27 @@ async def init_dj_client(websocket, path=None):
                     winamp_offsets['winamp_sat_shift'] = float(slider_value) / 100
                 elif slider_id == 'sensitivity':
                     winamp_offsets['winamp_beat_sensitivity'] = float(slider_value)
+                elif slider_id == 'rating':
+                    winamp_offsets['rating'] = int(slider_value)
                 effect['winamp_offsets'] = winamp_offsets
+
+                effects_config_dj_client[effect_name]['winamp_offsets'] = winamp_offsets
                 broadcast_winamp_offset_update = [effect_name]
+                needs_to_save_winamp_offsets = True
+                grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = winamp_offsets
+
+
+                # from the current effect remove all profiles that have "winamp rated" in them
+                if 'profiles' in effect:
+                    new_profiles = []
+                    for profile in effect['profiles']:
+                        if 'winamp rated' not in profile.lower():
+                            new_profiles.append(profile)
+                    if winamp_offsets['rating'] > 0:
+                        new_profiles.append(f'winamp rated {winamp_offsets["rating"]}')
+                    new_profiles = list(set(new_profiles))
+                    effect['profiles'] = new_profiles
+                    effects_config_dj_client[effect_name]['profiles'] = new_profiles
 
             broadcast_light_status = True
 
@@ -674,15 +714,18 @@ async def send_winamp_offsets():
                 'winamp_bright_shift': 0,
                 'winamp_hue_shift': 0,
                 'winamp_sat_shift': 0,
-                'winamp_beat_sensitivity': 0
+                'winamp_beat_sensitivity': 1,
+                'rating': 0,
             })
             my_arr.append({
                 'effect_name': effect_name,
                 'winamp_bright_shift': winamp_offsets['winamp_bright_shift'] * 100,
                 'winamp_hue_shift': winamp_offsets['winamp_hue_shift'] * 360,
                 'winamp_sat_shift': winamp_offsets['winamp_sat_shift'] * 100,
-                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity']
+                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity'],
+                'rating': winamp_offsets['rating'],
             })
+        print(my_arr)
         await broadcast(light_sockets, json.dumps({
             'update_winamp_offsets': my_arr
         }))
@@ -1029,45 +1072,51 @@ async def light():
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
 
+        # !TODO stable sort it so that winamps are always first in the current effects? Then it'll only apply the winamp offsets once to just the winamp effects 
+        has_played_winamp = False
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
+                if getattr(info, 'is_winamp', None) is True:
+                    if has_played_winamp:
+                        continue
+                    has_played_winamp = True
+                
                 try:
                     info.grid_function(info)
                 except Exception:
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                
+                if getattr(info, 'is_winamp', None) is True:
+                    effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
+                    for effect in effects:
+                        if effect.get('winamp_offsets'):
+                            lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
+                            hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
+                            sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
+                            sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
+                            winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
+                            for i in range(grid_helpers.GRID_WIDTH):
+                                for j in range(grid_helpers.GRID_HEIGHT):
+                                    r, g, b = grid_helpers.grid[i, j]
 
-        effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
-        # this is the winamp offset
+                                    r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
 
-        for effect in effects:
-            if effect.get('winamp_offsets'):
-                lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
-                hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
-                sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
-                sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
-                winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
-                for i in range(grid_helpers.GRID_WIDTH):
-                    for j in range(grid_helpers.GRID_HEIGHT):
-                        r, g, b = grid_helpers.grid[i, j]
+                                    h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+                                    h = (h + hue_shift) % 1.0
+                                    l += lightness_shift
+                                    s += sat_shift
 
-                        r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+                                    l = max(0.0, min(1.0, l))
+                                    s = max(0.0, min(1.0, s))
 
-                        h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
-                        h = (h + hue_shift) % 1.0
-                        l += lightness_shift
-                        s += sat_shift
+                                    r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
 
-                        l = max(0.0, min(1.0, l))
-                        s = max(0.0, min(1.0, s))
+                                    r_new = int(r_new_norm * 255)
+                                    g_new = int(g_new_norm * 255)
+                                    b_new = int(b_new_norm * 255)
 
-                        r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
-
-                        r_new = int(r_new_norm * 255)
-                        g_new = int(g_new_norm * 255)
-                        b_new = int(b_new_norm * 255)
-
-                        grid_helpers.grid[i, j] = [r_new, g_new, b_new]
+                                    grid_helpers.grid[i, j] = [r_new, g_new, b_new]
 
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
@@ -1491,6 +1540,22 @@ def set_effect_defaults(effect_name, effect): # this must be safe to run multipl
     if 'loop' not in effect:
         effect['loop'] = True
 
+    if args.winamp and effect_name in grid_helpers.winamp.winamp_wrapper.winamp_offsets:
+        effect['winamp_offsets'] = grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name]
+        rating = effect['winamp_offsets'].get('rating', 0)
+        if rating > 0:
+            effect['profiles'].append(f'winamp rated {rating}')
+    else:
+        if args.winamp and effect['from_python_file'] == 'effects/winamp_effects.py':
+            effect['winamp_offsets'] = {
+                'winamp_bright_shift': 0,
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 100,
+                'winamp_beat_sensitivity': 1.0,
+                'rating': 0,
+            }
+            grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = effect['winamp_offsets']
+
 
 def precompile_some_luts_effects_config():
     compile_all_luts_start_time = time.time()
@@ -1510,6 +1575,11 @@ def precompile_some_luts_effects_config():
             needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated', 'winamp_offsets']
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {key: value for key, value in effect.items() if key in needed_fields}
+
+                # for key, value in effect.items():
+                #     if key == 'winamp_offsets':
+                #         print(f'OK HERE {value}')
+                        # exit()
 
     # print(effects_config_dj_client)
     # from pympler import asizeof
@@ -1942,6 +2012,9 @@ if __name__ == '__main__':
     if args.keyboard and not is_doorbell():
         import joystick_and_keyboard_helpers
         skip_time = 5
+        def if_is_macos_then_kill_self(delay=0.5):
+            if is_macos():
+                kill_self(delay)
         joystick_and_keyboard_helpers.add_keyboard_events({
             'p': output_current_beat,
             'b': lambda: print(winamp.winamp_wrapper.get_beat_sensitivity()),
@@ -1951,7 +2024,7 @@ if __name__ == '__main__':
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
-            'esc': lambda: kill_self(0.5),
+            'esc': lambda: if_is_macos_then_kill_self(0.5),
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 

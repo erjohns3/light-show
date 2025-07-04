@@ -36,7 +36,6 @@
     <div id="myModal" class="modal">
         <div class="modal-content">
             <span class="close-button">&times;</span>
-            <h2>Adjust Settings</h2>
             <div class="slider-container">
                 <input type="range" min="0" max="360" value="0" class="slider" id="hue">
                 <span id="hueValue">0</span>
@@ -44,13 +43,13 @@
 
             <div class="slider-container">
                 <label for="saturation">Saturation</label>
-                <input type="range" min="-50" max="50" value="0" class="slider" id="saturation">
+                <input type="range" min="-100" max="100" value="0" class="slider" id="saturation">
                 <span id="saturationValue">0</span>
             </div>
 
             <div class="slider-container">
                 <label for="lightness">Lightness</label>
-                <input type="range" min="-50" max="50" value="0" class="slider" id="lightness">
+                <input type="range" min="-100" max="100" value="0" class="slider" id="lightness">
                 <span id="lightnessValue">0</span>
             </div>
 
@@ -58,6 +57,12 @@
                 <label for="sensitivity">Sensitivity</label>
                 <input type="range" min="0" max="2" value="1" step="0.01" class="slider" id="sensitivity">
                 <span id="sensitivityValue">1</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="rating">Rating</label>
+                <input type="range" min="0" max="5" value="0" step="1" class="slider" id="rating">
+                <span id="ratingValue">0</span>
             </div>
         </div>
     </div>
@@ -73,9 +78,9 @@
     <div id="page-down" class="button">Dn</div>
     <div id="page-random" class="button">random</div>
     <div id="page-modifier" class="button">modify</div>
-    <div id="beat-sens" class="text">Beat Sens: N/A</div>
+    <!-- <div id="beat-sens" class="text">Beat Sens: N/A</div>
     <div id="beat-sens-up" class="button">Beat up</div>
-    <div id="beat-sens-down" class="button">Beat down</div>
+    <div id="beat-sens-down" class="button">Beat down</div> -->
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
@@ -180,9 +185,19 @@
                             'winamp_bright_shift': winampUpdate.winamp_bright_shift / 100,
                             'winamp_hue_shift': winampUpdate.winamp_hue_shift / 360,
                             'winamp_sat_shift': winampUpdate.winamp_sat_shift / 100,
-                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity
+                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity,
+                            'rating': winampUpdate.rating
                         };
                         console.log('Updated winamp offsets for effect:', effectName, effectsConfig[effectName].winamp_offsets);
+
+                        // need to adjust the sliders if the effect is active, calls setCurrentWinampValueSliders() on the current effect
+                        let index = effectButtonIndex[activeProfile][effectName];
+                        if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                            if (effectButtons[activeTable][index % 25]) {
+                                effectButtons[activeTable][index % 25].setCurrentWinampValueSliders();
+                            }
+                        }
+
                     } else {
                         console.warn('Effect not found in config:', effectName);
                     }   
@@ -190,9 +205,9 @@
             }
 
             if(msg.status){
-                if (msg.status.beat_sens_string) {
-                    beatSensElem.textContent = msg.status.beat_sens_string;
-                }
+                // if (msg.status.beat_sens_string) {
+                //     beatSensElem.textContent = msg.status.beat_sens_string;
+                // }
                 if ('effects' in msg.status){
                     let effectsPrev = effectsCurr;
                     effectsCurr = {};
@@ -351,43 +366,52 @@
             }
         }
 
+        setCurrentWinampValueSliders() {
+            console.log('LOOK AT ME: winamp_offsets', this.effect, effectsConfig[this.effect].winamp_offsets);
+
+            // adjusts all the sliders to the winamp offsets
+            let the_winamp_offsets = {
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 0,
+                'winamp_bright_shift': 0,
+                'winamp_beat_sensitivity': 1,
+                'rating': 0
+            }
+            if (effectsConfig[this.effect].winamp_offsets) {
+                the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
+            }
+            let hueSlider = document.getElementById('hue');
+            if (hueSlider) {
+                hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
+                document.getElementById('hueValue').textContent = hueSlider.value;
+            }
+            let saturationSlider = document.getElementById('saturation');
+            if (saturationSlider) {
+                saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
+                document.getElementById('saturationValue').textContent = saturationSlider.value;
+            }
+            let lightnessSlider = document.getElementById('lightness');
+            if (lightnessSlider) {
+                lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
+                document.getElementById('lightnessValue').textContent = lightnessSlider.value;
+            }
+            let sensitivitySlider = document.getElementById('sensitivity');
+            if (sensitivitySlider) {
+                sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
+                document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
+            }
+            let ratingSlider = document.getElementById('rating');
+            if (ratingSlider) {
+                ratingSlider.value = the_winamp_offsets['rating'];
+                document.getElementById('ratingValue').textContent = ratingSlider.value;
+            }
+        }
+
         activate(){
             if(!this.active){
                 this.classList.add('effect-button-active');
                 this.active = true;
-
-                console.log('LOOK AT ME: winamp_offsets', effectsConfig[this.effect].winamp_offsets);
-
-                // adjusts all the sliders to the winamp offsets
-                let the_winamp_offsets = {
-                    'winamp_hue_shift': 0,
-                    'winamp_sat_shift': 0,
-                    'winamp_bright_shift': 0,
-                    'winamp_beat_sensitivity': 1
-                }
-                if (effectsConfig[this.effect].winamp_offsets) {
-                    the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
-                }
-                let hueSlider = document.getElementById('hue');
-                if (hueSlider) {
-                    hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
-                    document.getElementById('hueValue').textContent = hueSlider.value;
-                }
-                let saturationSlider = document.getElementById('saturation');
-                if (saturationSlider) {
-                    saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
-                    document.getElementById('saturationValue').textContent = saturationSlider.value;
-                }
-                let lightnessSlider = document.getElementById('lightness');
-                if (lightnessSlider) {
-                    lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
-                    document.getElementById('lightnessValue').textContent = lightnessSlider.value;
-                }
-                let sensitivitySlider = document.getElementById('sensitivity');
-                if (sensitivitySlider) {
-                    sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
-                    document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
-                }
+                this.setCurrentWinampValueSliders()
             }
         }
 
@@ -663,17 +687,22 @@
     
 
     var profileOrder = {
-        'Andrew': 6,
+        'winamp rated 5': 6,
+        'winamp rated 4': 7,
+        'winamp rated 3': 8,
+        'winamp rated 2': 9,
+        'winamp rated 1': 10,
+        'winamp_all': 11,
+        'Andrew': 0,
         'Eric': 1,
         'Emma': 2,
         'Fun Grid': 3,
         'Winamp Alone': 4,
         'Winamp Good 2': 5,
-        'Colors': 10,
-        'winamp_all': 0,
-        'winamp_good_1': 14,
-        'winamp_tests': 15,
-        'Shows': 16,        
+        'Colors': 15,
+        'winamp_good_1': 20,
+        'winamp_tests': 21,
+        'Shows': 22,        
         'Autogen effects': 99999,
         'Generated Shows': 100000,
     }
@@ -705,6 +734,8 @@
     var lightnessValue = document.getElementById("lightnessValue");
     var sensitivity = document.getElementById("sensitivity");
     var sensitivityValue = document.getElementById("sensitivityValue");
+    var rating = document.getElementById("rating");
+    var ratingValue = document.getElementById("ratingValue");
     const sliders = document.querySelectorAll('.slider');
 
     var profileBox = document.getElementById('profile-box');
@@ -915,13 +946,13 @@
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
     }
     
-    beatSensUpElem.onclick = function () {
-        beatSensUp();
-    }
+    // beatSensUpElem.onclick = function () {
+    //     beatSensUp();
+    // }
 
-    beatSensDownElem.onclick = function () {
-        beatSensDown();
-    }
+    // beatSensDownElem.onclick = function () {
+    //     beatSensDown();
+    // }
 
     refreshElem.onclick = function () {
         location.reload();
@@ -1186,7 +1217,7 @@
 
         .modal-content {
             background-color: #2d0e38;
-            margin: 10% auto;
+            margin: 2% auto;
             padding: 25px;
             border: 1px solid #888;
             width: 90%;

@@ -28,10 +28,10 @@
         "rating": 0
     },
     "38": {
-        "winamp_bright_shift": 0,
+        "winamp_bright_shift": -0.18,
         "winamp_hue_shift": 0,
         "winamp_sat_shift": 0,
-        "winamp_beat_sensitivity": 0,
+        "winamp_beat_sensitivity": 1.0,
         "rating": 3
     },
     "35": {
@@ -47,5 +47,12 @@
         "winamp_sat_shift": 0,
         "winamp_beat_sensitivity": 0,
         "rating": 2
+    },
+    "37": {
+        "winamp_bright_shift": 0,
+        "winamp_hue_shift": 0.7722222222222223,
+        "winamp_sat_shift": 0,
+        "winamp_beat_sensitivity": 1.22,
+        "rating": 0
     }
 }

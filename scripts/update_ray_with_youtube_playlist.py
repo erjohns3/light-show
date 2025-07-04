@@ -36,10 +36,21 @@ if __name__ == '__main__':
 
     while True:
         already_downloaded = False
-        funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'    
-        for title, url, contributor_name in youtube_download_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url):
+        funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'
+        all_vids = youtube_download_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url)
+        
+        for title, url, contributor_name in all_vids:
+            print(f'    {title}')
+        print(f'{len(all_vids)=} videos found in playlist {funhouse_playlist_youtube_url}')
+
+        for title, url, contributor_name in all_vids:
             if url in urls_downloaded:
                 continue
+            
+            
+            if is_andrews_main_computer():
+                print('quitting on andrews computer')
+                exit()
             
             if already_downloaded:
                 sleep_time = 1

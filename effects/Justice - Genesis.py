@@ -167,9 +167,9 @@ effects = {
     },
 
     'wub': {
-        "length": 8,
+        "length": 1,
         "beats": [
-            grid_f(1, function=bounce_line_x, length=8),
+            grid_f(1, function=bounce_line_x, length=1),
         ]
     },
 
@@ -249,7 +249,7 @@ effects = {
 
             # break down part 1
             b(164, name='Green top', length = 8),
-            
+
             # back to normal beat
             b(172, name='genesis Chorus', length = 24),
             b(174.2, name='wub', length=1 ),
@@ -268,12 +268,39 @@ effects = {
             b(196, name = 'Green top', length = 8),
             # back to normal beat but this one has a quieter first half
             b(204, name='Blue top', length = 64),
+            
+
             #-------------------------------------------------------------#
             # this part kind of trades off 1 section of 8, then second section of 8
             # on and off until the end
-            b(268, name='Pink bottom', length = 110),
-            
+            grid_f(269, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(270, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            grid_f(273, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(274, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            b(278.2, name='wub', length=1 ),
+            b(279.2, name='wub', length=1 ),
 
+            grid_f(285, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(286, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            grid_f(289, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(290, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            b(294.2, name='wub', length=1 ),
+            b(295.2, name='wub', length=1 ),
+
+            grid_f(301, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(302, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            grid_f(305, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(306, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            b(310.2, name='wub', length=1 ),
+            b(311.2, name='wub', length=1 ),
+
+
+            grid_f(317, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(318, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            grid_f(321, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
+            grid_f(322, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
+            b(326.2, name='wub', length=1 ),
+            b(327.2, name='wub', length=1 ),
 
         ]
     }

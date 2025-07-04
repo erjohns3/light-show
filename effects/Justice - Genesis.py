@@ -1,31 +1,6 @@
 from effects.compiler import *
 
 
-# def generate_genesis_top_beats(length):
-#     final = []
-#     pattern_length = 8
-#     for i in range(0, length, pattern_length):
-#         building = [
-#             grid_f(
-#                 i + 1,
-#                 function=our_transform,
-#                 object=get_centered_circle_numpy_nofill(radius=(6), offset_x=0, offset_y=-7),
-#                 color=GColor.pink,
-#                 length=.55,
-#             ),
-#             grid_f(i + 1, function=sidechain_grid, length=1, intensity=(1, .2), priority=5000),
-#             grid_f(
-#                 i + 5,
-#                 function=our_transform,
-#                 object=get_centered_circle_numpy_nofill(radius=(6), offset_x=0, offset_y=7),
-#                 color=GColor.green,
-#                 length=.55,
-#             ),
-#             grid_f(i + 5, function=sidechain_grid, length=1, intensity=(1, .2), priority=5000),
-#         ]
-#         final += building
-#     return final
-
 
 def generate_genesis_top_beats(length):
     final = []
@@ -51,7 +26,7 @@ def generate_genesis_top_beats(length):
                 grid_f(
                     i + j,
                     function=our_transform,
-                    object=get_centered_circle_numpy_nofill(radius=(the_rand_2), offset_x=the_rand, offset_y=7),
+                    object=get_centered_circle_numpy_fill(radius=(the_rand_2), offset_x=the_rand, offset_y=7),
                     color=GColor.blue,
                     length=.4,
                 ),
@@ -90,10 +65,10 @@ def bar_down(grid_info):
 
     # Move the bar down based on the speed and sub-beat
     if grid_info.curr_sub_beat % speed == 0:
-        grid_info.y += 1
+        grid_info.y += getattr(grid_info, 'step_size', 1)
 
 
-def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, intensity=1, speed=1):
+def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, intensity=1, speed=1, y_range=5, step_size=1):
     if end_color == None:
         end_color = GColor.nothing
     building = []
@@ -104,7 +79,7 @@ def spawn_half_fallers(start_beat, total_beats, start_color, end_color=None, int
         curr_color = scale_vector(curr_color, intensity)
         random_thing = random.randint(1, 3)
         building += [
-            grid_f(beat, function=bar_down, length=2, x_pos=quarter_x * random_thing, y_range=5, color=curr_color, speed=speed),
+            grid_f(beat, function=bar_down, length=2, x_pos=quarter_x * random_thing, y_range=y_range, color=curr_color, speed=speed, step_size=step_size),
         ]
     return building
 
@@ -162,14 +137,14 @@ effects = {
     "genesis lasers": {
         "length": 8,
         "beats": [
-            *spawn_half_fallers(start_beat=1, total_beats=8, start_color=GColor.blue, end_color=GColor.pink, intensity=1, speed=4),
+            *spawn_half_fallers(start_beat=1, total_beats=8, start_color=GColor.blue, end_color=GColor.pink, intensity=1, speed=8, y_range=8, step_size=2),
         ]
     },
 
-    'wub': {
-        "length": 1,
+    'genesis wub': {
+        "length": 2,
         "beats": [
-            grid_f(1, function=bounce_line_x, length=1),
+            grid_f(1, function=bounce_line_x, length=2, extra_wait_arr=[0, 0, 0]),
         ]
     },
 
@@ -234,17 +209,11 @@ effects = {
             b(132, name='genesis lasers', length=8),
             # same as before part but with laser sounds???
             b(140, name='genesis Chorus', length = 24),
-            b(142.2, name='wub', length=1 ),
-            b(143.2, name='wub', length=1 ),
-            b(144.2, name='wub', length=1 ),
+            b(142.2, name='genesis wub', length=3),
 
-            b(150.2, name='wub', length=1 ),
-            b(151.2, name='wub', length=1 ),
-            b(152.2, name='wub', length=1 ),
+            b(150.2, name='genesis wub', length=3),
 
-            b(158.2, name='wub', length=1 ),
-            b(159.2, name='wub', length=1 ),
-            b(160.2, name='wub', length=1 ),
+            b(158.2, name='genesis wub', length=3),
 
 
             # break down part 1
@@ -252,17 +221,11 @@ effects = {
 
             # back to normal beat
             b(172, name='genesis Chorus', length = 24),
-            b(174.2, name='wub', length=1 ),
-            b(175.2, name='wub', length=1 ),
-            b(176.2, name='wub', length=1 ),
+            b(174.2, name='genesis wub', length=3),
 
-            b(182.2, name='wub', length=1 ),
-            b(183.2, name='wub', length=1 ),
-            b(184.2, name='wub', length=1 ),
+            b(182.2, name='genesis wub', length=3),
 
-            b(190.2, name='wub', length=1 ),
-            b(191.2, name='wub', length=1 ),
-            b(192.2, name='wub', length=1 ),
+            b(190.2, name='genesis wub', length=3),
 
             # break down part 2
             b(196, name = 'Green top', length = 8),
@@ -277,30 +240,26 @@ effects = {
             grid_f(270, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(273, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(274, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(278.2, name='wub', length=1 ),
-            b(279.2, name='wub', length=1 ),
+            b(278.2, name='genesis wub', length=2 ),
 
             grid_f(285, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(286, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(289, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(290, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(294.2, name='wub', length=1 ),
-            b(295.2, name='wub', length=1 ),
+            b(294.2, name='genesis wub', length=2 ),
 
             grid_f(301, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(302, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(305, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(306, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(310.2, name='wub', length=1 ),
-            b(311.2, name='wub', length=1 ),
+            b(310.2, name='genesis wub', length=2 ),
 
 
             grid_f(317, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(318, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
             grid_f(321, filename='genesis_cross.jpeg', rotate_90=True, length=0.5), # color=.04 is multiplier
             grid_f(322, filename='genesis_cross.jpeg', rotate_90=True, length=1.5), # color=.04 is multiplier
-            b(326.2, name='wub', length=1 ),
-            b(327.2, name='wub', length=1 ),
+            b(326.2, name='genesis wub', length=2 ),
 
         ]
     }

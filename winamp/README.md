@@ -31,12 +31,13 @@ cmake -DCMAKE_BUILD_TYPE=Release -Bprojectm/ -Sprojectm/ && cmake --build projec
 
 #### ON MACOS ARM (M1, M2):
 * need sdl: `brew install sdl2`
-* need blackhole (loopback audio driver install via brew)
-    * create new audio device via "audio midi input" app that outputs to blackhole and is the default output device
 * building the c++ and python interop module (run in this directory)
 ```
 cmake -DCMAKE_BUILD_TYPE=Release projectm/CMakeLists.txt -Bprojectm/ -Sprojectm/ && cmake --build projectm/ -- -j4 && python build_projectm.py build --build-lib=.
 ```
+* need blackhole (loopback audio driver install via brew)
+    * need sdl: `brew install blackhole`
+    * create new audio device via "audio midi input" app that outputs to blackhole and is the default output device
 * run `python test_winamp.py`
 
 

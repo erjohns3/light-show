@@ -24,19 +24,45 @@ effects = {
     # },
 
 
+    "autogen circle pulsing": {
+        "length": 8,
+        "autogen": "complex grid",
+        "beats": [
+            b(1, name='grid color pulse .3', length=8),
+            b(1, name='5 hours rotate circle 2', length=8)        
+        ],
+    },
+
+
+    "autogen bounce_line_x": {
+        "length": 8,
+        "autogen": "complex grid",
+        "beats": [
+            grid_f(1, function=bounce_line_x, color=GColor.orange, length=8),
+        ],
+    },
+
+    "autogen bounce_line_y": {
+        "length": 8,
+        "autogen": "complex grid",
+        "beats": [
+            grid_f(1, function=bounce_line_y, color=GColor.pink, speed=3, length=8),
+        ],
+    },
+
     "autogen twinkle": {
         "length": 8,
         "autogen": "complex grid",
         "intensity": "low",
         "beats": [
-            *make_twinkle(color=GColor.white, length=8)
-        ],
+            *make_twinkle(start_beat=1, length=8, color=GColor.seafoam, twinkle_length=2, num_twinkles=25, twinkle_lower_wait=0.25, twinkle_upper_wait=2),
+        ]
     },
 
     "autogen s circle": {
         "length": 2,
         "autogen": "complex grid",
-        "intensity": "low",
+        # "intensity": "low",
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.red, end_color=GColor.yellow),
         ],
@@ -45,7 +71,7 @@ effects = {
     "autogen s circle 2": {
         "length": 2,
         "autogen": "complex grid",
-        "intensity": "low",
+        # "intensity": "low",
         "beats": [
             *get_circle_pulse_beats(start_beat=1, start_color=GColor.blue, end_color=GColor.red),
         ],

@@ -22,11 +22,27 @@ import pathlib
 import random
 import collections
 import ctypes
+import json
 
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 sys.path.insert(0, str(this_file_directory))
 sys.path.insert(0, str(this_file_directory.parent))
 from helpers import *
+
+
+winamp_offsets_filepath = this_file_directory.joinpath('winamp_offsets.json')
+if winamp_offsets_filepath.exists() and winamp_offsets_filepath.stat().st_size == 0:
+    winamp_offsets_filepath.unlink()
+
+if not winamp_offsets_filepath.exists():
+    with open(winamp_offsets_filepath, 'w') as f:
+        json.dump({}, f)
+
+winamp_offsets = {}
+with open(winamp_offsets_filepath, 'r') as f:
+    winamp_offsets = json.load(f)
+
+print(f'Loaded {len(winamp_offsets)} winamp offsets from {winamp_offsets_filepath}')
 
 
 result_of_last_load_call = None
@@ -98,14 +114,17 @@ def try_load_audio_device():
         if loaded_id != -1:
             print_yellow(f'Loaded audio device id: {loaded_id}, this is hardcoded, fix')
     elif is_andrews_main_computer():
+        print(audio_devices)
         for id, device_name in audio_devices.items():
-            if 'Monitor of henry' in device_name:
+            if 'Starship' in device_name:
+            # if 'henry' in device_name:
                 loaded_id = init_audio_id(id)
                 if loaded_id != -1:
                     print_green(f'Loaded audio device id: {loaded_id}')
                 break
+            
         else:
-            print_red('WARNING: ON ANDREWS COMPUTER BUT HENRY ISNT ON')
+            print_red('WARNING: ON ANDREWS COMPUTER BUT COULDN\'T FIND CORRECT MONITOR')
     elif is_macos():
         for id, device_name in audio_devices.items():
             print_cyan(f'AUDIO {id=}, {device_name=}')
@@ -209,23 +228,40 @@ def get_random_preset_path():
     return preset_path
 
 
+
+last_set_sensitivity = None
 def increase_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot increase beat sensitivity')
-    
+    global last_set_sensitivity
     new_val = get_beat_sensitivity() + amt
     winamp_visual.set_beat_sensitivity(new_val)
     print(f'beat sensitivity: {get_beat_sensitivity()}')
+    last_set_sensitivity = new_val
     return new_val
 
 
 def decrease_beat_sensitivity(amt=.01):
     if not winamp_visual_loaded:
         return print_red(f'winamp_visual module not loaded, cannot decrease beat sensitivity')
+    global last_set_sensitivity
     new_val = get_beat_sensitivity() - amt
     winamp_visual.set_beat_sensitivity(new_val)
     print(f'beat sensitivity: {get_beat_sensitivity()}')
+    last_set_sensitivity = new_val
     return new_val
+
+
+def set_beat_sensitivity(val):
+    if not winamp_visual_loaded:
+        return print_red(f'winamp_visual module not loaded, cannot set beat sensitivity')
+    global last_set_sensitivity
+    if val == last_set_sensitivity:
+        return val
+    winamp_visual.set_beat_sensitivity(val)
+    print(f'beat sensitivity: {get_beat_sensitivity()}')
+    last_set_sensitivity = val
+    return val
 
 
 def get_beat_sensitivity():

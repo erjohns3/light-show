@@ -64,7 +64,8 @@ parser.add_argument('--fake_winamp', dest='fake_winamp', default=False, action='
 parser.add_argument('--terminal', dest='force_terminal', default=False, action='store_true')
 parser.add_argument('--no_curve', dest='no_curve', default=True, action='store_false')
 parser.add_argument('--full_grid', dest='full_grid', default=False, action='store_true')
-
+parser.add_argument('--print_info_terminal_lines', dest='should_print_info_terminal_lines', default=False, action='store_true')
+parser.add_argument('--skip_render', default=False, action='store_true')
 args = parser.parse_args()
 
 if is_doorbell():
@@ -83,9 +84,12 @@ if is_windows():
 if args.winamp == None:
     args.winamp = True
 
-
 this_file_directory = pathlib.Path(__file__).parent.resolve()
 effects_dir = this_file_directory.joinpath('effects')
+
+
+
+
 
 beat_sens_string = 'Beat Sens: N/A'
 if args.fake_winamp:
@@ -96,7 +100,6 @@ elif args.winamp:
     if not grid_helpers.try_load_winamp():
         print_red(f'Failed to load winamp, exiting')
         exit()
-
     # put this in for eager load of winamp
     # if not grid_helpers.try_setup_winamp():
     #     print_red(f'Failed to setup winamp, exiting')
@@ -104,6 +107,24 @@ elif args.winamp:
     # result = winamp.winamp_wrapper.get_beat_sensitivity()
     # if result is not None:
     #     beat_sens_string = f'Beat Sens: {result}'
+
+
+    needs_to_save_winamp_offsets = False
+    def save_all_winamp_offsets():
+        with open(grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath, 'w') as f:            
+            json.dump(grid_helpers.winamp.winamp_wrapper.winamp_offsets, f, indent=4)
+
+    # spawn a thread to save winamp offsets every 30 seconds
+    def save_winamp_offsets_thread():
+        global needs_to_save_winamp_offsets
+        the_f = grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath
+        while True:
+            time.sleep(30)
+            # print(f'{cyan(f"Saving winamp offsets to {the_f}")}')
+            if needs_to_save_winamp_offsets:
+                save_all_winamp_offsets()
+                needs_to_save_winamp_offsets = False
+    threading.Thread(target=save_winamp_offsets_thread, daemon=True).start()
 
 
 pi = None
@@ -142,7 +163,7 @@ song_playing = False
 song_time = 0
 queue_salt = 0
 
-broadcast_light_status, broadcast_song_status, broadcast_dev_status = False, False, False 
+broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update = False, False, False, False
 download_queue, search_queue = [], []
 
 def setup_gpio():
@@ -170,16 +191,21 @@ rekordbox_time = None
 rekordbox_original_bpm = None
 take_rekordbox_input = False
 rekordbox_effect_name = None
-async def init_rekordbox_bridge_client(websocket, path):
+async def init_rekordbox_bridge_client(websocket, path=None):
     global rekordbox_bpm, rekordbox_original_bpm, rekordbox_time, time_start, curr_bpm, song_time, take_rekordbox_input, song_playing, broadcast_song_status, song_name_to_show_names, rekordbox_effect_name
     print('rekordbox made connection to new client')
     rekordbox_title = None
     while True:
         try:
             msg = json.loads(await websocket.recv())
+            # print('rekordbox msg', msg)
         except:
-            return print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
-
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
+            return
         if 'title' in msg and 'original_bpm' in msg:
             stop_song()
             broadcast_song_status = True
@@ -239,8 +265,8 @@ async def init_rekordbox_bridge_client(websocket, path):
                 time_start = time.time() - ((rekordbox_time - to_delay) * (rekordbox_original_bpm / rekordbox_bpm))
 
 
-async def init_dj_client(websocket, path):
-    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, laser_mode
+async def init_dj_client(websocket, path=None):
+    global curr_bpm, time_start, song_playing, beat_sens_string, broadcast_light_status, broadcast_song_status, broadcast_dev_status, broadcast_winamp_offset_update, laser_mode, needs_to_save_winamp_offsets
     print('DJ Client: made connection to new client')
 
     message = {
@@ -268,7 +294,11 @@ async def init_dj_client(websocket, path):
             light_sockets.remove(websocket)
             if websocket in dev_sockets:
                 dev_sockets.remove(websocket)
-            print('DJ Client: socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         beat_sens_number = 'N/A'
@@ -325,6 +355,59 @@ async def init_dj_client(websocket, path):
                         compile_lut({maybe_new_effect_name: effects_config[maybe_new_effect_name]})
                     curr_effects[0][0] = maybe_new_effect_name
 
+            elif msg['type'] == 'winamp_offset_update':
+                slider_id, slider_value = msg['id'], msg['value']
+                # print(f'Recieved winamp offset update: {slider_id} = {slider_value}')
+                curr_winamp_effect = None
+                for i in range(len(curr_effects)):
+                    effect_name = curr_effects[i][0]
+                    effect = effects_config[effect_name]
+                    for p in effect.get('profiles', []):
+                        if 'winamp' in p.lower():
+                            curr_winamp_effect = (effect_name, effect)
+                            break
+                if curr_winamp_effect is None:
+                    print_red('No winamp effect found, skipping winamp offset update')
+                    continue
+
+                effect = curr_winamp_effect[1]
+                winamp_offsets = effect.get('winamp_offsets', {
+                    'winamp_bright_shift': 0,
+                    'winamp_hue_shift': 0,
+                    'winamp_sat_shift': 0,
+                    'winamp_beat_sensitivity': 1,
+                    'rating': 0,
+                })
+                if slider_id == 'lightness':
+                    winamp_offsets['winamp_bright_shift'] = float(slider_value) / 100
+                elif slider_id == 'hue':
+                    winamp_offsets['winamp_hue_shift'] = float(slider_value) / 360
+                elif slider_id == 'saturation':
+                    winamp_offsets['winamp_sat_shift'] = float(slider_value) / 100
+                elif slider_id == 'sensitivity':
+                    winamp_offsets['winamp_beat_sensitivity'] = float(slider_value)
+                elif slider_id == 'rating':
+                    winamp_offsets['rating'] = int(slider_value)
+                effect['winamp_offsets'] = winamp_offsets
+
+                effects_config_dj_client[effect_name]['winamp_offsets'] = winamp_offsets
+                broadcast_winamp_offset_update = [effect_name]
+                needs_to_save_winamp_offsets = True
+                grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = winamp_offsets
+
+
+                # from the current effect remove all profiles that have "winamp rated" in them
+                if 'profiles' in effect:
+                    new_profiles = []
+                    for profile in effect['profiles']:
+                        if 'winamp rated' not in profile.lower():
+                            new_profiles.append(profile)
+                    if winamp_offsets['rating'] > 0:
+                        new_profiles.append(f'winamp rated {winamp_offsets["rating"]}')
+                    new_profiles = list(set(new_profiles))
+                    effect['profiles'] = new_profiles
+                    effects_config_dj_client[effect_name]['profiles'] = new_profiles
+
             broadcast_light_status = True
 
 
@@ -377,7 +460,7 @@ def download_song(url, uuid):
                 add_queue_balanced(show_name, uuid)
 
 
-async def init_queue_client(websocket, path):
+async def init_queue_client(websocket, path=None):
     global curr_bpm, song_playing, song_time, broadcast_light_status, broadcast_song_status
     print('Song Queue: made connection to new client')
 
@@ -407,7 +490,11 @@ async def init_queue_client(websocket, path):
             msg = json.loads(await websocket.recv())
         except:
             song_sockets.remove(websocket)
-            print('socket recv FAILED - ' + websocket.remote_address[0] + ' : ' + str(websocket.remote_address[1]), flush=True)
+            if websocket.remote_address and len(websocket.remote_address) == 2:
+                addy_1, addy_2 = websocket.remote_address
+                print('DJ Client: socket recv FAILED - ' + addy_1 + ' : ' + str(addy_2), flush=True)
+            else:
+                print('DJ Client: socket recv FAILED - ' + str(websocket.remote_address), flush=True)
             break
 
         print('Song Queue: message recieved:', msg)
@@ -611,6 +698,40 @@ async def send_song_status():
     }
     await broadcast(song_sockets, json.dumps(message))
     broadcast_song_status = False
+
+
+async def send_winamp_offsets():
+    global broadcast_winamp_offset_update
+
+    if broadcast_winamp_offset_update:
+        effect_names = [x for x in broadcast_winamp_offset_update]
+
+        my_arr = []
+        for effect_name in effect_names:
+            # print(f'UPDATING {effect_name=}, {winamp_offsets}' * 50)
+            effect = effects_config[effect_name]
+            winamp_offsets = effect.get('winamp_offsets', {
+                'winamp_bright_shift': 0,
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 0,
+                'winamp_beat_sensitivity': 1,
+                'rating': 0,
+            })
+            my_arr.append({
+                'effect_name': effect_name,
+                'winamp_bright_shift': winamp_offsets['winamp_bright_shift'] * 100,
+                'winamp_hue_shift': winamp_offsets['winamp_hue_shift'] * 360,
+                'winamp_sat_shift': winamp_offsets['winamp_sat_shift'] * 100,
+                'winamp_beat_sensitivity': winamp_offsets['winamp_beat_sensitivity'],
+                'rating': winamp_offsets['rating'],
+            })
+        print(my_arr)
+        await broadcast(light_sockets, json.dumps({
+            'update_winamp_offsets': my_arr
+        }))
+        broadcast_winamp_offset_update = False
+
+
 
 
 async def send_dev_status():
@@ -822,9 +943,10 @@ def render_terminal(light_levels):
 
 pin_light_levels = [0] * LIGHT_COUNT
 
+last_guys = None
 @profile
 async def light():
-    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects
+    global beat_index, song_playing, song_time, broadcast_song_status, broadcast_light_status, last_called_grid_render, curr_effects, last_guys
 
     download_thread = None
     search_thread = None 
@@ -950,22 +1072,79 @@ async def light():
             # grid_helpers.grid[:, int(3 * (grid_helpers.GRID_HEIGHT / 4))] = [grid_levels_from_front_back[0]-50, grid_levels_from_front_back[1]-50, grid_levels_from_front_back[2]-50] # front
             # grid_helpers.grid[:, grid_helpers.GRID_HEIGHT // 4] = [grid_levels_from_front_back[3], grid_levels_from_front_back[4], grid_levels_from_front_back[5]] # back
 
+        # !TODO stable sort it so that winamps are always first in the current effects? Then it'll only apply the winamp offsets once to just the winamp effects 
+        has_played_winamp = False
         for priority, info_arr in sorted(list(infos_for_this_sub_beat.items())):
             for info in info_arr:
+                if getattr(info, 'is_winamp', None) is True:
+                    if has_played_winamp:
+                        continue
+                    has_played_winamp = True
+                
                 try:
                     info.grid_function(info)
                 except Exception:
                     print_stacktrace()
                     print_yellow(f'TRIED TO CALL {info=}, but it DIDNT work, stacktrace above')
+                
+                if getattr(info, 'is_winamp', None) is True:
+                    effects = [effects_config[effect_name] for effect_name, _ in curr_effects]
+                    for effect in effects:
+                        if effect.get('winamp_offsets'):
+                            lightness_shift = effect['winamp_offsets'].get('winamp_bright_shift', 0)
+                            hue_shift = effect['winamp_offsets'].get('winamp_hue_shift', 0)
+                            sat_shift = effect['winamp_offsets'].get('winamp_sat_shift', 0)
+                            sensitivity = effect['winamp_offsets'].get('winamp_beat_sensitivity', 1.0)
+                            winamp.winamp_wrapper.set_beat_sensitivity(sensitivity)
+                            for i in range(grid_helpers.GRID_WIDTH):
+                                for j in range(grid_helpers.GRID_HEIGHT):
+                                    r, g, b = grid_helpers.grid[i, j]
+
+                                    r_norm, g_norm, b_norm = r / 255.0, g / 255.0, b / 255.0
+
+                                    h, l, s = colorsys.rgb_to_hls(r_norm, g_norm, b_norm)
+                                    h = (h + hue_shift) % 1.0
+                                    l += lightness_shift
+                                    s += sat_shift
+
+                                    l = max(0.0, min(1.0, l))
+                                    s = max(0.0, min(1.0, s))
+
+                                    r_new_norm, g_new_norm, b_new_norm = colorsys.hls_to_rgb(h, l, s)
+
+                                    r_new = int(r_new_norm * 255)
+                                    g_new = int(g_new_norm * 255)
+                                    b_new = int(b_new_norm * 255)
+
+                                    grid_helpers.grid[i, j] = [r_new, g_new, b_new]
+
         grid_helpers.grid = np.clip(grid_helpers.grid, a_min=0, a_max=100)
 
         # Render the grid to the terminal
         if args.local or args.force_terminal:
-            # grid_helpers.apply_bezier_to_grid() # for testing
-            render_terminal(pin_light_levels) # this also renders the grid to the terminal
+            if not args.skip_render:
+                # grid_helpers.apply_bezier_to_grid() # for testing
+                render_terminal(pin_light_levels) # this also renders the grid to the terminal
+
 
         # Send relevant pin light levels to the pi. Pins 6-8 are the floor
         if not args.local:
+            # just scale 0-500 to 0-100 for pin_light_levels [6, 7, 8, 16, 17, 18]
+            order_to_color = {
+                0: grid_helpers.grid_red_bezier,
+                1: grid_helpers.grid_green_bezier,
+                2: grid_helpers.grid_blue_bezier
+            }
+            for index, pin_index in enumerate([6, 7, 8, 16, 17, 18]):
+                bezier_color = order_to_color[index % 3]
+                pin_light_levels[pin_index] = round(pin_light_levels[pin_index])
+                pin_light_levels[pin_index] = bezier_color[pin_light_levels[pin_index]]
+
+                pin_light_levels[pin_index] = round((pin_light_levels[pin_index] / 600) * 100)
+                pin_light_levels[pin_index] = max(0, min(100, pin_light_levels[pin_index])) 
+
+
+
             # pin_light_levels[6] = grid_helpers.bottom_red_bezier[pin_light_levels[6]]
             # pin_light_levels[7] = grid_helpers.bottom_green_bezier[pin_light_levels[7]]
             # pin_light_levels[8] = grid_helpers.bottom_blue_bezier[pin_light_levels[8]]
@@ -980,7 +1159,11 @@ async def light():
                 send_num_to_pi = round((pin_light_levels[light_level_index] / 100) * LED_RANGE)
                 pi.set_PWM_dutycycle(LED_PINS[pin_index], send_num_to_pi)
 
-
+        if args.should_print_info_terminal_lines:
+            if last_guys:
+                print('\033[F' * last_guys, end='')
+            last_guys = print_info_terminal_lines()
+            
         # Sends the grid to the pi 
         if not args.local:
             if args.no_curve:
@@ -1015,6 +1198,8 @@ async def light():
             await send_song_status()
         if broadcast_dev_status or (dev_sockets and beat_index % SUB_BEATS == 0):
             await send_dev_status()
+        if broadcast_winamp_offset_update:
+            await send_winamp_offsets()
         
         # math for the next beat
         time_diff = time.time() - time_start
@@ -1355,6 +1540,22 @@ def set_effect_defaults(effect_name, effect): # this must be safe to run multipl
     if 'loop' not in effect:
         effect['loop'] = True
 
+    if args.winamp and effect_name in grid_helpers.winamp.winamp_wrapper.winamp_offsets:
+        effect['winamp_offsets'] = grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name]
+        rating = effect['winamp_offsets'].get('rating', 0)
+        if rating > 0:
+            effect['profiles'].append(f'winamp rated {rating}')
+    else:
+        if args.winamp and effect['from_python_file'] == 'effects/winamp_effects.py':
+            effect['winamp_offsets'] = {
+                'winamp_bright_shift': 0,
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 100,
+                'winamp_beat_sensitivity': 1.0,
+                'rating': 0,
+            }
+            grid_helpers.winamp.winamp_wrapper.winamp_offsets[effect_name] = effect['winamp_offsets']
+
 
 def precompile_some_luts_effects_config():
     compile_all_luts_start_time = time.time()
@@ -1371,9 +1572,14 @@ def precompile_some_luts_effects_config():
             if effect.get('was_autogenerated', False):
                 effects_config_clients = [effects_config_queue_client]
             
-            needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated']
+            needed_fields = ['profiles', 'loop', 'trigger', 'bpm', 'length', 'song_path', 'was_autogenerated', 'winamp_offsets']
             for effects_config_client in effects_config_clients:
                 effects_config_client[effect_name] = {key: value for key, value in effect.items() if key in needed_fields}
+
+                # for key, value in effect.items():
+                #     if key == 'winamp_offsets':
+                #         print(f'OK HERE {value}')
+                        # exit()
 
     # print(effects_config_dj_client)
     # from pympler import asizeof
@@ -1584,19 +1790,21 @@ def compile_lut(local_effects_config):
 
 
                     if hue_shift or sat_shift or bright_shift or grid_bright_shift:
-                        for part in range(3):
-                            rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
+                        for index, channel_index in enumerate([0, 3, 6, 16]):
+                            rd, gr, bl = beats[start_beat + i][channel_index:channel_index + 3]
+
                             hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
                             new_hue = (hue + hue_shift) % 1
                             new_sat = min(1, max(0, sat + sat_shift))
                             # bright shift is relative to initial brightness
                             new_bright = min(1, max(0, bright + bright*bright_shift))
-                            if (part == 0 or part == 1): # tbd
+                            if index < 2: # tbd
                                 new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
-                            final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
-                            final_channel[part * 3] *= 100
-                            final_channel[part * 3 + 1] *= 100
-                            final_channel[part * 3 + 2] *= 100
+                            beats[start_beat + i][channel_index:channel_index + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+
+                            beats[start_beat + i][channel_index] *= 100
+                            beats[start_beat + i][channel_index + 1] *= 100
+                            beats[start_beat + i][channel_index + 2] *= 100
 
     print_blue(f'Complex effects took: {time.time() - complex_effect_perf_timer:.3f} seconds')
 
@@ -1804,6 +2012,9 @@ if __name__ == '__main__':
     if args.keyboard and not is_doorbell():
         import joystick_and_keyboard_helpers
         skip_time = 5
+        def if_is_macos_then_kill_self(delay=0.5):
+            if is_macos():
+                kill_self(delay)
         joystick_and_keyboard_helpers.add_keyboard_events({
             'p': output_current_beat,
             'b': lambda: print(winamp.winamp_wrapper.get_beat_sensitivity()),
@@ -1813,21 +2024,26 @@ if __name__ == '__main__':
             'down': lambda: restart_show(skip=-2),
             'left': lambda: restart_show(skip=-skip_time),
             'right': lambda: restart_show(skip=skip_time),
+            'esc': lambda: if_is_macos_then_kill_self(0.5),
         })
         joystick_and_keyboard_helpers.listen_to_keyboard()
 
-    https_server_async(9555, this_file_directory, ['', 'dj.html'])
+    import ssl
+    ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    ssl_context.load_cert_chain(certfile='fullchain.pem', keyfile='privkey.pem')
+
+    https_server_async(9555, this_file_directory, ssl_context=ssl_context, for_printing= ['', 'dj.html'])
 
     async def light_show_event_loop_start():
         print_cyan(f'Up to light_show_event_loop_start: {time.time() - first_start_time:.3f}')
+
+        # keeping as non FOR NOW
         rekordbox_bridge_server = await websockets.serve(init_rekordbox_bridge_client, '0.0.0.0', 1567)
 
-        import ssl
-        ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ssl_context.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
         dj_socket_server = await websockets.serve(init_dj_client, '0.0.0.0', 1337, ssl=ssl_context)
-
         queue_socket_server = await websockets.serve(init_queue_client, '0.0.0.0', 7654, ssl=ssl_context)
+
+        print(f'Websocket servers started, {dj_socket_server.sockets[0].getsockname()=}, {queue_socket_server.sockets[0].getsockname()=}, {rekordbox_bridge_server.sockets[0].getsockname()=}')
 
         if args.show_name:
             print('Starting show from CLI:', args.show_name)

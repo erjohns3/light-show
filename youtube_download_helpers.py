@@ -345,6 +345,7 @@ if __name__ == '__main__':
         exit()
 
     if args.gen_show:
+        # !TODO check here if the name already exists and ask if they want to overwrite
         print_blue('Generating show file for the downloaded file')
         import autogen
         relative_downloaded_filepath = downloaded_filepath.relative_to(pathlib.Path(__file__).parent)

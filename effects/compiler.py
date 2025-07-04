@@ -17,6 +17,7 @@ import random
 from collections import deque
 import copy
 import joystick_and_keyboard_helpers
+import colorsys
 
 import numpy as np
 from PIL import Image
@@ -41,6 +42,7 @@ class GColor:
     pink = (100, 0, 50)
     light_blue = (0, 50, 100)
     light_green = (50, 100, 0)
+    nothing = (0, 0, 0)
 
 
 
@@ -171,6 +173,67 @@ def twinkle(grid_info):
         grid_helpers.grid[curr_x][curr_y] += interpol_color
 
 
+
+
+def bounce_line_y(grid_info):
+    if getattr(grid_info, 'curr_y', None) is None:
+        grid_info.curr_y = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    speed = getattr(grid_info, 'speed', 1)
+
+    if (grid_info.curr_sub_beat + getattr(grid_info, 'sub_beat_offset', 0)) % 48 == 0:
+        if grid_info.curr_y == grid_helpers.GRID_HEIGHT - 1:
+            grid_info.dir = -1
+        else:
+            grid_info.dir = 1
+
+    # if grid_info.curr_sub_beat % speed == 0:
+    grid_info.curr_y += grid_info.dir * speed
+    if grid_info.curr_y < 0:
+        grid_info.curr_y = 0
+    if grid_info.curr_y >= grid_helpers.GRID_HEIGHT:
+        grid_info.curr_y = grid_helpers.GRID_HEIGHT - 1
+
+    for x in range(0, grid_helpers.GRID_WIDTH):
+        grid_helpers.grid[x][grid_info.curr_y] = grid_info.color
+
+
+def bounce_line_x(grid_info):
+    if getattr(grid_info, 'curr_x', None) is None:
+        grid_info.curr_x = 0
+
+    if getattr(grid_info, 'color', None) is None:
+        grid_info.color = GColor.light_green
+
+    if getattr(grid_info, 'dir', None) is None:
+        grid_info.dir = 1
+
+    speed = int(1 / getattr(grid_info, 'speed', 1))
+
+    if grid_info.curr_sub_beat % 48 == 0:
+        if grid_info.curr_x == grid_helpers.GRID_WIDTH - 1:
+            grid_info.dir = -1
+        else:
+            grid_info.dir = 1
+
+    if grid_info.curr_sub_beat % speed == 0:
+        grid_info.curr_x += grid_info.dir * 2
+        if grid_info.curr_x < 0:
+            grid_info.curr_x = 0
+        if grid_info.curr_x >= grid_helpers.GRID_WIDTH:
+            grid_info.curr_x = grid_helpers.GRID_WIDTH - 1
+
+        for y in range(0, grid_helpers.GRID_HEIGHT):
+            grid_helpers.grid[grid_info.curr_x][y] = grid_info.color
+
+
+# !TODO fix so first cycle isn't bad if upper and lower are too close
 def make_twinkle(start_beat=1, length=1, color=GColor.white, twinkle_length=1, num_twinkles=20, twinkle_lower_wait=1, twinkle_upper_wait=4):
     return [grid_f(
         start_beat,
@@ -200,6 +263,62 @@ def get_circle_pulse_beats(start_beat=1, start_color=GColor.white, end_color=Non
             start_color=before_color,
             end_color=after_color,
             length=1/length,
+        ))
+    return arr
+
+
+
+
+
+
+def get_circle_pulse_beats_new(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20, start_pos=None, start_radius=0):
+    if end_color is None:
+        end_color = start_color
+
+    arr = []
+    inv_speed = 1 / speed
+    beats = list(zip([x * inv_speed for x in range(steps)], [inv_speed for x in range(steps)]))
+    if reverse:
+        beats = reversed(beats)
+
+    for index, (beat_offset, length_of_step) in enumerate(beats):
+        before_color = interpolate_vectors_float(start_color, end_color, index / steps)
+        after_color = interpolate_vectors_float(start_color, end_color, (index+1) / steps)
+        thing = grid_f(
+            start_beat + beat_offset,
+            function=our_transform,
+            object=get_centered_circle_numpy_nofill(radius=(index+1) + start_radius),
+            start_color=before_color,
+            end_color=after_color,
+            length=length_of_step,
+        )
+        if start_pos is not None:
+            thing[1].start_pos = start_pos
+        arr.append(thing)
+    return arr
+
+
+def get_circle_pulse_beats_fade(start_beat=1, start_color=GColor.white, end_color=None, reverse=False, speed=5, steps=20):
+    if end_color is None:
+        end_color = start_color
+
+    arr = []
+    inv_speed = 1 / speed
+    beats = list(zip([x * inv_speed for x in range(steps)], [inv_speed for x in range(steps)]))
+    if reverse:
+        beats = reversed(beats)
+
+    for index, (beat_offset, length_of_step) in enumerate(beats):
+        before_color = interpolate_vectors_float(start_color, end_color, index / steps)
+        after_color = interpolate_vectors_float(start_color, end_color, (index+1) / steps)
+
+        arr.append(grid_f(
+            start_beat + beat_offset,
+            function=our_transform,
+            object=get_centered_circle_numpy_nofill(radius=(index+1)),
+            start_color=before_color,
+            end_color=after_color,
+            length=length_of_step,
         ))
     return arr
 
@@ -289,18 +408,24 @@ def get_centered_circle_numpy_nofill(radius, offset_x=0, offset_y=0, color=(100,
             
             if distance <= radius and distance >= inner_radius:
                 circle[x][y] = color
-            # if (outer_radius - circle_width) ** 2 <= distance <= outer_radius ** 2:
-            #     circle[x][y] = color
-
-    # for x in range(grid_width):
-    #     for y in range(grid_height):
-    #         first =  (x - mid_x) ** 2 + (y - mid_y) ** 2 <= (radius ** 2)
-    #         second = (x - mid_x) ** 2 + (y - mid_y) ** 2 >= (radius - 1) ** 2
-    #         if first and second:
-    #             circle[x][y] = color
-
     return circle
 
+
+def get_centered_circle_numpy_fill(radius, offset_x=0, offset_y=0, color=(100, 100, 100)):
+    grid_width, grid_height = grid_helpers.GRID_WIDTH, grid_helpers.GRID_HEIGHT
+
+    circle = np.zeros((grid_width, grid_height, 3), dtype=np.double)
+
+    mid_x = (grid_width // 2) + offset_x
+    mid_y = (grid_height // 2) + offset_y
+
+    for x in range(grid_width):
+        for y in range(grid_height):
+            distance = math.sqrt((x - mid_x) ** 2 + (y - mid_y) ** 2)
+
+            if distance <= radius:
+                circle[x][y] = color
+    return circle
 
 
 
@@ -879,7 +1004,53 @@ def grid_f(start_beat=None, function=None, filename=None, rotate_90=None, text=N
     return [start_beat, info, length]
 
 
-def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None):
+# if hue_shift or sat_shift or bright_shift or grid_bright_shift:
+#     for part in range(3):
+#         rd, gr, bl = final_channel[part * 3:(part * 3) + 3]
+#         hue, sat, bright = colorsys.rgb_to_hsv(max(0, rd / 100.), max(0, gr / 100.), max(0, bl / 100.))
+#         new_hue = (hue + hue_shift) % 1
+#         new_sat = min(1, max(0, sat + sat_shift))
+#         # bright shift is relative to initial brightness
+#         new_bright = min(1, max(0, bright + bright*bright_shift))
+#         if (part == 0 or part == 1): # tbd
+#             new_bright = min(1, max(0, new_bright + new_bright*grid_bright_shift))
+#         final_channel[part * 3:(part * 3) + 3] = colorsys.hsv_to_rgb(new_hue, new_sat, new_bright)
+#         if any([x for x in [rd, gr, bl]]):
+#             print(f'Old hue {hue:.2f}, sat {sat:.2f}, bright {bright:.2f}, new hue {new_hue:.2f}, new sat {new_sat:.2f}, new bright {new_bright:.2f}, old final: {[rd, gr, bl]}, new final: {final_channel[part * 3:(part * 3) + 3]}')
+
+#         final_channel[part * 3] *= 100
+#         final_channel[part * 3 + 1] *= 100
+#         final_channel[part * 3 + 2] *= 100
+
+# like above but simpler and better and no need for grid_bright_shift
+
+def shift(initial, hue_shift=None, sat_shift=None, bright_shift=None):
+    # Normalize initial RGB values to 0-1 scale
+    r, g, b = [max(0, min(1, c / 100.0)) for c in initial]
+    
+    # Convert RGB to HSV
+    hue, sat, bright = colorsys.rgb_to_hsv(r, g, b)
+    
+    # Adjust hue if hue_shift is specified
+    if hue_shift is not None:
+        hue = (hue + hue_shift) % 1
+    
+    # Adjust saturation if sat_shift is specified
+    if sat_shift is not None:
+        sat = min(1, max(0, sat + sat_shift))
+    
+    # Adjust brightness if bright_shift is specified
+    if bright_shift is not None:
+        bright = min(1, max(0, bright + bright * bright_shift))
+    
+    # Convert HSV back to RGB
+    r_new, g_new, b_new = colorsys.hsv_to_rgb(hue, sat, bright)
+    
+    # Scale RGB values back to 0-100
+    return [c * 100 for c in (r_new, g_new, b_new)]
+
+
+def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_rgb=None, bottom_vert_rgb=None, uv=None, green_laser=None, red_laser=None, laser_motor=None, disco_rgb=None, hue_shift=None, sat_shift=None, bright_shift=None, grid_bright_shift=None):
     if disco_rgb is None:
         disco_rgb = [0, 0, 0]
 
@@ -910,6 +1081,13 @@ def s(top_rgb=None, front_rgb=None, back_rgb=None, bottom_rgb=None, bottom_hori_
     if not bottom_vert_rgb:
         bottom_vert_rgb = [0, 0, 0]
 
+    bottom_hori_rgb = shift(bottom_hori_rgb, hue_shift, sat_shift, bright_shift)
+    bottom_vert_rgb = shift(bottom_vert_rgb, hue_shift, sat_shift, bright_shift)
+    front_rgb = shift(front_rgb, hue_shift, sat_shift, bright_shift)
+    back_rgb = shift(back_rgb, hue_shift, sat_shift, bright_shift)
+    # !TODO might need grid_shift here
+
+
     return back_rgb[:] + front_rgb[:] + bottom_hori_rgb[:] + [uv, green_laser, red_laser, laser_motor] + disco_rgb[:] + bottom_vert_rgb[:]
 
 
@@ -935,7 +1113,7 @@ def b(start_beat=None, name=None, length=None, intensity=None, offset=None, hue_
         raise Exception('Cannot define bottom_hori_rgb or bottom_vert_rgb if bottom_rgb is defined')
 
     if name is None:
-        channel = s(top_rgb, front_rgb, back_rgb, bottom_rgb, bottom_hori_rgb, bottom_vert_rgb, uv, green_laser, red_laser, laser_motor, disco_rgb)
+        channel = s(top_rgb, front_rgb, back_rgb, bottom_rgb, bottom_hori_rgb, bottom_vert_rgb, uv, green_laser, red_laser, laser_motor, disco_rgb, hue_shift, sat_shift, bright_shift, grid_bright_shift)
         return [start_beat, channel, length]
 
     if intensity is None:

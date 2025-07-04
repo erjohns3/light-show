@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#000000">
+    <title>Light Show</title>
+    <link rel="manifest" href="dj-manifest.webmanifest">
+</head>
+
+<body tabindex="-1">
+
+    <template id="template-effect-button">
+        <div class="button-symbol"></div>
+        <div class="button-name"></div>
+        <div class="button-bpm"></div>
+        <div class="button-length"></div>
+        <div class="button-loop"></div>
+        <div class="button-trigger"></div>
+    </template>
+
+    <template id="template-profile-button">
+        <div class="profile-name"></div>
+        <div class="profile-playing"></div>
+    </template>
+
+    <div id="background">
+    </div>
+
+    <div id="profile-box"></div>
+
+    <div id="effects-box">
+    </div>
+    <div id="page-up" class="button">Up</div>
+    <div id="page-label">0/0</div>
+    <div id="page-down" class="button">Dn</div>
+
+    <div id="refresh" class="button">Refresh</div>
+    <div id="laser-mode" class="button">Laser Mode</div>
+    <div id="clear" class="button">Clear</div>
+    <div id="dev-mode" class="button">Dev Mode</div>
+</body>
+
+<script>
+    function socketInit() {
+        console.log("socket init");
+        
+        socket = new WebSocket("wss://" + location.hostname + ":9555");
+
+        socket.onopen = function () {
+            // sometimes takes a long time to get here
+            console.log("socket open");
+
+            socketAttempts = 0;
+
+            if (!socketConnected) {
+                socketConnected = true;
+            }
+        }
+
+        socket.onclose = function () {
+            console.log("socket close");
+            if (socketConnected) {
+                socketConnected = false;
+            }
+            let delay = 3000;
+            if (socketAttempts == 0) {
+                delay = 0;
+            }
+            setTimeout(() => {
+                if (socket.readyState == WebSocket.CLOSED) {
+                    socketInit();
+                }
+            }, delay);
+
+            socketAttempts++;
+        }
+
+        socket.onerror = function () {
+            console.log("socket error");
+            socket.close();
+        }
+
+        socket.onmessage = function (event) {
+            // console.log("socket message");
+            let msg = JSON.parse(event.data);
+            // console.log('Receiving:', msg);
+
+            if(msg.songs){
+                songsConfig = msg.songs;
+            }
+
+            if(msg.effects){
+                if(Object.keys(effectsConfig).length === 0){
+                    effectsConfig = msg.effects;
+                    for(let effectName in effectsConfig){
+                        // !TODO this is ugly, just dont send...
+                        // if (effectName.startsWith('g_')) {
+                        //     continue
+                        // }
+
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            if(!(profileName in profileButtons)){
+                                profileButtons[profileName] = new ProfileButton(profileName, profileOrder[profileName] ?? 1000);
+                                profileEffects[profileName] = [];
+                                effectButtonIndex[profileName] = {};
+                                profileEffectsIndex[profileName] = 0;
+                            }
+                            effectButtonIndex[profileName][effectName] = profileEffects[profileName].length;
+                            profileEffects[profileName].push(effectName);
+                        }
+                    }
+                    profilesArray = Object.values(profileButtons);
+                    profilesArray.sort((a, b) => a.prescendence - b.prescendence);
+                    for (let profile of profilesArray) {
+                        profileBox.append(profile);
+                    }
+                    profileBox.children[0].activate();
+                }
+            }
+
+            if(msg.status){
+                let effectsPrev = effectsCurr;
+                effectsCurr = {};
+                for(let effectArr of msg.status.effects){
+                    effectName = effectArr[0];
+                    effectsCurr[effectName] = true;
+                }
+                for(effectName in effectsPrev){
+                    if(effectsCurr[effectName] == null){
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            profileButtons[profileName].decreasePlaying();
+                            if(profileName == activeProfile){
+                                let index = effectButtonIndex[activeProfile][effectName];
+                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                    effectButtons[index % 25].deactivate();
+                                }
+                            }
+                        }
+                    }
+                }
+                for(let effectName in effectsCurr){
+                    if(effectsPrev[effectName] == null){
+                        for(let profileName of effectsConfig[effectName].profiles){
+                            profileButtons[profileName].increasePlaying();
+                            if(profileName == activeProfile){
+                                let index = effectButtonIndex[activeProfile][effectName];
+                                if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                                    effectButtons[index % 25].activate();
+                                }
+                            }
+                        }
+                    }
+                }
+                
+
+                if ('laser_mode' in msg.status) {
+                    if (msg.status.laser_mode){
+                        laserModeElem.classList.add('lighten-laser-mode')
+                    }
+                    else {
+                        laserModeElem.classList.remove('lighten-laser-mode')
+                    }
+                }
+
+                if (msg.status.dev_mode) {
+                    devModeElem.classList.add('lighten-dev-mode')
+                }
+                else {
+                    devModeElem.classList.remove('lighten-dev-mode')
+                }
+            }
+        }
+    }
+
+    /////////////////////////////////////////////////////////////////////
+
+    class EffectButton extends HTMLElement {
+        constructor() {
+            super();
+
+            this.appendChild(templateEffectButton.content.cloneNode(true));
+
+            this.nameElem = this.querySelector('.button-name');
+            this.durationElem = this.querySelector('.button-length');
+            this.triggerElem = this.querySelector('.button-trigger');
+            this.bpmElem = this.querySelector('.button-bpm');
+            this.loopElem = this.querySelector('.button-loop');
+            
+            this.active = false;
+            this.pressed = false;
+
+            if (navigator.userAgent.includes('Mobi')) {
+                this.addEventListener('touchstart', this.press, {passive: true});
+                this.addEventListener('touchend', this.release, {passive: true});            
+            } else {
+                this.addEventListener('mousedown', this.press, {passive: true});
+                this.addEventListener('mouseup', this.release, {passive: true});
+            }
+        }
+
+        changeEffect(effect){
+            this.release();
+            this.deactivate();
+            if(effect == null){
+                this.style.visibility = 'hidden';
+            }else{
+                this.style.visibility = 'visible';
+                this.effect = effect;
+
+                if(effectsCurr[this.effect]){
+                    this.activate();
+                }
+
+                this.trigger = effectsConfig[this.effect].trigger;
+                this.toggle = this.trigger == 'toggle';
+                this.hold = this.trigger == 'hold';
+                this.add = this.trigger == 'add';
+
+                if(effectsConfig[this.effect].loop){
+                    this.loopElem.textContent = '∞';
+                }
+                if(effectsConfig[this.effect].bpm){
+                    this.bpmElem.textContent = effectsConfig[this.effect].bpm + ' bpm';
+                }
+
+                if('song_path' in effectsConfig[this.effect] && effectsConfig[this.effect].song_path in songsConfig) {
+                    this.nameElem.textContent = songsConfig[effectsConfig[this.effect].song_path].name;
+                }else {
+                    this.nameElem.textContent = this.effect;
+                }
+                this.durationElem.textContent = decimal(effectsConfig[this.effect].length, 2);
+                this.triggerElem.textContent = this.trigger;
+            }
+        }
+
+        press(event){
+            // event.preventDefault();
+            this.pressed = true;
+            if(this.toggle){
+                if(this.active){
+                    removeEffect(this.effect);
+                }else{
+                    addEffect(this.effect);
+                }
+            }else{
+                addEffect(this.effect);
+            }
+            this.classList.add('effect-button-pressed');
+        }
+
+        release(event){
+            // event.preventDefault();
+            if(this.pressed){
+                this.pressed = false;
+                if(this.hold){
+                    removeEffect(this.effect);
+                }
+                this.classList.remove('effect-button-pressed');
+            }
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('effect-button-active');
+                this.active = true;
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('effect-button-active');
+                this.active = false;
+            }
+        }
+    }
+    customElements.define('effect-button', EffectButton);
+
+
+    class ProfileButton extends HTMLElement {
+        constructor(profileName, prescendence) {
+            super();
+
+            this.appendChild(templateProfileButton.content.cloneNode(true));
+
+            this.profileName = profileName;
+
+            this.prescendence = prescendence;
+
+            this.nameElem = this.querySelector('.profile-name');
+            this.nameElem.textContent = this.profileName;
+
+            this.playingElem = this.querySelector('.profile-playing');
+
+            this.active = false;
+
+            this.playing = 0;
+
+            this.onclick = function (event) {
+                event.preventDefault();
+                profileButtons[activeProfile].deactivate();
+                this.activate();
+            };
+        }
+
+        setPlaying(){
+            if(this.playing == 0){
+                this.playingElem.textContent = '';
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        increasePlaying(){
+            this.playing++;
+            if(this.playing == 0){
+                this.playingElem.textContent = '';
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        decreasePlaying(){
+            this.playing--;
+            if(this.playing == 0){
+                this.playingElem.textContent = '';
+            }else{
+                this.playingElem.textContent = this.playing;
+            }
+        }
+
+        activate(){
+            if(!this.active){
+                this.classList.add('profile-button-active');
+                this.active = true;
+                activeProfile = this.profileName;
+                pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+                effectsBox.style.animation = 'activate-start 100ms ease-in';
+            }
+        }
+
+        deactivate(){
+            if(this.active){
+                this.classList.remove('profile-button-active');
+                this.active = false;
+                activeProfile = null;
+            }
+        }
+    }
+    customElements.define('profile-button', ProfileButton);
+
+    function addEffect(effect){
+        let msg = {
+            type: 'add_effect',
+            effect: effect
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    function removeEffect(effect){
+        let msg = {
+            type: 'remove_effect',
+            effect: effect
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    function sendToggleLaserMode(){
+        let msg = {
+            type: 'toggle_laser_mode',
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    function sendUpdate(){
+        let msg = {
+            type: 'update_config'
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    function sendClear(){
+        let msg = {
+            type: 'clear_effects'
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    function sendDevMode(){
+        let msg = {
+            type: 'toggle_dev_mode',
+        };
+        socket.send(JSON.stringify(msg));
+        // console.log('Sending:', msg);
+    }
+
+    var socket = null;
+    var socketConnected = false;
+    var socketAttempts = 0;
+
+    var uuid = localStorage.getItem('uuid');
+    if (uuid == null) {
+
+        let array = new Uint8Array(16);
+        self.crypto.getRandomValues(array);
+        var uuid = '';
+        for (let i = 0; i < 16; i++) {
+            if (i == 4 || i == 6 || i == 8 || i == 10) {
+                uuid += '-';
+            }
+            uuid += array[i].toString(16);
+        };
+
+        localStorage.setItem('uuid', uuid)
+        console.log('new user: ' + uuid);
+    }
+    console.log('----UUID----')
+    console.log(uuid);
+
+    var profileOrder = {
+        'Andrew': 0,
+        'Eric': 1,
+        'Colors': 10,
+        'Autogen effects': 99999,
+        'Generated Shows': 100000,
+    }
+
+    var effectsConfig = {};
+    var songsConfig = {};
+    
+    var effectButtons = [];
+    var profileButtons = {};
+
+    var profileEffects = {};
+
+    var effectButtonIndex = {};
+
+    var profileBox = document.getElementById('profile-box');
+    var effectsBox = document.getElementById('effects-box');
+    effectsBox.addEventListener('animationend', (event)=>{
+        console.log(event);
+        if(event.animationName == 'activate-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'activate-end 100ms ease-out';
+        }else if(event.animationName == 'up-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'up-end 100ms ease-out';
+        }else if(event.animationName == 'down-start'){
+            updateEffectButtons();
+            effectsBox.style.animation = 'down-end 100ms ease-out';
+        }
+    });
+
+    var templateEffectButton = document.getElementById('template-effect-button');
+    var templateProfileButton = document.getElementById('template-profile-button');
+
+    var effectsCurr = {};
+    var activeProfile = null;
+
+    for(let i=0; i<25; i++){
+        effectButtons[i] = new EffectButton();
+        effectsBox.append(effectButtons[i]);
+    }
+
+    function updateEffectButtons(){
+        for(let i=0; i<25; i++){
+            let index = i + profileEffectsIndex[activeProfile]
+            if(i < profileEffects[activeProfile].length){
+                effectButtons[i].changeEffect(profileEffects[activeProfile][index]);
+            }else{
+                effectButtons[i].changeEffect(null);
+            }
+        }
+    }
+
+    var profileEffectsIndex = {};
+
+    var pageUpElem = document.getElementById('page-up');
+    var pageLabelElem = document.getElementById('page-label');
+    var pageDownElem = document.getElementById('page-down');
+
+    pageUpElem.onclick = function(){
+        if(profileEffectsIndex[activeProfile] - 25 >= 0){
+            profileEffectsIndex[activeProfile] -= 25;
+            effectsBox.style.animation = 'up-start 100ms ease-in';
+            pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+        }
+    }
+
+    pageDownElem.onclick = function(){
+        if(profileEffectsIndex[activeProfile] + 25 < profileEffects[activeProfile].length){
+            profileEffectsIndex[activeProfile] += 25;
+            effectsBox.style.animation = 'down-start 100ms ease-in';
+            pageLabelElem.textContent = (Math.floor(profileEffectsIndex[activeProfile] / 25) + 1) + '/' + Math.ceil(profileEffects[activeProfile].length / 25);
+        }
+    }
+
+    var refreshElem = document.getElementById('refresh');
+    var laserModeElem = document.getElementById('laser-mode');
+    var clearElem = document.getElementById('clear');
+    var devModeElem = document.getElementById('dev-mode');
+
+    function decimal(num, place) {
+        return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
+    }
+    
+    refreshElem.onclick = function () {
+        location.reload();
+    }
+
+    laserModeElem.onclick = function () {
+        sendToggleLaserMode();
+    }
+
+    clearElem.onclick = function () {
+        sendClear();
+    }
+
+    devModeElem.onclick = function () {
+        sendDevMode();
+    }
+
+    // window.oncontextmenu = function(event) {
+    //     event.preventDefault();
+    //     event.stopPropagation();
+    //     return false;
+    // };
+
+    var flareColors = [
+        'hsl(170, 100%, 20%)',
+        'hsl(220, 100%, 20%)',
+        'hsl(270, 100%, 20%)',
+        'hsl(320, 100%, 20%)'
+    ];
+
+    var background = document.getElementById('background');
+    var flareSize = 0;
+
+    window.onload = (event) => {
+        flareSize = window.innerWidth * 0.6;
+        for(let i=0; i<16; i++){
+            let flare = document.createElement('div');
+            flare.classList.add('flare');
+            flare.style.width = flareSize+'px';
+            flare.style.height = flareSize+'px';
+            flare.style.top = (-flareSize*2.5 + Math.random()*window.innerHeight)+'px';
+            flare.style.left = (-flareSize*0.5 + Math.random()*window.innerWidth)+'px';
+            flare.style.setProperty('box-shadow', '0 '+flareSize*2+'px '+flareSize*0.5+'px ' + flareColors[Math.floor(Math.random()*flareColors.length)]);
+            background.appendChild(flare);
+        }
+
+        socketInit();
+    };
+
+</script>
+
+<style>
+
+    body {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        color-scheme: dark;
+        user-select: none;
+        margin: 0;
+        padding: 0;
+        font-family: sans-serif;
+        font-size: 0;
+        color: hsl(0, 0%, 80%);
+        -webkit-user-select: none;
+    }
+
+    #background{
+        position: absolute;
+        z-index: -1;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        background-color: black;
+    }
+
+    .flare{
+        position: absolute;
+        border-radius: 100%;
+    }
+
+    #profile-box{
+        position: absolute;
+        width: 20vw;
+        height: 70vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    profile-button{
+        position: relative;
+        height: 10vh;
+        margin: 0.5vw;
+        border-radius: 0.5vw;
+        display: block;
+        background-color: hsla(0, 0%, 0%, 0.5);
+    }
+
+    profile-button:active{
+        opacity: 0.5;
+        transform: scale(0.97);
+    }
+
+    .profile-button-active{
+        background-color: hsla(0, 0%, 50%, 0.5);
+    }
+
+    .profile-name {
+        position: absolute;
+        width: 65%;
+        top: 50%;
+        left: 10%;
+        transform: translate(0%, -50%);
+        font-size: 3vh;
+    }
+
+    .profile-playing {
+        position: absolute;
+        width: 8%;
+        top: 50%;
+        right: 10%;
+        transform: translate(0%, -50%);
+        text-align: center;
+        font-size: 3vh;
+        font-weight: bold;
+    }
+
+    #effects-box{
+        position: absolute;
+        padding: 0.25vw;
+        box-sizing: border-box;
+        top: 0;
+        right: 6vw;
+        width: 74vw;
+        height: 100%;
+        overflow: hidden;
+        animation-duration: 100ms;
+        animation-fill-mode: both;
+    }
+
+    #page-up{
+        position: absolute;
+        right: 0.5vw;
+        top: 0.5vw;
+        width: 5vw;
+        height: 15vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(120, 100%, 40%, 0.5);
+    }
+
+    #page-label{
+        position: absolute;
+        right: 0vw;
+        top: 19vh;
+        width: 6vw;
+        height: 4vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #page-down{
+        position: absolute;
+        right: 0.5vw;
+        top: 26vh;
+        width: 5vw;
+        height: 15vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(120, 100%, 40%, 0.5);
+    }
+
+    @keyframes activate-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(0.9) translateY(0)}
+    }
+
+    @keyframes activate-end{
+        0% {opacity: 0; transform: scale(0.9) translateY(0)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
+    }
+
+    @keyframes down-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(1) translateY(-50vh)}
+    }
+
+    @keyframes down-end{
+        0% {opacity: 0; transform: scale(1) translateY(50vh)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
+    }
+
+    @keyframes up-start{
+        0% {opacity: 1; transform: scale(1) translateY(0)}
+        100% {opacity: 0; transform: scale(1) translateY(50vh)}
+    }
+
+    @keyframes up-end{
+        0% {opacity: 0; transform: scale(1) translateY(-50vh)}
+        100% {opacity: 1; transform: scale(1) translateY(0)}
+    }
+
+    effect-button {
+        width: calc(20% - 0.5vw);
+        height: calc(20% - 0.5vw);
+        border-radius: 0.5vw;
+        background-color: hsla(0, 0%, 0%, 0.5);
+        will-change: transform;
+        display: inline-block;
+        margin: 0.25vw;
+    }
+
+    .effect-button-active{
+        background-color: hsla(0, 0%, 50%, 0.5);
+    }
+
+    .effect-button-pressed{
+        background-color: hsla(220, 100%, 50%, 0.5);
+        transform: scale(0.97);
+    }
+
+    .button-symbol{
+        position: absolute;
+        color: hsla(0, 0%, 100%, 0.07);
+        font-size: 15vh;
+        line-height: 20vh;
+        text-align: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .button-name {
+        position: absolute;
+        width: 75%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        font-size: 2.5vh;
+    }
+
+    .button-bpm {
+        position: absolute;
+        bottom: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-length {
+        position: absolute;
+        top: 0.5vw;
+        left: 0.5vw;
+        text-align: center;
+        font-size: 2vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-loop {
+        position: absolute;
+        top: -0.2vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 3.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    .button-trigger {
+        position: absolute;
+        bottom: 0.5vw;
+        right: 0.5vw;
+        text-align: center;
+        font-size: 1.5vh;
+        color: hsla(0, 0%, 100%, 0.4);
+    }
+
+    #refresh{
+        position: absolute;
+        left: 0.5vw;
+        /* margin: 0.5vw; */
+        bottom: calc(10vh + 1vw);
+        width: 9.25vw;
+        height: 10vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(40, 100%, 40%, 0.5);
+    }
+
+    .lighten-laser-mode{
+        background-color: hsla(119, 100%, 40%, 0.5) !important;
+    }
+
+    #laser-mode{
+        position: absolute;
+        left: 10.25vw;
+        /* margin: 0.5vw; */
+        bottom: calc(10vh + 1vw);
+        width: 9.25vw;
+        height: 10vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(119, 100%, 20%, 0.5);
+    }
+
+
+    #clear{
+        position: absolute;
+        left: 0.5vw;
+        bottom: 0.5vw;
+        width: 9.25vw;
+        height: 10vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(0, 100%, 40%, 0.5);
+    }
+
+    .lighten-dev-mode{
+        background-color: hsla(303, 100%, 40%, 0.5) !important;
+    }
+
+    #dev-mode{
+        position: absolute;
+        left: 10.25vw;
+        bottom: 0.5vw;
+        width: 9.25vw;
+        height: 10vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(303, 100%, 14%, 0.5);
+    }
+
+    .button:active{
+        opacity: 0.5;
+        transform: scale(0.97);
+    }
+    
+    ::-webkit-scrollbar {
+        width: 0vw;
+    }
+
+</style>
+
+</html>

@@ -6,8 +6,13 @@
     <meta name="viewport"
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#000000">
-    <title>Song Queue</title>
-    <link rel="manifest" href="manifest.webmanifest?v=7">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+    <title>DJ Songs</title>
+    <link rel="manifest" href="songs-manifest.webmanifest">
+    <link rel="icon" href="songs_icons/icon48.png">
+    <link rel="apple-touch-icon" href="songs_icons/icon180.png" sizes="180x180">
 </head>
 
 <body tabindex="-1">
@@ -88,7 +93,15 @@
     function socketInit() {
         console.log("socket init");
         
-        socket = new WebSocket("wss://" + location.hostname + ":7654");
+        let connectHost = location.hostname;
+        const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(connectHost);
+        if (!isIpAddress && connectHost.split('.').length > 2) {
+            const parts = connectHost.split('.');
+            connectHost = parts.slice(-2).join('.');
+        }
+        const string_to_connect = "wss://" + connectHost + ":7654"
+        console.log("Connecting to websocket:", string_to_connect);
+        socket = new WebSocket(string_to_connect);
 
         socket.onopen = function () {
             // sometimes takes a long time to get here
@@ -125,11 +138,9 @@
         }
 
         socket.onmessage = function (event) {
-            console.log("socket message");
+            // console.log("socket message");
             let msg = JSON.parse(event.data);
-
-
-            console.log('recieved message', msg);
+            // console.log('recieved message', msg);
 
             if(msg.songs){
                 songsConfig = msg.songs;

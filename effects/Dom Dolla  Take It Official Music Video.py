@@ -61,9 +61,17 @@ effects = {
     "dom fade blue red bottom": {
         "length": 8,
         "beats": [
-            b(1, name='Blue bottom', length=0.7, intensity=(1, 0)),
-            b(1.1, name='Red bottom', length=0.7, intensity=(0, 1)),
+            b(1, name='Blue bottom', length=0.7, intensity=(1, .5)),
+            b(1.1, name='Red bottom', length=0.7, intensity=(.2, 1)),
             b(1.8, name='Red bottom', length=7.2, intensity=(1, 0)),
+        ],
+    },
+    "dom fade red blue bottom": {
+        "length": 8,
+        "beats": [
+            b(1, name='Red bottom', length=0.7, intensity=(1, .5)),
+            b(1.1, name='Blue bottom', length=0.7, intensity=(.2, 1)),
+            b(1.8, name='Blue bottom', length=7.2, intensity=(1, 0)),
         ],
     },
     "dom windy melody": {
@@ -73,7 +81,7 @@ effects = {
             b(6, name='Red bottom', length=1, hue_shift=.35, sat_shift=-.2),
             b(7, name='Red bottom', length=1, hue_shift=.60, sat_shift=-.5),
             b(8, name='Red bottom', length=1, hue_shift=.45, sat_shift=-.2),
-            b(9, name='dom fade blue red bottom', length=8, hue_shift=.45),
+            b(9, name='dom fade red blue bottom', length=8, hue_shift=.45),
         ],
     },
 

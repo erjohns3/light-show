@@ -84,7 +84,6 @@ src/libprojectM/config.inp.in
 src/projectM-emscripten/build/presets
 winamp/projectm/presets/presets-cream-of-the-crop
 winamp/build
-old
 *.dylib
 projectM-EvalConfigVersion.cmake
 project.xcworkspace

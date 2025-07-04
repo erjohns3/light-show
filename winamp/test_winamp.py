@@ -19,6 +19,10 @@ if not winamp_wrapper.try_load_winamp_cxx_module():
     print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
     exit()
 
+if not winamp_wrapper.setup_winamp_visual():
+    print_red(f'winamp_wrapper.setup_winamp_visual() failed')
+    exit()
+
 if not winamp_wrapper.try_load_audio_device():
     print_red(f'winamp_wrapper.try_load_winamp_cxx_module() failed')
     exit()

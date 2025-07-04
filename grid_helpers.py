@@ -431,6 +431,13 @@ def compute_x_to_y_bezier_cubic(p1, p2, resolution=10000):
 
 
 
+# blue:
+    # 20 - green: 5
+    # 20 - green: 5
+    # 20 - green: 5
+
+
+
 start_bezier_time = time.time()
 grid_red_test_points = [(0.75, .60), (0.50, 0.31), (0.25, 0.08)]
 grid_green_test_points = [(0.75, 0.52), (0.50, 0.31), (0.25, 0.10)]

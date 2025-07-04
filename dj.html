@@ -6,8 +6,13 @@
     <meta name="viewport"
         content="height=device-height, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta name="theme-color" content="#000000">
-    <title>Light Show</title>
-    <link rel="manifest" href="dj-manifest.webmanifest">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+    <meta http-equiv="Pragma" content="no-cache"/>
+    <meta http-equiv="Expires" content="0"/>
+    <title>DJ Lights</title>
+    <link rel="manifest" href="lights-manifest.webmanifest">
+    <link rel="icon" href="lights_icons/icon48.png">
+    <link rel="apple-touch-icon" href="lights_icons/icon180.png" sizes="180x180">
 </head>
 
 <body tabindex="-1">
@@ -28,6 +33,40 @@
 
     <canvas id="background" width="200" height="200"></canvas>
 
+    <div id="myModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="0" class="slider" id="hue">
+                <span id="hueValue">0</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="saturation">Saturation</label>
+                <input type="range" min="-100" max="100" value="0" class="slider" id="saturation">
+                <span id="saturationValue">0</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="lightness">Lightness</label>
+                <input type="range" min="-100" max="100" value="0" class="slider" id="lightness">
+                <span id="lightnessValue">0</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="sensitivity">Sensitivity</label>
+                <input type="range" min="0" max="2" value="1" step="0.01" class="slider" id="sensitivity">
+                <span id="sensitivityValue">1</span>
+            </div>
+
+            <div class="slider-container">
+                <label for="rating">Rating</label>
+                <input type="range" min="0" max="5" value="0" step="1" class="slider" id="rating">
+                <span id="ratingValue">0</span>
+            </div>
+        </div>
+    </div>
+
     <div id="profile-box"></div>
 
     <div id="effects-box">
@@ -37,10 +76,11 @@
     <div id="page-up" class="button">Up</div>
     <div id="page-label">0/0</div>
     <div id="page-down" class="button">Dn</div>
-
-    <div id="beat-sens" class="text">Beat Sens: N/A</div>
+    <div id="page-random" class="button">random</div>
+    <div id="page-modifier" class="button">modify</div>
+    <!-- <div id="beat-sens" class="text">Beat Sens: N/A</div>
     <div id="beat-sens-up" class="button">Beat up</div>
-    <div id="beat-sens-down" class="button">Beat down</div>
+    <div id="beat-sens-down" class="button">Beat down</div> -->
     <div id="refresh" class="button">Refresh</div>
     <div id="laser-mode" class="button gray">Laser Mode</div>
     <div id="clear" class="button">Clear</div>
@@ -51,7 +91,15 @@
     function socketInit() {
         console.log("socket init");
         
-        socket = new WebSocket("wss://" + location.hostname + ":1337");
+        let connectHost = location.hostname;
+        const isIpAddress = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/.test(connectHost);
+        if (!isIpAddress && connectHost.split('.').length > 2) {
+            const parts = connectHost.split('.');
+            connectHost = parts.slice(-2).join('.');
+        }
+        const string_to_connect = "wss://" + connectHost + ":1337"
+        console.log("Connecting to websocket:", string_to_connect);
+        socket = new WebSocket(string_to_connect);
 
         socket.onopen = function () {
             // sometimes takes a long time to get here
@@ -126,10 +174,40 @@
                 }
             }
 
-            if(msg.status){
-                if (msg.status.beat_sens_string) {
-                    beatSensElem.textContent = msg.status.beat_sens_string;
+            if(msg.update_winamp_offsets){
+                console.log(msg)
+                let winampOffsets = msg.update_winamp_offsets;
+
+                for (winampUpdate of winampOffsets) {
+                    let effectName = winampUpdate.effect_name;
+                    if (effectsConfig[effectName] != null) {
+                        effectsConfig[effectName].winamp_offsets = {
+                            'winamp_bright_shift': winampUpdate.winamp_bright_shift / 100,
+                            'winamp_hue_shift': winampUpdate.winamp_hue_shift / 360,
+                            'winamp_sat_shift': winampUpdate.winamp_sat_shift / 100,
+                            'winamp_beat_sensitivity': winampUpdate.winamp_beat_sensitivity,
+                            'rating': winampUpdate.rating
+                        };
+                        console.log('Updated winamp offsets for effect:', effectName, effectsConfig[effectName].winamp_offsets);
+
+                        // need to adjust the sliders if the effect is active, calls setCurrentWinampValueSliders() on the current effect
+                        let index = effectButtonIndex[activeProfile][effectName];
+                        if (index >= profileEffectsIndex[activeProfile] && index < profileEffectsIndex[activeProfile] + 25){
+                            if (effectButtons[activeTable][index % 25]) {
+                                effectButtons[activeTable][index % 25].setCurrentWinampValueSliders();
+                            }
+                        }
+
+                    } else {
+                        console.warn('Effect not found in config:', effectName);
+                    }   
                 }
+            }
+
+            if(msg.status){
+                // if (msg.status.beat_sens_string) {
+                //     beatSensElem.textContent = msg.status.beat_sens_string;
+                // }
                 if ('effects' in msg.status){
                     let effectsPrev = effectsCurr;
                     effectsCurr = {};
@@ -251,6 +329,10 @@
         }
 
         press(event){
+            if (!this.effect) {
+                console.log('Somehow press was called without this.effect existing');
+                return
+            }
             // event.preventDefault();
             this.pressed = true;
             if(this.toggle){
@@ -284,10 +366,52 @@
             }
         }
 
+        setCurrentWinampValueSliders() {
+            console.log('LOOK AT ME: winamp_offsets', this.effect, effectsConfig[this.effect].winamp_offsets);
+
+            // adjusts all the sliders to the winamp offsets
+            let the_winamp_offsets = {
+                'winamp_hue_shift': 0,
+                'winamp_sat_shift': 0,
+                'winamp_bright_shift': 0,
+                'winamp_beat_sensitivity': 1,
+                'rating': 0
+            }
+            if (effectsConfig[this.effect].winamp_offsets) {
+                the_winamp_offsets = effectsConfig[this.effect].winamp_offsets;
+            }
+            let hueSlider = document.getElementById('hue');
+            if (hueSlider) {
+                hueSlider.value = the_winamp_offsets['winamp_hue_shift'] * 360;
+                document.getElementById('hueValue').textContent = hueSlider.value;
+            }
+            let saturationSlider = document.getElementById('saturation');
+            if (saturationSlider) {
+                saturationSlider.value = the_winamp_offsets['winamp_sat_shift'] * 100;
+                document.getElementById('saturationValue').textContent = saturationSlider.value;
+            }
+            let lightnessSlider = document.getElementById('lightness');
+            if (lightnessSlider) {
+                lightnessSlider.value = the_winamp_offsets['winamp_bright_shift'] * 100;
+                document.getElementById('lightnessValue').textContent = lightnessSlider.value;
+            }
+            let sensitivitySlider = document.getElementById('sensitivity');
+            if (sensitivitySlider) {
+                sensitivitySlider.value = the_winamp_offsets['winamp_beat_sensitivity'];
+                document.getElementById('sensitivityValue').textContent = sensitivitySlider.value;
+            }
+            let ratingSlider = document.getElementById('rating');
+            if (ratingSlider) {
+                ratingSlider.value = the_winamp_offsets['rating'];
+                document.getElementById('ratingValue').textContent = ratingSlider.value;
+            }
+        }
+
         activate(){
             if(!this.active){
                 this.classList.add('effect-button-active');
                 this.active = true;
+                this.setCurrentWinampValueSliders()
             }
         }
 
@@ -358,6 +482,16 @@
                 this.classList.add('profile-button-active');
                 this.active = true;
                 activeProfile = this.profileName;
+                
+                // if it contains the word 'winamp' in either case
+                if (this.profileName.toLowerCase().includes('winamp')) {
+                    randomButton.style.display = 'flex';
+                    modifyButton.style.display = 'flex';
+                } else {
+                    randomButton.style.display = 'none';
+                    modifyButton.style.display = 'none';
+                }
+
                 updateEffectButtons();
                 effectsTables[activeTable].style.animationName = 'curr-table-activate';
                 effectsTables[activeTable].style.zIndex = 2;
@@ -464,6 +598,9 @@
     function send(msg){
         if(socket != null && socket.readyState == WebSocket.OPEN){
             socket.send(msg);
+        } else {
+            console.log('socket == null', socket == null);
+            console.log('socket.readyState', socket ? socket.readyState : 'undefined');
         }
     }
 
@@ -550,16 +687,22 @@
     
 
     var profileOrder = {
+        'winamp rated 5': 6,
+        'winamp rated 4': 7,
+        'winamp rated 3': 8,
+        'winamp rated 2': 9,
+        'winamp rated 1': 10,
+        'winamp_all': 11,
         'Andrew': 0,
         'Eric': 1,
         'Emma': 2,
         'Fun Grid': 3,
         'Winamp Alone': 4,
         'Winamp Good 2': 5,
-        'Colors': 10,
-        'winamp_good_1': 14,
-        'winamp_tests': 15,
-        'Shows': 16,        
+        'Colors': 15,
+        'winamp_good_1': 20,
+        'winamp_tests': 21,
+        'Shows': 22,        
         'Autogen effects': 99999,
         'Generated Shows': 100000,
     }
@@ -573,6 +716,27 @@
     var profileEffects = {};
 
     var effectButtonIndex = {};
+
+
+    const randomButton = document.getElementById('page-random');
+    randomButton.style.display = 'none';
+
+    const modifyButton = document.getElementById('page-modifier');
+    modifyButton.style.display = 'none';
+
+    var modal = document.getElementById("myModal");
+    var span = document.getElementsByClassName("close-button")[0];
+    var hue = document.getElementById("hue");
+    var hueValue = document.getElementById("hueValue");
+    var saturation = document.getElementById("saturation");
+    var saturationValue = document.getElementById("saturationValue");
+    var lightness = document.getElementById("lightness");
+    var lightnessValue = document.getElementById("lightnessValue");
+    var sensitivity = document.getElementById("sensitivity");
+    var sensitivityValue = document.getElementById("sensitivityValue");
+    var rating = document.getElementById("rating");
+    var ratingValue = document.getElementById("ratingValue");
+    const sliders = document.querySelectorAll('.slider');
 
     var profileBox = document.getElementById('profile-box');
 
@@ -670,6 +834,23 @@
         pageDownElem.addEventListener('touchcancel', ()=>{
             clearInterval(pageInterval);
         }, {passive: true});
+
+
+        // Update the slider value display
+        // hue.oninput = function() {
+        //     hueValue.innerHTML = this.value;
+        // }
+
+        // lightness.oninput = function() {
+        //     lightnessValue.innerHTML = this.value;
+        // }
+        // saturation.oninput = function() {
+        //     saturationValue.innerHTML = this.value;
+        // }
+        // sensitivity.oninput = function() {
+        //     sensitivityValue.innerHTML = this.value;
+        // }
+
     } else {
         pageUpElem.addEventListener('mousedown', ()=>{
             clearInterval(pageInterval);
@@ -696,6 +877,62 @@
         }, {passive: true});
     }
 
+    randomButton.addEventListener('click', ()=>{
+        let randomIndex = Math.floor(Math.random() * profileEffects[activeProfile].length);
+
+        // mod to the lowest 25
+        profileEffectsIndex[activeProfile] = randomIndex - (randomIndex % 25);
+
+        let effectName = profileEffects[activeProfile][randomIndex];
+        if (effectName) {
+            addEffect(effectName);
+        }
+
+        updateEffectButtons();
+        effectsTables[activeTable].style.animationName = 'curr-table-up';
+        effectsTables[1 - activeTable].style.animationName = 'prev-table-up';
+    }, {passive: true});
+
+    modifyButton.addEventListener('click', ()=>{
+        modal.style.display = "block";
+    }, {passive: true});
+
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    sliders.forEach(slider => {
+        slider.addEventListener('input', (event) => {
+            // Find the <span> element that is the next sibling of the slider
+            const valueSpan = slider.nextElementSibling;
+
+            if (valueSpan) {
+                let value = event.target.value;
+
+                if (event.target.id === 'sensitivity') {
+                    value = parseFloat(value).toFixed(2);
+                }
+                valueSpan.textContent = value;
+
+                console.log(`Slider ${event.target.id} changed to ${value}`);
+
+                let msg = {
+                    type: 'winamp_offset_update',
+                    id: event.target.id,
+                    value: value
+                };
+                send(JSON.stringify(msg));
+            }
+        });
+    });
+
     var beatSensElem = document.getElementById('beat-sens');
     var beatSensUpElem = document.getElementById('beat-sens-up');
     var beatSensDownElem = document.getElementById('beat-sens-down');
@@ -709,13 +946,13 @@
         return Math.round(num * Math.pow(10, place)) / Math.pow(10, place)
     }
     
-    beatSensUpElem.onclick = function () {
-        beatSensUp();
-    }
+    // beatSensUpElem.onclick = function () {
+    //     beatSensUp();
+    // }
 
-    beatSensDownElem.onclick = function () {
-        beatSensDown();
-    }
+    // beatSensDownElem.onclick = function () {
+    //     beatSensDown();
+    // }
 
     refreshElem.onclick = function () {
         location.reload();
@@ -753,18 +990,16 @@
         send(JSON.stringify(msg));
     }
 
-    function paintBackground(){
-        let background = document.getElementById('background');
-        let context = background.getContext("2d", { alpha: false });
-        let ratio = window.devicePixelRatio;
-        let width = window.innerWidth * ratio;
-        let height = window.innerHeight * ratio;
-        background.width = width;
-        background.height = height;
+    function paintBackground() {
+        const ratio = window.devicePixelRatio || 1;
+        background.width = window.innerWidth * ratio;
+        background.height = window.innerHeight * ratio;
 
-        console.log(width);
+        let offscreenCanvas = document.createElement('canvas');
+        offscreenCanvas.width = background.width;
+        offscreenCanvas.height = background.height;
+        let ctx = offscreenCanvas.getContext('2d');
 
-        let size = height * 0.2;
         let bokehColor = [
             [150, 100, 30],
             [180, 100, 30],
@@ -774,18 +1009,25 @@
             [300, 100, 30],
             [330, 100, 30],
         ];
-        let bokehCount = 1000;
 
+        let bokehCount = 100;
         for(let i=0; i<bokehCount; i++){
-            let x = (Math.random() * (width + (size*2))) - size;
-            let y = (Math.random() * (height + (size*2))) - size;
+            let x = Math.random() * background.width;
+            let y = Math.random() * background.height;
+            let radius = background.height * 0.25;
             let color = bokehColor[Math.floor(Math.random()*bokehColor.length)];
-            let gradient = context.createRadialGradient(x, y, 0, x, y, size);
-            gradient.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
-            gradient.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, width, height);
+            let grd = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            grd.addColorStop(0, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0.5)`);
+            grd.addColorStop(1, `hsla(${color[0]}, ${color[1]}%, ${color[2]}%, 0)`);
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fill();
         }
+
+        let visibleCtx = background.getContext('2d');
+        visibleCtx.clearRect(0, 0, background.width, background.height);
+        visibleCtx.drawImage(offscreenCanvas, 0, 0);
     }
 
     var trackAccel = false;
@@ -920,6 +1162,8 @@
         }
     }
 
+    // navigator.serviceWorker.register('/sw.js', { scope: '/app1/' });
+
     paintBackground();
 
     window.onload = (event) => {
@@ -955,6 +1199,132 @@
         height: 100vh;
         z-index: -1;
     }
+
+    /* chatgpt modal nonsense */
+
+        /* --- Modal Styles --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            /* overflow: hidden;  */
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: #2d0e38;
+            margin: 2% auto;
+            padding: 25px;
+            border: 1px solid #888;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 8px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            font-size: 3vh;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            line-height: 1;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        h2 {
+            margin-top: 0;
+        }
+
+        /* --- Slider Layout (THIS IS THE CRUCIAL PART) --- */
+        .slider-container {
+            display: grid;
+            grid-template-columns: 1fr auto; /* Col 1: flexible width, Col 2: content width */
+            grid-template-rows: auto auto;    /* Row 1: label/value, Row 2: slider */
+            align-items: center;
+            row-gap: 5px;
+            margin-bottom: 20px;
+        }
+
+        /* Style for the Label (e.g., "Hue") */
+        .slider-container label {
+            grid-column: 1 / 2;
+            grid-row: 1 / 2;
+            font-weight: bold;
+            color: #e6e6e6; /* Ensure text color is visible */
+            font-size: 1.2em;
+            margin-right: 10px; /* Space between label and value */
+        }
+
+        /* Style for the Number Span (e.g., "180") */
+        .slider-container span {
+            grid-column: 2 / 3;
+            grid-row: 1 / 2;
+            justify-self: end; /* Align to the right side of the column */
+            font-family: monospace;
+            font-size: 1.1em;
+            color: #d8d8d8; /* Ensure text color is visible */
+            background-color: #eee;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background-color: transparent;
+        }
+
+        /* Style for the Slider bar */
+        .slider-container .slider {
+            grid-column: 1 / 3; /* Span across both columns */
+            grid-row: 2 / 3;
+            width: 100%;
+        }
+
+        /* --- Slider Appearance --- */
+        .slider {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 15px;
+            border-radius: 5px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.8;
+            transition: opacity .2s;
+        }
+
+        .slider:hover {
+            opacity: 1;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+
+
+
+    /* end chatgpt modal nonsense */
 
     #profile-box{
         position: absolute;
@@ -1064,6 +1434,36 @@
         top: 26vh;
         width: 5vw;
         height: 15vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(180, 100%, 40%, 0.5);
+    }
+
+    #page-random{
+        position: absolute;
+        right: 0.5vw;
+        top: 44vh;
+        width: 5vw;
+        height: 8vh;
+        border-radius: 0.5vw;
+        font-size: 3vh;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: hsla(180, 100%, 40%, 0.5);
+    }
+
+    #page-modifier{
+        position: absolute;
+        right: 0.5vw;
+        top: 53vh;
+        width: 5vw;
+        height: 8vh;
         border-radius: 0.5vw;
         font-size: 3vh;
         text-align: center;

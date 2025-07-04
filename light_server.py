@@ -119,8 +119,8 @@ elif args.winamp:
         global needs_to_save_winamp_offsets
         the_f = grid_helpers.winamp.winamp_wrapper.winamp_offsets_filepath
         while True:
-            time.sleep(5)
-            print(f'{cyan(f"Saving winamp offsets to {the_f}")}')
+            time.sleep(30)
+            # print(f'{cyan(f"Saving winamp offsets to {the_f}")}')
             if needs_to_save_winamp_offsets:
                 save_all_winamp_offsets()
                 needs_to_save_winamp_offsets = False

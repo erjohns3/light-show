@@ -14,6 +14,8 @@ from helpers import *
 
 
 if __name__ == '__main__':
+    print("THIS SCRIPT MUST BE RUN FROM THE TOP-LEVEL DIRECTORY OF THE REPOSITORY")
+    print("IF RUN FROM SCRIPTS, IT FAILS")
     downloaded_songs_directory = get_ray_directory().joinpath('music_creation').joinpath('downloaded_songs')
     urls_downloaded_directory = get_ray_directory().joinpath('music_creation').joinpath('url_caches')
     urls_downloaded_directory.mkdir(exist_ok=True, parents=True)
@@ -34,10 +36,21 @@ if __name__ == '__main__':
 
     while True:
         already_downloaded = False
-        funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'    
-        for title, url, contributor_name in youtube_download_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url):
+        funhouse_playlist_youtube_url = 'https://www.youtube.com/playlist?list=PL8gJgl0DwchB6ImoB60fDvkqLcgrsYCh-'
+        all_vids = youtube_download_helpers.get_info_from_youtube_playlist(funhouse_playlist_youtube_url)
+        
+        for title, url, contributor_name in all_vids:
+            print(f'    {title}')
+        print(f'{len(all_vids)=} videos found in playlist {funhouse_playlist_youtube_url}')
+
+        for title, url, contributor_name in all_vids:
             if url in urls_downloaded:
                 continue
+            
+            
+            if is_andrews_main_computer():
+                print('quitting on andrews computer')
+                exit()
             
             if already_downloaded:
                 sleep_time = 1

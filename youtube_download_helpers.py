@@ -206,9 +206,18 @@ def process_playlist_video_renderers(playlist_video_renderers, videos):
     }        
 
     continuation_token = None
-    for item3 in playlist_video_renderers:
+    for index, item3 in enumerate(playlist_video_renderers):
         if 'playlistVideoListRenderer' not in item3 and 'continuationItemRenderer' in item3:
-            continuation_token = item3['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token']
+            file = get_temp_file(name=f'{random_letters(15)}_{index}', suffix=f'.json')
+            with open(file, 'w') as f:
+                json.dump(item3, f, indent=4)
+            print(f'Output item3 of {index} to {file}')
+
+            
+            ce = item3['continuationItemRenderer']['continuationEndpoint']; continuation_token = ce['commandExecutorCommand']['commands'][1]['continuationCommand']['token'] if 'commandExecutorCommand' in ce else ce['continuationCommand']['token']
+
+            # ce = item3['continuationItemRenderer']['continuationEndpoint']; continuation_token = ce['commandExecutorCommand']['commands'][1]['continuationCommand']['token'] if 'commandExecutorCommand' in ce else ce['continuationCommand']['token']
+
             print_blue(f'continuation token: {continuation_token}')
             continue
             
@@ -263,16 +272,26 @@ def get_info_from_youtube_playlist(url, write_files=True):
             print(f'loading json failed', flush=True)
         
         # old
-        for item1 in list1:
+        for index, item1 in enumerate(list1):
             try:
-                list2 = item1['itemSectionRenderer']['contents']
-                for item2 in list2:
-                    try:
-                        list3 = item2['playlistVideoListRenderer']['contents']
-                        continuation_token = process_playlist_video_renderers(list3, videos)
-                    except Exception as e:
-                        print_red(f'parsing 4 failed last time it was list3, printing below: {traceback.format_exc()}')
-                        # print(list3)
+                file = get_temp_file(name=f'{random_letters(15)}_{index}', suffix=f'.json')
+                with open(file, 'w') as f:
+                    json.dump(item1, f, indent=4)
+
+                if 'continuationItemRenderer' not in item1:
+                    print(f'OUTPUTTING NON CONTINUATION item1 of {index} to {file}')
+
+                    list2 = item1['itemSectionRenderer']['contents']
+                    for item2 in list2:
+                        try:
+                            list3 = item2['playlistVideoListRenderer']['contents']
+                            continuation_token = process_playlist_video_renderers(list3, videos)
+                        except Exception as e:
+                            print_red(f'parsing 4 failed last time it was list3, printing below: {traceback.format_exc()}')
+                            # print(list3)
+                else:
+                    print(f'OUTPUTTING CONTINUATION item1 of {index} to {file}')
+                    continuation_token = process_playlist_video_renderers(list3, videos)
             except Exception as e:
                 print_red(f'parsing 3 failed: {traceback.format_exc()}')
     else:
